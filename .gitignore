@@ -1,0 +1,22 @@
+# Secretos (LO MÁS IMPORTANTE)
+.env
+.env.local
+.env.*.local
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Cursor / VS Code
+.vscode/
+.cursor/
