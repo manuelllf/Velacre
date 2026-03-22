@@ -26,4 +26,13 @@ public class UsuarioEntity : BaseModel
 
     [Column("actualizadofecha")]
     public DateTimeOffset? ActualizadoFecha { get; set; }
+
+    [Column("activo")]
+    public bool Activo { get; set; }
+
+    [Column("activo_desde")]
+    public DateTimeOffset? ActivoDesde { get; set; }
+
+    [Column("email")]
+    public string? Email { get; set; }
 }

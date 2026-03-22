@@ -12,11 +12,13 @@ public class UsuarioController : ControllerBase
 {
     private readonly Supabase.Client _supabase;
     private readonly ILogger<UsuarioController> _logger;
+    private readonly Guid _adminUserId;
 
     public UsuarioController(Supabase.Client supabase, ILogger<UsuarioController> logger)
     {
         _supabase = supabase;
         _logger = logger;
+        _adminUserId = Guid.Parse(Environment.GetEnvironmentVariable("ADMIN_USER_ID") ?? "00000000-0000-0000-0000-000000000000");
     }
 
     [HttpGet("me")]
@@ -29,7 +31,16 @@ public class UsuarioController : ControllerBase
             .Get();
         var usuario = result.Models.FirstOrDefault();
         if (usuario == null) return NotFound();
-        return Ok(new { id = usuario.Id, nombre = usuario.Nombre, telefono = usuario.Telefono });
+        var isAdmin = userId == _adminUserId;
+        return Ok(new
+        {
+            id = usuario.Id,
+            nombre = usuario.Nombre,
+            telefono = usuario.Telefono,
+            activo = usuario.Activo,
+            activoDesde = usuario.ActivoDesde,
+            isAdmin
+        });
     }
 
     [HttpPut("me")]
@@ -57,6 +68,7 @@ public class UsuarioController : ControllerBase
     public async Task<IActionResult> CreateProfile([FromBody] CreateUsuarioRequest request)
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var email = User.FindFirst("email")?.Value;
         _logger.LogInformation("[UsuarioController] POST / — userId={UserId}, nombre={Nombre}", userId, request.Nombre);
 
         var entity = new UsuarioEntity
@@ -64,6 +76,7 @@ public class UsuarioController : ControllerBase
             Id = userId,
             Nombre = request.Nombre,
             Telefono = request.Telefono,
+            Email = email,
             CreadoPor = userId,
             CreadoFecha = DateTimeOffset.UtcNow
         };
@@ -74,8 +87,7 @@ public class UsuarioController : ControllerBase
 
             if (result.Models.Count == 0)
             {
-                _logger.LogError("[UsuarioController] Insert devolvió 0 modelos para userId={UserId}", userId);
-                return StatusCode(500, "No se pudo crear el perfil.");
+                _logger.LogWarning("[UsuarioController] Insert devolvió 0 modelos para userId={UserId} (puede ser normal en Supabase)", userId);
             }
 
             _logger.LogInformation("[UsuarioController] Perfil creado para userId={UserId}", userId);

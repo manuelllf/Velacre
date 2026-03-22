@@ -138,10 +138,42 @@ export async function updateNegocio(data: {
 }
 
 
-export async function getMyUsuario(): Promise<{ id: string; nombre?: string; telefono?: string }> {
+export async function getMyUsuario(): Promise<{ id: string; nombre?: string; telefono?: string; activo: boolean; activoDesde?: string; isAdmin: boolean }> {
   const res = await fetch(`${API_URL}/api/usuario/me`, { headers: await authHeaders() })
   if (!res.ok) throw new Error(await res.text())
   return res.json()
+}
+
+export interface AdminUsuario {
+  id: string
+  nombre?: string
+  email?: string
+  activo: boolean
+  activoDesde?: string
+  creadoFecha: string
+  negocio?: { id: string; nombre: string } | null
+}
+
+export async function getAdminUsuarios(): Promise<AdminUsuario[]> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+export async function activarUsuario(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/activar`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function desactivarUsuario(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/desactivar`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(await res.text())
 }
 
 export async function updateUsuario(data: { nombre?: string; telefono?: string }): Promise<void> {
