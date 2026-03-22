@@ -11,16 +11,19 @@ namespace backend.Controllers;
 public class UsuarioController : ControllerBase
 {
     private readonly Supabase.Client _supabase;
+    private readonly ILogger<UsuarioController> _logger;
 
-    public UsuarioController(Supabase.Client supabase)
+    public UsuarioController(Supabase.Client supabase, ILogger<UsuarioController> logger)
     {
         _supabase = supabase;
+        _logger = logger;
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateProfile([FromBody] CreateUsuarioRequest request)
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        _logger.LogInformation("[UsuarioController] POST / — userId={UserId}, nombre={Nombre}", userId, request.Nombre);
 
         var entity = new UsuarioEntity
         {
@@ -31,11 +34,23 @@ public class UsuarioController : ControllerBase
             CreadoFecha = DateTimeOffset.UtcNow
         };
 
-        var result = await _supabase.From<UsuarioEntity>().Insert(entity);
+        try
+        {
+            var result = await _supabase.From<UsuarioEntity>().Insert(entity);
 
-        if (result.Models.Count == 0)
-            return StatusCode(500, "No se pudo crear el perfil.");
+            if (result.Models.Count == 0)
+            {
+                _logger.LogError("[UsuarioController] Insert devolvió 0 modelos para userId={UserId}", userId);
+                return StatusCode(500, "No se pudo crear el perfil.");
+            }
 
-        return Created("", result.Models[0]);
+            _logger.LogInformation("[UsuarioController] Perfil creado para userId={UserId}", userId);
+            return Created("", result.Models[0]);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[UsuarioController] Error al crear perfil para userId={UserId}", userId);
+            return StatusCode(500, ex.Message);
+        }
     }
 }
