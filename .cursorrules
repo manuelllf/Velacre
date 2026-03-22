@@ -1,0 +1,10 @@
+Estructura del Proyecto:
+- Backend: .NET 9 WebAPI (C#), carpeta /backend.
+- Frontend: Next.js 15 (TypeScript), carpeta /frontend.
+
+Reglas de Oro:
+1. Las API Keys y secretos SIEMPRE se leen de los archivos .env (Backend) o .env.local (Frontend). Nunca las escribas directamente en el código.
+2. Para el Backend, usa Inyección de Dependencias y sigue el patrón de Interfaces/Services.
+3. Para el Frontend, usa Tailwind CSS y componentes funcionales de React.
+4. El modelo de IA para las reseñas es Claude 4.6.
+5. Tono del negocio: Hostelería en Galicia (considerar la retranca y cercanía gallega si se solicita tono 'Enxebre').
