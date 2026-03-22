@@ -5,7 +5,11 @@
       "Bash(timeout 8 dotnet run)",
       "Bash(curl:*)",
       "Bash(netstat -ano)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(dotnet list:*)",
+      "Bash(tasklist)",
+      "Bash(dotnet run:*)",
+      "Bash(rm:*)"
     ]
   }
 }
