@@ -86,6 +86,10 @@ export default function LoginPage() {
             Regístrate gratis
           </Link>
         </p>
+
+        <p className="text-center text-sm text-slate-400 dark:text-slate-600 mt-4">
+          <Link href="/privacidad" className="hover:underline">Política de privacidad</Link>
+        </p>
       </div>
     </div>
   )
