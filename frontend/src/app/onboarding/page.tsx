@@ -30,12 +30,18 @@ export default function OnboardingPage() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null)
   const [searchingPlaces, setSearchingPlaces] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const skipSearchRef = useRef(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   }
 
   useEffect(() => {
+    if (skipSearchRef.current) {
+      skipSearchRef.current = false
+      return
+    }
+
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
     if (!placeQuery.trim() || placeQuery.trim().length < 3) {
@@ -61,6 +67,7 @@ export default function OnboardingPage() {
   }, [placeQuery])
 
   function handleSelectPlace(place: PlaceResult) {
+    skipSearchRef.current = true
     setSelectedPlace(place)
     setPlaceQuery(place.name)
     setPlaceResults([])

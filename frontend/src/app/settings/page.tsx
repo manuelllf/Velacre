@@ -37,6 +37,7 @@ export default function SettingsPage() {
   const [savingPlace, setSavingPlace] = useState(false)
   const [placeSaved, setPlaceSaved] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const skipSearchRef = useRef(false)
 
   useEffect(() => {
     async function load() {
@@ -65,6 +66,10 @@ export default function SettingsPage() {
   }, [router])
 
   useEffect(() => {
+    if (skipSearchRef.current) {
+      skipSearchRef.current = false
+      return
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (!placeQuery.trim() || placeQuery.trim().length < 3) {
       setPlaceResults([])
@@ -85,6 +90,7 @@ export default function SettingsPage() {
   }, [placeQuery])
 
   function handleSelectPlace(place: PlaceResult) {
+    skipSearchRef.current = true
     setSelectedPlace(place)
     setPlaceQuery(place.name)
     setPlaceResults([])
