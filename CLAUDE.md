@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ReviewShield is an AI-powered tool for hospitality businesses in Galicia (Spain) to auto-generate responses to online reviews. It targets Ferrol, Galicia specifically and supports a tone called 'Enxebre' (warm, local Galician style).
+Velac is an AI-powered tool for hospitality businesses in Galicia (Spain) to auto-generate responses to online reviews. It targets Ferrol, Galicia specifically. Three available tones: Profesional, Colegueo, Orgullosa.
 
 ## Architecture
 

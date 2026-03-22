@@ -19,6 +19,40 @@ public class UsuarioController : ControllerBase
         _logger = logger;
     }
 
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMe()
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var result = await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == userId)
+            .Limit(1)
+            .Get();
+        var usuario = result.Models.FirstOrDefault();
+        if (usuario == null) return NotFound();
+        return Ok(new { id = usuario.Id, nombre = usuario.Nombre, telefono = usuario.Telefono });
+    }
+
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMe([FromBody] CreateUsuarioRequest request)
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var result = await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == userId)
+            .Limit(1)
+            .Get();
+        var usuario = result.Models.FirstOrDefault();
+        if (usuario == null) return NotFound();
+
+        usuario.Nombre = request.Nombre ?? usuario.Nombre;
+        usuario.Telefono = request.Telefono ?? usuario.Telefono;
+        usuario.ActualizadoPor = userId;
+        usuario.ActualizadoFecha = DateTimeOffset.UtcNow;
+
+        await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+        _logger.LogInformation("[UsuarioController] Perfil actualizado para userId={UserId}", userId);
+        return Ok(new { id = usuario.Id, nombre = usuario.Nombre, telefono = usuario.Telefono });
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateProfile([FromBody] CreateUsuarioRequest request)
     {

@@ -64,16 +64,23 @@ public class NegocioController : ControllerBase
 
         try
         {
-            var result = await _supabase.From<NegocioEntity>().Insert(entity);
+            await _supabase.From<NegocioEntity>().Insert(entity);
 
-            if (result.Models.Count == 0)
+            // Supabase a veces devuelve Models vacío aunque el INSERT fue correcto — hacemos GET para obtener el registro
+            var fetched = await _supabase.From<NegocioEntity>()
+                .Where(n => n.IdUsuario == userId)
+                .Limit(1)
+                .Get();
+
+            var created = fetched.Models.FirstOrDefault();
+            if (created == null)
             {
-                _logger.LogError("[NegocioController] Insert devolvió 0 modelos para userId={UserId}", userId);
+                _logger.LogError("[NegocioController] No se encontró el negocio tras INSERT para userId={UserId}", userId);
                 return StatusCode(500, "No se pudo crear el negocio.");
             }
 
-            _logger.LogInformation("[NegocioController] Negocio creado: {NegocioId}", result.Models[0].Id);
-            return Created("", ToDto(result.Models[0]));
+            _logger.LogInformation("[NegocioController] Negocio creado: {NegocioId}", created.Id);
+            return Created("", ToDto(created));
         }
         catch (Exception ex)
         {
@@ -106,6 +113,7 @@ public class NegocioController : ControllerBase
         negocio.Telefono = request.Telefono ?? negocio.Telefono;
         negocio.Descripcion = request.Descripcion ?? negocio.Descripcion;
         negocio.TonoPredefinido = request.TonoPredefinido ?? negocio.TonoPredefinido;
+        if (request.PlaceId != null) negocio.PlaceId = request.PlaceId;
         negocio.ActualizadoPor = userId;
         negocio.ActualizadoFecha = DateTimeOffset.UtcNow;
 
@@ -126,6 +134,7 @@ public class NegocioController : ControllerBase
         email = n.Email,
         telefono = n.Telefono,
         descripcion = n.Descripcion,
-        tonopredefinido = n.TonoPredefinido
+        tonopredefinido = n.TonoPredefinido,
+        placeId = n.PlaceId
     };
 }

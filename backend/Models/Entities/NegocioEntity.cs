@@ -30,6 +30,9 @@ public class NegocioEntity : BaseModel
     [Column("tonopredefinido")]
     public string TonoPredefinido { get; set; } = "Profesional";
 
+    [Column("place_id")]
+    public string? PlaceId { get; set; }
+
     [Column("idusuario")]
     public Guid? IdUsuario { get; set; }
 
