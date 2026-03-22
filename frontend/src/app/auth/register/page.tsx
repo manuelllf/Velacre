@@ -114,6 +114,13 @@ export default function RegisterPage() {
             >
               {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
             </button>
+
+            <p className="text-center text-sm text-slate-400 dark:text-slate-500">
+              Al crear tu cuenta aceptas nuestra{' '}
+              <Link href="/privacidad" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                Política de privacidad
+              </Link>
+            </p>
           </form>
         </div>
 
