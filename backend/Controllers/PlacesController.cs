@@ -63,6 +63,26 @@ public class PlacesController : ControllerBase
 
         var reviews = await _placesService.GetReviewsAsync(negocio.PlaceId);
 
+        // Obtener todas las reseñas importadas de Google que hay en la BD para este negocio
+        var allExistingResult = await _supabase.From<ReviewEntity>()
+            .Where(r => r.IdNegocio == negocio.Id)
+            .Get();
+
+        var currentReviewIds = reviews.Select(r => r.ReviewId).ToHashSet();
+
+        // Borrar reseñas de Google que ya no pertenecen al place actual (negocio cambiado)
+        var stale = allExistingResult.Models
+            .Where(r => r.GoogleReviewId != null && !currentReviewIds.Contains(r.GoogleReviewId!))
+            .ToList();
+
+        foreach (var old in stale)
+        {
+            await _supabase.From<ReviewEntity>()
+                .Where(r => r.Id == old.Id)
+                .Delete();
+            _logger.LogInformation("[PlacesController] Reseña obsoleta eliminada: {GoogleReviewId}", old.GoogleReviewId);
+        }
+
         if (reviews.Count == 0)
         {
             _logger.LogInformation("[PlacesController] No se encontraron reseñas para placeId={PlaceId}", negocio.PlaceId);
@@ -73,12 +93,10 @@ public class PlacesController : ControllerBase
 
         foreach (var review in reviews)
         {
-            var existingResult = await _supabase.From<ReviewEntity>()
-                .Where(r => r.GoogleReviewId == review.ReviewId && r.IdNegocio == negocio.Id)
-                .Limit(1)
-                .Get();
+            var alreadyInDb = allExistingResult.Models
+                .Any(r => r.GoogleReviewId == review.ReviewId);
 
-            if (existingResult.Models.FirstOrDefault() != null)
+            if (alreadyInDb)
             {
                 _logger.LogDebug("[PlacesController] Reseña ya existe: {ReviewId}", review.ReviewId);
                 continue;
@@ -102,7 +120,7 @@ public class PlacesController : ControllerBase
             _logger.LogDebug("[PlacesController] Reseña insertada: {Codigo}", entity.Codigo);
         }
 
-        _logger.LogInformation("[PlacesController] Sincronización completada — {NewCount} nuevas reseñas para negocioId={NegocioId}", newCount, negocio.Id);
+        _logger.LogInformation("[PlacesController] Sincronización completada — {NewCount} nuevas, {StaleCount} obsoletas eliminadas para negocioId={NegocioId}", newCount, stale.Count, negocio.Id);
         return Ok(new { newReviews = newCount });
     }
 }
