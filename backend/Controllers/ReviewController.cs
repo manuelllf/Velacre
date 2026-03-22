@@ -32,9 +32,12 @@ public class ReviewController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[ReviewController] POST /generate — userId={UserId}, plataforma={Plataforma}", userId, request.Plataforma);
 
-        var negocio = await _supabase.From<NegocioEntity>()
+        var negocioResult = await _supabase.From<NegocioEntity>()
             .Where(n => n.IdUsuario == userId)
-            .Single();
+            .Limit(1)
+            .Get();
+
+        var negocio = negocioResult.Models.FirstOrDefault();
 
         if (negocio == null)
         {

@@ -6,7 +6,7 @@ namespace backend.Models.Entities;
 [Table("usuario")]
 public class UsuarioEntity : BaseModel
 {
-    [PrimaryKey("id", false)]
+    [PrimaryKey("id", true)]
     public Guid Id { get; set; }
 
     [Column("nombre")]

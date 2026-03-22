@@ -4,7 +4,6 @@ using backend.Services;
 using Supabase;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,15 +12,15 @@ Env.Load();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Auth JWT (valida tokens de Supabase Auth)
-var jwtSecret = Environment.GetEnvironmentVariable("SUPABASE_JWT_SECRET")!;
+// Auth JWT — usa JWKS de Supabase (compatible con HS256 y ES256)
+var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL")!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Authority = supabaseUrl + "/auth/v1";
+        options.RequireHttpsMetadata = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,

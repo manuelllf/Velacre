@@ -118,11 +118,14 @@ export async function updateNegocio(data: {
 export async function createUsuario(data: {
   nombre?: string
   telefono?: string
-}): Promise<void> {
+}, accessToken?: string): Promise<void> {
   console.log('[api] createUsuario →', data.nombre)
+  const headers = accessToken
+    ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` }
+    : await authHeaders()
   const res = await fetch(`${API_URL}/api/usuario`, {
     method: 'POST',
-    headers: await authHeaders(),
+    headers,
     body: JSON.stringify(data),
   })
   if (!res.ok) {

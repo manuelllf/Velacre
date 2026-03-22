@@ -19,7 +19,7 @@ export default function RegisterPage() {
     setError('')
     setLoading(true)
 
-    const { error: signUpError } = await supabase.auth.signUp({ email, password })
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password })
 
     if (signUpError) {
       setError(signUpError.message)
@@ -27,8 +27,10 @@ export default function RegisterPage() {
       return
     }
 
+    console.log('[register] signUpData.session:', signUpData.session ? 'OK token=' + signUpData.session.access_token?.slice(0, 20) + '...' : 'NULL')
+
     try {
-      await createUsuario({ nombre })
+      await createUsuario({ nombre }, signUpData.session?.access_token)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear el perfil. Inténtalo de nuevo.')
       setLoading(false)

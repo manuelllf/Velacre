@@ -45,7 +45,7 @@ public class UsuarioController : ControllerBase
             }
 
             _logger.LogInformation("[UsuarioController] Perfil creado para userId={UserId}", userId);
-            return Created("", result.Models[0]);
+            return NoContent();
         }
         catch (Exception ex)
         {

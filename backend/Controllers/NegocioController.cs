@@ -25,9 +25,12 @@ public class NegocioController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogDebug("[NegocioController] GET /me — userId={UserId}", userId);
 
-        var negocio = await _supabase.From<NegocioEntity>()
+        var result = await _supabase.From<NegocioEntity>()
             .Where(n => n.IdUsuario == userId)
-            .Single();
+            .Limit(1)
+            .Get();
+
+        var negocio = result.Models.FirstOrDefault();
 
         if (negocio == null)
         {
@@ -36,7 +39,7 @@ public class NegocioController : ControllerBase
         }
 
         _logger.LogDebug("[NegocioController] Negocio encontrado: {NegocioId}", negocio.Id);
-        return Ok(negocio);
+        return Ok(ToDto(negocio));
     }
 
     [HttpPost]
@@ -70,7 +73,7 @@ public class NegocioController : ControllerBase
             }
 
             _logger.LogInformation("[NegocioController] Negocio creado: {NegocioId}", result.Models[0].Id);
-            return Created("", result.Models[0]);
+            return Created("", ToDto(result.Models[0]));
         }
         catch (Exception ex)
         {
@@ -85,9 +88,12 @@ public class NegocioController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[NegocioController] PUT /me — userId={UserId}", userId);
 
-        var negocio = await _supabase.From<NegocioEntity>()
+        var updateResult = await _supabase.From<NegocioEntity>()
             .Where(n => n.IdUsuario == userId)
-            .Single();
+            .Limit(1)
+            .Get();
+
+        var negocio = updateResult.Models.FirstOrDefault();
 
         if (negocio == null)
         {
@@ -108,6 +114,18 @@ public class NegocioController : ControllerBase
             .Update(negocio);
 
         _logger.LogInformation("[NegocioController] Negocio actualizado: {NegocioId}", negocio.Id);
-        return Ok(negocio);
+        return Ok(ToDto(negocio));
     }
+
+    private static object ToDto(NegocioEntity n) => new
+    {
+        id = n.Id,
+        codigo = n.Codigo,
+        cif = n.CIF,
+        nombre = n.Nombre,
+        email = n.Email,
+        telefono = n.Telefono,
+        descripcion = n.Descripcion,
+        tonopredefinido = n.TonoPredefinido
+    };
 }
