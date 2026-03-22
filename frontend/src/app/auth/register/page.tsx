@@ -29,8 +29,10 @@ export default function RegisterPage() {
 
     try {
       await createUsuario({ nombre })
-    } catch {
-      // El perfil se puede crear después, no es bloqueante
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo crear el perfil. Inténtalo de nuevo.')
+      setLoading(false)
+      return
     }
 
     router.replace('/onboarding')

@@ -32,7 +32,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IReviewAiService>(sp =>
-    new ClaudeService(Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")!));
+    new ClaudeService(
+        Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")!,
+        sp.GetRequiredService<ILogger<ClaudeService>>()));
 
 builder.Services.AddSingleton<Supabase.Client>(sp =>
 {
@@ -47,7 +49,7 @@ builder.Services.AddSingleton<Supabase.Client>(sp =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials());
