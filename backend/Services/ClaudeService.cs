@@ -29,7 +29,7 @@ public class ClaudeService : IReviewAiService
             GenerateSingleAsync(reviewText, businessDesc, "Colegueo",
                 "Responde de forma cercana e informal, como si hablaras con un amigo del barrio. Natural y espontáneo."),
             GenerateSingleAsync(reviewText, businessDesc, "Orgullosa",
-                "Responde con orgullo gallego. Menciona la tradición local de Galicia y el amor por la tierra. Puedes usar alguna expresión en gallego.")
+                "Responde con altivez y cierta soberbia elegante. Tono seguro de sí mismo, casi condescendiente pero sin ser grosero. Como quien sabe que su negocio es excelente y no necesita justificarse en exceso. Distante y distinguido.")
         );
 
         _logger.LogInformation("[ClaudeService] 3 respuestas generadas correctamente");

@@ -65,29 +65,29 @@ export default function DashboardPage() {
 
   if (loadingInit) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-slate-900">ReviewShield</span>
+            <span className="font-bold text-lg text-slate-900 dark:text-white">ReviewShield</span>
             {negocio && (
               <>
-                <span className="text-slate-300">|</span>
-                <span className="text-sm text-slate-600">{negocio.nombre}</span>
+                <span className="text-slate-300 dark:text-slate-600">|</span>
+                <span className="text-base text-slate-600 dark:text-slate-300">{negocio.nombre}</span>
               </>
             )}
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+            className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
           >
             Cerrar sesión
           </button>
@@ -96,37 +96,37 @@ export default function DashboardPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         {/* Input de reseña */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-1">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-1">
             Nueva respuesta
           </h2>
-          <p className="text-sm text-slate-500 mb-5">
+          <p className="text-base text-slate-500 dark:text-slate-400 mb-5">
             Pega la reseña de tu cliente y te generamos 3 respuestas para elegir.
           </p>
 
           <form onSubmit={handleGenerate} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
                 Reseña del cliente
               </label>
               <textarea
-                rows={4}
+                rows={6}
                 value={reviewText}
                 onChange={e => setReviewText(e.target.value)}
-                className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
                 placeholder="Pega aquí la reseña que quieres responder..."
               />
             </div>
 
-            <div className="flex items-end gap-4">
+            <div className="flex flex-wrap items-end gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
                   Plataforma
                 </label>
                 <select
                   value={plataforma}
                   onChange={e => setPlataforma(e.target.value)}
-                  className="px-3.5 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+                  className="px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   {PLATAFORMAS.map(p => (
                     <option key={p} value={p}>{p}</option>
@@ -137,12 +137,12 @@ export default function DashboardPage() {
               <button
                 type="submit"
                 disabled={loading || !reviewText.trim()}
-                className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-8 py-3 bg-indigo-600 text-white rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {loading ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generando...
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Generando... (puede tardar ~10 seg)
                   </>
                 ) : (
                   'Generar respuestas'
@@ -152,7 +152,7 @@ export default function DashboardPage() {
           </form>
 
           {error && (
-            <p className="mt-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+            <p className="mt-4 text-base text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 px-4 py-3 rounded-xl">{error}</p>
           )}
         </div>
 
@@ -160,8 +160,8 @@ export default function DashboardPage() {
         {responses && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-900">Respuestas generadas</h2>
-              <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Respuestas generadas</h2>
+              <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
                 {responses.codigo}
               </span>
             </div>
