@@ -94,11 +94,11 @@ export default function DashboardPage() {
     setSyncMessage('')
     try {
       const result = await syncReviews()
+      await loadPendingReviews()
       if (result.newReviews > 0) {
         setSyncMessage(`Se importaron ${result.newReviews} reseña${result.newReviews !== 1 ? 's' : ''} nueva${result.newReviews !== 1 ? 's' : ''}`)
-        await loadPendingReviews()
       } else {
-        setSyncMessage('No hay reseñas nuevas')
+        setSyncMessage('Todo al día, no hay reseñas nuevas')
       }
     } catch (err) {
       setSyncMessage(err instanceof Error ? err.message : 'Error al sincronizar')

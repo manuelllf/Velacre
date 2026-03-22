@@ -97,17 +97,9 @@ public class PlacesController : ControllerBase
                 CreadoFecha = DateTimeOffset.UtcNow
             };
 
-            var insertResult = await _supabase.From<ReviewEntity>().Insert(entity);
-
-            if (insertResult.Models.Count > 0)
-            {
-                newCount++;
-                _logger.LogDebug("[PlacesController] Reseña insertada: {Codigo}", entity.Codigo);
-            }
-            else
-            {
-                _logger.LogWarning("[PlacesController] Insert de reseña devolvió 0 modelos: {ReviewId}", review.ReviewId);
-            }
+            await _supabase.From<ReviewEntity>().Insert(entity);
+            newCount++;
+            _logger.LogDebug("[PlacesController] Reseña insertada: {Codigo}", entity.Codigo);
         }
 
         _logger.LogInformation("[PlacesController] Sincronización completada — {NewCount} nuevas reseñas para negocioId={NegocioId}", newCount, negocio.Id);
