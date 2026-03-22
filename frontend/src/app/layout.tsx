@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReviewShield",
+  title: "Velac",
   description: "Gestiona y responde las reseñas de tu negocio con IA",
 };
 

@@ -77,7 +77,7 @@ export default function DashboardPage() {
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-lg text-slate-900 dark:text-white">ReviewShield</span>
+            <span className="font-bold text-lg text-slate-900 dark:text-white">Velac</span>
             {negocio && (
               <>
                 <span className="text-slate-300 dark:text-slate-600">|</span>
