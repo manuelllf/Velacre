@@ -18,8 +18,14 @@ public class ReviewEntity : BaseModel
     [Column("clientereview")]
     public string ClienteReview { get; set; } = string.Empty;
 
-    [Column("respuestaia")]
-    public string? RespuestaIA { get; set; }
+    [Column("respuestaprofesional")]
+    public string? RespuestaProfesional { get; set; }
+
+    [Column("respuestacolegueo")]
+    public string? RespuestaColegueo { get; set; }
+
+    [Column("respuestaorgullosa")]
+    public string? RespuestaOrgullosa { get; set; }
 
     [Column("tono")]
     public string? Tono { get; set; }

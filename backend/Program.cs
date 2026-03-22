@@ -2,20 +2,38 @@ using DotNetEnv;
 using backend.Interfaces;
 using backend.Services;
 using Supabase;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Cargar Variables de Entorno (.env)
 Env.Load();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// 2. Inyectar el Servicio de IA
+// Auth JWT (valida tokens de Supabase Auth)
+var jwtSecret = Environment.GetEnvironmentVariable("SUPABASE_JWT_SECRET")!;
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+        options.MapInboundClaims = false;
+    });
+builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<IReviewAiService>(sp =>
     new ClaudeService(Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")!));
 
-// 3. Registrar cliente de Supabase como Singleton
 builder.Services.AddSingleton<Supabase.Client>(sp =>
 {
     var url = Environment.GetEnvironmentVariable("SUPABASE_URL")!;
@@ -26,23 +44,22 @@ builder.Services.AddSingleton<Supabase.Client>(sp =>
     return client;
 });
 
-// 3. Configurar CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
         policy.WithOrigins("http://localhost:3000")
               .AllowAnyMethod()
-              .AllowAnyHeader());
+              .AllowAnyHeader()
+              .AllowCredentials());
 });
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
-}
 
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -1,5 +1,7 @@
 ﻿namespace backend.Interfaces;
 
-public interface IReviewAiService {
-    Task<string> GenerateResponseAsync(string reviewText, string businessTone, string businessDesc);
+public interface IReviewAiService
+{
+    Task<(string Profesional, string Colegueo, string Orgullosa)> GenerateThreeResponsesAsync(
+        string reviewText, string businessDesc);
 }

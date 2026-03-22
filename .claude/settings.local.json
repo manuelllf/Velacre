@@ -9,7 +9,18 @@
       "Bash(dotnet list:*)",
       "Bash(tasklist)",
       "Bash(dotnet run:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(xargs wc:*)",
+      "Bash(findstr \":5146\")",
+      "Bash(findstr -i \"backend\\\\|dotnet\")",
+      "Bash(cmd.exe /c \"taskkill /PID 19976 /F\")",
+      "Bash(cmd.exe /c \"taskkill /PID 19976 /F 2>&1\")",
+      "Bash(powershell.exe -Command \"Stop-Process -Id 19976 -Force; Write-Output ''killed''\")",
+      "Bash(dotnet add:*)",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\(p[''''version'''']\\)\")",
+      "Bash(npm install:*)",
+      "Bash(powershell.exe -Command \"Get-Process -Name ''dotnet'' -ErrorAction SilentlyContinue | Stop-Process -Force; Write-Output ''stopped''\")",
+      "Bash(npm run:*)"
     ]
   }
 }
