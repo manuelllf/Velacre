@@ -20,7 +20,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError('Email o contraseña incorrectos.')
+      setError('El correo o la contraseña no son correctos. Compruébalo e inténtalo de nuevo.')
       setLoading(false)
       return
     }
@@ -32,15 +32,15 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Velac</h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Accede a tu cuenta</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Bienvenido de nuevo</h1>
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Gestiona las reseñas de tu negocio</p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
-                Email
+                Correo electrónico
               </label>
               <input
                 type="email"
@@ -81,7 +81,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-base text-slate-500 dark:text-slate-400 mt-6">
-          ¿No tienes cuenta?{' '}
+          ¿Aún no tienes cuenta?{' '}
           <Link href="/auth/register" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
             Regístrate gratis
           </Link>

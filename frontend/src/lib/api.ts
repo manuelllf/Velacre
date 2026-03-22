@@ -27,6 +27,27 @@ export interface Negocio {
   telefono?: string
   descripcion?: string
   tonopredefinido: string
+  placeId?: string
+}
+
+export interface PlaceResult {
+  placeId: string
+  name: string
+  address: string
+  rating?: number
+}
+
+export interface PendingReview {
+  id: string
+  googleReviewId?: string
+  authorName?: string
+  starRating?: number
+  reviewDate: string
+  clientereview: string
+  respuestaProfesional?: string
+  respuestaColegueo?: string
+  respuestaOrgullosa?: string
+  tonoGenerado?: string
 }
 
 export async function generateResponses(
@@ -98,6 +119,7 @@ export async function updateNegocio(data: {
   telefono?: string
   descripcion?: string
   tonoPredefinido?: string
+  placeId?: string
 }): Promise<Negocio> {
   console.log('[api] updateNegocio →', data)
   const res = await fetch(`${API_URL}/api/negocio/me`, {
@@ -113,6 +135,84 @@ export async function updateNegocio(data: {
   const result = await res.json()
   console.log('[api] updateNegocio ← OK')
   return result
+}
+
+
+export async function getMyUsuario(): Promise<{ id: string; nombre?: string; telefono?: string }> {
+  const res = await fetch(`${API_URL}/api/usuario/me`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+export async function updateUsuario(data: { nombre?: string; telefono?: string }): Promise<void> {
+  const res = await fetch(`${API_URL}/api/usuario/me`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function searchPlaces(query: string): Promise<PlaceResult[]> {
+  console.log('[api] searchPlaces →', query)
+  const res = await fetch(`${API_URL}/api/places/search?q=${encodeURIComponent(query)}`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    console.error('[api] searchPlaces ERROR', res.status, body)
+    throw new Error(body)
+  }
+  const data = await res.json()
+  console.log('[api] searchPlaces ← OK', data.length, 'resultados')
+  return data
+}
+
+export async function syncReviews(): Promise<{ newReviews: number }> {
+  console.log('[api] syncReviews →')
+  const res = await fetch(`${API_URL}/api/places/sync`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    console.error('[api] syncReviews ERROR', res.status, body)
+    throw new Error(body)
+  }
+  const data = await res.json()
+  console.log('[api] syncReviews ← OK', data.newReviews, 'nuevas')
+  return data
+}
+
+export async function getPendingReviews(): Promise<PendingReview[]> {
+  console.log('[api] getPendingReviews →')
+  const res = await fetch(`${API_URL}/api/review/pending`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    console.error('[api] getPendingReviews ERROR', res.status, body)
+    throw new Error(body)
+  }
+  const data = await res.json()
+  console.log('[api] getPendingReviews ← OK', data.length, 'reseñas')
+  return data
+}
+
+export async function generateForReview(reviewId: string): Promise<{ response: string; tono: string }> {
+  console.log('[api] generateForReview →', reviewId)
+  const res = await fetch(`${API_URL}/api/review/${reviewId}/generate`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    console.error('[api] generateForReview ERROR', res.status, body)
+    throw new Error(body)
+  }
+  const data = await res.json()
+  console.log('[api] generateForReview ← OK tono=', data.tono)
+  return data
 }
 
 export async function createUsuario(data: {

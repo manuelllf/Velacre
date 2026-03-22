@@ -35,6 +35,8 @@ builder.Services.AddScoped<IReviewAiService>(sp =>
         Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")!,
         sp.GetRequiredService<ILogger<ClaudeService>>()));
 
+builder.Services.AddHttpClient<IGooglePlacesService, GooglePlacesService>();
+
 builder.Services.AddSingleton<Supabase.Client>(sp =>
 {
     var url = Environment.GetEnvironmentVariable("SUPABASE_URL")!;

@@ -42,8 +42,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Velac</h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Crea tu cuenta — es gratis</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Crea tu cuenta</h1>
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Empieza a responder reseñas en minutos</p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
@@ -69,13 +69,13 @@ export default function RegisterPage() {
                 value={nombre}
                 onChange={e => setNombre(e.target.value)}
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Manuel"
+                placeholder="María, Carlos, Ana..."
               />
             </div>
 
             <div>
               <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
-                Email
+                Correo electrónico
               </label>
               <input
                 type="email"
@@ -98,8 +98,9 @@ export default function RegisterPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="••••••••"
               />
+              <p className="text-sm text-slate-400 dark:text-slate-500 mt-1.5">Mínimo 6 caracteres</p>
             </div>
 
             {error && (
@@ -111,7 +112,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full bg-indigo-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creando cuenta...' : 'Continuar'}
+              {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
             </button>
           </form>
         </div>
@@ -119,7 +120,7 @@ export default function RegisterPage() {
         <p className="text-center text-base text-slate-500 dark:text-slate-400 mt-6">
           ¿Ya tienes cuenta?{' '}
           <Link href="/auth/login" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
-            Entra aquí
+            Inicia sesión
           </Link>
         </p>
       </div>

@@ -33,6 +33,21 @@ public class ReviewEntity : BaseModel
     [Column("plataforma")]
     public string? Plataforma { get; set; }
 
+    [Column("google_review_id")]
+    public string? GoogleReviewId { get; set; }
+
+    [Column("author_name")]
+    public string? AuthorName { get; set; }
+
+    [Column("star_rating")]
+    public int? StarRating { get; set; }
+
+    [Column("review_date")]
+    public DateTimeOffset? ReviewDate { get; set; }
+
+    [Column("tono_generado")]
+    public string? TonoGenerado { get; set; }
+
     [Column("creadopor")]
     public Guid CreadoPor { get; set; }
 
