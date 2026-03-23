@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [userPlan, setUserPlan] = useState<string>('basic')
 
   const [nombre, setNombre] = useState('')
   const [negocio, setNegocio] = useState<Negocio | null>(null)
@@ -46,6 +47,7 @@ export default function SettingsPage() {
       try {
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
         setNombre(u.nombre ?? '')
+        setUserPlan(u.plan ?? 'basic')
         if (n) {
           setNegocio(n)
           setForm({
@@ -169,9 +171,10 @@ export default function SettingsPage() {
               </Link>
               <Link
                 href="/health"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1"
               >
                 Salud
+                {userPlan !== 'pro' && <span className="text-xs text-indigo-500 dark:text-indigo-400">Pro</span>}
               </Link>
               <span className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white">
                 Configuración
