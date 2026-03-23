@@ -94,6 +94,7 @@ public class ClaudeService : IReviewAiService
                     $"Eres un experto en reputación online para hostelería en Ferrol, Galicia. " +
                     $"Negocio: {businessDesc}. " +
                     $"Tono: {tone}. {toneInstructions} " +
+                    $"Si la reseña no tiene texto escrito, genera igualmente una respuesta agradeciendo la valoración y basándote en la puntuación de estrellas. " +
                     $"Genera SOLO la respuesta, sin títulos ni explicaciones. Máximo 150 palabras.")
             ]
         };

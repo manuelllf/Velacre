@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const [userStatus, setUserStatus] = useState<'activo' | 'pendiente' | 'suspendido'>('activo')
   const [userPlan, setUserPlan] = useState<string>('basic')
   const [userId, setUserId] = useState<string>('')
+  const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [manualUsed, setManualUsed] = useState<number>(0)
 
   // Pending reviews state
@@ -70,6 +71,7 @@ export default function DashboardPage() {
         const u = await getMyUsuario()
         setUserPlan(u.plan ?? 'basic')
         setUserId(u.id)
+        setIsAdmin(u.isAdmin)
         if (!u.activo) {
           setUserStatus(u.activoDesde ? 'suspendido' : 'pendiente')
           setLoadingInit(false)
@@ -313,6 +315,17 @@ export default function DashboardPage() {
               >
                 Configuración
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Admin
+                </Link>
+              )}
             </nav>
           </div>
           <button

@@ -228,10 +228,17 @@ public class ReviewController : ControllerBase
 
         _logger.LogDebug("[ReviewController] Generando respuesta para reviewId={ReviewId}, tono={Tone}", id, tone);
 
+        // Build review context — use star rating when text is absent
+        var reviewContext = !string.IsNullOrWhiteSpace(review.ClienteReview)
+            ? review.ClienteReview
+            : review.StarRating.HasValue
+                ? $"[Reseña sin texto] {review.StarRating} estrella{(review.StarRating != 1 ? "s" : "")} de {review.AuthorName ?? "un cliente"}. No dejó comentario escrito."
+                : $"[Reseña sin texto] de {review.AuthorName ?? "un cliente"}. No dejó comentario escrito.";
+
         try
         {
             var generated = await _aiService.GenerateSingleResponseAsync(
-                review.ClienteReview,
+                reviewContext,
                 negocio.Descripcion ?? negocio.Nombre,
                 tone
             );
