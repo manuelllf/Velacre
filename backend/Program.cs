@@ -12,9 +12,10 @@ Env.Load();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Auth JWT — valida con SUPABASE_JWT_SECRET (HS256)
-var jwtSecretRaw = Environment.GetEnvironmentVariable("SUPABASE_JWT_SECRET")!;
-var jwtKeyBytes = Convert.FromBase64String(jwtSecretRaw);
+// Auth JWT — valida con SUPABASE_JWT_SECRET (HS256, UTF-8 bytes)
+var jwtSecretRaw = Environment.GetEnvironmentVariable("SUPABASE_JWT_SECRET")
+    ?? throw new InvalidOperationException("SUPABASE_JWT_SECRET no está configurado");
+var jwtKeyBytes = System.Text.Encoding.UTF8.GetBytes(jwtSecretRaw);
 var jwtSigningKey = new SymmetricSecurityKey(jwtKeyBytes);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
