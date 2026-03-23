@@ -2,6 +2,14 @@ import { supabase } from './supabase'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5146'
 
+/** Error de API con código HTTP. Distingue errores de sesión (401) de errores de red. */
+export class ApiError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
 async function authHeaders(): Promise<HeadersInit> {
   const { data: { session } } = await supabase.auth.getSession()
   return {
@@ -82,7 +90,7 @@ export async function getMyNegocio(): Promise<Negocio | null> {
   if (!res.ok) {
     const body = await res.text()
     console.error('[api] getMyNegocio ERROR', res.status, body)
-    throw new Error(body)
+    throw new ApiError(res.status, body)
   }
   const data = await res.json()
   console.log('[api] getMyNegocio ← OK', data.id)
@@ -140,7 +148,7 @@ export async function updateNegocio(data: {
 
 export async function getMyUsuario(): Promise<{ id: string; nombre?: string; telefono?: string; activo: boolean; activoDesde?: string; isAdmin: boolean; plan: string }> {
   const res = await fetch(`${API_URL}/api/usuario/me`, { headers: await authHeaders() })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw new ApiError(res.status, await res.text())
   return res.json()
 }
 
@@ -231,7 +239,7 @@ export async function getPendingReviews(): Promise<PendingReview[]> {
   if (!res.ok) {
     const body = await res.text()
     console.error('[api] getPendingReviews ERROR', res.status, body)
-    throw new Error(body)
+    throw new ApiError(res.status, body)
   }
   const data = await res.json()
   console.log('[api] getPendingReviews ← OK', data.length, 'reseñas')

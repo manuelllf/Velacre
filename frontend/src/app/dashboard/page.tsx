@@ -11,6 +11,7 @@ import {
   getPendingReviews,
   generateForReview,
   syncReviews,
+  ApiError,
   type ReviewResponses,
   type Negocio,
   type PendingReview,
@@ -68,7 +69,8 @@ export default function DashboardPage() {
         return
       }
       try {
-        const u = await getMyUsuario()
+        // Parallelizar usuario + negocio para reducir tiempo de carga
+        const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
         setUserPlan(u.plan ?? 'basic')
         setUserId(u.id)
         setIsAdmin(u.isAdmin)
@@ -77,15 +79,19 @@ export default function DashboardPage() {
           setLoadingInit(false)
           return
         }
-        const n = await getMyNegocio()
         if (!n) {
           router.replace('/onboarding')
           return
         }
         setNegocio(n)
-        await loadPendingReviews()
-      } catch {
-        router.replace('/auth/login')
+        loadPendingReviews()
+      } catch (err) {
+        // Solo redirigir al login en errores de sesión (401), no en errores de red
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace('/auth/login')
+        } else {
+          setError('Error al conectar con el servidor. Recarga la página.')
+        }
       } finally {
         setLoadingInit(false)
       }

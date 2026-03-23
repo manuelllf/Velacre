@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio, getPendingReviews, getSummary, type PendingReview, type Negocio } from '@/lib/api'
+import { getMyUsuario, getMyNegocio, getPendingReviews, getSummary, ApiError, type PendingReview, type Negocio } from '@/lib/api'
 
 const STOPWORDS = new Set([
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'al', 'en', 'y', 'a', 'que',
@@ -54,6 +54,7 @@ export default function SaludPage() {
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [reviews, setReviews] = useState<PendingReview[]>([])
   const [loading, setLoading] = useState(true)
+  const [initError, setInitError] = useState('')
   const [summary, setSummary] = useState<SummaryData | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(false)
 
@@ -62,15 +63,19 @@ export default function SaludPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.replace('/auth/login'); return }
       try {
-        const u = await getMyUsuario()
-        if (!u.activo) { router.replace('/dashboard'); return }
-        if (u.plan !== 'pro') { router.replace('/dashboard'); return }
-        const [n, r] = await Promise.all([getMyNegocio(), getPendingReviews()])
+        // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
+        const [u, n, r] = await Promise.all([getMyUsuario(), getMyNegocio(), getPendingReviews()])
+        if (!u.activo || u.plan !== 'pro') { router.replace('/dashboard'); return }
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
-      } catch {
-        router.replace('/auth/login')
+      } catch (err) {
+        // Solo redirigir al login en errores de sesión (401), no en errores de red
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace('/auth/login')
+        } else {
+          setInitError('Error al conectar con el servidor. Recarga la página.')
+        }
       } finally {
         setLoading(false)
       }
@@ -92,6 +97,22 @@ export default function SaludPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (initError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="text-center space-y-4">
+          <p className="text-slate-600 dark:text-slate-400">{initError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-5 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+          >
+            Recargar
+          </button>
+        </div>
       </div>
     )
   }
