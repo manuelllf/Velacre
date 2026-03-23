@@ -48,13 +48,29 @@ builder.Services.AddSingleton<Supabase.Client>(sp =>
     return client;
 });
 
+var allowedOrigins = new[]
+{
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://velacre.com",
+    "https://www.velacre.com",
+};
+
+// Also allow any Vercel preview deploy (VERCEL_URL injected at runtime if needed)
+var extraOrigin = Environment.GetEnvironmentVariable("CORS_EXTRA_ORIGIN");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
+    {
+        var origins = string.IsNullOrWhiteSpace(extraOrigin)
+            ? allowedOrigins
+            : allowedOrigins.Append(extraOrigin).ToArray();
+        policy.WithOrigins(origins)
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials());
+              .AllowCredentials();
+    });
 });
 
 var app = builder.Build();
@@ -73,4 +89,6 @@ app.Use(async (context, next) => {
 
 app.MapControllers();
 
-app.Run();
+// Railway injects PORT; fallback to 5146 for local dev
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5146";
+app.Run($"http://0.0.0.0:{port}");
