@@ -12,19 +12,18 @@ Env.Load();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Auth JWT — GoTrue usa []byte(secret) que en Go = UTF-8 del string
-var jwtSecretRaw = (Environment.GetEnvironmentVariable("SUPABASE_JWT_SECRET")
-    ?? throw new InvalidOperationException("SUPABASE_JWT_SECRET no está configurado")).Trim();
-var jwtKeyBytes = System.Text.Encoding.UTF8.GetBytes(jwtSecretRaw);
-var jwtSigningKey = new SymmetricSecurityKey(jwtKeyBytes);
+// Auth JWT — Supabase usa ES256 (asimétrico), validamos via JWKS discovery
+var supabaseUrl = (Environment.GetEnvironmentVariable("SUPABASE_URL")
+    ?? throw new InvalidOperationException("SUPABASE_URL no está configurado")).TrimEnd('/');
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Authority = supabaseUrl + "/auth/v1";
+        options.RequireHttpsMetadata = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = jwtSigningKey,
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,
