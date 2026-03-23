@@ -36,7 +36,7 @@ builder.Services.AddScoped<IReviewAiService>(sp =>
         sp.GetRequiredService<ILogger<ClaudeService>>()));
 
 builder.Services.AddHttpClient<IGooglePlacesService, GooglePlacesService>();
-builder.Services.AddHttpClient<OutscraperService>();
+builder.Services.AddHttpClient<IOutscraperService, OutscraperService>();
 
 builder.Services.AddSingleton<Supabase.Client>(sp =>
 {

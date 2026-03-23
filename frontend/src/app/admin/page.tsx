@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabase'
 import {
   getMyUsuario,
   getAdminUsuarios,
-  desactivarUsuario,
   type AdminUsuario,
 } from '@/lib/api'
 
@@ -49,13 +48,28 @@ function StatusBadge({ activo, activoDesde }: { activo: boolean; activoDesde?: s
   )
 }
 
+function PlanBadge({ plan }: { plan?: string }) {
+  if (plan === 'pro') {
+    return (
+      <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-medium">
+        Pro
+      </span>
+    )
+  }
+  return (
+    <span className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-medium">
+      Basic
+    </span>
+  )
+}
+
 export default function AdminPage() {
   const router = useRouter()
   const [usuarios, setUsuarios] = useState<AdminUsuario[]>([])
   const [loadingInit, setLoadingInit] = useState(true)
-  const [loadingAction, setLoadingAction] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [adminId, setAdminId] = useState<string>('')
+  const [totalReviews] = useState<number>(0)
 
   useEffect(() => {
     async function init() {
@@ -82,26 +96,6 @@ export default function AdminPage() {
     init()
   }, [router])
 
-  async function handleDesactivar(id: string) {
-    setLoadingAction(id)
-    setError('')
-    // Optimistic update
-    setUsuarios(prev =>
-      prev.map(u => (u.id === id ? { ...u, activo: false } : u))
-    )
-    try {
-      await desactivarUsuario(id)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al desactivar')
-      // Revert
-      setUsuarios(prev =>
-        prev.map(u => (u.id === id ? { ...u, activo: true } : u))
-      )
-    } finally {
-      setLoadingAction(null)
-    }
-  }
-
   async function handleLogout() {
     await supabase.auth.signOut()
     router.replace('/auth/login')
@@ -118,7 +112,7 @@ export default function AdminPage() {
   const activos = usuarios.filter(u => u.activo).length
   const pendientes = usuarios.filter(u => !u.activo && !u.activoDesde).length
   const suspendidos = usuarios.filter(u => !u.activo && u.activoDesde).length
-  const mrr = activos * 29
+  const estimatedAiCost = (totalReviews * 0.002).toFixed(2)
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -147,8 +141,20 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+
+        {/* MRR placeholder */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">MRR</h2>
+          <div className="flex items-center gap-3 px-4 py-4 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-slate-500 dark:text-slate-400">
+            <svg className="w-5 h-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+            </svg>
+            Conecta LemonSqueezy API para ver MRR en tiempo real
+          </div>
+        </div>
+
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 text-center">
             <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{activos}</div>
             <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Activos</div>
@@ -162,9 +168,21 @@ export default function AdminPage() {
             <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Suspendidos</div>
           </div>
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 text-center">
-            <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">~€{mrr}</div>
-            <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">MRR estimado</div>
+            <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{usuarios.length}</div>
+            <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Total usuarios</div>
           </div>
+        </div>
+
+        {/* Consumo estimado Claude */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Consumo estimado de Claude</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Coste estimado IA este mes:{' '}
+            <span className="font-semibold text-slate-900 dark:text-white">€{estimatedAiCost}</span>
+            <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">
+              ({totalReviews} reseñas × €0.002 / reseña)
+            </span>
+          </p>
         </div>
 
         {error && (
@@ -190,64 +208,36 @@ export default function AdminPage() {
               {usuarios.map(usuario => (
                 <div
                   key={usuario.id}
-                  className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+                  className="px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
                 >
-                  {/* Status + Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <StatusBadge activo={usuario.activo} activoDesde={usuario.activoDesde} />
-                      <span className="font-semibold text-slate-900 dark:text-white text-sm">
-                        {usuario.nombre ?? <span className="text-slate-400 font-normal italic">Sin nombre</span>}
+                  <div className="flex items-center gap-3 mb-1 flex-wrap">
+                    <StatusBadge activo={usuario.activo} activoDesde={usuario.activoDesde} />
+                    <PlanBadge plan={usuario.plan} />
+                    <span className="font-semibold text-slate-900 dark:text-white text-sm">
+                      {usuario.nombre ?? <span className="text-slate-400 font-normal italic">Sin nombre</span>}
+                    </span>
+                    {usuario.id === adminId && (
+                      <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-medium">
+                        Admin
                       </span>
-                      {usuario.id === adminId && (
-                        <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-medium">
-                          Admin
-                        </span>
-                      )}
-                      {usuario.plan === 'pro' ? (
-                        <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-medium">Pro</span>
-                      ) : (
-                        <span className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-medium">Basic</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
-                      {usuario.email && (
-                        <span>{usuario.email}</span>
-                      )}
-                      <span>
-                        Negocio:{' '}
-                        {usuario.negocio ? (
-                          <span className="text-slate-700 dark:text-slate-300 font-medium">{usuario.negocio.nombre}</span>
-                        ) : (
-                          <span className="text-slate-400 dark:text-slate-500 italic">Sin negocio</span>
-                        )}
-                      </span>
-                      <span>Registro: {formatDateEs(usuario.creadoFecha)}</span>
-                      {usuario.activoDesde && (
-                        <span>Activo desde: {formatDateEs(usuario.activoDesde)}</span>
-                      )}
-                    </div>
+                    )}
                   </div>
-
-                  {/* Actions — only Suspender (LemonSqueezy handles activation) */}
-                  {usuario.id !== adminId && usuario.activo && (
-                    <div className="flex-shrink-0">
-                      <button
-                        onClick={() => handleDesactivar(usuario.id)}
-                        disabled={loadingAction === usuario.id}
-                        className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {loadingAction === usuario.id ? (
-                          <span className="flex items-center gap-2">
-                            <span className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                            Suspendiendo...
-                          </span>
-                        ) : (
-                          'Suspender'
-                        )}
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap mt-1">
+                    {usuario.email && <span>{usuario.email}</span>}
+                    <span>
+                      Negocio:{' '}
+                      {usuario.negocio ? (
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">{usuario.negocio.nombre}</span>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500 italic">Sin negocio</span>
+                      )}
+                    </span>
+                    <span>Registro: {formatDateEs(usuario.creadoFecha)}</span>
+                    <span>Último acceso: —</span>
+                    {usuario.activoDesde && (
+                      <span>Activo desde: {formatDateEs(usuario.activoDesde)}</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Interfaces;
 using backend.Models.Entities;
-using backend.Services;
 
 namespace backend.Controllers;
 
@@ -12,11 +11,11 @@ namespace backend.Controllers;
 public class PlacesController : ControllerBase
 {
     private readonly IGooglePlacesService _placesService;
-    private readonly OutscraperService _outscraper;
+    private readonly IOutscraperService _outscraper;
     private readonly Supabase.Client _supabase;
     private readonly ILogger<PlacesController> _logger;
 
-    public PlacesController(IGooglePlacesService placesService, OutscraperService outscraper, Supabase.Client supabase, ILogger<PlacesController> logger)
+    public PlacesController(IGooglePlacesService placesService, IOutscraperService outscraper, Supabase.Client supabase, ILogger<PlacesController> logger)
     {
         _placesService = placesService;
         _outscraper = outscraper;

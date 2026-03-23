@@ -302,7 +302,7 @@ export default function DashboardPage() {
               </span>
               {userPlan === 'pro' ? (
                 <Link
-                  href="/dashboard/salud"
+                  href="/health"
                   className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   Salud
@@ -313,7 +313,7 @@ export default function DashboardPage() {
                   title="Disponible en Plan Pro"
                 >
                   Salud
-                  <span className="ml-1 text-xs">🔒</span>
+                  <span className="ml-1 text-xs">Pro</span>
                 </span>
               )}
               <Link

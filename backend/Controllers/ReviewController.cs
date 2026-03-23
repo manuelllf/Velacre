@@ -32,7 +32,32 @@ public class ReviewController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[ReviewController] POST /generate — userId={UserId}, plataforma={Plataforma}", userId, request.Plataforma);
 
-        // Basic and Pro both allow unlimited responses — only health tab is Pro-only
+        // Check plan limits for manual generation
+        var usuarioResult = await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == userId)
+            .Limit(1)
+            .Get();
+
+        var usuario = usuarioResult.Models.FirstOrDefault();
+
+        if (usuario != null && usuario.Plan == "basic")
+        {
+            var now = DateTimeOffset.UtcNow;
+            // Reset counter if it's a new month
+            if (usuario.RespuestasMesReset == null ||
+                usuario.RespuestasMesReset.Value.Year < now.Year ||
+                (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
+            {
+                usuario.RespuestasManualesMes = 0;
+                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+            }
+
+            if (usuario.RespuestasManualesMes >= 30)
+            {
+                _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite de 30 respuestas manuales en plan basic", userId);
+                return StatusCode(403, "Has alcanzado el límite de 30 respuestas manuales este mes. Actualiza a Pro para respuestas ilimitadas.");
+            }
+        }
 
         var negocioResult = await _supabase.From<NegocioEntity>()
             .Where(n => n.IdUsuario == userId)
@@ -81,6 +106,15 @@ public class ReviewController : ControllerBase
 
             var saved = result.Models[0];
             _logger.LogInformation("[ReviewController] Review guardada: {ReviewId} ({Codigo})", saved.Id, saved.Codigo);
+
+            // Increment monthly counter for basic plan users
+            if (usuario != null && usuario.Plan == "basic")
+            {
+                usuario.RespuestasManualesMes += 1;
+                if (usuario.RespuestasMesReset == null) usuario.RespuestasMesReset = DateTimeOffset.UtcNow;
+                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+                _logger.LogDebug("[ReviewController] Contador manual incrementado → {Count}/30 para userId={UserId}", usuario.RespuestasManualesMes, userId);
+            }
 
             return Ok(new GenerateReviewResponse(profesional, colegueo, orgullosa, saved.Id, saved.Codigo));
         }

@@ -167,6 +167,12 @@ export default function SettingsPage() {
               >
                 Reseñas
               </Link>
+              <Link
+                href="/health"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                Salud
+              </Link>
               <span className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white">
                 Configuración
               </span>

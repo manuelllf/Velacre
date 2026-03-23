@@ -264,6 +264,22 @@ export async function getSummary(): Promise<{ brilla: string; quema: string; acc
   return data
 }
 
+export async function getSummaryAnalysis(): Promise<{ brillante: string; preocupa: string; accion: string }> {
+  console.log('[api] getSummaryAnalysis →')
+  const res = await fetch(`${API_URL}/api/health/analysis`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    console.error('[api] getSummaryAnalysis ERROR', res.status, body)
+    throw new Error(body)
+  }
+  const data = await res.json()
+  console.log('[api] getSummaryAnalysis ← OK')
+  return data
+}
+
 export async function createUsuario(data: {
   nombre?: string
   telefono?: string
