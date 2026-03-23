@@ -12,15 +12,18 @@ Env.Load();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Auth JWT — usa JWKS de Supabase (compatible con HS256 y ES256)
-var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL")!;
+// Auth JWT — valida con SUPABASE_JWT_SECRET (HS256)
+var jwtSecretRaw = Environment.GetEnvironmentVariable("SUPABASE_JWT_SECRET")!;
+var jwtKeyBytes = Convert.FromBase64String(jwtSecretRaw);
+var jwtSigningKey = new SymmetricSecurityKey(jwtKeyBytes);
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = supabaseUrl + "/auth/v1";
-        options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = jwtSigningKey,
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,
