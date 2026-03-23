@@ -161,6 +161,12 @@ export async function getAdminUsuarios(): Promise<AdminUsuario[]> {
   return res.json()
 }
 
+export async function getAdminStats(): Promise<{ totalReviews: number; proUsers: number }> {
+  const res = await fetch(`${API_URL}/api/admin/stats`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
 export async function activarUsuario(id: string): Promise<void> {
   const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/activar`, {
     method: 'POST',

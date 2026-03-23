@@ -69,10 +69,23 @@ public class OutscraperService : IOutscraperService
                     DateTimeOffset publishedAt = DateTimeOffset.UtcNow;
                     if (!string.IsNullOrEmpty(dateStr))
                     {
-                        if (DateTime.TryParseExact(dateStr, "yyyy-MM-dd HH:mm:ss", null, System.Globalization.DateTimeStyles.AssumeUniversal, out var parsedExact))
-                            publishedAt = new DateTimeOffset(parsedExact, TimeSpan.Zero);
-                        else if (DateTime.TryParse(dateStr, out var parsedDate))
-                            publishedAt = new DateTimeOffset(parsedDate, TimeSpan.Zero);
+                        // Use InvariantCulture to avoid dd/MM vs MM/dd swap on Spanish Windows
+                        string[] formats = [
+                            "yyyy-MM-dd HH:mm:ss",
+                            "MM/dd/yyyy HH:mm:ss",
+                            "M/d/yyyy H:mm:ss",
+                            "yyyy-MM-ddTHH:mm:ss"
+                        ];
+                        if (DateTimeOffset.TryParseExact(dateStr, formats,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            System.Globalization.DateTimeStyles.AssumeUniversal,
+                            out var parsedExact))
+                            publishedAt = parsedExact.ToUniversalTime();
+                        else if (DateTimeOffset.TryParse(dateStr,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            System.Globalization.DateTimeStyles.AssumeUniversal,
+                            out var parsedFallback))
+                            publishedAt = parsedFallback.ToUniversalTime();
                     }
 
                     if (!string.IsNullOrEmpty(reviewId))

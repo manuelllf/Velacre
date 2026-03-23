@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import {
   getMyUsuario,
   getAdminUsuarios,
+  getAdminStats,
   type AdminUsuario,
 } from '@/lib/api'
 
@@ -69,7 +70,8 @@ export default function AdminPage() {
   const [loadingInit, setLoadingInit] = useState(true)
   const [error, setError] = useState('')
   const [adminId, setAdminId] = useState<string>('')
-  const [totalReviews] = useState<number>(0)
+  const [totalReviews, setTotalReviews] = useState<number>(0)
+  const [proUsers, setProUsers] = useState<number>(0)
 
   useEffect(() => {
     async function init() {
@@ -85,8 +87,10 @@ export default function AdminPage() {
           return
         }
         setAdminId(u.id)
-        const data = await getAdminUsuarios()
+        const [data, stats] = await Promise.all([getAdminUsuarios(), getAdminStats()])
         setUsuarios(data)
+        setTotalReviews(stats.totalReviews)
+        setProUsers(stats.proUsers)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar usuarios')
       } finally {
@@ -113,6 +117,8 @@ export default function AdminPage() {
   const pendientes = usuarios.filter(u => !u.activo && !u.activoDesde).length
   const suspendidos = usuarios.filter(u => !u.activo && u.activoDesde).length
   const estimatedAiCost = (totalReviews * 0.002).toFixed(2)
+  // Outscraper: ~20 reseñas/sync, $0.002/reseña, estimamos 10 syncs/mes/usuario pro
+  const estimatedOutscraperCost = (proUsers * 20 * 0.002 * 10).toFixed(2)
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -173,16 +179,25 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Consumo estimado Claude */}
+        {/* Consumo estimado */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Consumo estimado de Claude</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Coste estimado IA este mes:{' '}
-            <span className="font-semibold text-slate-900 dark:text-white">€{estimatedAiCost}</span>
-            <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">
-              ({totalReviews} reseñas × €0.002 / reseña)
-            </span>
-          </p>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Costes estimados</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Claude AI</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">€{estimatedAiCost}</div>
+              <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                {totalReviews} reseñas × €0.002
+              </div>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Outscraper</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">€{estimatedOutscraperCost}</div>
+              <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                {proUsers} usuarios Pro × 20 reseñas × 10 syncs/mes
+              </div>
+            </div>
+          </div>
         </div>
 
         {error && (

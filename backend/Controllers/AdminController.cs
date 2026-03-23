@@ -52,6 +52,20 @@ public class AdminController : ControllerBase
         return Ok(data);
     }
 
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats()
+    {
+        if (!IsAdmin()) return Forbid();
+
+        var reviewsResult = await _supabase.From<ReviewEntity>().Get();
+        var usuariosResult = await _supabase.From<UsuarioEntity>().Get();
+
+        var totalReviews = reviewsResult.Models.Count;
+        var proUsers = usuariosResult.Models.Count(u => u.Plan == "pro" && u.Activo);
+
+        return Ok(new { totalReviews, proUsers });
+    }
+
     [HttpPost("usuarios/{id}/activar")]
     public async Task<IActionResult> Activar(Guid id)
     {
