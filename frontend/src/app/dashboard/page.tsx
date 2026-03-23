@@ -212,7 +212,11 @@ export default function DashboardPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-emerald-500">✓</span>
-                    Hasta 30 respuestas manuales/mes
+                    Respuestas manuales ilimitadas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-emerald-500">✓</span>
+                    Sincronización de reseñas de Google
                   </li>
                 </ul>
               </div>
@@ -489,26 +493,6 @@ export default function DashboardPage() {
 
           {manualOpen && (
             <div className="px-6 pb-6 border-t border-slate-100 dark:border-slate-700">
-              {userPlan === 'basic' && (
-                <div className="mt-5 flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
-                  <span className="text-sm text-slate-600 dark:text-slate-300">
-                    Respuestas manuales usadas este mes:
-                    <span className={`ml-2 font-semibold ${manualUsed >= 30 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
-                      {manualUsed}/30
-                    </span>
-                  </span>
-                  {manualUsed >= 30 && (
-                    <a
-                      href={getLemonCheckoutUrl(userId, 'pro')}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                      Actualizar a Pro
-                    </a>
-                  )}
-                </div>
-              )}
               <form onSubmit={handleGenerateManual} className="space-y-4 pt-5">
                 <div>
                   <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
