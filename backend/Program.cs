@@ -12,10 +12,13 @@ Env.Load();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Auth JWT — valida con SUPABASE_JWT_SECRET (HS256, UTF-8 bytes)
+// Auth JWT — Supabase/GoTrue firma con los bytes base64-decoded del JWT secret
 var jwtSecretRaw = Environment.GetEnvironmentVariable("SUPABASE_JWT_SECRET")
     ?? throw new InvalidOperationException("SUPABASE_JWT_SECRET no está configurado");
-var jwtKeyBytes = System.Text.Encoding.UTF8.GetBytes(jwtSecretRaw);
+// Intentar base64, si falla usar UTF-8 (compatibilidad con distintas versiones de Supabase)
+byte[] jwtKeyBytes;
+try { jwtKeyBytes = Convert.FromBase64String(jwtSecretRaw); }
+catch { jwtKeyBytes = System.Text.Encoding.UTF8.GetBytes(jwtSecretRaw); }
 var jwtSigningKey = new SymmetricSecurityKey(jwtKeyBytes);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
