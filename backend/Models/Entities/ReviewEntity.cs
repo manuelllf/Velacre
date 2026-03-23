@@ -22,10 +22,10 @@ public class ReviewEntity : BaseModel
     public string? RespuestaProfesional { get; set; }
 
     [Column("respuestacolegueo")]
-    public string? RespuestaColegueo { get; set; }
+    public string? RespuestaCercano { get; set; }
 
     [Column("respuestaorgullosa")]
-    public string? RespuestaOrgullosa { get; set; }
+    public string? RespuestaDirecto { get; set; }
 
     [Column("tono")]
     public string? Tono { get; set; }

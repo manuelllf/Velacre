@@ -2,8 +2,8 @@ namespace backend.Models.Responses;
 
 public record GenerateReviewResponse(
     string Profesional,
-    string Colegueo,
-    string Orgullosa,
+    string Cercano,
+    string Directo,
     Guid ReviewId,
     string Codigo
 );

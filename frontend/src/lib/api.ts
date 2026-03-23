@@ -12,8 +12,8 @@ async function authHeaders(): Promise<HeadersInit> {
 
 export interface ReviewResponses {
   profesional: string
-  colegueo: string
-  orgullosa: string
+  cercano: string
+  directo: string
   reviewId: string
   codigo: string
 }
@@ -45,8 +45,8 @@ export interface PendingReview {
   reviewDate: string
   clientereview: string
   respuestaProfesional?: string
-  respuestaColegueo?: string
-  respuestaOrgullosa?: string
+  respuestaCercano?: string
+  respuestaDirecto?: string
   tonoGenerado?: string
 }
 

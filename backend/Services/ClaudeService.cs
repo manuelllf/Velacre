@@ -18,29 +18,29 @@ public class ClaudeService : IReviewAiService
         _logger = logger;
     }
 
-    public async Task<(string Profesional, string Colegueo, string Orgullosa)> GenerateThreeResponsesAsync(
+    public async Task<(string Profesional, string Cercano, string Directo)> GenerateThreeResponsesAsync(
         string reviewText, string businessDesc)
     {
         _logger.LogInformation("[ClaudeService] Generando 3 respuestas con modelo={Model}", _model);
 
         var profesional = await GenerateSingleAsync(reviewText, businessDesc, "Profesional",
-            "Responde de forma profesional, formal y cortés. Tono empresarial serio pero humano.");
-        var colegueo = await GenerateSingleAsync(reviewText, businessDesc, "Colegueo",
-            "Responde de forma cercana e informal, como si hablaras con un amigo del barrio. Natural y espontáneo.");
-        var orgullosa = await GenerateSingleAsync(reviewText, businessDesc, "Orgullosa",
-            "Responde con altivez y cierta soberbia elegante. Tono seguro de sí mismo, casi condescendiente pero sin ser grosero. Como quien sabe que su negocio es excelente y no necesita justificarse en exceso. Distante y distinguido.");
+            "Responde de forma profesional y formal, transmitiendo excelencia y confianza. Tono serio, pulido y cercano a la calidad.");
+        var cercano = await GenerateSingleAsync(reviewText, businessDesc, "Cercano",
+            "Responde de forma cálida y humana, como lo haría el dueño del negocio que conoce a sus clientes. Natural, empático y genuino.");
+        var directo = await GenerateSingleAsync(reviewText, businessDesc, "Directo",
+            "Responde de forma clara, breve y sin rodeos. Ve al grano, sin florituras, pero siempre correcto y respetuoso.");
 
         _logger.LogInformation("[ClaudeService] 3 respuestas generadas correctamente");
-        return (profesional, colegueo, orgullosa);
+        return (profesional, cercano, directo);
     }
 
     public Task<string> GenerateSingleResponseAsync(string reviewText, string businessDesc, string tone)
     {
         var instructions = tone.ToLower() switch
         {
-            "colegueo" => "Responde de forma cercana e informal, como si hablaras con un amigo del barrio. Natural y espontáneo.",
-            "orgullosa" => "Responde con altivez y cierta soberbia elegante. Tono seguro de sí mismo, casi condescendiente pero sin ser grosero. Como quien sabe que su negocio es excelente y no necesita justificarse en exceso. Distante y distinguido.",
-            _ => "Responde de forma profesional, formal y cortés. Tono empresarial serio pero humano."
+            "cercano" => "Responde de forma cálida y humana, como lo haría el dueño del negocio que conoce a sus clientes. Natural, empático y genuino.",
+            "directo" => "Responde de forma clara, breve y sin rodeos. Ve al grano, sin florituras, pero siempre correcto y respetuoso.",
+            _ => "Responde de forma profesional y formal, transmitiendo excelencia y confianza. Tono serio, pulido y cercano a la calidad."
         };
         return GenerateSingleAsync(reviewText, businessDesc, tone, instructions);
     }

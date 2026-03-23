@@ -76,7 +76,7 @@ public class ReviewController : ControllerBase
 
         try
         {
-            var (profesional, colegueo, orgullosa) = await _aiService.GenerateThreeResponsesAsync(
+            var (profesional, cercano, directo) = await _aiService.GenerateThreeResponsesAsync(
                 request.ReviewText,
                 negocio.Descripcion ?? negocio.Nombre
             );
@@ -89,8 +89,8 @@ public class ReviewController : ControllerBase
                 IdNegocio = negocio.Id,
                 ClienteReview = request.ReviewText,
                 RespuestaProfesional = profesional,
-                RespuestaColegueo = colegueo,
-                RespuestaOrgullosa = orgullosa,
+                RespuestaCercano = cercano,
+                RespuestaDirecto = directo,
                 Plataforma = request.Plataforma,
                 CreadoPor = userId,
                 CreadoFecha = DateTimeOffset.UtcNow
@@ -116,7 +116,7 @@ public class ReviewController : ControllerBase
                 _logger.LogDebug("[ReviewController] Contador manual incrementado → {Count}/30 para userId={UserId}", usuario.RespuestasManualesMes, userId);
             }
 
-            return Ok(new GenerateReviewResponse(profesional, colegueo, orgullosa, saved.Id, saved.Codigo));
+            return Ok(new GenerateReviewResponse(profesional, cercano, directo, saved.Id, saved.Codigo));
         }
         catch (Exception ex)
         {
@@ -153,8 +153,8 @@ public class ReviewController : ControllerBase
         var pending = reviewsResult.Models
             .Where(r => tone switch
             {
-                "colegueo" => r.RespuestaColegueo == null,
-                "orgullosa" => r.RespuestaOrgullosa == null,
+                "cercano" => r.RespuestaCercano == null,
+                "directo" => r.RespuestaDirecto == null,
                 _ => r.RespuestaProfesional == null
             })
             .OrderByDescending(r => r.ReviewDate ?? r.CreadoFecha)
@@ -167,8 +167,8 @@ public class ReviewController : ControllerBase
                 reviewDate = r.ReviewDate ?? r.CreadoFecha,
                 clientereview = r.ClienteReview,
                 respuestaProfesional = r.RespuestaProfesional,
-                respuestaColegueo = r.RespuestaColegueo,
-                respuestaOrgullosa = r.RespuestaOrgullosa,
+                respuestaCercano = r.RespuestaCercano,
+                respuestaDirecto = r.RespuestaDirecto,
                 tonoGenerado = r.TonoGenerado
             })
             .ToList();
@@ -215,8 +215,8 @@ public class ReviewController : ControllerBase
         // Only generate if that tone field is still null
         var alreadyGenerated = toneLower switch
         {
-            "colegueo" => review.RespuestaColegueo,
-            "orgullosa" => review.RespuestaOrgullosa,
+            "cercano" => review.RespuestaCercano,
+            "directo" => review.RespuestaDirecto,
             _ => review.RespuestaProfesional
         };
 
@@ -238,11 +238,11 @@ public class ReviewController : ControllerBase
 
             switch (toneLower)
             {
-                case "colegueo":
-                    review.RespuestaColegueo = generated;
+                case "cercano":
+                    review.RespuestaCercano = generated;
                     break;
-                case "orgullosa":
-                    review.RespuestaOrgullosa = generated;
+                case "directo":
+                    review.RespuestaDirecto = generated;
                     break;
                 default:
                     review.RespuestaProfesional = generated;

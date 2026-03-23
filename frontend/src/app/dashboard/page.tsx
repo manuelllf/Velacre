@@ -533,8 +533,8 @@ export default function DashboardPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <ResponseCard tone="Profesional" text={responses.profesional} color="indigo" />
-              <ResponseCard tone="Colegueo" text={responses.colegueo} color="emerald" />
-              <ResponseCard tone="Orgullosa" text={responses.orgullosa} color="amber" />
+              <ResponseCard tone="Cercano" text={responses.cercano} color="emerald" />
+              <ResponseCard tone="Directo" text={responses.directo} color="amber" />
             </div>
           </div>
         )}

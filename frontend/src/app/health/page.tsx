@@ -176,7 +176,7 @@ export default function HealthPage() {
     : 0
 
   const withResponse = reviews.filter(r =>
-    r.respuestaProfesional || r.respuestaColegueo || r.respuestaOrgullosa
+    r.respuestaProfesional || r.respuestaCercano || r.respuestaDirecto
   ).length
   const responseRate = reviews.length > 0 ? Math.round((withResponse / reviews.length) * 100) : 0
 

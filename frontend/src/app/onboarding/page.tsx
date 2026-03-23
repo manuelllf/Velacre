@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { createNegocio, updateNegocio, searchPlaces, syncReviews, type PlaceResult } from '@/lib/api'
 
 const TONOS = [
-  { value: 'Profesional', label: 'Profesional', desc: 'Formal y cortés' },
-  { value: 'Colegueo', label: 'Colegueo', desc: 'Cercano e informal' },
-  { value: 'Orgullosa', label: 'Orgullosa', desc: 'Altivo y distinguido' },
+  { value: 'Profesional', label: 'Profesional', desc: 'Formal y cercano a la excelencia' },
+  { value: 'Cercano', label: 'Cercano', desc: 'Cálido y humano, como un amigo' },
+  { value: 'Directo', label: 'Directo', desc: 'Claro, breve y sin rodeos' },
 ]
 
 export default function OnboardingPage() {
