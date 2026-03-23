@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { getMyUsuario } from '@/lib/api'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -25,7 +26,12 @@ export default function LoginPage() {
       return
     }
 
-    router.replace('/dashboard')
+    try {
+      const u = await getMyUsuario()
+      router.replace(u.isAdmin ? '/admin' : '/dashboard')
+    } catch {
+      router.replace('/dashboard')
+    }
   }
 
   return (
