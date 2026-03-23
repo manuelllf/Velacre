@@ -15,6 +15,7 @@ import {
   type Negocio,
   type PendingReview,
 } from '@/lib/api'
+import { getLemonCheckoutUrl } from '@/lib/lemon'
 import ResponseCard from '@/components/ResponseCard'
 
 function StarRating({ rating }: { rating?: number }) {
@@ -44,6 +45,9 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
   const [loadingInit, setLoadingInit] = useState(true)
   const [userStatus, setUserStatus] = useState<'activo' | 'pendiente' | 'suspendido'>('activo')
+  const [userPlan, setUserPlan] = useState<string>('basic')
+  const [userId, setUserId] = useState<string>('')
+  const [manualUsed, setManualUsed] = useState<number>(0)
 
   // Pending reviews state
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([])
@@ -64,6 +68,8 @@ export default function DashboardPage() {
       }
       try {
         const u = await getMyUsuario()
+        setUserPlan(u.plan ?? 'basic')
+        setUserId(u.id)
         if (!u.activo) {
           setUserStatus(u.activoDesde ? 'suspendido' : 'pendiente')
           setLoadingInit(false)
@@ -147,6 +153,9 @@ export default function DashboardPage() {
       const result = await generateResponses(reviewText)
       setResponses(result)
       setReviewText('') // vaciar textarea tras generar — evita regenerar lo mismo
+      if (userPlan === 'basic') {
+        setManualUsed(prev => prev + 1)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al generar las respuestas.')
     } finally {
@@ -163,12 +172,13 @@ export default function DashboardPage() {
   }
 
   if (userStatus === 'pendiente' || userStatus === 'suspendido') {
-    const isPendiente = userStatus === 'pendiente'
+    const basicUrl = getLemonCheckoutUrl(userId, 'basic')
+    const proUrl = getLemonCheckoutUrl(userId, 'pro')
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <span className="font-bold text-lg text-slate-900 dark:text-white">Velac</span>
+            <span className="font-bold text-lg text-slate-900 dark:text-white">Velacre</span>
             <button
               onClick={handleLogout}
               className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
@@ -177,38 +187,92 @@ export default function DashboardPage() {
             </button>
           </div>
         </header>
-        <main className="max-w-4xl mx-auto px-4 py-16 flex items-center justify-center">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-10 max-w-lg w-full text-center">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${isPendiente ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-              {isPendiente ? (
-                <svg className="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ) : (
-                <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              )}
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
-              {isPendiente ? 'Cuenta pendiente de activación' : 'Tu suscripción ha vencido'}
+        <main className="max-w-4xl mx-auto px-4 py-16">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
+              Activa tu suscripción a Velacre
             </h1>
-            <p className="text-base text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-              {isPendiente
-                ? 'Estamos revisando tu solicitud. En cuanto confirmemos tu pago tendrás acceso completo.'
-                : 'Renueva tu suscripción para seguir respondiendo reseñas con IA.'}
-            </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {isPendiente ? '¿Ya has realizado el pago? Escríbenos a ' : 'Escríbenos a '}
-              <a
-                href="mailto:hola@velac.es"
-                className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
-              >
-                hola@velac.es
-              </a>
-              {!isPendiente && ' para renovar'}
+            <p className="text-base text-slate-500 dark:text-slate-400">
+              Elige el plan que mejor se adapta a tu negocio
             </p>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {/* Basic plan */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 flex flex-col">
+              <div className="mb-6">
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">Basic</p>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-4xl font-bold text-slate-900 dark:text-white">19€</span>
+                  <span className="text-slate-500 dark:text-slate-400">/mes</span>
+                </div>
+                <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                  <li className="flex items-center gap-2">
+                    <span className="text-emerald-500">✓</span>
+                    Generador de respuestas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-emerald-500">✓</span>
+                    Hasta 30 respuestas manuales/mes
+                  </li>
+                </ul>
+              </div>
+              <div className="mt-auto">
+                <a
+                  href={basicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center px-6 py-3 border-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 rounded-xl font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                >
+                  Empezar con Basic →
+                </a>
+              </div>
+            </div>
+
+            {/* Pro plan */}
+            <div className="bg-indigo-600 dark:bg-indigo-700 rounded-2xl shadow-lg p-8 flex flex-col relative">
+              <div className="absolute -top-3 right-6">
+                <span className="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Recomendado</span>
+              </div>
+              <div className="mb-6">
+                <p className="text-sm font-semibold text-indigo-200 uppercase tracking-wide mb-1">Pro</p>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-4xl font-bold text-white">29€</span>
+                  <span className="text-indigo-200">/mes</span>
+                </div>
+                <ul className="space-y-2 text-sm text-indigo-100">
+                  <li className="flex items-center gap-2">
+                    <span className="text-white">✓</span>
+                    Todo lo de Basic
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-white">✓</span>
+                    Sync automático de Google
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-white">✓</span>
+                    Panel de salud
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-white">✓</span>
+                    Respuestas ilimitadas
+                  </li>
+                </ul>
+              </div>
+              <div className="mt-auto">
+                <a
+                  href={proUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center px-6 py-3 bg-white text-indigo-700 rounded-xl font-semibold hover:bg-indigo-50 transition-colors"
+                >
+                  Empezar con Pro →
+                </a>
+              </div>
+            </div>
+          </div>
+          <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-8">
+            Los pagos son gestionados de forma segura por LemonSqueezy
+          </p>
         </main>
       </div>
     )
@@ -221,7 +285,7 @@ export default function DashboardPage() {
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <span className="font-bold text-lg text-slate-900 dark:text-white">Velac</span>
+              <span className="font-bold text-lg text-slate-900 dark:text-white">Velacre</span>
               {negocio && (
                 <span className="ml-2 text-sm text-slate-500 dark:text-slate-400 font-normal">
                   {negocio.nombre}
@@ -232,6 +296,22 @@ export default function DashboardPage() {
               <span className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white">
                 Reseñas
               </span>
+              {userPlan === 'pro' ? (
+                <Link
+                  href="/dashboard/salud"
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Salud
+                </Link>
+              ) : (
+                <span
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-400 dark:text-slate-500 cursor-not-allowed relative group"
+                  title="Disponible en Plan Pro"
+                >
+                  Salud
+                  <span className="ml-1 text-xs">🔒</span>
+                </span>
+              )}
               <Link
                 href="/settings"
                 className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
@@ -409,6 +489,26 @@ export default function DashboardPage() {
 
           {manualOpen && (
             <div className="px-6 pb-6 border-t border-slate-100 dark:border-slate-700">
+              {userPlan === 'basic' && (
+                <div className="mt-5 flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
+                  <span className="text-sm text-slate-600 dark:text-slate-300">
+                    Respuestas manuales usadas este mes:
+                    <span className={`ml-2 font-semibold ${manualUsed >= 30 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
+                      {manualUsed}/30
+                    </span>
+                  </span>
+                  {manualUsed >= 30 && (
+                    <a
+                      href={getLemonCheckoutUrl(userId, 'pro')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Actualizar a Pro
+                    </a>
+                  )}
+                </div>
+              )}
               <form onSubmit={handleGenerateManual} className="space-y-4 pt-5">
                 <div>
                   <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
@@ -418,7 +518,8 @@ export default function DashboardPage() {
                     rows={6}
                     value={reviewText}
                     onChange={e => setReviewText(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                    disabled={userPlan === 'basic' && manualUsed >= 30}
+                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Pega aquí el texto de la reseña..."
                   />
                 </div>
@@ -426,7 +527,7 @@ export default function DashboardPage() {
                 <div className="flex flex-wrap items-end gap-4">
                   <button
                     type="submit"
-                    disabled={loading || !reviewText.trim()}
+                    disabled={loading || !reviewText.trim() || (userPlan === 'basic' && manualUsed >= 30)}
                     className="px-8 py-3 bg-indigo-600 text-white rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {loading ? (

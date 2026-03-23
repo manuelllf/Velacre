@@ -155,7 +155,7 @@ export default function SettingsPage() {
         <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <Link href="/dashboard" className="font-bold text-lg text-slate-900 dark:text-white">Velac</Link>
+              <Link href="/dashboard" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
               {negocio && (
                 <span className="ml-2 text-sm text-slate-500 dark:text-slate-400 font-normal">{negocio.nombre}</span>
               )}

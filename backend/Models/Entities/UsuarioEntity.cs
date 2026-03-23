@@ -35,4 +35,13 @@ public class UsuarioEntity : BaseModel
 
     [Column("email")]
     public string? Email { get; set; }
+
+    [Column("plan")]
+    public string Plan { get; set; } = "basic";
+
+    [Column("respuestas_manuales_mes")]
+    public int RespuestasManualesMes { get; set; } = 0;
+
+    [Column("respuestas_mes_reset")]
+    public DateTimeOffset? RespuestasMesReset { get; set; }
 }

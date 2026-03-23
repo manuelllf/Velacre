@@ -6,4 +6,6 @@ public interface IReviewAiService
         string reviewText, string businessDesc);
 
     Task<string> GenerateSingleResponseAsync(string reviewText, string businessDesc, string tone);
+
+    Task<string> GetClaudeMessageAsync(string userPrompt, string systemPrompt);
 }

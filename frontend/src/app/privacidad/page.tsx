@@ -1,8 +1,8 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Política de Privacidad · Velac',
-  description: 'Cómo tratamos tus datos personales en Velac',
+  title: 'Política de Privacidad · Velacre',
+  description: 'Cómo tratamos tus datos personales en Velacre',
 }
 
 export default function PrivacidadPage() {
@@ -10,7 +10,7 @@ export default function PrivacidadPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white">Velac</Link>
+          <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
           <Link
             href="/auth/login"
             className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
@@ -30,13 +30,13 @@ export default function PrivacidadPage() {
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">1. Responsable del tratamiento</h2>
             <p>
-              El responsable del tratamiento de tus datos personales es <strong>Velac</strong> (en adelante, «Velac» o «nosotros»),
+              El responsable del tratamiento de tus datos personales es <strong>Velacre</strong> (en adelante, «Velacre» o «nosotros»),
               con domicilio social en Galicia, España.
             </p>
             <p className="mt-2">
               Para cualquier consulta relacionada con la privacidad puedes contactarnos en{' '}
-              <a href="mailto:privacidad@velac.es" className="text-indigo-600 dark:text-indigo-400 hover:underline">
-                privacidad@velac.es
+              <a href="mailto:privacidad@velacre.es" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                privacidad@velacre.es
               </a>.
             </p>
           </section>
@@ -44,7 +44,7 @@ export default function PrivacidadPage() {
           {/* 2 */}
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">2. Datos que recogemos</h2>
-            <p>En función del uso que hagas de Velac, recogemos los siguientes datos:</p>
+            <p>En función del uso que hagas de Velacre, recogemos los siguientes datos:</p>
             <ul className="mt-3 space-y-2 list-disc list-inside">
               <li><strong>Datos de cuenta:</strong> nombre, dirección de correo electrónico y contraseña (almacenada de forma cifrada).</li>
               <li><strong>Datos del negocio:</strong> nombre comercial, CIF/NIF, teléfono, correo del negocio, descripción y el identificador de Google Place asociado.</li>
@@ -86,7 +86,7 @@ export default function PrivacidadPage() {
                     <td className="px-4 py-3">Obligación legal — art. 6.1.c</td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3">Comunicaciones comerciales sobre Velac (solo si las aceptas)</td>
+                    <td className="px-4 py-3">Comunicaciones comerciales sobre Velacre (solo si las aceptas)</td>
                     <td className="px-4 py-3">Consentimiento — art. 6.1.a</td>
                   </tr>
                 </tbody>
@@ -147,8 +147,8 @@ export default function PrivacidadPage() {
             </ul>
             <p className="mt-3">
               Para ejercer cualquiera de estos derechos escríbenos a{' '}
-              <a href="mailto:privacidad@velac.es" className="text-indigo-600 dark:text-indigo-400 hover:underline">
-                privacidad@velac.es
+              <a href="mailto:privacidad@velacre.es" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                privacidad@velacre.es
               </a>{' '}
               indicando tu nombre y la solicitud concreta. Responderemos en un plazo máximo de un mes.
             </p>
@@ -165,7 +165,7 @@ export default function PrivacidadPage() {
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">7. Cookies</h2>
             <p>
-              Velac utiliza únicamente cookies técnicas estrictamente necesarias para el funcionamiento del servicio
+              Velacre utiliza únicamente cookies técnicas estrictamente necesarias para el funcionamiento del servicio
               (gestión de sesión de usuario). No utilizamos cookies de seguimiento, publicidad ni analítica de terceros.
             </p>
           </section>

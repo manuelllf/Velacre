@@ -36,6 +36,7 @@ builder.Services.AddScoped<IReviewAiService>(sp =>
         sp.GetRequiredService<ILogger<ClaudeService>>()));
 
 builder.Services.AddHttpClient<IGooglePlacesService, GooglePlacesService>();
+builder.Services.AddHttpClient<OutscraperService>();
 
 builder.Services.AddSingleton<Supabase.Client>(sp =>
 {
@@ -64,6 +65,12 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.Use(async (context, next) => {
+    context.Request.EnableBuffering();
+    await next();
+});
+
 app.MapControllers();
 
 app.Run();

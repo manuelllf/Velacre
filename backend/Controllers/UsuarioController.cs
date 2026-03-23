@@ -39,7 +39,8 @@ public class UsuarioController : ControllerBase
             telefono = usuario.Telefono,
             activo = usuario.Activo,
             activoDesde = usuario.ActivoDesde,
-            isAdmin
+            isAdmin,
+            plan = usuario.Plan
         });
     }
 

@@ -32,6 +32,33 @@ public class ReviewController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[ReviewController] POST /generate — userId={UserId}, plataforma={Plataforma}", userId, request.Plataforma);
 
+        // Fetch user to check plan and limits
+        var usuarioResult = await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == userId)
+            .Limit(1)
+            .Get();
+        var usuario = usuarioResult.Models.FirstOrDefault();
+
+        if (usuario != null && usuario.Plan == "basic")
+        {
+            // Reset counter if it's a new month
+            var now = DateTimeOffset.UtcNow;
+            if (usuario.RespuestasMesReset == null ||
+                usuario.RespuestasMesReset.Value.Year < now.Year ||
+                (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
+            {
+                usuario.RespuestasManualesMes = 0;
+                usuario.RespuestasMesReset = now;
+                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+            }
+
+            if (usuario.RespuestasManualesMes >= 30)
+            {
+                _logger.LogInformation("[ReviewController] userId={UserId} alcanzó límite de respuestas manuales", userId);
+                return StatusCode(429, "Has alcanzado el límite de 30 respuestas manuales este mes. Actualiza a Pro para continuar.");
+            }
+        }
+
         var negocioResult = await _supabase.From<NegocioEntity>()
             .Where(n => n.IdUsuario == userId)
             .Limit(1)
@@ -79,6 +106,14 @@ public class ReviewController : ControllerBase
 
             var saved = result.Models[0];
             _logger.LogInformation("[ReviewController] Review guardada: {ReviewId} ({Codigo})", saved.Id, saved.Codigo);
+
+            // Increment manual counter for basic plan
+            if (usuario != null && usuario.Plan == "basic")
+            {
+                usuario.RespuestasManualesMes++;
+                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+            }
+
             return Ok(new GenerateReviewResponse(profesional, colegueo, orgullosa, saved.Id, saved.Codigo));
         }
         catch (Exception ex)
@@ -226,6 +261,43 @@ public class ReviewController : ControllerBase
         {
             _logger.LogError(ex, "[ReviewController] Error generando respuesta para reviewId={ReviewId}", id);
             return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpPost("summary")]
+    public async Task<IActionResult> GetSummary()
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
+        var negocio = negocioResult.Models.FirstOrDefault();
+        if (negocio == null) return NotFound();
+
+        var reviewsResult = await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Get();
+        var reviews = reviewsResult.Models;
+
+        if (reviews.Count == 0) return Ok(new { brilla = "Aún no tienes reseñas para analizar.", quema = "—", accion = "Sincroniza tus reseñas de Google para empezar." });
+
+        var reviewSummary = string.Join("\n", reviews.Take(50).Select(r => $"[{r.StarRating}★] {r.ClienteReview}"));
+        var prompt = $"Analiza estas reseñas de un negocio español y responde SOLO con un JSON válido con este formato exacto: {{\"brilla\": \"frase corta sobre lo mejor\", \"quema\": \"frase corta sobre el problema principal\", \"accion\": \"acción concreta con métrica si puedes\"}}.\n\nReseñas:\n{reviewSummary}";
+
+        try
+        {
+            var response = await _aiService.GetClaudeMessageAsync(prompt, "");
+            // Try to extract JSON from response
+            var start = response.IndexOf('{');
+            var end = response.LastIndexOf('}');
+            if (start >= 0 && end > start)
+            {
+                var json = response[start..(end + 1)];
+                var parsed = System.Text.Json.JsonDocument.Parse(json);
+                return Ok(parsed);
+            }
+            return Ok(new { brilla = response, quema = "—", accion = "—" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ReviewController] Error getting summary");
+            return StatusCode(500, "Error generando resumen");
         }
     }
 }

@@ -45,6 +45,38 @@ public class ClaudeService : IReviewAiService
         return GenerateSingleAsync(reviewText, businessDesc, tone, instructions);
     }
 
+    public async Task<string> GetClaudeMessageAsync(string userPrompt, string systemPrompt)
+    {
+        _logger.LogDebug("[ClaudeService] GetClaudeMessageAsync llamado");
+
+        var messages = new List<Message> { new Message(RoleType.User, userPrompt) };
+        var parameters = new MessageParameters
+        {
+            Messages = messages,
+            Model = _model,
+            MaxTokens = 800,
+            Temperature = 0.5m,
+        };
+
+        if (!string.IsNullOrEmpty(systemPrompt))
+        {
+            parameters.System = [new SystemMessage(systemPrompt)];
+        }
+
+        try
+        {
+            var response = await _client.Messages.GetClaudeMessageAsync(parameters);
+            var text = response.Content.FirstOrDefault()?.ToString() ?? "";
+            _logger.LogDebug("[ClaudeService] GetClaudeMessageAsync OK ({Chars} chars)", text.Length);
+            return text;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ClaudeService] Error en GetClaudeMessageAsync");
+            throw;
+        }
+    }
+
     private async Task<string> GenerateSingleAsync(
         string reviewText, string businessDesc, string tone, string toneInstructions)
     {

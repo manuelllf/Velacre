@@ -100,7 +100,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4 py-12">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Velac</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Velacre</h1>
           <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Ya casi estás. Cuéntanos sobre tu negocio.</p>
         </div>
 
@@ -292,7 +292,7 @@ export default function OnboardingPage() {
               disabled={loading}
               className="w-full bg-indigo-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (loadingStep || 'Guardando...') : 'Empezar a usar Velac →'}
+              {loading ? (loadingStep || 'Guardando...') : 'Empezar a usar Velacre →'}
             </button>
           </form>
         </div>

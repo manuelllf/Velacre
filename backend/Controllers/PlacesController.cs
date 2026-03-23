@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Interfaces;
 using backend.Models.Entities;
+using backend.Services;
 
 namespace backend.Controllers;
 
@@ -11,12 +12,14 @@ namespace backend.Controllers;
 public class PlacesController : ControllerBase
 {
     private readonly IGooglePlacesService _placesService;
+    private readonly OutscraperService _outscraper;
     private readonly Supabase.Client _supabase;
     private readonly ILogger<PlacesController> _logger;
 
-    public PlacesController(IGooglePlacesService placesService, Supabase.Client supabase, ILogger<PlacesController> logger)
+    public PlacesController(IGooglePlacesService placesService, OutscraperService outscraper, Supabase.Client supabase, ILogger<PlacesController> logger)
     {
         _placesService = placesService;
+        _outscraper = outscraper;
         _supabase = supabase;
         _logger = logger;
     }
@@ -61,7 +64,7 @@ public class PlacesController : ControllerBase
 
         _logger.LogDebug("[PlacesController] Obteniendo reseñas para placeId={PlaceId}", negocio.PlaceId);
 
-        var reviews = await _placesService.GetReviewsAsync(negocio.PlaceId);
+        var reviews = await _outscraper.GetReviewsAsync(negocio.PlaceId);
 
         // Obtener todas las reseñas importadas de Google que hay en la BD para este negocio
         var allExistingResult = await _supabase.From<ReviewEntity>()

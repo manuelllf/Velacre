@@ -45,6 +45,7 @@ public class AdminController : ControllerBase
                 activo = u.Activo,
                 activoDesde = u.ActivoDesde,
                 creadoFecha = u.CreadoFecha,
+                plan = u.Plan,
                 negocio = negocios.TryGetValue(u.Id, out var n) ? (object)new { id = n.Id, nombre = n.Nombre } : null
             });
 

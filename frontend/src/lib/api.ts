@@ -138,7 +138,7 @@ export async function updateNegocio(data: {
 }
 
 
-export async function getMyUsuario(): Promise<{ id: string; nombre?: string; telefono?: string; activo: boolean; activoDesde?: string; isAdmin: boolean }> {
+export async function getMyUsuario(): Promise<{ id: string; nombre?: string; telefono?: string; activo: boolean; activoDesde?: string; isAdmin: boolean; plan: string }> {
   const res = await fetch(`${API_URL}/api/usuario/me`, { headers: await authHeaders() })
   if (!res.ok) throw new Error(await res.text())
   return res.json()
@@ -152,6 +152,7 @@ export interface AdminUsuario {
   activoDesde?: string
   creadoFecha: string
   negocio?: { id: string; nombre: string } | null
+  plan?: string
 }
 
 export async function getAdminUsuarios(): Promise<AdminUsuario[]> {
@@ -244,6 +245,22 @@ export async function generateForReview(reviewId: string): Promise<{ response: s
   }
   const data = await res.json()
   console.log('[api] generateForReview ← OK tono=', data.tono)
+  return data
+}
+
+export async function getSummary(): Promise<{ brilla: string; quema: string; accion: string }> {
+  console.log('[api] getSummary →')
+  const res = await fetch(`${API_URL}/api/review/summary`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    console.error('[api] getSummary ERROR', res.status, body)
+    throw new Error(body)
+  }
+  const data = await res.json()
+  console.log('[api] getSummary ← OK')
   return data
 }
 
