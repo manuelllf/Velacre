@@ -32,7 +32,8 @@ public class AdminController : ControllerBase
 
         var negocios = negociosResult.Models
             .Where(n => n.IdUsuario.HasValue)
-            .ToDictionary(n => n.IdUsuario!.Value);
+            .GroupBy(n => n.IdUsuario!.Value)
+            .ToDictionary(g => g.Key, g => g.First());
 
         var data = usuariosResult.Models
             .OrderBy(u => u.CreadoFecha)
