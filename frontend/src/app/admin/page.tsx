@@ -116,9 +116,17 @@ export default function AdminPage() {
   const activos = usuarios.filter(u => u.activo).length
   const pendientes = usuarios.filter(u => !u.activo && !u.activoDesde).length
   const suspendidos = usuarios.filter(u => !u.activo && u.activoDesde).length
-  const estimatedAiCost = (totalReviews * 0.002).toFixed(2)
-  // Outscraper: ~20 reseñas/sync, $0.002/reseña, estimamos 10 syncs/mes/usuario pro
-  const estimatedOutscraperCost = (proUsers * 20 * 0.002 * 10).toFixed(2)
+  // Claude: $0.01 por llamada API ≈ 1 llamada por respuesta generada
+  const estimatedAiCost = (totalReviews * 0.01).toFixed(2)
+
+  // Outscraper tiered: 0-500 gratis, 500-10k a $0.003, >10k a $0.001
+  const totalFetched = proUsers * 20 * 10 // ~10 syncs/mes por usuario pro
+  function outscraperTiered(n: number): number {
+    if (n <= 500) return 0
+    if (n <= 10000) return (n - 500) * 0.003
+    return (10000 - 500) * 0.003 + (n - 10000) * 0.001
+  }
+  const estimatedOutscraperCost = outscraperTiered(totalFetched).toFixed(2)
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -187,14 +195,14 @@ export default function AdminPage() {
               <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Claude AI</div>
               <div className="text-2xl font-bold text-slate-900 dark:text-white">€{estimatedAiCost}</div>
               <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                {totalReviews} reseñas × €0.002
+                {totalReviews} respuestas × $0.01/llamada
               </div>
             </div>
             <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
               <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Outscraper</div>
-              <div className="text-2xl font-bold text-slate-900 dark:text-white">€{estimatedOutscraperCost}</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">${estimatedOutscraperCost}</div>
               <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                {proUsers} usuarios Pro × 20 reseñas × 10 syncs/mes
+                {totalFetched} reseñas est. · 0-500 gratis, 500-10k $0.003, +10k $0.001
               </div>
             </div>
           </div>
