@@ -18,7 +18,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
-  const [userPlan, setUserPlan] = useState<string>('basic')
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const [nombre, setNombre] = useState('')
   const [negocio, setNegocio] = useState<Negocio | null>(null)
@@ -47,7 +47,7 @@ export default function SettingsPage() {
       try {
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
         setNombre(u.nombre ?? '')
-        setUserPlan(u.plan ?? 'basic')
+        setIsAdmin(u.isAdmin)
         if (n) {
           setNegocio(n)
           setForm({
@@ -170,15 +170,22 @@ export default function SettingsPage() {
                 Reseñas
               </Link>
               <Link
-                href="/health"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1"
+                href="/dashboard/salud"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
                 Salud
-                {userPlan !== 'pro' && <span className="text-xs text-indigo-500 dark:text-indigo-400">Pro</span>}
               </Link>
               <span className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white">
                 Configuración
               </span>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+                >
+                  Admin
+                </Link>
+              )}
             </nav>
           </div>
           <button
@@ -291,12 +298,6 @@ export default function SettingsPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-5">Datos de tu negocio</h2>
             <div className="space-y-4">
-              {negocio?.cif && (
-                <div>
-                  <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">CIF / NIF del negocio</label>
-                  <p className="px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl text-base text-slate-500 dark:text-slate-400">{negocio.cif}</p>
-                </div>
-              )}
               <div>
                 <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">Nombre del negocio</label>
                 <input

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio, getPendingReviews, getSummary, ApiError, type PendingReview, type Negocio } from '@/lib/api'
+import { getLast4Months, drift, ratingDrift, generateReputationPDF, type MonthMetrics } from '@/lib/report-pdf'
 
 const STOPWORDS = new Set([
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'al', 'en', 'y', 'a', 'que',
@@ -57,6 +58,8 @@ export default function SaludPage() {
   const [initError, setInitError] = useState('')
   const [summary, setSummary] = useState<SummaryData | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -65,7 +68,7 @@ export default function SaludPage() {
       try {
         // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
         const [u, n, r] = await Promise.all([getMyUsuario(), getMyNegocio(), getPendingReviews()])
-        void u
+        setIsAdmin(u.isAdmin)
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
@@ -160,6 +163,38 @@ export default function SaludPage() {
   const ratingUp = ratingDiff > 0
   const ratingDown = ratingDiff < 0
 
+  // Sentiment drift: last 4 months metrics
+  const last4: MonthMetrics[] = getLast4Months(reviews)
+  const currentM = last4[3]
+  const previousM = last4[2]
+  const rDrift = ratingDrift(currentM.avgRating, previousM.avgRating)
+  const posDrift = drift(currentM.positiveRatio, previousM.positiveRatio)
+  const negDrift = drift(currentM.negativeRatio, previousM.negativeRatio)
+  const respDrift = drift(currentM.responseRate, previousM.responseRate)
+
+  async function handleDownloadPdf() {
+    if (!negocio) return
+    setDownloadingPdf(true)
+    try {
+      await generateReputationPDF({
+        negocioNombre: negocio.nombre,
+        months: last4,
+        allTimeAvg: avgRating,
+        allTimeCount: reviews.length,
+        responseRate,
+        positive,
+        neutral,
+        negative,
+        keywords: keywords.map(k => ({ word: k.word, sentiment: k.sentiment })),
+        summary,
+      })
+    } catch (e) {
+      console.error('PDF error', e)
+    } finally {
+      setDownloadingPdf(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Header */}
@@ -188,6 +223,14 @@ export default function SaludPage() {
               >
                 Configuración
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+                >
+                  Admin
+                </Link>
+              )}
             </nav>
           </div>
           <button
@@ -201,12 +244,32 @@ export default function SaludPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Page title */}
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Salud de tu reputación
-            {negocio && <span className="text-slate-400 dark:text-slate-500 font-normal"> — {negocio.nombre}</span>}
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 capitalize">{monthName}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Salud de tu reputación
+              {negocio && <span className="text-slate-400 dark:text-slate-500 font-normal"> — {negocio.nombre}</span>}
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 capitalize">{monthName}</p>
+          </div>
+          {reviews.length > 0 && (
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+              className="shrink-0 flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            >
+              {downloadingPdf ? (
+                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generando...</>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Descargar informe PDF
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {reviews.length === 0 ? (
@@ -261,6 +324,79 @@ export default function SaludPage() {
                 </p>
               </div>
             </div>
+
+            {/* Sentiment Drift */}
+            {(rDrift || posDrift || negDrift || respDrift || last4.some(m => m.count > 0)) && (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Evolución mensual</h2>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">vs. mes anterior</span>
+                </div>
+
+                {/* Drift KPIs */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                  {[
+                    { label: 'Nota media', d: rDrift, value: currentM.avgRating != null ? `${currentM.avgRating.toFixed(1)}★` : '—', positiveIsUp: true },
+                    { label: 'Reseñas positivas', d: posDrift, value: currentM.positiveRatio != null ? `${currentM.positiveRatio.toFixed(0)}%` : '—', positiveIsUp: true },
+                    { label: 'Reseñas negativas', d: negDrift, value: currentM.negativeRatio != null ? `${currentM.negativeRatio.toFixed(0)}%` : '—', positiveIsUp: false },
+                    { label: 'Índice respuesta', d: respDrift, value: currentM.responseRate != null ? `${currentM.responseRate.toFixed(0)}%` : '—', positiveIsUp: true },
+                  ].map(({ label, d, value, positiveIsUp }) => {
+                    const isGood = d ? (positiveIsUp ? d.dir === 'up' : d.dir === 'down') : null
+                    return (
+                      <div key={label} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</p>
+                        <p className="text-xl font-bold text-slate-900 dark:text-white">{value}</p>
+                        {d ? (
+                          <p className={`text-xs font-semibold mt-0.5 ${isGood ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {d.dir === 'up' ? '▲' : '▼'} {d.label}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Sin cambios</p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* 4-month mini table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 dark:border-slate-700">
+                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 pb-2 capitalize">Mes</th>
+                        <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Reseñas</th>
+                        <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Nota</th>
+                        <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Positivas</th>
+                        <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Respondidas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {last4.map((m, i) => {
+                        const isCurrent = i === 3
+                        return (
+                          <tr key={m.label} className={`border-b border-slate-50 dark:border-slate-700/50 last:border-0 ${isCurrent ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
+                            <td className={`py-2 capitalize text-xs ${isCurrent ? 'font-semibold text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>
+                              {m.label}
+                              {isCurrent && <span className="ml-1.5 text-[10px] bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">actual</span>}
+                            </td>
+                            <td className="py-2 text-right text-xs text-slate-600 dark:text-slate-400">{m.count === 0 ? '—' : m.count}</td>
+                            <td className="py-2 text-right text-xs text-amber-600 dark:text-amber-400 font-medium">
+                              {m.avgRating != null ? `${m.avgRating.toFixed(1)}★` : '—'}
+                            </td>
+                            <td className="py-2 text-right text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                              {m.positiveRatio != null ? `${m.positiveRatio.toFixed(0)}%` : '—'}
+                            </td>
+                            <td className="py-2 text-right text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                              {m.responseRate != null ? `${m.responseRate.toFixed(0)}%` : '—'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* Sentiment bar */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
