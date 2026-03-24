@@ -153,8 +153,9 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   y += 8
 
   // ── KPI ROW ──
+  // Nota: jsPDF/Helvetica solo soporta Latin-1; usar formato texto en vez de simbolos Unicode
   const kpis = [
-    { label: 'Nota media global', value: data.allTimeAvg > 0 ? `${data.allTimeAvg.toFixed(1)} ★` : 'Sin datos', color: AMBER },
+    { label: 'Nota media global', value: data.allTimeAvg > 0 ? `${data.allTimeAvg.toFixed(1)} / 5` : 'Sin datos', color: AMBER },
     { label: 'Total reseñas importadas', value: String(data.allTimeCount), color: INDIGO },
     { label: 'Reseñas este mes', value: String(thisMonth.count), color: INDIGO },
     { label: 'Índice de respuesta', value: `${data.responseRate.toFixed(0)}%`, color: GREEN },
@@ -181,8 +182,12 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(7)
   set(LIGHT)
-  doc.text('Datos reales obtenidos de las reseñas de Google Maps importadas a través de Outscraper. Sin datos estimados en esta sección.', ML, y)
-  y += 7
+  const noteLines = doc.splitTextToSize(
+    'Datos reales obtenidos de las reseñas de Google Maps importadas a través de Outscraper. Sin datos estimados.',
+    CW
+  ) as string[]
+  doc.text(noteLines, ML, y)
+  y += noteLines.length * 4 + 3
 
   // ── EVOLUCIÓN MENSUAL ──
   set(DARK)
@@ -193,16 +198,17 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   doc.line(ML, y + 1.5, MR, y + 1.5)
   y += 7
 
-  // Table header
+  // Table header — columnas ajustadas para sumar exactamente CW (174mm)
   const cols = [
-    { label: 'Mes', w: 38 },
-    { label: 'Reseñas', w: 22 },
-    { label: 'Nota media', w: 26 },
-    { label: '% Positivas', w: 26 },
-    { label: '% Negativas', w: 26 },
-    { label: '% Respondidas', w: 30 },
-    { label: 'Variación nota', w: 26 },
+    { label: 'Mes',           w: 36 },
+    { label: 'Reseñas',       w: 18 },
+    { label: 'Nota media',    w: 24 },
+    { label: '% Positivas',   w: 24 },
+    { label: '% Negativas',   w: 24 },
+    { label: '% Respondidas', w: 26 },
+    { label: 'Var. nota',     w: 22 },
   ]
+  // Verificación: 36+18+24+24+24+26+22 = 174 = CW ✓
 
   fill([241, 245, 249])
   draw([226, 232, 240])
@@ -244,7 +250,7 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
 
     // Nota media
     set(m.avgRating == null ? LIGHT : AMBER)
-    doc.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(1)} ★`, cx, y + 4.5)
+    doc.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(1)} / 5`, cx, y + 4.5)
     cx += cols[2].w
 
     // % positivas
@@ -268,7 +274,7 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
       if (m.avgRating != null && prev.avgRating != null) {
         const d = m.avgRating - prev.avgRating
         set(Math.abs(d) < 0.05 ? LIGHT : d > 0 ? GREEN : RED)
-        doc.text(`${d > 0 ? '+' : ''}${d.toFixed(2)}★`, cx, y + 4.5)
+        doc.text(`${d > 0 ? '+' : ''}${d.toFixed(2)}`, cx, y + 4.5)
       } else {
         set(LIGHT)
         doc.text('—', cx, y + 4.5)
