@@ -65,7 +65,7 @@ export default function SaludPage() {
       try {
         // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
         const [u, n, r] = await Promise.all([getMyUsuario(), getMyNegocio(), getPendingReviews()])
-        if (!u.activo || u.plan !== 'pro') { router.replace('/dashboard'); return }
+        void u
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)

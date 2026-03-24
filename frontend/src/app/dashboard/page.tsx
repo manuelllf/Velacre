@@ -73,11 +73,6 @@ export default function DashboardPage() {
         setUserPlan(u.plan ?? 'basic')
         setUserId(u.id)
         setIsAdmin(u.isAdmin)
-        if (!u.activo && !u.isAdmin) {
-          setUserStatus(u.activoDesde ? 'suspendido' : 'pendiente')
-          setLoadingInit(false)
-          return
-        }
         if (!n) {
           router.replace('/onboarding')
           return
@@ -174,38 +169,6 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (userStatus === 'pendiente' || userStatus === 'suspendido') {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <span className="font-bold text-lg text-slate-900 dark:text-white">Velacre</span>
-            <button
-              onClick={handleLogout}
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-            >
-              Cerrar sesión
-            </button>
-          </div>
-        </header>
-        <main className="max-w-4xl mx-auto px-4 py-16 flex items-center justify-center">
-          <div className="text-center max-w-md space-y-4">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Cuenta pendiente de activación</h1>
-            <p className="text-slate-500 dark:text-slate-400">
-              Tu cuenta está siendo revisada. En breve recibirás un correo cuando esté activa.
-            </p>
-            <p className="text-sm text-slate-400 dark:text-slate-500">
-              ¿Tienes alguna pregunta?{' '}
-              <a href="mailto:hola@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">
-                Escríbenos
-              </a>
-            </p>
-          </div>
-        </main>
       </div>
     )
   }

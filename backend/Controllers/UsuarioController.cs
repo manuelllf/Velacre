@@ -78,6 +78,9 @@ public class UsuarioController : ControllerBase
             Nombre = request.Nombre,
             Telefono = request.Telefono,
             Email = email,
+            Activo = true,
+            ActivoDesde = DateTimeOffset.UtcNow,
+            Plan = "pro",
             CreadoPor = userId,
             CreadoFecha = DateTimeOffset.UtcNow
         };
