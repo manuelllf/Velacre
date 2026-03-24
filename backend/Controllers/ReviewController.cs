@@ -148,8 +148,6 @@ public class ReviewController : ControllerBase
             .Where(r => r.IdNegocio == negocio.Id)
             .Get();
 
-        var tone = negocio.TonoPredefinido.ToLower();
-
         var pending = reviewsResult.Models
             .Where(r => r.RespuestaProfesional == null && r.RespuestaCercano == null && r.RespuestaDirecto == null)
             .OrderByDescending(r => r.ReviewDate ?? r.CreadoFecha)
