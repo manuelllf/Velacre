@@ -51,7 +51,7 @@ public class NegocioController : ControllerBase
         var entity = new NegocioEntity
         {
             Codigo = "NEG" + Guid.NewGuid().ToString("N")[..7].ToUpper(),
-            CIF = request.CIF,
+            CIF = string.IsNullOrWhiteSpace(request.CIF) ? "AUTO-" + userId.ToString("N")[..12].ToUpper() : request.CIF,
             Nombre = request.Nombre,
             Email = request.Email,
             Telefono = request.Telefono,

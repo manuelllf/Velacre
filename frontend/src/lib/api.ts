@@ -98,7 +98,7 @@ export async function getMyNegocio(): Promise<Negocio | null> {
 }
 
 export async function createNegocio(data: {
-  cif: string
+  cif?: string
   nombre: string
   email?: string
   telefono?: string
