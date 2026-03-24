@@ -29,7 +29,6 @@ export interface ReviewResponses {
 export interface Negocio {
   id: string
   codigo: string
-  cif: string
   nombre: string
   email?: string
   telefono?: string

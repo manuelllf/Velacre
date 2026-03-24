@@ -12,9 +12,6 @@ public class NegocioEntity : BaseModel
     [Column("codigo")]
     public string Codigo { get; set; } = string.Empty;
 
-    [Column("cif")]
-    public string CIF { get; set; } = string.Empty;
-
     [Column("nombre")]
     public string Nombre { get; set; } = string.Empty;
 

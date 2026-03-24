@@ -46,12 +46,11 @@ public class NegocioController : ControllerBase
     public async Task<IActionResult> CreateNegocio([FromBody] CreateNegocioRequest request)
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
-        _logger.LogInformation("[NegocioController] POST / — userId={UserId}, nombre={Nombre}, cif={CIF}", userId, request.Nombre, request.CIF);
+        _logger.LogInformation("[NegocioController] POST / — userId={UserId}, nombre={Nombre}", userId, request.Nombre);
 
         var entity = new NegocioEntity
         {
             Codigo = "NEG" + Guid.NewGuid().ToString("N")[..7].ToUpper(),
-            CIF = string.IsNullOrWhiteSpace(request.CIF) ? userId.ToString("N")[..14].ToUpper() : request.CIF,
             Nombre = request.Nombre,
             Email = request.Email,
             Telefono = request.Telefono,
@@ -129,7 +128,6 @@ public class NegocioController : ControllerBase
     {
         id = n.Id,
         codigo = n.Codigo,
-        cif = n.CIF,
         nombre = n.Nombre,
         email = n.Email,
         telefono = n.Telefono,
