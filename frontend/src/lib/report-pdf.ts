@@ -55,6 +55,52 @@ export function getLast4Months(reviews: PendingReview[]): MonthMetrics[] {
   })
 }
 
+/** Todos los meses desde la reseña más antigua hasta hoy, más reciente primero */
+export function getAllMonths(reviews: PendingReview[]): MonthMetrics[] {
+  if (reviews.length === 0) return []
+  const dates = reviews.map(r => new Date(r.reviewDate).getTime()).filter(t => !isNaN(t))
+  if (dates.length === 0) return []
+  const minDate = new Date(Math.min(...dates))
+  const now = new Date()
+  const months: MonthMetrics[] = []
+  let d = new Date(minDate.getFullYear(), minDate.getMonth(), 1)
+  while (d.getFullYear() < now.getFullYear() || (d.getFullYear() === now.getFullYear() && d.getMonth() <= now.getMonth())) {
+    months.push(computeMonthMetrics(reviews, d.getFullYear(), d.getMonth()))
+    d = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+  }
+  return months.reverse()
+}
+
+/** Un registro por año, más reciente primero */
+export function getAllYears(reviews: PendingReview[]): MonthMetrics[] {
+  if (reviews.length === 0) return []
+  const years = [...new Set(reviews.map(r => new Date(r.reviewDate).getFullYear()))].filter(y => !isNaN(y))
+  return years
+    .sort((a, b) => b - a)
+    .map(year => {
+      const yearReviews = reviews.filter(r => new Date(r.reviewDate).getFullYear() === year)
+      const withRating = yearReviews.filter(r => r.starRating != null)
+      const avgRating = withRating.length > 0
+        ? withRating.reduce((s, r) => s + (r.starRating ?? 0), 0) / withRating.length
+        : null
+      const positive = yearReviews.filter(r => (r.starRating ?? 0) >= 4).length
+      const neutral = yearReviews.filter(r => (r.starRating ?? 0) === 3).length
+      const negative = yearReviews.filter(r => (r.starRating ?? 0) <= 2 && r.starRating != null).length
+      const responded = yearReviews.filter(r => r.tonoGenerado != null).length
+      const total = yearReviews.length
+      return {
+        year, month: -1,
+        label: String(year),
+        count: total, avgRating,
+        positiveCount: positive, neutralCount: neutral, negativeCount: negative,
+        positiveRatio: total > 0 ? (positive / total) * 100 : null,
+        negativeRatio: total > 0 ? (negative / total) * 100 : null,
+        respondedCount: responded,
+        responseRate: total > 0 ? (responded / total) * 100 : null,
+      }
+    })
+}
+
 /** Diferencia entre dos ratios, con signo y formato */
 export function drift(current: number | null, previous: number | null): { value: number; label: string; dir: 'up' | 'down' | 'flat' } | null {
   if (current == null || previous == null || previous === 0) return null

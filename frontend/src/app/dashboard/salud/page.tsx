@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, ApiError, type PendingReview, type Negocio } from '@/lib/api'
-import { getLast4Months, drift, ratingDrift, generateReputationPDF, type MonthMetrics } from '@/lib/report-pdf'
+import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateReputationPDF, type MonthMetrics } from '@/lib/report-pdf'
 
 const STOPWORDS = new Set([
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'al', 'en', 'y', 'a', 'que',
@@ -80,6 +80,7 @@ export default function SaludPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState(false)
   const [aiUsed, setAiUsed] = useState(0)
+  const [evolutionView, setEvolutionView] = useState<'month' | 'year'>('month')
 
   useEffect(() => {
     async function init() {
@@ -199,7 +200,7 @@ export default function SaludPage() {
   const ratingUp = ratingDiff > 0
   const ratingDown = ratingDiff < 0
 
-  // Sentiment drift: last 4 months metrics
+  // Drift KPIs siempre sobre últimos 4 meses (comparación mes a mes)
   const last4: MonthMetrics[] = getLast4Months(reviews)
   const currentM = last4[3]
   const previousM = last4[2]
@@ -207,6 +208,9 @@ export default function SaludPage() {
   const posDrift = drift(currentM.positiveRatio, previousM.positiveRatio)
   const negDrift = drift(currentM.negativeRatio, previousM.negativeRatio)
   const respDrift = drift(currentM.responseRate, previousM.responseRate)
+
+  // Tabla histórica: por mes o por ejercicio
+  const evolutionRows: MonthMetrics[] = evolutionView === 'year' ? getAllYears(reviews) : getAllMonths(reviews)
 
   async function handleDownloadPdf() {
     if (!negocio) return
@@ -346,45 +350,62 @@ export default function SaludPage() {
               </div>
             </div>
 
-            {/* Sentiment Drift */}
-            {(rDrift || posDrift || negDrift || respDrift || last4.some(m => m.count > 0)) && (
+            {/* Evolución histórica */}
+            {reviews.length > 0 && (
               <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Evolución mensual</h2>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">vs. mes anterior</span>
+                <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Evolución</h2>
+                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                    <button
+                      onClick={() => setEvolutionView('month')}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${evolutionView === 'month' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                    >
+                      Por mes
+                    </button>
+                    <button
+                      onClick={() => setEvolutionView('year')}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${evolutionView === 'year' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                    >
+                      Por ejercicio
+                    </button>
+                  </div>
                 </div>
 
-                {/* Drift KPIs */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-                  {[
-                    { label: 'Nota media', d: rDrift, value: currentM.avgRating != null ? `${currentM.avgRating.toFixed(1)}★` : '—', positiveIsUp: true },
-                    { label: 'Reseñas positivas', d: posDrift, value: currentM.positiveRatio != null ? `${currentM.positiveRatio.toFixed(0)}%` : '—', positiveIsUp: true },
-                    { label: 'Reseñas negativas', d: negDrift, value: currentM.negativeRatio != null ? `${currentM.negativeRatio.toFixed(0)}%` : '—', positiveIsUp: false },
-                    { label: 'Índice respuesta', d: respDrift, value: currentM.responseRate != null ? `${currentM.responseRate.toFixed(0)}%` : '—', positiveIsUp: true },
-                  ].map(({ label, d, value, positiveIsUp }) => {
-                    const isGood = d ? (positiveIsUp ? d.dir === 'up' : d.dir === 'down') : null
-                    return (
-                      <div key={label} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</p>
-                        <p className="text-xl font-bold text-slate-900 dark:text-white">{value}</p>
-                        {d ? (
-                          <p className={`text-xs font-semibold mt-0.5 ${isGood ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                            {d.dir === 'up' ? '▲' : '▼'} {d.label}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Sin cambios</p>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+                {/* Drift KPIs (siempre mes actual vs anterior) */}
+                {(rDrift || posDrift || negDrift || respDrift) && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                    {[
+                      { label: 'Nota media', d: rDrift, value: currentM.avgRating != null ? `${currentM.avgRating.toFixed(1)}★` : '—', positiveIsUp: true },
+                      { label: 'Reseñas positivas', d: posDrift, value: currentM.positiveRatio != null ? `${currentM.positiveRatio.toFixed(0)}%` : '—', positiveIsUp: true },
+                      { label: 'Reseñas negativas', d: negDrift, value: currentM.negativeRatio != null ? `${currentM.negativeRatio.toFixed(0)}%` : '—', positiveIsUp: false },
+                      { label: 'Índice respuesta', d: respDrift, value: currentM.responseRate != null ? `${currentM.responseRate.toFixed(0)}%` : '—', positiveIsUp: true },
+                    ].map(({ label, d, value, positiveIsUp }) => {
+                      const isGood = d ? (positiveIsUp ? d.dir === 'up' : d.dir === 'down') : null
+                      return (
+                        <div key={label} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</p>
+                          <p className="text-xl font-bold text-slate-900 dark:text-white">{value}</p>
+                          {d ? (
+                            <p className={`text-xs font-semibold mt-0.5 ${isGood ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                              {d.dir === 'up' ? '▲' : '▼'} {d.label}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Sin cambios</p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
 
-                {/* 4-month mini table */}
-                <div className="overflow-x-auto">
+                {/* Tabla histórica */}
+                <div className="overflow-x-auto max-h-80 overflow-y-auto">
                   <table className="w-full text-sm">
-                    <thead>
+                    <thead className="sticky top-0 bg-white dark:bg-slate-800">
                       <tr className="border-b border-slate-100 dark:border-slate-700">
-                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 pb-2 capitalize">Mes</th>
+                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 pb-2 capitalize">
+                          {evolutionView === 'year' ? 'Año' : 'Mes'}
+                        </th>
                         <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Reseñas</th>
                         <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Nota</th>
                         <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Positivas</th>
@@ -392,10 +413,10 @@ export default function SaludPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {last4.map((m, i) => {
-                        const isCurrent = i === 3
+                      {evolutionRows.map((m, i) => {
+                        const isCurrent = i === 0
                         return (
-                          <tr key={m.label} className={`border-b border-slate-50 dark:border-slate-700/50 last:border-0 ${isCurrent ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
+                          <tr key={`${m.year}-${m.month}`} className={`border-b border-slate-50 dark:border-slate-700/50 last:border-0 ${isCurrent ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
                             <td className={`py-2 capitalize text-xs ${isCurrent ? 'font-semibold text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>
                               {m.label}
                               {isCurrent && <span className="ml-1.5 text-[10px] bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">actual</span>}
