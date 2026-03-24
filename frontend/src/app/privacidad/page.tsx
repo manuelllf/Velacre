@@ -115,6 +115,15 @@ export default function PrivacidadPage() {
                 Consulta su política en{' '}
                 <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">anthropic.com/privacy</a>.
               </li>
+              <li>
+                <strong>Outscraper Inc.</strong> (extracción de reseñas de Google Maps) — utilizamos este servicio para obtener las reseñas públicas de tu negocio.
+                Los datos enviados se limitan al identificador público de Google Maps de tu local.
+                Consulta su política en{' '}
+                <a href="https://outscraper.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">outscraper.com/privacy-policy</a>.
+              </li>
+              <li>
+                <strong>Railway / Vercel</strong> (infraestructura de alojamiento) — el código y los logs de la aplicación se ejecutan en servidores europeos o con adecuadas garantías de transferencia internacional.
+              </li>
             </ul>
             <p className="mt-3">
               No vendemos ni cedemos tus datos a terceros con fines publicitarios.

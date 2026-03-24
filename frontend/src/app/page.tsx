@@ -393,8 +393,9 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-slate-500 text-sm">© 2025 Velacre. Todos los derechos reservados.</span>
           <div className="flex items-center gap-6 text-sm text-slate-500">
-            <Link href="/privacidad" className="hover:text-slate-300 transition-colors">Política de privacidad</Link>
-            <a href="mailto:hola@velacre.com" className="hover:text-slate-300 transition-colors">Contacto</a>
+            <Link href="/privacidad" className="hover:text-slate-300 transition-colors">Privacidad</Link>
+            <Link href="/terminos" className="hover:text-slate-300 transition-colors">Términos</Link>
+            <Link href="/contacto" className="hover:text-slate-300 transition-colors">Contacto</Link>
           </div>
         </div>
       </footer>
