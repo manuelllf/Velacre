@@ -93,6 +93,14 @@ export default function SaludPage() {
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
+        // Load persisted AI analysis
+        try {
+          const cached = localStorage.getItem('velacre_ai_result')
+          if (cached) {
+            const parsed = JSON.parse(cached) as { result: SummaryData }
+            setSummary(parsed.result)
+          }
+        } catch { /* ignore */ }
       } catch (err) {
         // Solo redirigir al login en errores de sesión (401), no en errores de red
         if (err instanceof ApiError && err.status === 401) {
@@ -113,7 +121,10 @@ export default function SaludPage() {
     incrementAiUsage()
     setAiUsed(prev => prev + 1)
     getSummary()
-      .then(s => setSummary(s))
+      .then(s => {
+        setSummary(s)
+        try { localStorage.setItem('velacre_ai_result', JSON.stringify({ result: s })) } catch { /* ignore */ }
+      })
       .catch(() => setSummary({ brilla: 'No se pudo obtener el análisis.', quema: '—', accion: '—' }))
       .finally(() => setLoadingSummary(false))
   }
@@ -181,7 +192,10 @@ export default function SaludPage() {
 
   const monthName = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
 
-  const ratingDiff = avgThisMonth - avgLastMonth
+  // Show this-month avg if available, else all-time avg
+  const displayRating = avgThisMonth > 0 ? avgThisMonth : avgRating
+  const displayRatingLabel = avgThisMonth > 0 ? 'Nota media (este mes)' : 'Nota media (global)'
+  const ratingDiff = avgThisMonth > 0 && avgLastMonth > 0 ? avgThisMonth - avgLastMonth : 0
   const ratingUp = ratingDiff > 0
   const ratingDown = ratingDiff < 0
 
@@ -292,17 +306,17 @@ export default function SaludPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Avg rating */}
               <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Nota media</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{displayRatingLabel}</p>
                 <div className="flex items-end gap-2">
-                  <span className="text-4xl font-bold text-slate-900 dark:text-white">{avgRating.toFixed(1)}</span>
+                  <span className="text-4xl font-bold text-slate-900 dark:text-white">{displayRating.toFixed(1)}</span>
                   <span className="text-amber-500 text-xl mb-1">★</span>
-                  {avgLastMonth > 0 && (
-                    <span className={`text-sm font-semibold mb-1 ${ratingUp ? 'text-emerald-600 dark:text-emerald-400' : ratingDown ? 'text-red-600 dark:text-red-400' : 'text-slate-400'}`}>
-                      {ratingUp ? '▲' : ratingDown ? '▼' : '='} {Math.abs(ratingDiff).toFixed(1)}
+                  {ratingDiff !== 0 && (
+                    <span className={`text-sm font-semibold mb-1 ${ratingUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {ratingUp ? '▲' : '▼'} {Math.abs(ratingDiff).toFixed(1)}
                     </span>
                   )}
                 </div>
-                {avgLastMonth > 0 && (
+                {avgLastMonth > 0 && avgThisMonth > 0 && (
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                     Mes anterior: {avgLastMonth.toFixed(1)}★
                   </p>
@@ -502,8 +516,10 @@ export default function SaludPage() {
                     >
                       Regenerar
                     </button>
-                    {aiUsed >= AI_LIMIT && (
-                      <p className="text-xs text-slate-400 dark:text-slate-500">Límite diario alcanzado. Vuelve mañana.</p>
+                    {aiUsed >= AI_LIMIT ? (
+                      <p className="text-xs text-slate-400 dark:text-slate-500">Límite diario alcanzado · se restablece mañana</p>
+                    ) : (
+                      <p className="text-xs text-slate-400 dark:text-slate-500">{AI_LIMIT - aiUsed} uso{AI_LIMIT - aiUsed !== 1 ? 's' : ''} restante{AI_LIMIT - aiUsed !== 1 ? 's' : ''} hoy</p>
                     )}
                   </div>
                 </>

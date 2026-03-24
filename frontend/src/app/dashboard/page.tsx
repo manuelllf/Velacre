@@ -20,11 +20,19 @@ import ResponseCard from '@/components/ResponseCard'
 
 function StarRating({ rating }: { rating?: number }) {
   if (!rating) return null
+  const color = rating >= 4 ? 'text-emerald-500' : rating <= 2 ? 'text-red-400' : 'text-amber-400'
   return (
-    <span className="text-amber-500 text-base">
+    <span className={`font-semibold text-sm ${color}`}>
       {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
     </span>
   )
+}
+
+function reviewBorderClass(rating?: number) {
+  if (!rating) return 'border-slate-200 dark:border-slate-700'
+  if (rating <= 2) return 'border-l-red-400 border-slate-200 dark:border-slate-700'
+  if (rating === 3) return 'border-l-amber-400 border-slate-200 dark:border-slate-700'
+  return 'border-l-emerald-400 border-slate-200 dark:border-slate-700'
 }
 
 function formatDate(dateStr?: string) {
@@ -256,84 +264,85 @@ export default function DashboardPage() {
               <p className="text-sm mt-1">No tienes reseñas pendientes. Cuando lleguen nuevas, aparecerán aquí.</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {pendingReviews.map(review => (
-                <div
-                  key={review.id}
-                  className="border border-slate-200 dark:border-slate-700 rounded-xl p-4"
-                >
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div>
-                      <span className="text-base font-semibold text-slate-900 dark:text-white">
-                        {review.authorName ?? 'Cliente anónimo'}
-                      </span>
-                      <span className="ml-3 text-sm text-slate-400 dark:text-slate-500">
-                        {formatDate(review.reviewDate)}
-                      </span>
-                    </div>
-                    <StarRating rating={review.starRating} />
-                  </div>
-
-                  <p className="text-base text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
-                    {review.clientereview}
-                  </p>
-
-                  {generatedResponses[review.id] ? (
-                    <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-                          Respuesta generada
+            <div className="space-y-3">
+              {pendingReviews.map(review => {
+                const isNegative = (review.starRating ?? 5) <= 2
+                return (
+                  <div
+                    key={review.id}
+                    className={`border-l-4 border rounded-xl p-4 ${reviewBorderClass(review.starRating)}`}
+                  >
+                    {/* Header row */}
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                          {review.authorName ?? 'Cliente anónimo'}
                         </span>
-                        <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+                          {formatDate(review.reviewDate)}
+                        </span>
+                        {isNegative && (
+                          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded">
+                            Urgente
+                          </span>
+                        )}
+                      </div>
+                      <StarRating rating={review.starRating} />
+                    </div>
+
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mb-3 leading-relaxed line-clamp-3">
+                      {review.clientereview || <span className="italic text-slate-400">Sin texto</span>}
+                    </p>
+
+                    {generatedResponses[review.id] ? (
+                      <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3">
+                        <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-2">
+                          {generatedResponses[review.id]}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(generatedResponses[review.id])
                               setCopiedId(review.id)
                               setTimeout(() => setCopiedId(null), 2000)
                             }}
-                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium transition-colors"
+                            className="text-xs font-medium px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
                           >
-                            {copiedId === review.id ? '✓ Copiado' : 'Copiar'}
+                            {copiedId === review.id ? '✓ Copiado' : 'Copiar respuesta'}
                           </button>
                           <a
                             href="https://business.google.com/reviews"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5"
+                            className="text-xs font-medium px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                           >
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                            </svg>
-                            Ir a Google a pegarla
+                            Pegar en Google
                           </a>
                         </div>
                       </div>
-                      <p className="text-base text-slate-800 dark:text-slate-200 leading-relaxed">
-                        {generatedResponses[review.id]}
+                    ) : generatedResponses[review.id + '_error'] ? (
+                      <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
+                        {generatedResponses[review.id + '_error']}
                       </p>
-                    </div>
-                  ) : generatedResponses[review.id + '_error'] ? (
-                    <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-xl">
-                      {generatedResponses[review.id + '_error']}
-                    </p>
-                  ) : (
-                    <button
-                      onClick={() => handleGenerate(review.id)}
-                      disabled={generatingId === review.id}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {generatingId === review.id ? (
-                        <>
-                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Generando... (unos segundos)
-                        </>
-                      ) : (
-                        'Generar respuesta con IA'
-                      )}
-                    </button>
-                  )}
-                </div>
-              ))}
+                    ) : (
+                      <button
+                        onClick={() => handleGenerate(review.id)}
+                        disabled={generatingId === review.id}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {generatingId === review.id ? (
+                          <>
+                            <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Generando...
+                          </>
+                        ) : (
+                          'Generar respuesta con IA'
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
