@@ -27,7 +27,7 @@ interface SummaryData {
   accion: string
 }
 
-const AI_LIMIT = 3
+const AI_LIMIT = 999
 
 function getAiUsageToday(): number {
   if (typeof window === 'undefined') return 0

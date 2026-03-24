@@ -63,7 +63,7 @@ public class PlacesController : ControllerBase
 
         _logger.LogDebug("[PlacesController] Obteniendo reseñas para placeId={PlaceId}", negocio.PlaceId);
 
-        var reviews = await _outscraper.GetReviewsAsync(negocio.PlaceId, limit: 200);
+        var reviews = await _outscraper.GetReviewsAsync(negocio.PlaceId);
 
         // Obtener todas las reseñas importadas de Google que hay en la BD para este negocio
         var allExistingResult = await _supabase.From<ReviewEntity>()

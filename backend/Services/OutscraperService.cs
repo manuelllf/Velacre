@@ -21,9 +21,10 @@ public class OutscraperService : IOutscraperService
             _logger.LogWarning("[OutscraperService] OUTSCRAPER_API_KEY NO está configurada");
     }
 
-    public async Task<List<OutscraperReview>> GetReviewsAsync(string placeId, int limit = 20)
+    public async Task<List<OutscraperReview>> GetReviewsAsync(string placeId, int limit = 500)
     {
-        _logger.LogInformation("[OutscraperService] GetReviewsAsync — placeId={PlaceId}, limit={Limit}", placeId, limit);
+        var cutoff = DateTimeOffset.UtcNow.AddMonths(-6).ToUnixTimeSeconds();
+        _logger.LogInformation("[OutscraperService] GetReviewsAsync — placeId={PlaceId}, limit={Limit}, cutoff=6m", placeId, limit);
 
         if (string.IsNullOrEmpty(_apiKey))
         {
@@ -31,7 +32,7 @@ public class OutscraperService : IOutscraperService
             return [];
         }
 
-        var url = $"https://api.app.outscraper.com/maps/reviews-v3?query={Uri.EscapeDataString(placeId)}&reviewsLimit={limit}&language=es&sort=newest&async=false";
+        var url = $"https://api.app.outscraper.com/maps/reviews-v3?query={Uri.EscapeDataString(placeId)}&reviewsLimit={limit}&cutoff={cutoff}&language=es&sort=newest&async=false";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("X-API-KEY", _apiKey);
 
