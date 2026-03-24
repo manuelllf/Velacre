@@ -239,6 +239,17 @@ export async function syncReviews(): Promise<{ newReviews: number }> {
   return data
 }
 
+export async function getAllReviews(): Promise<PendingReview[]> {
+  const res = await fetch(`${API_URL}/api/review/all`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new ApiError(res.status, body)
+  }
+  return res.json()
+}
+
 export async function getPendingReviews(): Promise<PendingReview[]> {
   console.log('[api] getPendingReviews →')
   const res = await fetch(`${API_URL}/api/review/pending`, {

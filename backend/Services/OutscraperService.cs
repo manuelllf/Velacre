@@ -65,6 +65,7 @@ public class OutscraperService : IOutscraperService
                     var rating = review.TryGetProperty("review_rating", out var r) ? r.GetInt32() : 0;
                     var text = review.TryGetProperty("review_text", out var t) ? t.GetString() ?? "" : "";
                     var dateStr = review.TryGetProperty("review_datetime_utc", out var d) ? d.GetString() ?? "" : "";
+                    var ownerAnswer = review.TryGetProperty("owner_answer", out var oa) ? oa.GetString() : null;
 
                     DateTimeOffset publishedAt = DateTimeOffset.UtcNow;
                     if (!string.IsNullOrEmpty(dateStr))
@@ -89,7 +90,7 @@ public class OutscraperService : IOutscraperService
                     }
 
                     if (!string.IsNullOrEmpty(reviewId))
-                        results.Add(new OutscraperReview(reviewId, author, rating, text, publishedAt));
+                        results.Add(new OutscraperReview(reviewId, author, rating, text, publishedAt, ownerAnswer));
                 }
             }
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio, getPendingReviews, getSummary, ApiError, type PendingReview, type Negocio } from '@/lib/api'
+import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, ApiError, type PendingReview, type Negocio } from '@/lib/api'
 import { getLast4Months, drift, ratingDrift, generateReputationPDF, type MonthMetrics } from '@/lib/report-pdf'
 
 const STOPWORDS = new Set([
@@ -87,7 +87,7 @@ export default function SaludPage() {
       if (!session) { router.replace('/auth/login'); return }
       try {
         // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
-        const [u, n, r] = await Promise.all([getMyUsuario(), getMyNegocio(), getPendingReviews()])
+        const [u, n, r] = await Promise.all([getMyUsuario(), getMyNegocio(), getAllReviews()])
         setIsAdmin(u.isAdmin)
         setAiUsed(getAiUsageToday())
         if (!n) { router.replace('/onboarding'); return }

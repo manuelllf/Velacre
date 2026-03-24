@@ -266,6 +266,39 @@ public class ReviewController : ControllerBase
         }
     }
 
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllReviews()
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+
+        var negocioResult = await _supabase.From<NegocioEntity>()
+            .Where(n => n.IdUsuario == userId).Limit(1).Get();
+        var negocio = negocioResult.Models.FirstOrDefault();
+        if (negocio == null) return NotFound();
+
+        var reviewsResult = await _supabase.From<ReviewEntity>()
+            .Where(r => r.IdNegocio == negocio.Id).Get();
+
+        var all = reviewsResult.Models
+            .OrderByDescending(r => r.ReviewDate ?? r.CreadoFecha)
+            .Select(r => new
+            {
+                id = r.Id,
+                googleReviewId = r.GoogleReviewId,
+                authorName = r.AuthorName,
+                starRating = r.StarRating,
+                reviewDate = r.ReviewDate ?? r.CreadoFecha,
+                clientereview = r.ClienteReview,
+                respuestaProfesional = r.RespuestaProfesional,
+                respuestaCercano = r.RespuestaCercano,
+                respuestaDirecto = r.RespuestaDirecto,
+                tonoGenerado = r.TonoGenerado,
+            })
+            .ToList();
+
+        return Ok(all);
+    }
+
     [HttpPost("summary")]
     public async Task<IActionResult> GetSummary()
     {

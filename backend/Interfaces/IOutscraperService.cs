@@ -10,5 +10,6 @@ public record OutscraperReview(
     string AuthorName,
     int StarRating,
     string Text,
-    DateTimeOffset PublishedAt
+    DateTimeOffset PublishedAt,
+    string? OwnerAnswer = null
 );

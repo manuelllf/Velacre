@@ -104,6 +104,9 @@ public class PlacesController : ControllerBase
                 continue;
             }
 
+            // Si el propietario ya respondió en Google, guardamos su respuesta en los 3 campos
+            // para que no aparezca como pendiente pero sí cuente en métricas
+            var yaRespondida = !string.IsNullOrWhiteSpace(review.OwnerAnswer);
             var entity = new ReviewEntity
             {
                 Codigo = "BFK" + Guid.NewGuid().ToString("N")[..7].ToUpper(),
@@ -113,6 +116,10 @@ public class PlacesController : ControllerBase
                 StarRating = review.StarRating,
                 ReviewDate = review.PublishedAt,
                 ClienteReview = review.Text,
+                RespuestaProfesional = yaRespondida ? review.OwnerAnswer : null,
+                RespuestaCercano    = yaRespondida ? review.OwnerAnswer : null,
+                RespuestaDirecto    = yaRespondida ? review.OwnerAnswer : null,
+                TonoGenerado        = yaRespondida ? "google" : null,
                 CreadoPor = userId,
                 CreadoFecha = DateTimeOffset.UtcNow
             };
