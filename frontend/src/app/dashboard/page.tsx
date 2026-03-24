@@ -141,7 +141,7 @@ export default function DashboardPage() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    router.replace('/auth/login')
+    router.replace('/')
   }
 
   async function handleGenerateManual(e: React.FormEvent) {
@@ -167,20 +167,20 @@ export default function DashboardPage() {
 
   if (loadingInit) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <span className="font-bold text-lg text-slate-900 dark:text-white">Velacre</span>
+              <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white hover:opacity-80 transition-opacity">Velacre</Link>
               {negocio && (
                 <span className="ml-2 text-sm text-slate-500 dark:text-slate-400 font-normal">
                   {negocio.nombre}
@@ -192,11 +192,10 @@ export default function DashboardPage() {
                 Reseñas
               </span>
               <Link
-                href="/health"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1"
+                href="/dashboard/salud"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
                 Salud
-                {userPlan !== 'pro' && <span className="text-xs text-indigo-500 dark:text-indigo-400">Pro</span>}
               </Link>
               <Link
                 href="/settings"

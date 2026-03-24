@@ -84,7 +84,7 @@ export default function LoginPage() {
   const disabled = loading || googleLoading
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">

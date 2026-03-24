@@ -27,6 +27,25 @@ interface SummaryData {
   accion: string
 }
 
+const AI_LIMIT = 3
+
+function getAiUsageToday(): number {
+  if (typeof window === 'undefined') return 0
+  try {
+    const stored = localStorage.getItem('velacre_ai_usage')
+    if (!stored) return 0
+    const { date, count } = JSON.parse(stored) as { date: string; count: number }
+    return date === new Date().toISOString().slice(0, 10) ? count : 0
+  } catch { return 0 }
+}
+
+function incrementAiUsage(): void {
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    localStorage.setItem('velacre_ai_usage', JSON.stringify({ date: today, count: getAiUsageToday() + 1 }))
+  } catch { /* ignore */ }
+}
+
 function computeKeywords(reviews: PendingReview[]): KeywordInfo[] {
   const freq: Record<string, { count: number; pos: number; neg: number }> = {}
   for (const r of reviews) {
@@ -60,6 +79,7 @@ export default function SaludPage() {
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState(false)
+  const [aiUsed, setAiUsed] = useState(0)
 
   useEffect(() => {
     async function init() {
@@ -69,6 +89,7 @@ export default function SaludPage() {
         // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
         const [u, n, r] = await Promise.all([getMyUsuario(), getMyNegocio(), getPendingReviews()])
         setIsAdmin(u.isAdmin)
+        setAiUsed(getAiUsageToday())
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
@@ -86,19 +107,20 @@ export default function SaludPage() {
     init()
   }, [router])
 
-  useEffect(() => {
-    if (!loading && reviews.length > 0) {
-      setLoadingSummary(true)
-      getSummary()
-        .then(s => setSummary(s))
-        .catch(() => setSummary({ brilla: 'No se pudo obtener el análisis.', quema: '—', accion: '—' }))
-        .finally(() => setLoadingSummary(false))
-    }
-  }, [loading, reviews.length])
+  function handleRunAnalysis() {
+    if (aiUsed >= AI_LIMIT || loadingSummary) return
+    setLoadingSummary(true)
+    incrementAiUsage()
+    setAiUsed(prev => prev + 1)
+    getSummary()
+      .then(s => setSummary(s))
+      .catch(() => setSummary({ brilla: 'No se pudo obtener el análisis.', quema: '—', accion: '—' }))
+      .finally(() => setLoadingSummary(false))
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -106,7 +128,7 @@ export default function SaludPage() {
 
   if (initError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="text-center space-y-4">
           <p className="text-slate-600 dark:text-slate-400">{initError}</p>
           <button
@@ -196,13 +218,13 @@ export default function SaludPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <Link href="/dashboard" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
+              <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white hover:opacity-80 transition-opacity">Velacre</Link>
               {negocio && (
                 <span className="ml-2 text-sm text-slate-500 dark:text-slate-400 font-normal">{negocio.nombre}</span>
               )}
@@ -234,7 +256,7 @@ export default function SaludPage() {
             </nav>
           </div>
           <button
-            onClick={async () => { await supabase.auth.signOut(); router.replace('/auth/login') }}
+            onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
             className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             Cerrar sesión
@@ -462,29 +484,65 @@ export default function SaludPage() {
 
             {/* AI Insights */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Análisis IA</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Análisis IA</h2>
+                <span className="text-xs text-slate-400 dark:text-slate-500">{aiUsed}/{AI_LIMIT} usos hoy</span>
+              </div>
               {loadingSummary ? (
                 <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
                   <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                   <span className="text-sm">Analizando tus reseñas con IA...</span>
                 </div>
               ) : summary ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
-                    <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">Lo que brilla</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">{summary.brilla}</p>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">Lo que brilla</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300">{summary.brilla}</p>
+                    </div>
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                      <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-2">Lo que quema</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300">{summary.quema}</p>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                      <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">La acción</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300">{summary.accion}</p>
+                    </div>
                   </div>
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-                    <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-2">Lo que quema</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">{summary.quema}</p>
+                  <div className="mt-4 flex items-center gap-3">
+                    <button
+                      onClick={handleRunAnalysis}
+                      disabled={aiUsed >= AI_LIMIT || loadingSummary}
+                      className="text-sm px-4 py-2 border border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Regenerar
+                    </button>
+                    {aiUsed >= AI_LIMIT && (
+                      <p className="text-xs text-slate-400 dark:text-slate-500">Límite diario alcanzado. Vuelve mañana.</p>
+                    )}
                   </div>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">La acción</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">{summary.accion}</p>
-                  </div>
-                </div>
+                </>
               ) : (
-                <p className="text-sm text-slate-400 dark:text-slate-500">No hay suficientes reseñas para analizar.</p>
+                <div className="flex flex-col items-start gap-3">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Usa la IA para analizar el estado de tu reputación: qué funciona, qué preocupa y qué acción tomar.
+                  </p>
+                  {aiUsed < AI_LIMIT ? (
+                    <button
+                      onClick={handleRunAnalysis}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      Generar análisis IA
+                    </button>
+                  ) : (
+                    <p className="text-sm text-slate-400 dark:text-slate-500">
+                      Límite diario de {AI_LIMIT} análisis alcanzado. Vuelve mañana.
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </>

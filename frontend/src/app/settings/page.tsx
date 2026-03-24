@@ -145,19 +145,19 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <Link href="/dashboard" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
+              <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white hover:opacity-80 transition-opacity">Velacre</Link>
               {negocio && (
                 <span className="ml-2 text-sm text-slate-500 dark:text-slate-400 font-normal">{negocio.nombre}</span>
               )}
@@ -189,7 +189,7 @@ export default function SettingsPage() {
             </nav>
           </div>
           <button
-            onClick={async () => { await supabase.auth.signOut(); router.replace('/auth/login') }}
+            onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
             className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             Cerrar sesión
