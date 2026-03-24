@@ -74,7 +74,7 @@ export default function LandingPage() {
       {/* ── NAVBAR ── */}
       <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-tight text-white">Velacre</span>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-xl font-bold tracking-tight text-white">Velacre</button>
           <div className="flex items-center gap-3">
             <Link
               href="/auth/login"

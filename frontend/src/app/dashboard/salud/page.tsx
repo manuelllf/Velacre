@@ -220,47 +220,32 @@ export default function SaludPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div>
-              <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white hover:opacity-80 transition-opacity">Velacre</Link>
-              {negocio && (
-                <span className="ml-2 text-sm text-slate-500 dark:text-slate-400 font-normal">{negocio.nombre}</span>
-              )}
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="flex items-center justify-between h-12">
+            <div className="flex items-center gap-2">
+              <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
+              {negocio && <span className="hidden sm:inline text-sm text-slate-500 dark:text-slate-400 font-normal">· {negocio.nombre}</span>}
             </div>
-            <nav className="flex gap-1">
-              <Link
-                href="/dashboard"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-              >
-                Reseñas
-              </Link>
-              <span className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white">
-                Salud
-              </span>
-              <Link
-                href="/settings"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-              >
-                Configuración
-              </Link>
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
-                >
-                  Admin
-                </Link>
-              )}
-            </nav>
+            <button
+              onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
+              className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <span className="hidden sm:inline">Cerrar sesión</span>
+              <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            </button>
           </div>
-          <button
-            onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
-            className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-          >
-            Cerrar sesión
-          </button>
+          <nav className="flex gap-1 overflow-x-auto pb-2">
+            <Link href="/dashboard" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Reseñas</Link>
+            <span className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white whitespace-nowrap">Salud</span>
+            <Link href="/settings" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Configuración</Link>
+            {isAdmin && (
+              <Link href="/admin" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 whitespace-nowrap">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                Admin
+              </Link>
+            )}
+          </nav>
         </div>
       </header>
 
@@ -548,6 +533,17 @@ export default function SaludPage() {
           </>
         )}
       </main>
+
+      <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-5">
+        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
+          <span>© {new Date().getFullYear()} Velacre · Todos los derechos reservados</span>
+          <div className="flex gap-4">
+            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Privacidad</Link>
+            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Términos</Link>
+            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Contacto</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
