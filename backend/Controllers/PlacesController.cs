@@ -61,33 +61,56 @@ public class PlacesController : ControllerBase
             return BadRequest("Tu negocio no tiene un Google Place ID configurado. Ve a Configuración para buscarlo.");
         }
 
-        _logger.LogDebug("[PlacesController] Obteniendo reseñas para placeId={PlaceId}", negocio.PlaceId);
-
-        var reviews = await _outscraper.GetReviewsAsync(negocio.PlaceId);
-
-        // Obtener todas las reseñas importadas de Google que hay en la BD para este negocio
+        // Obtener reseñas existentes en BD para este negocio
         var allExistingResult = await _supabase.From<ReviewEntity>()
             .Where(r => r.IdNegocio == negocio.Id)
             .Get();
 
-        var currentReviewIds = reviews.Select(r => r.ReviewId).ToHashSet();
+        var existingGoogleIds = allExistingResult.Models
+            .Where(r => r.GoogleReviewId != null)
+            .Select(r => r.GoogleReviewId!)
+            .ToHashSet();
 
-        // Borrar reseñas de Google que ya no pertenecen al place actual (negocio cambiado)
-        var stale = allExistingResult.Models
-            .Where(r => r.GoogleReviewId != null && !currentReviewIds.Contains(r.GoogleReviewId!))
-            .ToList();
-
-        foreach (var old in stale)
+        // Lógica dual: sin reseñas previas → carga inicial (100), si hay → incremental (cutoff)
+        DateTimeOffset? sinceDate = null;
+        if (allExistingResult.Models.Count > 0)
         {
-            await _supabase.From<ReviewEntity>()
-                .Where(r => r.Id == old.Id)
-                .Delete();
-            _logger.LogInformation("[PlacesController] Reseña obsoleta eliminada: {GoogleReviewId}", old.GoogleReviewId);
+            var latestReviewDate = allExistingResult.Models
+                .Where(r => r.GoogleReviewId != null && r.ReviewDate.HasValue)
+                .Select(r => r.ReviewDate!.Value)
+                .DefaultIfEmpty()
+                .Max();
+
+            if (latestReviewDate != default)
+                sinceDate = latestReviewDate;
+        }
+
+        bool isInitialLoad = sinceDate == null;
+        _logger.LogInformation("[PlacesController] Modo sync: {Mode} para negocioId={NegocioId}, sinceDate={Since}",
+            isInitialLoad ? "INICIAL" : "INCREMENTAL", negocio.Id, sinceDate?.ToString("yyyy-MM-dd") ?? "—");
+
+        var reviews = await _outscraper.GetReviewsAsync(negocio.PlaceId, sinceDate);
+
+        // En carga inicial: eliminar reseñas de Google que ya no están en el place (negocio cambiado)
+        int staleCount = 0;
+        if (isInitialLoad && reviews.Count > 0)
+        {
+            var incomingIds = reviews.Select(r => r.ReviewId).ToHashSet();
+            var stale = allExistingResult.Models
+                .Where(r => r.GoogleReviewId != null && !incomingIds.Contains(r.GoogleReviewId!))
+                .ToList();
+
+            foreach (var old in stale)
+            {
+                await _supabase.From<ReviewEntity>().Where(r => r.Id == old.Id).Delete();
+                _logger.LogInformation("[PlacesController] Reseña obsoleta eliminada: {GoogleReviewId}", old.GoogleReviewId);
+                staleCount++;
+            }
         }
 
         if (reviews.Count == 0)
         {
-            _logger.LogInformation("[PlacesController] No se encontraron reseñas para placeId={PlaceId}", negocio.PlaceId);
+            _logger.LogInformation("[PlacesController] Sin nuevas reseñas para placeId={PlaceId}", negocio.PlaceId);
             return Ok(new { newReviews = 0 });
         }
 
@@ -95,41 +118,39 @@ public class PlacesController : ControllerBase
 
         foreach (var review in reviews)
         {
-            var alreadyInDb = allExistingResult.Models
-                .Any(r => r.GoogleReviewId == review.ReviewId);
-
-            if (alreadyInDb)
+            // Deduplicación: saltar si ya existe por google_review_id
+            if (existingGoogleIds.Contains(review.ReviewId))
             {
-                _logger.LogDebug("[PlacesController] Reseña ya existe: {ReviewId}", review.ReviewId);
+                _logger.LogDebug("[PlacesController] Ya existe: {ReviewId}", review.ReviewId);
                 continue;
             }
 
-            // Si el propietario ya respondió en Google, guardamos su respuesta en los 3 campos
-            // para que no aparezca como pendiente pero sí cuente en métricas
             var yaRespondida = !string.IsNullOrWhiteSpace(review.OwnerAnswer);
             var entity = new ReviewEntity
             {
-                Codigo = "BFK" + Guid.NewGuid().ToString("N")[..7].ToUpper(),
-                IdNegocio = negocio.Id,
-                GoogleReviewId = review.ReviewId,
-                AuthorName = review.AuthorName,
-                StarRating = review.StarRating,
-                ReviewDate = review.PublishedAt,
-                ClienteReview = review.Text,
+                Codigo               = "BFK" + Guid.NewGuid().ToString("N")[..7].ToUpper(),
+                IdNegocio            = negocio.Id,
+                GoogleReviewId       = review.ReviewId,
+                AuthorName           = review.AuthorName,
+                StarRating           = review.StarRating,
+                ReviewDate           = review.PublishedAt,
+                ClienteReview        = review.Text,
+                ReviewLanguage       = review.Language,
                 RespuestaProfesional = yaRespondida ? review.OwnerAnswer : null,
-                RespuestaCercano    = yaRespondida ? review.OwnerAnswer : null,
-                RespuestaDirecto    = yaRespondida ? review.OwnerAnswer : null,
-                TonoGenerado        = yaRespondida ? "google" : null,
-                CreadoPor = userId,
-                CreadoFecha = DateTimeOffset.UtcNow
+                RespuestaCercano     = yaRespondida ? review.OwnerAnswer : null,
+                RespuestaDirecto     = yaRespondida ? review.OwnerAnswer : null,
+                TonoGenerado         = yaRespondida ? "google" : null,
+                CreadoPor            = userId,
+                CreadoFecha          = DateTimeOffset.UtcNow
             };
 
             await _supabase.From<ReviewEntity>().Insert(entity);
             newCount++;
-            _logger.LogDebug("[PlacesController] Reseña insertada: {Codigo}", entity.Codigo);
+            _logger.LogDebug("[PlacesController] Reseña insertada: {Codigo} ({ReviewId})", entity.Codigo, review.ReviewId);
         }
 
-        _logger.LogInformation("[PlacesController] Sincronización completada — {NewCount} nuevas, {StaleCount} obsoletas eliminadas para negocioId={NegocioId}", newCount, stale.Count, negocio.Id);
+        _logger.LogInformation("[PlacesController] Sync completado — {NewCount} nuevas, {StaleCount} obsoletas, modo={Mode}, negocioId={NegocioId}",
+            newCount, staleCount, isInitialLoad ? "inicial" : "incremental", negocio.Id);
         return Ok(new { newReviews = newCount });
     }
 }

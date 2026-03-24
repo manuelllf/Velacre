@@ -2,7 +2,11 @@ namespace backend.Interfaces;
 
 public interface IOutscraperService
 {
-    Task<List<OutscraperReview>> GetReviewsAsync(string placeId, int limit = 20);
+    /// <summary>
+    /// sinceDate = null → carga inicial (100 reviews, sin cutoff)
+    /// sinceDate = fecha → sync incremental (solo nuevas desde esa fecha)
+    /// </summary>
+    Task<List<OutscraperReview>> GetReviewsAsync(string placeId, DateTimeOffset? sinceDate = null);
 }
 
 public record OutscraperReview(
@@ -11,5 +15,6 @@ public record OutscraperReview(
     int StarRating,
     string Text,
     DateTimeOffset PublishedAt,
-    string? OwnerAnswer = null
+    string? OwnerAnswer = null,
+    string? Language = null
 );

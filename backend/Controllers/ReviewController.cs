@@ -299,6 +299,38 @@ public class ReviewController : ControllerBase
         return Ok(all);
     }
 
+    [HttpPost("{id}/translate")]
+    public async Task<IActionResult> TranslateReview(Guid id)
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+
+        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
+        var negocio = negocioResult.Models.FirstOrDefault();
+        if (negocio == null) return NotFound();
+
+        var reviewResult = await _supabase.From<ReviewEntity>()
+            .Where(r => r.Id == id && r.IdNegocio == negocio.Id)
+            .Limit(1).Get();
+        var review = reviewResult.Models.FirstOrDefault();
+        if (review == null) return NotFound("Reseña no encontrada.");
+
+        if (string.IsNullOrWhiteSpace(review.ClienteReview))
+            return BadRequest("La reseña no tiene texto para traducir.");
+
+        var prompt = $"Traduce al español este texto de una reseña de cliente. Devuelve SOLO la traducción, sin explicaciones ni comillas:\n\n{review.ClienteReview}";
+
+        try
+        {
+            var translation = await _aiService.GetClaudeMessageAsync(prompt, "");
+            return Ok(new { translation = translation.Trim() });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ReviewController] Error traduciendo reviewId={ReviewId}", id);
+            return StatusCode(500, "Error al traducir la reseña.");
+        }
+    }
+
     [HttpPost("summary")]
     public async Task<IActionResult> GetSummary()
     {

@@ -11,6 +11,7 @@ import {
   getPendingReviews,
   generateForReview,
   syncReviews,
+  translateReview,
   ApiError,
   type ReviewResponses,
   type Negocio,
@@ -67,6 +68,8 @@ export default function DashboardPage() {
   const [syncLoading, setSyncLoading] = useState(false)
   const [syncMessage, setSyncMessage] = useState('')
   const [manualOpen, setManualOpen] = useState(false)
+  const [translations, setTranslations] = useState<Record<string, string>>({})
+  const [translatingId, setTranslatingId] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -144,6 +147,18 @@ export default function DashboardPage() {
       }))
     } finally {
       setGeneratingId(null)
+    }
+  }
+
+  async function handleTranslate(reviewId: string) {
+    setTranslatingId(reviewId)
+    try {
+      const result = await translateReview(reviewId)
+      setTranslations(prev => ({ ...prev, [reviewId]: result.translation }))
+    } catch {
+      setTranslations(prev => ({ ...prev, [reviewId]: 'Error al traducir.' }))
+    } finally {
+      setTranslatingId(null)
     }
   }
 
@@ -290,9 +305,27 @@ export default function DashboardPage() {
                       <StarRating rating={review.starRating} />
                     </div>
 
-                    <p className="text-sm text-slate-700 dark:text-slate-300 mb-3 leading-relaxed line-clamp-3">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mb-1.5 leading-relaxed line-clamp-3">
                       {review.clientereview || <span className="italic text-slate-400">Sin texto</span>}
                     </p>
+                    {/* Traducción */}
+                    {translations[review.id] ? (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic mb-2.5 border-l-2 border-slate-300 dark:border-slate-600 pl-2">
+                        {translations[review.id]}
+                      </p>
+                    ) : review.reviewLanguage && review.reviewLanguage !== 'es' && review.clientereview ? (
+                      <button
+                        onClick={() => handleTranslate(review.id)}
+                        disabled={translatingId === review.id}
+                        className="text-xs text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors mb-2.5 flex items-center gap-1 disabled:opacity-50"
+                      >
+                        {translatingId === review.id ? (
+                          <><span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />Traduciendo...</>
+                        ) : (
+                          <><span>🌐</span> Traducir al español</>
+                        )}
+                      </button>
+                    ) : null}
 
                     {generatedResponses[review.id] ? (
                       <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3">

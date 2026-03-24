@@ -55,6 +55,7 @@ export interface PendingReview {
   respuestaCercano?: string
   respuestaDirecto?: string
   tonoGenerado?: string
+  reviewLanguage?: string
 }
 
 export async function generateResponses(
@@ -311,6 +312,15 @@ export async function getSummaryAnalysis(): Promise<{ brillante: string; preocup
   const data = await res.json()
   console.log('[api] getSummaryAnalysis ← OK')
   return data
+}
+
+export async function translateReview(reviewId: string): Promise<{ translation: string }> {
+  const res = await fetch(`${API_URL}/api/review/${reviewId}/translate`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
 }
 
 export async function createUsuario(data: {

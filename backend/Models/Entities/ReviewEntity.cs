@@ -59,4 +59,7 @@ public class ReviewEntity : BaseModel
 
     [Column("actualizadofecha")]
     public DateTimeOffset? ActualizadoFecha { get; set; }
+
+    [Column("review_language")]
+    public string? ReviewLanguage { get; set; }
 }
