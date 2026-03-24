@@ -30,13 +30,13 @@ export default function PrivacidadPage() {
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">1. Responsable del tratamiento</h2>
             <p>
-              El responsable del tratamiento de tus datos personales es <strong>Velacre</strong> (en adelante, «Velacre» o «nosotros»),
-              con domicilio social en Galicia, España.
+              El responsable del tratamiento de tus datos personales es <strong>Manuel Llao Freire</strong> (NIF: 32735627A),
+              titular del servicio <strong>Velacre</strong>, con domicilio en Calle Luis de Requesens, 4, 15402 Ferrol, A Coruña, España.
             </p>
             <p className="mt-2">
               Para cualquier consulta relacionada con la privacidad puedes contactarnos en{' '}
-              <a href="mailto:privacidad@velacre.es" className="text-indigo-600 dark:text-indigo-400 hover:underline">
-                privacidad@velacre.es
+              <a href="mailto:privacidad@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                privacidad@velacre.com
               </a>.
             </p>
           </section>
@@ -156,8 +156,8 @@ export default function PrivacidadPage() {
             </ul>
             <p className="mt-3">
               Para ejercer cualquiera de estos derechos escríbenos a{' '}
-              <a href="mailto:privacidad@velacre.es" className="text-indigo-600 dark:text-indigo-400 hover:underline">
-                privacidad@velacre.es
+              <a href="mailto:privacidad@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                privacidad@velacre.com
               </a>{' '}
               indicando tu nombre y la solicitud concreta. Responderemos en un plazo máximo de un mes.
             </p>

@@ -31,8 +31,8 @@ export default function TerminosPage() {
               mediante inteligencia artificial, accesible en <strong>velacre.com</strong> (en adelante, el «Servicio»).
             </p>
             <p className="mt-3">
-              El titular del Servicio es <strong>[NOMBRE O RAZÓN SOCIAL]</strong>, con NIF/CIF <strong>[NIF]</strong>
-              y domicilio en <strong>[DIRECCIÓN COMPLETA, CIUDAD, CÓDIGO POSTAL]</strong>, Galicia, España
+              El titular del Servicio es <strong>Manuel Llao Freire</strong>, con NIF <strong>32735627A</strong>
+              y domicilio en <strong>Calle Luis de Requesens, 4, 15402 Ferrol</strong>, A Coruña, Galicia, España
               (en adelante, «Velacre», «nosotros» o «el Proveedor»).
             </p>
             <p className="mt-3">
@@ -65,7 +65,7 @@ export default function TerminosPage() {
             <p className="mt-3">
               El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso y de todas las
               actividades realizadas desde su cuenta. Debe notificarnos inmediatamente cualquier uso no autorizado en{' '}
-              <a href="mailto:hola@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">hola@velacre.com</a>.
+              <a href="mailto:info@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">info@velacre.com</a>.
             </p>
             <p className="mt-3">
               El Servicio está dirigido exclusivamente a profesionales y empresas. No está permitido el uso por
@@ -158,7 +158,7 @@ export default function TerminosPage() {
             </p>
             <p className="mt-3">
               El usuario puede solicitar la baja de su cuenta en cualquier momento escribiendo a{' '}
-              <a href="mailto:hola@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">hola@velacre.com</a>.
+              <a href="mailto:info@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">info@velacre.com</a>.
               Tras la baja, los datos se eliminarán conforme a lo indicado en la Política de Privacidad.
             </p>
           </section>
@@ -181,8 +181,7 @@ export default function TerminosPage() {
             </p>
             <p className="mt-3">
               Para la resolución de cualquier controversia derivada de estos Términos, las partes se someten,
-              con renuncia expresa a cualquier otro fuero, a los Juzgados y Tribunales de{' '}
-              <strong>[CIUDAD — p. ej. Ferrol o A Coruña]</strong>.
+              con renuncia expresa a cualquier otro fuero, a los Juzgados y Tribunales de <strong>Ferrol</strong>.
             </p>
           </section>
 
@@ -190,8 +189,8 @@ export default function TerminosPage() {
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">12. Contacto</h2>
             <p>
               Para cualquier consulta sobre estos Términos puedes contactarnos en:{' '}
-              <a href="mailto:hola@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">
-                hola@velacre.com
+              <a href="mailto:info@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                info@velacre.com
               </a>
             </p>
           </section>

@@ -37,8 +37,8 @@ export default function ContactoPage() {
                 </div>
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Correo general</h2>
               </div>
-              <a href="mailto:hola@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
-                hola@velacre.com
+              <a href="mailto:info@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+                info@velacre.com
               </a>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                 Para consultas comerciales, soporte y cualquier otra cuestión.
@@ -74,9 +74,9 @@ export default function ContactoPage() {
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Dirección</h2>
               </div>
               <address className="not-italic text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                <strong>[NOMBRE O RAZÓN SOCIAL]</strong><br />
-                [DIRECCIÓN]<br />
-                [CÓDIGO POSTAL] [CIUDAD]<br />
+                <strong>Manuel Llao Freire</strong><br />
+                Calle Luis de Requesens, 4<br />
+                15402 Ferrol, A Coruña<br />
                 Galicia, España
               </address>
             </div>
@@ -106,7 +106,7 @@ export default function ContactoPage() {
                 },
                 {
                   q: '¿Cómo cancelo mi suscripción?',
-                  a: 'Puedes cancelar en cualquier momento escribiendo a hola@velacre.com. La cancelación es efectiva al final del período facturado.',
+                  a: 'Puedes cancelar en cualquier momento escribiendo a info@velacre.com. La cancelación es efectiva al final del período facturado.',
                 },
               ].map((item, i) => (
                 <div key={i} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
