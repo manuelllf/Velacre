@@ -98,4 +98,23 @@ public class AdminController : ControllerBase
         _logger.LogInformation("[AdminController] Usuario {UserId} desactivado", id);
         return Ok();
     }
+
+    [HttpPost("usuarios/{id}/plan")]
+    public async Task<IActionResult> CambiarPlan(Guid id, [FromBody] CambiarPlanRequest request)
+    {
+        if (!IsAdmin()) return Forbid();
+        if (request.Plan != "basic" && request.Plan != "pro") return BadRequest("Plan inválido");
+
+        var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
+        var usuario = result.Models.FirstOrDefault();
+        if (usuario == null) return NotFound();
+
+        usuario.Plan = request.Plan;
+
+        await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Update(usuario);
+        _logger.LogInformation("[AdminController] Usuario {UserId} plan cambiado a {Plan}", id, request.Plan);
+        return Ok();
+    }
 }
+
+public record CambiarPlanRequest(string Plan);

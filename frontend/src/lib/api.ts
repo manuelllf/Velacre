@@ -191,6 +191,15 @@ export async function desactivarUsuario(id: string): Promise<void> {
   if (!res.ok) throw new Error(await res.text())
 }
 
+export async function cambiarPlan(id: string, plan: 'basic' | 'pro'): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/plan`, {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ plan }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
 export async function updateUsuario(data: { nombre?: string; telefono?: string }): Promise<void> {
   const res = await fetch(`${API_URL}/api/usuario/me`, {
     method: 'PUT',
