@@ -126,367 +126,471 @@ export function ratingDrift(current: number | null, previous: number | null): { 
 
 // ── PDF ──────────────────────────────────────────────────────────────────────
 
-interface PdfReportData {
+type RGB = readonly [number, number, number]
+
+export interface MonthlyPdfData {
   negocioNombre: string
-  months: MonthMetrics[]
-  allTimeAvg: number
-  allTimeCount: number
-  responseRate: number
-  positive: number
-  neutral: number
-  negative: number
+  currentMonth: MonthMetrics
+  previousMonth: MonthMetrics | null
+  yearMonths: MonthMetrics[]   // meses del año actual, orden ascendente
   keywords: { word: string; sentiment: 'positive' | 'neutral' | 'negative' }[]
   summary: SummaryData | null
-  reportType?: 'month' | 'year'
 }
 
-export async function generateReputationPDF(data: PdfReportData): Promise<void> {
-  const { jsPDF } = await import('jspdf')
-  const doc = new jsPDF('p', 'mm', 'a4')
-  const isYear = data.reportType === 'year'
+export interface YearlyPdfData {
+  negocioNombre: string
+  currentYear: number
+  allYears: MonthMetrics[]          // todos los ejercicios, descendente (más reciente primero)
+  currentYearMonths: MonthMetrics[] // meses del año actual, ascendente
+  keywords: { word: string; sentiment: 'positive' | 'neutral' | 'negative' }[]
+  summary: SummaryData | null
+}
 
-  const W = 210
-  const ML = 18   // margin left
-  const MR = W - 18
-  const CW = MR - ML  // content width = 174mm
-  let y = 0
+// Elimina caracteres fuera de WinAnsi (Helvetica jsPDF)
+function safe(s: string): string {
+  return s.replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
+}
 
-  // Palette
-  const DARK = [15, 23, 42] as const      // slate-900
-  const MID = [71, 85, 105] as const      // slate-500
-  const LIGHT = [148, 163, 184] as const  // slate-400
-  const INDIGO = [79, 70, 229] as const   // indigo-600
-  const GREEN = [16, 185, 129] as const   // emerald-500
-  const RED = [239, 68, 68] as const      // red-500
-  const AMBER = [245, 158, 11] as const   // amber-500
-  const WHITE = [255, 255, 255] as const
+// Variación como texto plano (+0.20) / (-0.15), sin Unicode
+function varText(
+  current: number | null,
+  previous: number | null,
+  decimals = 1,
+): { text: string; positive: boolean; significant: boolean } {
+  if (current == null || previous == null) return { text: '—', positive: true, significant: false }
+  const d = current - previous
+  if (Math.abs(d) < 0.01) return { text: '=', positive: true, significant: false }
+  return { text: `(${d > 0 ? '+' : ''}${d.toFixed(decimals)})`, positive: d > 0, significant: true }
+}
 
-  const set = (r: readonly [number, number, number]) => doc.setTextColor(r[0], r[1], r[2])
-  const fill = (r: readonly [number, number, number]) => doc.setFillColor(r[0], r[1], r[2])
-  const draw = (r: readonly [number, number, number]) => doc.setDrawColor(r[0], r[1], r[2])
+// ── Utilidades compartidas para jsPDF ────────────────────────────────────────
 
-  // ── HEADER BAR ──
-  fill(DARK)
-  doc.rect(0, 0, W, 28, 'F')
-  set(WHITE)
+function pdfHeader(doc: ReturnType<Awaited<ReturnType<typeof import('jspdf')>>['jsPDF']['prototype']['constructor'] & (new (...a: never[]) => unknown)> & import('jspdf').jsPDF, W: number, ML: number, MR: number, negocioNombre: string, reportLabel: string) {
+  type C = readonly [number, number, number]
+  const DARK: C = [15, 23, 42], LIGHT: C = [148, 163, 184], WHITE: C = [255, 255, 255]
+  const INDIGO: C = [79, 70, 229]
+  doc.setFillColor(DARK[0], DARK[1], DARK[2])
+  doc.rect(0, 0, W, 30, 'F')
+  doc.setTextColor(WHITE[0], WHITE[1], WHITE[2])
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(16)
-  doc.text('Velacre', ML, 13)
+  doc.setFontSize(18)
+  doc.text('Velacre', ML, 14)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
-  set(LIGHT)
-  doc.text('velacre.com', ML, 20)
-
-  // months: para 'year' vienen desc (months[0]=más reciente), para 'month' vienen asc (months[last]=más reciente)
-  const thisMonth = isYear ? data.months[0] : data.months[data.months.length - 1]
-  const prevMonth = isYear ? data.months[1] ?? null : data.months[data.months.length - 2] ?? null
-  const reportLabel = isYear
-    ? `Informe Anual · ${new Date().getFullYear()}`
-    : `Informe Mensual · ${thisMonth.label}`
-  set(WHITE)
+  doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
+  doc.text('velacre.com', ML, 21)
+  doc.setTextColor(WHITE[0], WHITE[1], WHITE[2])
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
-  doc.text(data.negocioNombre, MR, 13, { align: 'right' })
+  doc.text(safe(negocioNombre), MR, 13, { align: 'right' })
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
-  set(LIGHT)
-  doc.text(reportLabel, MR, 20, { align: 'right' })
+  doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
+  doc.text(reportLabel, MR, 21, { align: 'right' })
+  // Línea accent bajo header
+  doc.setFillColor(INDIGO[0], INDIGO[1], INDIGO[2])
+  doc.rect(0, 30, W, 1.5, 'F')
+}
 
-  y = 36
+function pdfFooter(doc: import('jspdf').jsPDF, W: number, ML: number, MR: number) {
+  const n = doc.getNumberOfPages()
+  const DARK: RGB = [15, 23, 42], LIGHT: RGB = [148, 163, 184]
+  for (let p = 1; p <= n; p++) {
+    doc.setPage(p)
+    doc.setFillColor(DARK[0], DARK[1], DARK[2])
+    doc.rect(0, 284, W, 13, 'F')
+    doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(6.5)
+    const d = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+    doc.text(`Generado por Velacre - velacre.com - ${d}`, ML, 291)
+    doc.text(`Pag. ${p} / ${n}`, MR, 291, { align: 'right' })
+  }
+}
 
-  // ── SUBTITLE ──
-  set(DARK)
+function sectionLabel(doc: import('jspdf').jsPDF, text: string, y: number, ML: number) {
+  const DARK: RGB = [15, 23, 42], SLATE400: RGB = [148, 163, 184], INDIGO: RGB = [79, 70, 229]
+  doc.setFillColor(INDIGO[0], INDIGO[1], INDIGO[2])
+  doc.rect(ML, y, 2.5, 8, 'F')
+  doc.setTextColor(DARK[0], DARK[1], DARK[2])
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(13)
-  doc.text('Resumen de reputación', ML, y)
-  draw([226, 232, 240]) // slate-200
-  doc.setLineWidth(0.3)
-  doc.line(ML, y + 2, MR, y + 2)
-  y += 8
+  doc.setFontSize(8.5)
+  doc.text(text, ML + 6, y + 5.8)
+  doc.setTextColor(SLATE400[0], SLATE400[1], SLATE400[2])
+}
 
-  // ── KPI ROW ──
-  // Nota: jsPDF/Helvetica solo soporta Latin-1; usar formato texto en vez de simbolos Unicode
-  const thisMonthAvg = thisMonth.avgRating != null ? `${thisMonth.avgRating.toFixed(2)} / 5` : 'Sin datos'
-  const prevCompar = prevMonth?.avgRating != null && thisMonth.avgRating != null
-    ? (() => { const d = thisMonth.avgRating! - prevMonth!.avgRating!; return `${d >= 0 ? '+' : ''}${d.toFixed(2)} vs anterior` })()
-    : null
-  const kpis = isYear
-    ? [
-        { label: 'Nota media global', value: data.allTimeAvg > 0 ? `${data.allTimeAvg.toFixed(1)} / 5` : 'Sin datos', color: AMBER },
-        { label: 'Total resenas', value: String(data.allTimeCount), color: INDIGO },
-        { label: 'Indice de respuesta', value: `${data.responseRate.toFixed(0)}%`, color: GREEN },
-        { label: 'Anos con datos', value: String(data.months.length), color: MID },
-      ]
-    : [
-        { label: `Nota ${thisMonth.label}`, value: thisMonthAvg, color: AMBER },
-        { label: `Resenas ${thisMonth.label}`, value: String(thisMonth.count), color: INDIGO },
-        { label: 'Comparativa', value: prevCompar ?? '—', color: prevCompar?.startsWith('+') ? GREEN : RED },
-        { label: 'Indice de respuesta', value: `${data.responseRate.toFixed(0)}%`, color: GREEN },
-      ]
+function tableHeader(doc: import('jspdf').jsPDF, headers: string[], widths: number[], y: number, ML: number) {
+  const CW = widths.reduce((a, b) => a + b, 0)
+  const DARK: RGB = [15, 23, 42], WHITE: RGB = [255, 255, 255], SLATE200: RGB = [226, 232, 240]
+  doc.setFillColor(DARK[0], DARK[1], DARK[2])
+  doc.setDrawColor(SLATE200[0], SLATE200[1], SLATE200[2])
+  doc.setLineWidth(0.2)
+  doc.rect(ML, y, CW, 6.5, 'FD')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(7)
+  doc.setTextColor(WHITE[0], WHITE[1], WHITE[2])
+  let cx = ML + 2
+  headers.forEach((h, i) => { doc.text(h, cx, y + 4.5); cx += widths[i] })
+  return y + 6.5
+}
+
+// ── PDF MENSUAL ───────────────────────────────────────────────────────────────
+
+export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
+  const { jsPDF } = await import('jspdf')
+  const doc = new jsPDF('p', 'mm', 'a4')
+
+  const W = 210, ML = 18, MR = W - 18, CW = MR - ML
+  let y = 0
+
+  const DARK: RGB = [15, 23, 42], MID: RGB = [71, 85, 105], LIGHT: RGB = [148, 163, 184]
+  const INDIGO: RGB = [79, 70, 229], GREEN: RGB = [16, 185, 129], RED: RGB = [239, 68, 68]
+  const AMBER: RGB = [245, 158, 11], WHITE: RGB = [255, 255, 255]
+  const S50: RGB = [248, 250, 252], S200: RGB = [226, 232, 240]
+
+  const c = (r: RGB) => doc.setTextColor(r[0], r[1], r[2])
+  const f = (r: RGB) => doc.setFillColor(r[0], r[1], r[2])
+  const d = (r: RGB) => doc.setDrawColor(r[0], r[1], r[2])
+
+  const cm = data.currentMonth
+  const pm = data.previousMonth
+  const mLabel = safe(cm.label)
+  const pLabel = pm ? safe(pm.label) : null
+  const slug = safe(data.negocioNombre).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+
+  // CABECERA
+  pdfHeader(doc as never, W, ML, MR, data.negocioNombre, `Revision mensual - ${mLabel}`)
+  y = 38
+
+  // TITULO
+  c(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(14)
+  doc.text(`Revision mensual: ${mLabel}`, ML, y)
+  c(MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(8)
+  doc.text(pLabel ? `Comparativa con ${pLabel} incluida` : 'Analisis del mes en curso', ML, y + 6)
+  y += 16
+
+  // SECTION 1: KPIs del mes
+  sectionLabel(doc as never, `INDICADORES DE ${mLabel.toUpperCase()}`, y, ML)
+  y += 13
+
   const kW = CW / 4
+  const kpis = [
+    { label: 'Nota media', val: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cm.avgRating, pm?.avgRating ?? null, 2), up: true, col: AMBER },
+    { label: 'Resenas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
+    { label: 'Positivas (4-5)', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(0)}%` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
+    { label: 'Respondidas', val: cm.responseRate != null ? `${cm.responseRate.toFixed(0)}%` : '—', vt: varText(cm.responseRate, pm?.responseRate ?? null, 1), up: true, col: INDIGO },
+  ]
   kpis.forEach((k, i) => {
     const x = ML + i * kW
-    fill([241, 245, 249]) // slate-100
-    draw([226, 232, 240])
-    doc.setLineWidth(0.2)
-    doc.roundedRect(x + 0.5, y, kW - 2, 18, 2, 2, 'FD')
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    set(MID)
+    f(S50); d(S200); doc.setLineWidth(0.2)
+    doc.roundedRect(x + 0.5, y, kW - 1.5, 23, 1.5, 1.5, 'FD')
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(MID)
     doc.text(k.label, x + 3, y + 6)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
-    set(k.color)
-    doc.text(k.value, x + 3, y + 14)
-  })
-  y += 24
-
-  // ── NOTA: fuente de datos ──
-  doc.setFont('helvetica', 'italic')
-  doc.setFontSize(7)
-  set(LIGHT)
-  const noteLines = doc.splitTextToSize(
-    'Datos reales obtenidos de las reseñas de Google Maps importadas a través de Outscraper. Sin datos estimados.',
-    CW
-  ) as string[]
-  doc.text(noteLines, ML, y)
-  y += noteLines.length * 4 + 3
-
-  // ── EVOLUCIÓN MENSUAL ──
-  set(DARK)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.text(isYear ? 'Evolucion anual por ejercicio' : 'Evolucion mensual (ultimos 4 meses)', ML, y)
-  draw([226, 232, 240])
-  doc.line(ML, y + 1.5, MR, y + 1.5)
-  y += 7
-
-  // Table header — columnas ajustadas para sumar exactamente CW (174mm)
-  const cols = [
-    { label: 'Mes',           w: 36 },
-    { label: 'Reseñas',       w: 18 },
-    { label: 'Nota media',    w: 24 },
-    { label: '% Positivas',   w: 24 },
-    { label: '% Negativas',   w: 24 },
-    { label: '% Respondidas', w: 26 },
-    { label: 'Var. nota',     w: 22 },
-  ]
-  // Verificación: 36+18+24+24+24+26+22 = 174 = CW ✓
-
-  fill([241, 245, 249])
-  draw([226, 232, 240])
-  doc.setLineWidth(0.2)
-  doc.rect(ML, y, CW, 7, 'FD')
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7)
-  set(DARK)
-  let cx = ML + 2
-  cols.forEach(col => {
-    doc.text(col.label, cx, y + 4.5)
-    cx += col.w
-  })
-  y += 7
-
-  // Table rows
-  data.months.forEach((m, idx) => {
-    if (idx > 0) {
-      draw([241, 245, 249])
-      doc.setLineWidth(0.1)
-      doc.line(ML, y, MR, y)
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); c(k.col)
+    doc.text(k.val, x + 3, y + 14.5)
+    if (k.vt.significant) {
+      const good = k.up ? k.vt.positive : !k.vt.positive
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(good ? GREEN : RED)
+      doc.text(`${k.vt.text} vs ${pLabel ?? 'anterior'}`, x + 3, y + 20)
     }
-    fill(idx % 2 === 0 ? [255, 255, 255] : [248, 250, 252])
-    doc.rect(ML, y, CW, 7, 'F')
-
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    cx = ML + 2
-
-    // Mes
-    set(DARK)
-    doc.text(m.label.charAt(0).toUpperCase() + m.label.slice(1), cx, y + 4.5)
-    cx += cols[0].w
-
-    // Reseñas
-    set(m.count === 0 ? LIGHT : DARK)
-    doc.text(m.count === 0 ? '—' : String(m.count), cx, y + 4.5)
-    cx += cols[1].w
-
-    // Nota media
-    set(m.avgRating == null ? LIGHT : AMBER)
-    doc.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(1)} / 5`, cx, y + 4.5)
-    cx += cols[2].w
-
-    // % positivas
-    set(m.positiveRatio == null ? LIGHT : GREEN)
-    doc.text(m.positiveRatio == null ? '—' : `${m.positiveRatio.toFixed(0)}%`, cx, y + 4.5)
-    cx += cols[3].w
-
-    // % negativas
-    set(m.negativeRatio == null ? LIGHT : m.negativeRatio > 30 ? RED : DARK)
-    doc.text(m.negativeRatio == null ? '—' : `${m.negativeRatio.toFixed(0)}%`, cx, y + 4.5)
-    cx += cols[4].w
-
-    // % respondidas
-    set(m.responseRate == null ? LIGHT : INDIGO)
-    doc.text(m.responseRate == null ? '—' : `${m.responseRate.toFixed(0)}%`, cx, y + 4.5)
-    cx += cols[5].w
-
-    // Variación nota: para annual (desc), compara con months[idx+1] (año anterior)
-    // Para monthly (asc), compara con months[idx-1] (mes anterior)
-    const compareIdx = isYear ? idx + 1 : idx - 1
-    const compareM = data.months[compareIdx]
-    if (compareM && m.avgRating != null && compareM.avgRating != null) {
-      const d = m.avgRating - compareM.avgRating
-      set(Math.abs(d) < 0.05 ? LIGHT : d > 0 ? GREEN : RED)
-      doc.text(`${d > 0 ? '+' : ''}${d.toFixed(2)}`, cx, y + 4.5)
-    } else {
-      set(LIGHT)
-      doc.text('—', cx, y + 4.5)
-    }
-
-    y += 7
   })
-  y += 6
+  y += 28
 
-  // ── ANÁLISIS DE SENTIMIENTO ──
-  set(DARK)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.text('Análisis de sentimiento (total de reseñas)', ML, y)
-  draw([226, 232, 240])
-  doc.line(ML, y + 1.5, MR, y + 1.5)
-  y += 7
+  // SECTION 2: Comparativa directa mes actual vs anterior
+  if (pm && pLabel) {
+    sectionLabel(doc as never, `COMPARATIVA: ${mLabel.toUpperCase()} VS ${pLabel.toUpperCase()}`, y, ML)
+    y += 13
 
-  const total = data.positive + data.neutral + data.negative || 1
-  const sentRows = [
-    { label: 'Positivas (4-5 ★)', count: data.positive, pct: (data.positive / total) * 100, color: GREEN },
-    { label: 'Neutras (3 ★)', count: data.neutral, pct: (data.neutral / total) * 100, color: AMBER },
-    { label: 'Negativas (1-2 ★)', count: data.negative, pct: (data.negative / total) * 100, color: RED },
-  ]
-  sentRows.forEach(row => {
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    set(DARK)
-    doc.text(row.label, ML + 2, y + 3.5)
-    // bar background
-    fill([241, 245, 249])
-    doc.rect(ML + 50, y, 80, 5, 'F')
-    // bar fill
-    fill(row.color)
-    doc.rect(ML + 50, y, (row.pct / 100) * 80, 5, 'F')
-    // count + pct
-    set(MID)
-    doc.setFontSize(7)
-    doc.text(`${row.count} reseñas · ${row.pct.toFixed(1)}%`, ML + 133, y + 3.5)
+    const cW1 = 56, cW2 = 36, cW3 = 36, cW4 = 46  // 174mm
+    y = tableHeader(doc as never, ['Indicador', mLabel, pLabel, 'Variacion'], [cW1, cW2, cW3, cW4], y, ML)
+
+    const rows = [
+      { m: 'Nota media', cv: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : '—', pv: pm.avgRating != null ? `${pm.avgRating.toFixed(2)} / 5` : '—', vt: varText(cm.avgRating, pm.avgRating, 2), up: true },
+      { m: 'Resenas recibidas', cv: String(cm.count), pv: String(pm.count), vt: varText(cm.count, pm.count, 0), up: true },
+      { m: 'Positivas (4-5)', cv: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(1)}%` : '—', pv: pm.positiveRatio != null ? `${pm.positiveRatio.toFixed(1)}%` : '—', vt: varText(cm.positiveRatio, pm.positiveRatio, 1), up: true },
+      { m: 'Negativas (1-2)', cv: cm.negativeRatio != null ? `${cm.negativeRatio.toFixed(1)}%` : '—', pv: pm.negativeRatio != null ? `${pm.negativeRatio.toFixed(1)}%` : '—', vt: varText(cm.negativeRatio, pm.negativeRatio, 1), up: false },
+      { m: 'Indice respuesta', cv: cm.responseRate != null ? `${cm.responseRate.toFixed(1)}%` : '—', pv: pm.responseRate != null ? `${pm.responseRate.toFixed(1)}%` : '—', vt: varText(cm.responseRate, pm.responseRate, 1), up: true },
+    ]
+    rows.forEach((row, idx) => {
+      d(S200); doc.setLineWidth(0.1)
+      f(idx % 2 === 0 ? WHITE : S50); doc.rect(ML, y, CW, 6.5, 'FD')
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
+      c(DARK); doc.text(row.m, ML + 3, y + 4.5)
+      c(DARK); doc.text(row.cv, ML + cW1 + 3, y + 4.5)
+      c(MID); doc.text(row.pv, ML + cW1 + cW2 + 3, y + 4.5)
+      if (row.vt.significant) {
+        const good = row.up ? row.vt.positive : !row.vt.positive
+        c(good ? GREEN : RED); doc.setFont('helvetica', 'bold')
+        doc.text(row.vt.text, ML + cW1 + cW2 + cW3 + 3, y + 4.5)
+        doc.setFont('helvetica', 'normal')
+      } else { c(LIGHT); doc.text('Sin variacion', ML + cW1 + cW2 + cW3 + 3, y + 4.5) }
+      y += 6.5
+    })
     y += 8
-  })
-  y += 4
-
-  // ── PALABRAS CLAVE ──
-  if (data.keywords.length > 0) {
-    set(DARK)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(11)
-    doc.text('Palabras más mencionadas', ML, y)
-    draw([226, 232, 240])
-    doc.line(ML, y + 1.5, MR, y + 1.5)
-    y += 7
-
-    const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => k.word)
-    const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => k.word)
-    const neuKw = data.keywords.filter(k => k.sentiment === 'neutral').map(k => k.word)
-
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    if (posKw.length > 0) {
-      set(GREEN)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Positivas: ', ML, y + 3.5)
-      set(DARK)
-      doc.setFont('helvetica', 'normal')
-      doc.text(posKw.join(', '), ML + 22, y + 3.5)
-      y += 7
-    }
-    if (negKw.length > 0) {
-      set(RED)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Negativas: ', ML, y + 3.5)
-      set(DARK)
-      doc.setFont('helvetica', 'normal')
-      doc.text(negKw.join(', '), ML + 22, y + 3.5)
-      y += 7
-    }
-    if (neuKw.length > 0) {
-      set(MID)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Neutras: ', ML, y + 3.5)
-      set(DARK)
-      doc.setFont('helvetica', 'normal')
-      doc.text(neuKw.join(', '), ML + 22, y + 3.5)
-      y += 7
-    }
-    y += 3
   }
 
-  // ── IA INSIGHTS ──
-  if (data.summary) {
-    // New page if not enough space
-    if (y > 220) { doc.addPage(); y = 20 }
+  // SECTION 3: Evolución en el año
+  if (data.yearMonths.length > 0) {
+    if (y > 210) { doc.addPage(); y = 20 }
+    sectionLabel(doc as never, `EVOLUCION MES A MES EN ${cm.year}`, y, ML)
+    y += 13
 
-    set(DARK)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(11)
-    doc.text('Análisis IA', ML, y)
-    draw([226, 232, 240])
-    doc.line(ML, y + 1.5, MR, y + 1.5)
-    y += 7
+    const tw = [34, 18, 24, 20, 24, 24, 30]  // 174mm
+    y = tableHeader(doc as never, ['Mes', 'Resenas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML)
 
-    const insights = [
-      { label: 'Lo que brilla', text: data.summary.brilla, color: GREEN },
-      { label: 'Lo que preocupa', text: data.summary.quema, color: RED },
-      { label: 'Acción recomendada', text: data.summary.accion, color: INDIGO },
-    ]
-    insights.forEach(ins => {
-      fill([248, 250, 252])
-      draw([226, 232, 240])
-      doc.setLineWidth(0.2)
-      const lines = doc.splitTextToSize(ins.text, CW - 30) as string[]
-      const boxH = 8 + lines.length * 4.5
-      doc.roundedRect(ML, y, CW, boxH, 2, 2, 'FD')
-      set(ins.color)
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(8)
-      doc.text(ins.label, ML + 3, y + 5)
-      set(DARK)
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8)
-      doc.text(lines, ML + 3, y + 5 + 4.5)
-      y += boxH + 4
+    data.yearMonths.forEach((m, idx) => {
+      if (y > 272) { doc.addPage(); y = 20 }
+      const prev = idx > 0 ? data.yearMonths[idx - 1] : null
+      const isCur = m.month === cm.month
+      d(S200); doc.setLineWidth(0.1)
+      f(isCur ? [238, 242, 255] as RGB : idx % 2 === 0 ? WHITE : S50)
+      doc.rect(ML, y, CW, 6.5, 'FD')
+      doc.setFont('helvetica', isCur ? 'bold' : 'normal'); doc.setFontSize(7)
+      let cx = ML + 2
+      c(isCur ? INDIGO : DARK)
+      const ml = safe(m.label); doc.text(ml.charAt(0).toUpperCase() + ml.slice(1), cx, y + 4.5); cx += tw[0]
+      c(m.count === 0 ? LIGHT : DARK); doc.setFont('helvetica', 'normal')
+      doc.text(m.count === 0 ? '—' : String(m.count), cx, y + 4.5); cx += tw[1]
+      c(m.avgRating == null ? LIGHT : AMBER)
+      doc.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(2)}`, cx, y + 4.5); cx += tw[2]
+      const nd = varText(m.avgRating, prev?.avgRating ?? null, 2)
+      if (nd.significant) { c(nd.positive ? GREEN : RED); doc.setFont('helvetica', 'bold'); doc.text(nd.text, cx, y + 4.5); doc.setFont('helvetica', 'normal') } else { c(LIGHT); doc.text('—', cx, y + 4.5) }
+      cx += tw[3]
+      c(m.positiveRatio == null ? LIGHT : GREEN)
+      doc.text(m.positiveRatio == null ? '—' : `${m.positiveRatio.toFixed(0)}%`, cx, y + 4.5); cx += tw[4]
+      c(m.negativeRatio == null ? LIGHT : m.negativeRatio > 30 ? RED : MID)
+      doc.text(m.negativeRatio == null ? '—' : `${m.negativeRatio.toFixed(0)}%`, cx, y + 4.5); cx += tw[5]
+      c(m.responseRate == null ? LIGHT : INDIGO)
+      doc.text(m.responseRate == null ? '—' : `${m.responseRate.toFixed(0)}%`, cx, y + 4.5)
+      y += 6.5
     })
+    y += 8
+  }
 
-    doc.setFont('helvetica', 'italic')
-    doc.setFontSize(7)
-    set(LIGHT)
-    doc.text('El análisis IA es generado automáticamente por Claude (Anthropic) a partir de las reseñas importadas. Es orientativo.', ML, y)
+  // SECTION 4: Keywords
+  if (data.keywords.length > 0) {
+    if (y > 235) { doc.addPage(); y = 20 }
+    sectionLabel(doc as never, 'PALABRAS MAS MENCIONADAS', y, ML)
+    y += 13
+    const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
+    const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
+    if (posKw.length > 0) {
+      c(GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Aspectos positivos:', ML, y + 3.5)
+      c(MID); doc.setFont('helvetica', 'normal')
+      const ln = doc.splitTextToSize(posKw.join('  -  '), CW - 42) as string[]
+      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+    }
+    if (negKw.length > 0) {
+      c(RED); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Aspectos negativos:', ML, y + 3.5)
+      c(MID); doc.setFont('helvetica', 'normal')
+      const ln = doc.splitTextToSize(negKw.join('  -  '), CW - 42) as string[]
+      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+    }
+    y += 4
+  }
+
+  // SECTION 5: IA
+  if (data.summary) {
+    if (y > 205) { doc.addPage(); y = 20 }
+    sectionLabel(doc as never, 'DIAGNOSTICO IA', y, ML)
+    y += 13
+    const ins = [
+      { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: [240, 253, 244] as RGB },
+      { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: [254, 242, 242] as RGB },
+      { l: 'Accion recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: [238, 242, 255] as RGB },
+    ]
+    ins.forEach(i => {
+      if (y > 255) { doc.addPage(); y = 20 }
+      const lines = doc.splitTextToSize(i.t, CW - 10) as string[]
+      const bh = 11 + lines.length * 4.5
+      f(i.ac); doc.rect(ML, y, 2.5, bh, 'F')
+      f(i.bg); d(S200); doc.setLineWidth(0.1); doc.rect(ML + 2.5, y, CW - 2.5, bh, 'FD')
+      c(i.ac); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text(i.l, ML + 6, y + 6.5)
+      c(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.text(lines, ML + 6, y + 11.5)
+      y += bh + 4
+    })
+    c(LIGHT); doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5)
+    doc.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
     y += 5
   }
 
-  // ── FOOTER ──
-  const pageCount = doc.getNumberOfPages()
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i)
-    fill([15, 23, 42])
-    doc.rect(0, 284, W, 13, 'F')
-    set(LIGHT)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    const now = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    doc.text(`Generado por Velacre · velacre.com · ${now}`, ML, 291)
-    doc.text(`Página ${i} de ${pageCount}`, MR, 291, { align: 'right' })
+  pdfFooter(doc as never, W, ML, MR)
+  doc.save(`velacre-mensual-${slug}-${mLabel.replace(/\s/g, '-').toLowerCase()}.pdf`)
+}
+
+// ── PDF ANUAL ─────────────────────────────────────────────────────────────────
+
+export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
+  const { jsPDF } = await import('jspdf')
+  const doc = new jsPDF('p', 'mm', 'a4')
+
+  const W = 210, ML = 18, MR = W - 18, CW = MR - ML
+  let y = 0
+
+  const DARK: RGB = [15, 23, 42], MID: RGB = [71, 85, 105], LIGHT: RGB = [148, 163, 184]
+  const INDIGO: RGB = [79, 70, 229], GREEN: RGB = [16, 185, 129], RED: RGB = [239, 68, 68]
+  const AMBER: RGB = [245, 158, 11], WHITE: RGB = [255, 255, 255]
+  const S50: RGB = [248, 250, 252], S200: RGB = [226, 232, 240]
+
+  const c = (r: RGB) => doc.setTextColor(r[0], r[1], r[2])
+  const f = (r: RGB) => doc.setFillColor(r[0], r[1], r[2])
+  const d = (r: RGB) => doc.setDrawColor(r[0], r[1], r[2])
+
+  const slug = safe(data.negocioNombre).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  const cy = data.allYears.find(yr => yr.year === data.currentYear) ?? null
+  const py = data.allYears.find(yr => yr.year === data.currentYear - 1) ?? null
+
+  // CABECERA
+  pdfHeader(doc as never, W, ML, MR, data.negocioNombre, `Revision anual - ${data.currentYear}`)
+  y = 38
+
+  // TITULO
+  c(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(14)
+  doc.text(`Balance del ejercicio ${data.currentYear}`, ML, y)
+  c(MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(8)
+  doc.text(py ? `Comparativa con ejercicio ${data.currentYear - 1} incluida` : 'Primer ejercicio con datos registrados', ML, y + 6)
+  y += 16
+
+  // SECTION 1: KPIs del ejercicio actual
+  if (cy) {
+    sectionLabel(doc as never, `INDICADORES DEL EJERCICIO ${data.currentYear}`, y, ML)
+    y += 13
+
+    const kW = CW / 4
+    const kpis = [
+      { label: `Nota media ${data.currentYear}`, val: cy.avgRating != null ? `${cy.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cy.avgRating, py?.avgRating ?? null, 2), up: true, col: AMBER },
+      { label: `Resenas ${data.currentYear}`, val: String(cy.count), vt: varText(cy.count, py?.count ?? null, 0), up: true, col: INDIGO },
+      { label: 'Positivas (4-5)', val: cy.positiveRatio != null ? `${cy.positiveRatio.toFixed(0)}%` : '—', vt: varText(cy.positiveRatio, py?.positiveRatio ?? null, 1), up: true, col: GREEN },
+      { label: 'Respondidas', val: cy.responseRate != null ? `${cy.responseRate.toFixed(0)}%` : '—', vt: varText(cy.responseRate, py?.responseRate ?? null, 1), up: true, col: INDIGO },
+    ]
+    kpis.forEach((k, i) => {
+      const x = ML + i * kW
+      f(S50); d(S200); doc.setLineWidth(0.2)
+      doc.roundedRect(x + 0.5, y, kW - 1.5, 23, 1.5, 1.5, 'FD')
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(MID); doc.text(k.label, x + 3, y + 6)
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); c(k.col); doc.text(k.val, x + 3, y + 14.5)
+      if (k.vt.significant) {
+        const good = k.up ? k.vt.positive : !k.vt.positive
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(good ? GREEN : RED)
+        doc.text(`${k.vt.text} vs ${data.currentYear - 1}`, x + 3, y + 20)
+      }
+    })
+    y += 28
   }
 
-  const slug = data.negocioNombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  const period = isYear ? String(new Date().getFullYear()) : thisMonth.label.replace(/\s/g, '-')
-  const tipo = isYear ? 'anual' : 'mensual'
-  doc.save(`velacre-informe-${tipo}-${slug}-${period}.pdf`)
+  // SECTION 2: Evolución interanual
+  sectionLabel(doc as never, 'EVOLUCION INTERANUAL (POR EJERCICIO)', y, ML)
+  y += 13
+
+  // cols: Ejercicio | Resenas | Nota | Var.nota | Positivas | Negativas | Respondidas = 174mm
+  const yw = [22, 22, 28, 24, 26, 26, 26]
+  y = tableHeader(doc as never, ['Ejercicio', 'Resenas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML)
+
+  data.allYears.forEach((yr, idx) => {
+    const prevYr = data.allYears[idx + 1] ?? null  // más antiguo (lista desc)
+    const isCur = yr.year === data.currentYear
+    d(S200); doc.setLineWidth(0.1)
+    f(isCur ? [238, 242, 255] as RGB : idx % 2 === 0 ? WHITE : S50)
+    doc.rect(ML, y, CW, 6.5, 'FD')
+    doc.setFont('helvetica', isCur ? 'bold' : 'normal'); doc.setFontSize(7)
+    let cx = ML + 2
+    c(isCur ? INDIGO : DARK); doc.text(String(yr.year), cx, y + 4.5); cx += yw[0]
+    c(DARK); doc.setFont('helvetica', 'normal'); doc.text(String(yr.count), cx, y + 4.5); cx += yw[1]
+    c(yr.avgRating == null ? LIGHT : AMBER)
+    doc.text(yr.avgRating == null ? '—' : `${yr.avgRating.toFixed(2)} / 5`, cx, y + 4.5); cx += yw[2]
+    const nd = varText(yr.avgRating, prevYr?.avgRating ?? null, 2)
+    if (nd.significant) { c(nd.positive ? GREEN : RED); doc.setFont('helvetica', 'bold'); doc.text(nd.text, cx, y + 4.5); doc.setFont('helvetica', 'normal') } else { c(LIGHT); doc.text('—', cx, y + 4.5) }
+    cx += yw[3]
+    c(yr.positiveRatio == null ? LIGHT : GREEN)
+    doc.text(yr.positiveRatio == null ? '—' : `${yr.positiveRatio.toFixed(0)}%`, cx, y + 4.5); cx += yw[4]
+    c(yr.negativeRatio == null ? LIGHT : yr.negativeRatio > 30 ? RED : MID)
+    doc.text(yr.negativeRatio == null ? '—' : `${yr.negativeRatio.toFixed(0)}%`, cx, y + 4.5); cx += yw[5]
+    c(yr.responseRate == null ? LIGHT : INDIGO)
+    doc.text(yr.responseRate == null ? '—' : `${yr.responseRate.toFixed(0)}%`, cx, y + 4.5)
+    y += 6.5
+  })
+  y += 8
+
+  // SECTION 3: Desglose mensual del año actual
+  if (data.currentYearMonths.length > 0) {
+    if (y > 200) { doc.addPage(); y = 20 }
+    sectionLabel(doc as never, `DESGLOSE MENSUAL ${data.currentYear}`, y, ML)
+    y += 13
+
+    const mw = [34, 18, 28, 20, 26, 26, 22]  // 174mm
+    y = tableHeader(doc as never, ['Mes', 'Resenas', 'Nota media', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], mw, y, ML)
+
+    data.currentYearMonths.forEach((m, idx) => {
+      if (y > 272) { doc.addPage(); y = 20 }
+      const prev = idx > 0 ? data.currentYearMonths[idx - 1] : null
+      d(S200); doc.setLineWidth(0.1)
+      f(idx % 2 === 0 ? WHITE : S50); doc.rect(ML, y, CW, 6.5, 'FD')
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
+      let cx = ML + 2
+      const ml = safe(m.label); c(DARK); doc.text(ml.charAt(0).toUpperCase() + ml.slice(1), cx, y + 4.5); cx += mw[0]
+      c(m.count === 0 ? LIGHT : DARK); doc.text(m.count === 0 ? '—' : String(m.count), cx, y + 4.5); cx += mw[1]
+      c(m.avgRating == null ? LIGHT : AMBER)
+      doc.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(2)} / 5`, cx, y + 4.5); cx += mw[2]
+      const nd = varText(m.avgRating, prev?.avgRating ?? null, 2)
+      if (nd.significant) { c(nd.positive ? GREEN : RED); doc.setFont('helvetica', 'bold'); doc.text(nd.text, cx, y + 4.5); doc.setFont('helvetica', 'normal') } else { c(LIGHT); doc.text('—', cx, y + 4.5) }
+      cx += mw[3]
+      c(m.positiveRatio == null ? LIGHT : GREEN)
+      doc.text(m.positiveRatio == null ? '—' : `${m.positiveRatio.toFixed(0)}%`, cx, y + 4.5); cx += mw[4]
+      c(m.negativeRatio == null ? LIGHT : m.negativeRatio > 30 ? RED : MID)
+      doc.text(m.negativeRatio == null ? '—' : `${m.negativeRatio.toFixed(0)}%`, cx, y + 4.5); cx += mw[5]
+      c(m.responseRate == null ? LIGHT : INDIGO)
+      doc.text(m.responseRate == null ? '—' : `${m.responseRate.toFixed(0)}%`, cx, y + 4.5)
+      y += 6.5
+    })
+    y += 8
+  }
+
+  // SECTION 4: Keywords
+  if (data.keywords.length > 0) {
+    if (y > 235) { doc.addPage(); y = 20 }
+    sectionLabel(doc as never, 'PALABRAS MAS MENCIONADAS', y, ML)
+    y += 13
+    const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
+    const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
+    if (posKw.length > 0) {
+      c(GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Aspectos positivos:', ML, y + 3.5)
+      c(MID); doc.setFont('helvetica', 'normal')
+      const ln = doc.splitTextToSize(posKw.join('  -  '), CW - 42) as string[]
+      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+    }
+    if (negKw.length > 0) {
+      c(RED); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Aspectos negativos:', ML, y + 3.5)
+      c(MID); doc.setFont('helvetica', 'normal')
+      const ln = doc.splitTextToSize(negKw.join('  -  '), CW - 42) as string[]
+      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+    }
+    y += 4
+  }
+
+  // SECTION 5: IA
+  if (data.summary) {
+    if (y > 205) { doc.addPage(); y = 20 }
+    sectionLabel(doc as never, 'DIAGNOSTICO IA', y, ML)
+    y += 13
+    const ins = [
+      { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: [240, 253, 244] as RGB },
+      { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: [254, 242, 242] as RGB },
+      { l: 'Accion recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: [238, 242, 255] as RGB },
+    ]
+    ins.forEach(i => {
+      if (y > 255) { doc.addPage(); y = 20 }
+      const lines = doc.splitTextToSize(i.t, CW - 10) as string[]
+      const bh = 11 + lines.length * 4.5
+      f(i.ac); doc.rect(ML, y, 2.5, bh, 'F')
+      f(i.bg); d(S200); doc.setLineWidth(0.1); doc.rect(ML + 2.5, y, CW - 2.5, bh, 'FD')
+      c(i.ac); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text(i.l, ML + 6, y + 6.5)
+      c(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.text(lines, ML + 6, y + 11.5)
+      y += bh + 4
+    })
+    c(LIGHT); doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5)
+    doc.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
+  }
+
+  pdfFooter(doc as never, W, ML, MR)
+  doc.save(`velacre-anual-${slug}-${data.currentYear}.pdf`)
 }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, ApiError, type PendingReview, type Negocio } from '@/lib/api'
-import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateReputationPDF, type MonthMetrics } from '@/lib/report-pdf'
+import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, type MonthMetrics } from '@/lib/report-pdf'
 
 const STOPWORDS = new Set([
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'al', 'en', 'y', 'a', 'que',
@@ -210,34 +210,31 @@ export default function SaludPage() {
 
   const allMonths: MonthMetrics[] = getAllMonths(reviews)
   const allYears: MonthMetrics[] = getAllYears(reviews)
+  // Meses del año actual en orden ascendente (para PDF mensual y anual)
+  const currentYearMonths = allMonths.filter(m => m.year === now.getFullYear()).reverse()
 
   async function handleDownloadPdf(type: 'month' | 'year') {
     if (!negocio) return
     setDownloadingPdf(type)
     try {
+      const kwData = keywords.map(k => ({ word: k.word, sentiment: k.sentiment }))
       if (type === 'month') {
-        await generateReputationPDF({
+        await generateMonthlyPDF({
           negocioNombre: negocio.nombre,
-          months: last4,
-          allTimeAvg: avgRating,
-          allTimeCount: reviews.length,
-          responseRate,
-          positive, neutral, negative,
-          keywords: keywords.map(k => ({ word: k.word, sentiment: k.sentiment })),
+          currentMonth: currentM,
+          previousMonth: previousM.count > 0 || previousM.avgRating != null ? previousM : null,
+          yearMonths: currentYearMonths,
+          keywords: kwData,
           summary,
-          reportType: 'month',
         })
       } else {
-        await generateReputationPDF({
+        await generateYearlyPDF({
           negocioNombre: negocio.nombre,
-          months: allYears,
-          allTimeAvg: avgRating,
-          allTimeCount: reviews.length,
-          responseRate,
-          positive, neutral, negative,
-          keywords: keywords.map(k => ({ word: k.word, sentiment: k.sentiment })),
+          currentYear: now.getFullYear(),
+          allYears,
+          currentYearMonths,
+          keywords: kwData,
           summary,
-          reportType: 'year',
         })
       }
     } catch (e) {
