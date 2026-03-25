@@ -282,6 +282,21 @@ export async function generateForReview(reviewId: string): Promise<{ response: s
   return data
 }
 
+export interface VelacreMetrics {
+  total: number
+  velacreCount: number
+  timeSavedMinutes: number
+  currentResponseRate: number
+  historicResponseRate: number
+  improvement: number
+}
+
+export async function getMetrics(): Promise<VelacreMetrics> {
+  const res = await fetch(`${API_URL}/api/review/metrics`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
 export async function getSummary(): Promise<{ brilla: string; quema: string; accion: string }> {
   console.log('[api] getSummary →')
   const res = await fetch(`${API_URL}/api/review/summary`, {

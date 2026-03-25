@@ -331,6 +331,47 @@ public class ReviewController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Métricas de rentabilidad Velacre.
+    /// is_velacre_response = tonoGenerado != null AND tonoGenerado != "google"
+    /// No necesita columna nueva: tonoGenerado ya captura el origen de la respuesta.
+    /// </summary>
+    [HttpGet("metrics")]
+    public async Task<IActionResult> GetMetrics()
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
+        var negocio = negocioResult.Models.FirstOrDefault();
+        if (negocio == null) return NotFound();
+
+        var reviewsResult = await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Get();
+        var reviews = reviewsResult.Models;
+
+        var total = reviews.Count;
+        var velacreCount = reviews.Count(r => r.TonoGenerado != null && r.TonoGenerado != "google");
+        var timeSavedMinutes = velacreCount * 4;
+
+        // Tasa de respuesta: histórico (antes de los últimos 3 meses) vs reciente
+        var cutoff = DateTimeOffset.UtcNow.AddMonths(-3);
+        var recent = reviews.Where(r => r.ReviewDate >= cutoff).ToList();
+        var historic = reviews.Where(r => r.ReviewDate < cutoff).ToList();
+
+        double currentRate = recent.Count > 0
+            ? (double)recent.Count(r => r.TonoGenerado != null) / recent.Count * 100 : 0;
+        double historicRate = historic.Count > 0
+            ? (double)historic.Count(r => r.TonoGenerado != null) / historic.Count * 100 : 0;
+
+        return Ok(new
+        {
+            total,
+            velacreCount,
+            timeSavedMinutes,
+            currentResponseRate = Math.Round(currentRate, 1),
+            historicResponseRate = Math.Round(historicRate, 1),
+            improvement = Math.Round(currentRate - historicRate, 1)
+        });
+    }
+
     [HttpPost("summary")]
     public async Task<IActionResult> GetSummary()
     {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, ApiError, type PendingReview, type Negocio } from '@/lib/api'
+import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getMetrics, ApiError, type PendingReview, type Negocio, type VelacreMetrics } from '@/lib/api'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, type MonthMetrics } from '@/lib/report-pdf'
 
 const STOPWORDS = new Set([
@@ -80,6 +80,7 @@ export default function SaludPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState<'month' | 'year' | null>(null)
   const [aiUsed, setAiUsed] = useState(0)
+  const [metrics, setMetrics] = useState<VelacreMetrics | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -87,12 +88,13 @@ export default function SaludPage() {
       if (!session) { router.replace('/auth/login'); return }
       try {
         // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
-        const [u, n, r] = await Promise.all([getMyUsuario(), getMyNegocio(), getAllReviews()])
+        const [u, n, r, m] = await Promise.all([getMyUsuario(), getMyNegocio(), getAllReviews(), getMetrics().catch(() => null)])
         setIsAdmin(u.isAdmin)
         setAiUsed(getAiUsageToday())
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
+        if (m) setMetrics(m)
         // Load persisted AI analysis
         try {
           const cached = localStorage.getItem('velacre_ai_result')
@@ -406,6 +408,48 @@ export default function SaludPage() {
                   })}
                 </div>
               </div>
+
+              {/* ── MÉTRICAS DE IMPACTO VELACRE ── */}
+              {metrics && (
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Impacto Velacre</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* Reseñas gestionadas */}
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Gestionadas con IA</p>
+                      <p className="text-3xl font-black text-white tabular-nums">{metrics.velacreCount}</p>
+                      <p className="text-xs text-slate-600 mt-1">de {metrics.total} totales</p>
+                    </div>
+                    {/* Tiempo ahorrado */}
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Tiempo ahorrado</p>
+                      <p className="text-3xl font-black text-indigo-400 tabular-nums">
+                        {metrics.timeSavedMinutes >= 60
+                          ? `${Math.floor(metrics.timeSavedMinutes / 60)}h ${metrics.timeSavedMinutes % 60}m`
+                          : `${metrics.timeSavedMinutes}m`}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">~4 min por reseña</p>
+                    </div>
+                    {/* Mejora de respuesta */}
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Mejora respuesta</p>
+                      {metrics.historicResponseRate > 0 ? (
+                        <>
+                          <p className={`text-3xl font-black tabular-nums ${metrics.improvement > 0 ? 'text-emerald-400' : metrics.improvement < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                            {metrics.improvement > 0 ? '+' : ''}{metrics.improvement.toFixed(0)}%
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1">{metrics.historicResponseRate.toFixed(0)}% → {metrics.currentResponseRate.toFixed(0)}%</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-3xl font-black text-emerald-400 tabular-nums">{metrics.currentResponseRate.toFixed(0)}%</p>
+                          <p className="text-xs text-slate-600 mt-1">tasa actual</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Este mes vs anterior */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
