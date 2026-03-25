@@ -395,7 +395,7 @@ export default function DashboardPage() {
                       <StarRating rating={review.starRating} />
                     </div>
 
-                    <p className="text-sm text-slate-700 dark:text-slate-300 mb-1.5 leading-relaxed line-clamp-3">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mb-1.5 leading-relaxed">
                       {review.clientereview || <span className="italic text-slate-400">Sin texto</span>}
                     </p>
                     {/* Traducción */}
