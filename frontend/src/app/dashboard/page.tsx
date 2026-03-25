@@ -231,8 +231,10 @@ export default function DashboardPage() {
     }
   }
 
+  // Muestra botones de traducción si el idioma es explícitamente extranjero,
+  // O si es desconocido (null/undefined) — así no se pierden reseñas cuyo idioma no detectó Outscraper
   function isForeignLanguage(lang?: string) {
-    return !!lang && lang !== 'es'
+    return !lang || lang !== 'es'
   }
 
   async function handleLogout() {

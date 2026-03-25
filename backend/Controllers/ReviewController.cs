@@ -182,6 +182,7 @@ public class ReviewController : ControllerBase
                 starRating = r.StarRating,
                 reviewDate = r.ReviewDate ?? r.CreadoFecha,
                 clientereview = r.ClienteReview,
+                reviewLanguage = r.ReviewLanguage,
                 respuestaProfesional = r.RespuestaProfesional,
                 respuestaCercano = r.RespuestaCercano,
                 respuestaDirecto = r.RespuestaDirecto,
