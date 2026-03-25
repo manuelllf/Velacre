@@ -45,7 +45,19 @@ export default function SalesDashboard() {
   const [comision, setComision] = useState<SalesComision | null>(null)
   const [liquidaciones, setLiquidaciones] = useState<Liquidacion[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
+
+  async function loadData() {
+    const [p, c, l] = await Promise.all([
+      getSalesPortfolio(),
+      getSalesComision(),
+      getSalesLiquidaciones(),
+    ])
+    setPortfolio(p.negocios)
+    setComision(c)
+    setLiquidaciones(l)
+  }
 
   useEffect(() => {
     async function init() {
@@ -55,14 +67,7 @@ export default function SalesDashboard() {
         const u = await getMyUsuario()
         if (u.rol !== 'sales') { router.replace(u.isAdmin ? '/admin' : '/dashboard'); return }
         setNombre(u.nombre ?? u.id)
-        const [p, c, l] = await Promise.all([
-          getSalesPortfolio(),
-          getSalesComision(),
-          getSalesLiquidaciones(),
-        ])
-        setPortfolio(p.negocios)
-        setComision(c)
-        setLiquidaciones(l)
+        await loadData()
       } catch {
         setError('Error al cargar los datos. Recarga la página.')
       } finally {
@@ -71,6 +76,13 @@ export default function SalesDashboard() {
     }
     init()
   }, [router])
+
+  async function handleRefresh() {
+    setRefreshing(true)
+    try { await loadData() }
+    catch { setError('Error al actualizar.') }
+    finally { setRefreshing(false) }
+  }
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -97,9 +109,21 @@ export default function SalesDashboard() {
           <h1 className="text-xl font-bold text-slate-900 dark:text-white">Velacre Sales</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Hola, {nombre}</p>
         </div>
-        <button onClick={handleLogout} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-          Cerrar sesión
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+          >
+            <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {refreshing ? 'Actualizando...' : 'Actualizar'}
+          </button>
+          <button onClick={handleLogout} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+            Cerrar sesión
+          </button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
