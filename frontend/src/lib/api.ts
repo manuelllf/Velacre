@@ -549,9 +549,12 @@ export async function getSummaryAnalysis(): Promise<{ brillante: string; preocup
 /** Crea una sesión de checkout en Lemon Squeezy y devuelve la URL de pago. */
 export async function getLemonCheckoutUrl(
   plan: 'core' | 'pro',
-  billing: 'monthly' | 'yearly' = 'monthly'
+  billing: 'monthly' | 'yearly' = 'monthly',
+  redirectUrl?: string
 ): Promise<string> {
-  const res = await fetch(`${API_URL}/api/lemonsqueezy/checkout?plan=${plan}&billing=${billing}`, {
+  const params = new URLSearchParams({ plan, billing })
+  if (redirectUrl) params.set('redirectUrl', redirectUrl)
+  const res = await fetch(`${API_URL}/api/lemonsqueezy/checkout?${params}`, {
     headers: await authHeaders(),
   })
   if (!res.ok) throw new Error(await res.text())

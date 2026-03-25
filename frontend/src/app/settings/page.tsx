@@ -64,7 +64,7 @@ export default function SettingsPage() {
   async function handleUpgrade(selectedPlan: 'core' | 'pro') {
     setCheckoutLoading(selectedPlan)
     try {
-      const url = await getLemonCheckoutUrl(selectedPlan, billing)
+      const url = await getLemonCheckoutUrl(selectedPlan, billing, `${window.location.origin}/dashboard`)
       window.location.href = url
     } catch {
       setError('No se pudo iniciar el proceso de pago. Inténtalo de nuevo.')
