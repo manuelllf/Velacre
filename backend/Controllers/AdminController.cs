@@ -268,17 +268,42 @@ public class AdminController : ControllerBase
         if (!IsAdmin()) return Forbid();
         if (string.IsNullOrWhiteSpace(request.PlaceId)) return BadRequest("place_id no puede estar vacío.");
 
-        var result = await _supabase.From<NegocioEntity>().Where(n => n.Id == negocioId).Limit(1).Get();
-        var negocio = result.Models.FirstOrDefault();
-        if (negocio == null) return NotFound();
+        try
+        {
+            var result = await _supabase.From<NegocioEntity>().Where(n => n.Id == negocioId).Limit(1).Get();
+            var negocio = result.Models.FirstOrDefault();
+            if (negocio == null)
+            {
+                _logger.LogWarning("[AdminController] SetPlaceId: negocio {NegocioId} no encontrado", negocioId);
+                return NotFound($"Negocio {negocioId} no encontrado");
+            }
 
-        var old = negocio.PlaceId;
-        negocio.PlaceId = request.PlaceId;
-        negocio.ActualizadoFecha = DateTimeOffset.UtcNow;
-        await _supabase.From<NegocioEntity>().Where(n => n.Id == negocioId).Update(negocio);
+            _logger.LogInformation("[AdminController] SetPlaceId: encontrado negocio={NegocioId} nombre={Nombre} placeId_actual={Old}",
+                negocioId, negocio.Nombre, negocio.PlaceId);
 
-        _logger.LogInformation("[AdminController] place_id negocio {NegocioId}: {Old} → {New}", negocioId, old, request.PlaceId);
-        return Ok(new { negocioId, placeId = request.PlaceId });
+            var old = negocio.PlaceId;
+            negocio.PlaceId = request.PlaceId;
+            negocio.ActualizadoFecha = DateTimeOffset.UtcNow;
+
+            var updateResult = await _supabase.From<NegocioEntity>()
+                .Where(n => n.Id == negocioId)
+                .Update(negocio);
+
+            _logger.LogInformation("[AdminController] SetPlaceId: update ejecutado, modelos devueltos={Count}",
+                updateResult.Models.Count);
+
+            // Verificar que el cambio se aplicó leyendo de nuevo
+            var verify = await _supabase.From<NegocioEntity>().Where(n => n.Id == negocioId).Limit(1).Get();
+            var updated = verify.Models.FirstOrDefault();
+            _logger.LogInformation("[AdminController] SetPlaceId: verificación placeId={PlaceId}", updated?.PlaceId);
+
+            return Ok(new { negocioId, old, placeId = updated?.PlaceId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AdminController] SetPlaceId: error actualizando negocio {NegocioId}", negocioId);
+            return StatusCode(500, ex.Message);
+        }
     }
 
     // ─── Activar/Desactivar legacy (compatibilidad) ───────────────────────────
