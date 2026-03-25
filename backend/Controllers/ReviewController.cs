@@ -372,8 +372,40 @@ public class ReviewController : ControllerBase
         });
     }
 
-    [HttpPost("summary")]
-    public async Task<IActionResult> GetSummary()
+    // GET /api/review/analysis — carga el análisis más reciente de BD si existe
+    [HttpGet("analysis")]
+    public async Task<IActionResult> GetAnalysis()
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
+        var negocio = negocioResult.Models.FirstOrDefault();
+        if (negocio == null) return NotFound();
+
+        var analysisResult = await _supabase.From<AnalisisIaEntity>()
+            .Where(a => a.NegocioId == negocio.Id)
+            .Order("created_at", Postgrest.Constants.Ordering.Descending)
+            .Limit(1)
+            .Get();
+
+        var latest = analysisResult.Models.FirstOrDefault();
+
+        var reviewsResult = await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Get();
+        var currentReviewCount = reviewsResult.Models.Count;
+
+        if (latest == null)
+            return Ok(new { analysis = (object?)null, currentReviewCount, analysisReviewCount = 0 });
+
+        return Ok(new
+        {
+            analysis = new { latest.Brilla, latest.Quema, latest.Accion, latest.CreatedAt },
+            currentReviewCount,
+            analysisReviewCount = latest.ReviewCount
+        });
+    }
+
+    // POST /api/review/analysis — genera análisis, aplica límites y guarda en BD
+    [HttpPost("analysis")]
+    public async Task<IActionResult> GenerateAnalysis()
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
@@ -383,29 +415,64 @@ public class ReviewController : ControllerBase
         var reviewsResult = await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Get();
         var reviews = reviewsResult.Models;
 
-        if (reviews.Count == 0) return Ok(new { brilla = "Aún no tienes reseñas para analizar.", quema = "—", accion = "Sincroniza tus reseñas de Google para empezar." });
+        if (reviews.Count == 0)
+            return Ok(new { brilla = "Aún no tienes reseñas para analizar.", quema = "—", accion = "Sincroniza tus reseñas de Google para empezar." });
 
-        var reviewSummary = string.Join("\n", reviews.Take(50).Select(r => $"[{r.StarRating}★] {r.ClienteReview}"));
-        var prompt = $"Analiza estas reseñas de un negocio español y responde SOLO con un JSON válido con este formato exacto: {{\"brilla\": \"frase corta sobre lo mejor\", \"quema\": \"frase corta sobre el problema principal\", \"accion\": \"acción concreta con métrica si puedes\"}}.\n\nReseñas:\n{reviewSummary}";
+        // Límite diario: hasta 3 análisis/día, +1 si hay 5+ reseñas nuevas desde el último
+        var todayUtc = DateTimeOffset.UtcNow.Date;
+        var allAnalysisResult = await _supabase.From<AnalisisIaEntity>()
+            .Where(a => a.NegocioId == negocio.Id)
+            .Order("created_at", Postgrest.Constants.Ordering.Descending)
+            .Get();
+
+        var todayCount = allAnalysisResult.Models.Count(a => a.CreatedAt.UtcDateTime.Date == todayUtc);
+        var lastAnalysis = allAnalysisResult.Models.FirstOrDefault();
+        var reviewDelta = lastAnalysis != null ? reviews.Count - lastAnalysis.ReviewCount : reviews.Count;
+        var dailyLimit = reviewDelta >= 5 ? 4 : 3;
+
+        if (todayCount >= dailyLimit)
+            return StatusCode(429, new { message = "Límite diario alcanzado. Se restablece mañana." });
+
+        // Generar con IA
+        var reviewSummary = string.Join("\n", reviews.Take(50).Select(r => $"[{r.StarRating}*] {r.ClienteReview}"));
+        var prompt = $"Analiza estas resenas de un negocio espanol y responde SOLO con un JSON valido con este formato exacto: {{\"brilla\": \"frase corta sobre lo mejor\", \"quema\": \"frase corta sobre el problema principal\", \"accion\": \"accion concreta con metrica si puedes\"}}.\n\nResenas:\n{reviewSummary}";
 
         try
         {
             var response = await _aiService.GetClaudeMessageAsync(prompt, "");
-            // Try to extract JSON from response
             var start = response.IndexOf('{');
             var end = response.LastIndexOf('}');
-            if (start >= 0 && end > start)
+            if (start < 0 || end <= start)
+                return StatusCode(500, "Respuesta IA no válida");
+
+            var json = response[start..(end + 1)];
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            var brilla = root.GetProperty("brilla").GetString() ?? "—";
+            var quema  = root.GetProperty("quema").GetString()  ?? "—";
+            var accion = root.GetProperty("accion").GetString() ?? "—";
+
+            // Guardar en BD
+            var entity = new AnalisisIaEntity
             {
-                var json = response[start..(end + 1)];
-                var parsed = System.Text.Json.JsonDocument.Parse(json);
-                return Ok(parsed);
-            }
-            return Ok(new { brilla = response, quema = "—", accion = "—" });
+                NegocioId   = negocio.Id,
+                Brilla      = brilla,
+                Quema       = quema,
+                Accion      = accion,
+                ReviewCount = reviews.Count,
+            };
+            await _supabase.From<AnalisisIaEntity>().Insert(entity);
+
+            return Ok(new { brilla, quema, accion });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[ReviewController] Error getting summary");
-            return StatusCode(500, "Error generando resumen");
+            _logger.LogError(ex, "[ReviewController] Error generating analysis");
+            return StatusCode(500, "Error generando análisis");
         }
     }
+
+    // Mantenemos el endpoint viejo para no romper llamadas existentes
+    [HttpPost("summary")]
+    public Task<IActionResult> GetSummary() => GenerateAnalysis();
 }

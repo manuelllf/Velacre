@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getMetrics, ApiError, type PendingReview, type Negocio, type VelacreMetrics } from '@/lib/api'
+import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData } from '@/lib/api'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, type MonthMetrics } from '@/lib/report-pdf'
 
 const STOPWORDS = new Set([
@@ -81,6 +81,7 @@ export default function SaludPage() {
   const [downloadingPdf, setDownloadingPdf] = useState<'month' | 'year' | null>(null)
   const [aiUsed, setAiUsed] = useState(0)
   const [metrics, setMetrics] = useState<VelacreMetrics | null>(null)
+  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -88,21 +89,21 @@ export default function SaludPage() {
       if (!session) { router.replace('/auth/login'); return }
       try {
         // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
-        const [u, n, r, m] = await Promise.all([getMyUsuario(), getMyNegocio(), getAllReviews(), getMetrics().catch(() => null)])
+        const [u, n, r, m, ad] = await Promise.all([
+          getMyUsuario(), getMyNegocio(), getAllReviews(),
+          getMetrics().catch(() => null),
+          getAnalysis().catch(() => null),
+        ])
         setIsAdmin(u.isAdmin)
         setAiUsed(getAiUsageToday())
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
         if (m) setMetrics(m)
-        // Load persisted AI analysis (clave por negocio para evitar cross-contamination)
-        try {
-          const cached = localStorage.getItem(`velacre_ai_result_${n?.id}`)
-          if (cached) {
-            const parsed = JSON.parse(cached) as { result: SummaryData }
-            setSummary(parsed.result)
-          }
-        } catch { /* ignore */ }
+        if (ad) {
+          setAnalysisData(ad)
+          if (ad.analysis) setSummary({ brilla: ad.analysis.brilla, quema: ad.analysis.quema, accion: ad.analysis.accion })
+        }
       } catch (err) {
         // Solo redirigir al login en errores de sesión (401), no en errores de red
         if (err instanceof ApiError && err.status === 401) {
@@ -118,16 +119,18 @@ export default function SaludPage() {
   }, [router])
 
   function handleRunAnalysis() {
-    if (aiUsed >= AI_LIMIT || loadingSummary) return
+    if (loadingSummary) return
     setLoadingSummary(true)
-    incrementAiUsage()
-    setAiUsed(prev => prev + 1)
     getSummary()
       .then(s => {
         setSummary(s)
-        try { localStorage.setItem(`velacre_ai_result_${negocio?.id}`, JSON.stringify({ result: s })) } catch { /* ignore */ }
+        // Refrescar analysisData para actualizar el estado del botón
+        getAnalysis().then(ad => setAnalysisData(ad)).catch(() => null)
       })
-      .catch(() => setSummary({ brilla: 'No se pudo obtener el análisis.', quema: '—', accion: '—' }))
+      .catch(err => {
+        const msg = err instanceof Error ? err.message : 'Error al generar análisis'
+        setSummary({ brilla: msg, quema: '—', accion: '—' })
+      })
       .finally(() => setLoadingSummary(false))
   }
 
@@ -574,13 +577,15 @@ export default function SaludPage() {
                   <div className="mt-4 flex items-center gap-3 pt-4 border-t border-slate-800">
                     <button
                       onClick={handleRunAnalysis}
-                      disabled={aiUsed >= AI_LIMIT || loadingSummary}
+                      disabled={loadingSummary}
                       className="text-xs px-3 py-1.5 border border-slate-700 text-slate-400 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      Regenerar análisis
+                      Actualizar análisis
                     </button>
-                    {aiUsed >= AI_LIMIT && (
-                      <p className="text-xs text-slate-600">Límite diario alcanzado · se restablece mañana</p>
+                    {analysisData?.analysis?.createdAt && (
+                      <p className="text-xs text-slate-600">
+                        {new Date(analysisData.analysis.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </p>
                     )}
                   </div>
                 </>
@@ -589,19 +594,16 @@ export default function SaludPage() {
                   <p className="text-sm text-slate-400">
                     Genera un diagnóstico automático: qué aspectos destacan, qué preocupa y qué acción tomar.
                   </p>
-                  {aiUsed < AI_LIMIT ? (
-                    <button
-                      onClick={handleRunAnalysis}
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                      </svg>
-                      Generar diagnóstico IA
-                    </button>
-                  ) : (
-                    <p className="text-sm text-slate-600">Límite diario alcanzado. Vuelve mañana.</p>
-                  )}
+                  <button
+                    onClick={handleRunAnalysis}
+                    disabled={loadingSummary}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    Generar diagnóstico IA
+                  </button>
                 </div>
               )}
             </div>

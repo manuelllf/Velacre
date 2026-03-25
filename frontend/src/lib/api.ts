@@ -297,20 +297,37 @@ export async function getMetrics(): Promise<VelacreMetrics> {
   return res.json()
 }
 
+export interface AnalysisResult {
+  brilla: string
+  quema: string
+  accion: string
+  createdAt?: string
+}
+
+export interface AnalysisData {
+  analysis: AnalysisResult | null
+  currentReviewCount: number
+  analysisReviewCount: number
+}
+
+export async function getAnalysis(): Promise<AnalysisData> {
+  const res = await fetch(`${API_URL}/api/review/analysis`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
 export async function getSummary(): Promise<{ brilla: string; quema: string; accion: string }> {
-  console.log('[api] getSummary →')
-  const res = await fetch(`${API_URL}/api/review/summary`, {
+  const res = await fetch(`${API_URL}/api/review/analysis`, {
     method: 'POST',
     headers: await authHeaders(),
   })
   if (!res.ok) {
     const body = await res.text()
-    console.error('[api] getSummary ERROR', res.status, body)
-    throw new Error(body)
+    let msg = body
+    try { msg = JSON.parse(body).message ?? body } catch { /* raw */ }
+    throw new Error(msg)
   }
-  const data = await res.json()
-  console.log('[api] getSummary ← OK')
-  return data
+  return res.json()
 }
 
 export async function getSummaryAnalysis(): Promise<{ brillante: string; preocupa: string; accion: string }> {
