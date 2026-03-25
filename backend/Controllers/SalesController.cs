@@ -106,8 +106,8 @@ public class SalesController : ControllerBase
 
         // Costos API prorrateados desde costos_mes
         var costoMesResult = await _supabase.From<CostoMesEntity>()
-            .Where(c => c.Anio == now.Year && c.Mes == now.Month).Limit(1).Get();
-        var costoMes = costoMesResult.Models.FirstOrDefault();
+            .Where(c => c.Anio == now.Year).Get();
+        var costoMes = costoMesResult.Models.FirstOrDefault(c => c.Mes == now.Month);
         var totalCostosApi   = (costoMes?.CostoClaudeEur ?? 0) + (costoMes?.CostoOutscraperEur ?? 0);
         var prorrateo        = totalClientes > 0 ? (decimal)negocios.Count / totalClientes : 0;
         var costosApiProrrateados = totalCostosApi * prorrateo;

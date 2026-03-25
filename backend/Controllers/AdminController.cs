@@ -432,11 +432,12 @@ public class AdminController : ControllerBase
         if (!IsAdmin()) return Forbid();
         if (mes < 1 || mes > 12) return BadRequest("Mes inválido");
 
+        // postgrest-csharp no soporta 3 Where encadenados — filtramos anio+mes en memoria
         var existing = await _supabase.From<LiquidacionEntity>()
-            .Where(l => l.SalesId == salesId && l.Anio == anio && l.Mes == mes)
-            .Limit(1).Get();
+            .Where(l => l.SalesId == salesId)
+            .Get();
 
-        var entity = existing.Models.FirstOrDefault();
+        var entity = existing.Models.FirstOrDefault(l => l.Anio == anio && l.Mes == mes);
         if (entity == null)
             entity = new LiquidacionEntity { Id = Guid.NewGuid(), SalesId = salesId, Anio = anio, Mes = mes, CreatedAt = DateTimeOffset.UtcNow };
 
