@@ -24,15 +24,11 @@ export default function OnboardingPlanPage() {
   const [loading, setLoading] = useState<'core' | 'pro' | null>(null)
   const [error, setError] = useState('')
 
-  const redirectUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/onboarding`
-    : '/onboarding'
-
   async function handlePlan(plan: 'core' | 'pro') {
     setLoading(plan)
     setError('')
     try {
-      const url = await getLemonCheckoutUrl(plan, billing, redirectUrl)
+      const url = await getLemonCheckoutUrl(plan, billing)
       window.location.href = url
     } catch {
       setError('No se pudo iniciar el proceso de pago. Inténtalo de nuevo.')

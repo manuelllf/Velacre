@@ -32,9 +32,8 @@ public class LemonController : ControllerBase
     [HttpGet("checkout")]
     [Authorize]
     public async Task<IActionResult> GetCheckoutUrl(
-        [FromQuery] string plan        = "core",
-        [FromQuery] string billing     = "monthly",
-        [FromQuery] string redirectUrl = "")
+        [FromQuery] string plan    = "core",
+        [FromQuery] string billing = "monthly")
     {
         var apiKey  = Environment.GetEnvironmentVariable("LEMON_VELACRE_API")     ?? "";
         var storeId = Environment.GetEnvironmentVariable("LEMONSQUEEZY_STORE_ID") ?? "";
@@ -70,8 +69,6 @@ public class LemonController : ControllerBase
         {
             ["checkout_data"] = checkoutData
         };
-        if (!string.IsNullOrEmpty(redirectUrl))
-            attributes["checkout_options"] = new Dictionary<string, string> { { "redirect_url", redirectUrl } };
 
         var payload = new
         {
