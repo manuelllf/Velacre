@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, searchPlaces, syncReviews, type Negocio, type PlaceResult } from '@/lib/api'
+import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, type Negocio } from '@/lib/api'
 
 const TONOS = [
   { value: 'Profesional', label: 'Profesional', desc: 'Formal y cercano a la excelencia' },
@@ -29,16 +29,6 @@ export default function SettingsPage() {
     descripcion: '',
     tonopredefinido: 'Profesional',
   })
-
-  // Google Places search
-  const [placeQuery, setPlaceQuery] = useState('')
-  const [placeResults, setPlaceResults] = useState<PlaceResult[]>([])
-  const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null)
-  const [searchingPlaces, setSearchingPlaces] = useState(false)
-  const [savingPlace, setSavingPlace] = useState(false)
-  const [placeSaved, setPlaceSaved] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const skipSearchRef = useRef(false)
 
   useEffect(() => {
     async function load() {
@@ -66,56 +56,6 @@ export default function SettingsPage() {
     }
     load()
   }, [router])
-
-  useEffect(() => {
-    if (skipSearchRef.current) {
-      skipSearchRef.current = false
-      return
-    }
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!placeQuery.trim() || placeQuery.trim().length < 3) {
-      setPlaceResults([])
-      return
-    }
-    debounceRef.current = setTimeout(async () => {
-      setSearchingPlaces(true)
-      try {
-        const results = await searchPlaces(placeQuery.trim())
-        setPlaceResults(results)
-      } catch {
-        setPlaceResults([])
-      } finally {
-        setSearchingPlaces(false)
-      }
-    }, 500)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [placeQuery])
-
-  function handleSelectPlace(place: PlaceResult) {
-    skipSearchRef.current = true
-    setSelectedPlace(place)
-    setPlaceQuery(place.name)
-    setPlaceResults([])
-  }
-
-  async function handleSavePlace() {
-    if (!selectedPlace) return
-    setSavingPlace(true)
-    try {
-      await updateNegocio({ placeId: selectedPlace.placeId })
-      setNegocio(prev => prev ? { ...prev, placeId: selectedPlace.placeId } : prev)
-      // Auto-sync reviews when connecting Google for the first time
-      await syncReviews()
-      setPlaceSaved(true)
-      setSelectedPlace(null)
-      setPlaceQuery('')
-      setTimeout(() => setPlaceSaved(false), 3000)
-    } catch {
-      setError('No se pudo guardar la conexión con Google.')
-    } finally {
-      setSavingPlace(false)
-    }
-  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -188,77 +128,21 @@ export default function SettingsPage() {
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">Negocio en Google</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
-            Conecta tu negocio de Google Maps para que importemos tus reseñas automáticamente cada día.
+            Tu negocio queda vinculado durante el registro y no puede cambiarse desde aquí. Si necesitas corregirlo, contacta con soporte.
           </p>
-
-          {negocio?.placeId && !selectedPlace && !placeSaved && (
-            <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+          {negocio?.placeId ? (
+            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
               <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <span className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">Negocio conectado con Google</span>
             </div>
-          )}
-
-          {placeSaved && (
-            <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-              <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          ) : (
+            <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">Conexión guardada correctamente</span>
-            </div>
-          )}
-
-          <div className="relative">
-            <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
-              {negocio?.placeId ? 'Cambiar negocio conectado' : 'Busca tu negocio en Google'}
-            </label>
-            <input
-              type="text"
-              value={placeQuery}
-              onChange={e => { setPlaceQuery(e.target.value); setSelectedPlace(null) }}
-              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-400 dark:placeholder-slate-500"
-              placeholder="Escribe el nombre de tu negocio para buscarlo..."
-            />
-            {searchingPlaces && (
-              <div className="absolute right-4 top-11 w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-            )}
-            {placeResults.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-lg overflow-hidden">
-                {placeResults.map(place => (
-                  <button
-                    key={place.placeId}
-                    type="button"
-                    onClick={() => handleSelectPlace(place)}
-                    className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0"
-                  >
-                    <div className="text-base font-medium text-slate-900 dark:text-white">{place.name}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
-                      <span>{place.address}</span>
-                      {place.rating && <span className="text-amber-500">★ {place.rating}</span>}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {selectedPlace && (
-            <div className="mt-3 flex items-center justify-between px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
-              <div>
-                <p className="text-base font-medium text-slate-900 dark:text-white">{selectedPlace.name}</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{selectedPlace.address}</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleSavePlace}
-                disabled={savingPlace}
-                className="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 shrink-0 flex items-center gap-2"
-              >
-                {savingPlace ? (
-                  <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Guardando...</>
-                ) : 'Conectar'}
-              </button>
+              <span className="text-sm text-amber-700 dark:text-amber-300 font-medium">Sin negocio vinculado · Contacta con soporte</span>
             </div>
           )}
         </div>
