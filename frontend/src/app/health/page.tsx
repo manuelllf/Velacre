@@ -79,7 +79,7 @@ export default function HealthPage() {
         }
         const [n, r] = await Promise.all([getMyNegocio(), getPendingReviews()])
         if (!n) {
-          router.replace('/onboarding/plan')
+          router.replace('/onboarding')
           return
         }
         setNegocioNombre(n.nombre)

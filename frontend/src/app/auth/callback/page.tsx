@@ -40,7 +40,7 @@ export default function AuthCallback() {
           } catch {
             // Si ya existe (carrera) ignoramos el error
           }
-          router.replace('/onboarding/plan')
+          router.replace('/onboarding')
         }
       } catch (err) {
         console.error('[auth/callback]', err)

@@ -77,7 +77,7 @@ export default function SaludPage() {
           getAnalysis().catch(() => null),
         ])
         setIsAdmin(u.isAdmin)
-        if (!n) { router.replace('/onboarding/plan'); return }
+        if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
         if (m) setMetrics(m)

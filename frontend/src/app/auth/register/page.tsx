@@ -64,7 +64,7 @@ export default function RegisterPage() {
       return
     }
 
-    router.replace('/onboarding/plan')
+    router.replace('/onboarding')
   }
 
   const disabled = loading || googleLoading

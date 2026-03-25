@@ -111,7 +111,7 @@ export default function DashboardPage() {
         setUserId(u.id)
         setIsAdmin(u.isAdmin)
         if (!n) {
-          router.replace('/onboarding/plan')
+          router.replace('/onboarding')
           return
         }
         setNegocio(n)

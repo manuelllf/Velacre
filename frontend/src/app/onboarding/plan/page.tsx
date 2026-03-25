@@ -152,7 +152,7 @@ export default function OnboardingPlanPage() {
 
       {/* Skip */}
       <button
-        onClick={() => router.replace('/onboarding')}
+        onClick={() => router.replace('/dashboard')}
         disabled={loading !== null}
         className="text-sm text-slate-500 hover:text-slate-400 transition-colors cursor-pointer disabled:opacity-50"
       >
