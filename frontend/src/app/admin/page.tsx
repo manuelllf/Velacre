@@ -19,6 +19,85 @@ import {
   type EstadoUsuario,
 } from '@/lib/api'
 
+// ─── Inline cost editor ───────────────────────────────────────────────────────
+
+function CostEditor({ stats, onSaved }: { stats: AdminStats; onSaved: () => void }) {
+  const now = new Date()
+  const [anio, setAnio] = useState(now.getFullYear())
+  const [mes, setMes] = useState(now.getMonth() + 1)
+  const [claude, setClaude] = useState(stats.costoMesActual.claude.toFixed(2))
+  const [outscraper, setOutscraper] = useState(stats.costoMesActual.outscraper.toFixed(2))
+  const [notas, setNotas] = useState(stats.costoMesActual.notas ?? '')
+  const [loading, setLoading] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function handleSave() {
+    setLoading(true); setErr(''); setSaved(false)
+    try {
+      await upsertCosto(anio, mes, parseFloat(claude) || 0, parseFloat(outscraper) || 0, notas || undefined)
+      setSaved(true)
+      onSaved()
+      setTimeout(() => setSaved(false), 2500)
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const total = (parseFloat(claude) || 0) + (parseFloat(outscraper) || 0)
+
+  return (
+    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 font-medium">Registrar costes a mes vencido</p>
+      <div className="flex flex-wrap gap-2 items-end">
+        <div>
+          <label className="text-xs text-slate-400 block mb-1">Año</label>
+          <input type="number" value={anio} onChange={e => setAnio(Number(e.target.value))}
+            className="w-20 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-slate-400 block mb-1">Mes</label>
+          <select value={mes} onChange={e => setMes(Number(e.target.value))}
+            className="border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          >
+            {MES_NAMES.map((n, i) => <option key={i+1} value={i+1}>{n}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-slate-400 block mb-1">Claude (€)</label>
+          <input type="number" step="0.01" min="0" value={claude} onChange={e => setClaude(e.target.value)}
+            className="w-24 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-slate-400 block mb-1">Outscraper (€)</label>
+          <input type="number" step="0.01" min="0" value={outscraper} onChange={e => setOutscraper(e.target.value)}
+            className="w-24 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+        <div className="flex-1 min-w-32">
+          <label className="text-xs text-slate-400 block mb-1">Notas</label>
+          <input type="text" value={notas} onChange={e => setNotas(e.target.value)} placeholder="Opcional..."
+            className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtEur(total)}</span>
+          <button onClick={handleSave} disabled={loading}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-colors disabled:opacity-50 ${
+              saved ? 'bg-emerald-500 text-white' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
+            }`}
+          >{loading ? '...' : saved ? 'Guardado ✓' : 'Guardar'}</button>
+        </div>
+      </div>
+      {err && <p className="text-xs text-red-600 dark:text-red-400 mt-2">{err}</p>}
+    </div>
+  )
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtDate(d?: string) {
@@ -280,93 +359,6 @@ function NotasModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClo
   )
 }
 
-// ─── Modal: Coste mensual ─────────────────────────────────────────────────────
-
-function CostoModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
-  const now = new Date()
-  const [anio, setAnio] = useState(now.getFullYear())
-  const [mes, setMes] = useState(now.getMonth() + 1)
-  const [claude, setClaude] = useState(usuario.costoMesActual?.claude?.toString() ?? '0')
-  const [outscraper, setOutscraper] = useState(usuario.costoMesActual?.outscraper?.toString() ?? '0')
-  const [notas, setNotas] = useState(usuario.costoMesActual?.notas ?? '')
-  const [loading, setLoading] = useState(false)
-  const [err, setErr] = useState('')
-
-  async function handleSave() {
-    setLoading(true); setErr('')
-    try {
-      await upsertCosto(usuario.id, anio, mes, parseFloat(claude) || 0, parseFloat(outscraper) || 0, notas || undefined)
-      onDone()
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Error')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const total = (parseFloat(claude) || 0) + (parseFloat(outscraper) || 0)
-
-  return (
-    <Modal title={`Costes API · ${usuario.nombre ?? usuario.email}`} onClose={onClose}>
-      <div className="space-y-4">
-        {/* Periodo */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">Año</label>
-            <input type="number" value={anio} onChange={e => setAnio(Number(e.target.value))}
-              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">Mes</label>
-            <select value={mes} onChange={e => setMes(Number(e.target.value))}
-              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            >
-              {MES_NAMES.map((n, i) => <option key={i + 1} value={i + 1}>{n}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Costes */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">Claude AI (€)</label>
-            <input type="number" step="0.01" min="0" value={claude} onChange={e => setClaude(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">Outscraper (€)</label>
-            <input type="number" step="0.01" min="0" value={outscraper} onChange={e => setOutscraper(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-700/50 rounded-xl px-4 py-3">
-          <span className="text-sm text-slate-500 dark:text-slate-400">Total</span>
-          <span className="text-lg font-bold text-slate-900 dark:text-white">{fmtEur(total)}</span>
-        </div>
-
-        <div>
-          <label className="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">Notas</label>
-          <input type="text" value={notas} onChange={e => setNotas(e.target.value)}
-            placeholder="Uso inusual, incidencias..."
-            className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-        </div>
-
-        {err && <p className="text-xs text-red-600 dark:text-red-400">{err}</p>}
-        <button onClick={handleSave} disabled={loading}
-          className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
-        >
-          {loading ? 'Guardando...' : 'Guardar costes'}
-        </button>
-      </div>
-    </Modal>
-  )
-}
-
 // ─── Modal: Place ID ──────────────────────────────────────────────────────────
 
 function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
@@ -413,7 +405,7 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
 
 // ─── Fila de usuario ──────────────────────────────────────────────────────────
 
-type ModalType = 'estado' | 'override' | 'notas' | 'costo' | 'place'
+type ModalType = 'estado' | 'override' | 'notas' | 'place'
 
 function UsuarioRow({
   usuario,
@@ -473,17 +465,6 @@ function UsuarioRow({
           </div>
         </div>
 
-        {/* Coste mes actual */}
-        <div className="text-right shrink-0">
-          {usuario.costoMesActual ? (
-            <div>
-              <div className="text-sm font-semibold text-slate-900 dark:text-white">{fmtEur(usuario.costoMesActual.total)}</div>
-              <div className="text-xs text-slate-400">este mes</div>
-            </div>
-          ) : (
-            <div className="text-xs text-slate-400 italic">Sin datos</div>
-          )}
-        </div>
       </div>
 
       {/* Acciones */}
@@ -502,9 +483,6 @@ function UsuarioRow({
           <button onClick={togglePlan} disabled={planLoading}
             className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer font-medium disabled:opacity-50"
           >{planLoading ? '...' : usuario.plan === 'pro' ? '→ Core' : '→ Pro'}</button>
-          <button onClick={() => onAction(usuario, 'costo')}
-            className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer font-medium"
-          >Costes</button>
           <button onClick={() => onAction(usuario, 'notas')}
             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors cursor-pointer font-medium ${
               usuario.notasAdmin
@@ -642,10 +620,7 @@ export default function AdminPage() {
         {/* Costes mes actual */}
         {stats && (
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white">Costes reales · {mesLabel}</h2>
-              <span className="text-xs text-slate-400 italic">Actualiza por usuario a mes vencido</span>
-            </div>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Costes API · {mesLabel}</h2>
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
                 <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Claude AI</div>
@@ -656,10 +631,14 @@ export default function AdminPage() {
                 <div className="text-2xl font-bold text-slate-900 dark:text-white">{fmtEur(stats.costoMesActual.outscraper)}</div>
               </div>
               <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800">
-                <div className="text-xs text-indigo-500 dark:text-indigo-400 mb-1 font-medium">Total plataforma</div>
+                <div className="text-xs text-indigo-500 dark:text-indigo-400 mb-1 font-medium">Total</div>
                 <div className="text-2xl font-bold text-indigo-700 dark:text-indigo-300">{fmtEur(stats.costoMesActual.total)}</div>
               </div>
             </div>
+            {stats.costoMesActual.notas && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 italic">{stats.costoMesActual.notas}</p>
+            )}
+            <CostEditor stats={stats} onSaved={load} />
           </div>
         )}
 
@@ -724,11 +703,10 @@ export default function AdminPage() {
       </main>
 
       {/* Modals */}
-      {modal?.tipo === 'estado'    && <EstadoModal    usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
-      {modal?.tipo === 'override'  && <ProOverrideModal usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
-      {modal?.tipo === 'notas'     && <NotasModal     usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
-      {modal?.tipo === 'costo'     && <CostoModal     usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
-      {modal?.tipo === 'place'     && <PlaceIdModal   usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
+      {modal?.tipo === 'estado'   && <EstadoModal      usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
+      {modal?.tipo === 'override' && <ProOverrideModal  usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
+      {modal?.tipo === 'notas'    && <NotasModal        usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
+      {modal?.tipo === 'place'    && <PlaceIdModal      usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
     </div>
   )
 }

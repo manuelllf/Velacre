@@ -31,7 +31,6 @@ public class AdminController : ControllerBase
 
         var usuariosResult = await _supabase.From<UsuarioEntity>().Get();
         var negociosResult = await _supabase.From<NegocioEntity>().Get();
-        var costosResult   = await _supabase.From<CostoMesEntity>().Get();
 
         var negocios = negociosResult.Models
             .Where(n => n.IdUsuario.HasValue)
@@ -44,7 +43,7 @@ public class AdminController : ControllerBase
             .OrderBy(u => u.CreadoFecha)
             .Select(u =>
             {
-                // Calcular estado efectivo (prueba expirada → baneado a efectos funcionales)
+                // Estado efectivo (prueba expirada → se muestra como prueba_expirada)
                 var estadoEfectivo = u.Estado;
                 if (u.Estado == "prueba" && u.PruebaHasta.HasValue && u.PruebaHasta.Value < now)
                     estadoEfectivo = "prueba_expirada";
@@ -53,33 +52,21 @@ public class AdminController : ControllerBase
                 var proEfectivo = u.Plan == "pro" ||
                     (u.ProOverride && (!u.ProOverrideHasta.HasValue || u.ProOverrideHasta.Value > now));
 
-                // Costes del mes actual
-                var costosMes = costosResult.Models
-                    .Where(c => c.UsuarioId == u.Id && c.Anio == now.Year && c.Mes == now.Month)
-                    .FirstOrDefault();
-
                 return new
                 {
-                    id              = u.Id,
-                    nombre          = u.Nombre,
-                    email           = u.Email,
-                    activo          = u.Activo,
-                    activoDesde     = u.ActivoDesde,
-                    creadoFecha     = u.CreadoFecha,
-                    plan            = u.Plan,
-                    estado          = estadoEfectivo,
-                    pruebaHasta     = u.PruebaHasta,
-                    proOverride     = u.ProOverride,
-                    proOverrideHasta= u.ProOverrideHasta,
+                    id               = u.Id,
+                    nombre           = u.Nombre,
+                    email            = u.Email,
+                    activo           = u.Activo,
+                    activoDesde      = u.ActivoDesde,
+                    creadoFecha      = u.CreadoFecha,
+                    plan             = u.Plan,
+                    estado           = estadoEfectivo,
+                    pruebaHasta      = u.PruebaHasta,
+                    proOverride      = u.ProOverride,
+                    proOverrideHasta = u.ProOverrideHasta,
                     proEfectivo,
-                    notasAdmin      = u.NotasAdmin,
-                    costoMesActual  = costosMes == null ? null : (object)new
-                    {
-                        claude      = costosMes.CostoClaudeEur,
-                        outscraper  = costosMes.CostoOutscraperEur,
-                        total       = costosMes.CostoClaudeEur + costosMes.CostoOutscraperEur,
-                        notas       = costosMes.Notas,
-                    },
+                    notasAdmin       = u.NotasAdmin,
                     negocio = negocios.TryGetValue(u.Id, out var n)
                         ? (object)new { id = n.Id, nombre = n.Nombre, placeId = n.PlaceId }
                         : null,
@@ -101,21 +88,19 @@ public class AdminController : ControllerBase
         var now = DateTimeOffset.UtcNow;
         var usuarios = usuariosResult.Models;
 
-        var activos   = usuarios.Count(u => u.Estado == "activo" && u.Activo);
-        var prueba    = usuarios.Count(u => u.Estado == "prueba" && (!u.PruebaHasta.HasValue || u.PruebaHasta.Value >= now));
-        var baneados  = usuarios.Count(u => u.Estado == "baneado" ||
+        var activos  = usuarios.Count(u => u.Estado == "activo" && u.Activo);
+        var prueba   = usuarios.Count(u => u.Estado == "prueba" && (!u.PruebaHasta.HasValue || u.PruebaHasta.Value >= now));
+        var baneados = usuarios.Count(u => u.Estado == "baneado" ||
             (u.Estado == "prueba" && u.PruebaHasta.HasValue && u.PruebaHasta.Value < now));
-        var proUsers  = usuarios.Count(u => u.Plan == "pro" ||
+        var proUsers = usuarios.Count(u => u.Plan == "pro" ||
             (u.ProOverride && (!u.ProOverrideHasta.HasValue || u.ProOverrideHasta.Value > now)));
 
-        // Costes mes actual totales
-        var mesActualCostos = costosResult.Models.Where(c => c.Anio == now.Year && c.Mes == now.Month).ToList();
-        var costoTotalClaude     = mesActualCostos.Sum(c => c.CostoClaudeEur);
-        var costoTotalOutscraper = mesActualCostos.Sum(c => c.CostoOutscraperEur);
+        // Coste plataforma mes actual (registro único global)
+        var costoMes = costosResult.Models.FirstOrDefault(c => c.Anio == now.Year && c.Mes == now.Month);
 
         return Ok(new
         {
-            totalReviews = reviewsResult.Models.Count,
+            totalReviews  = reviewsResult.Models.Count,
             totalUsuarios = usuarios.Count,
             activos,
             prueba,
@@ -123,9 +108,10 @@ public class AdminController : ControllerBase
             proUsers,
             costoMesActual = new
             {
-                claude     = costoTotalClaude,
-                outscraper = costoTotalOutscraper,
-                total      = costoTotalClaude + costoTotalOutscraper,
+                claude     = costoMes?.CostoClaudeEur ?? 0,
+                outscraper = costoMes?.CostoOutscraperEur ?? 0,
+                total      = (costoMes?.CostoClaudeEur ?? 0) + (costoMes?.CostoOutscraperEur ?? 0),
+                notas      = costoMes?.Notas,
             }
         });
     }
@@ -232,9 +218,9 @@ public class AdminController : ControllerBase
         return Ok();
     }
 
-    // ─── Costes reales ────────────────────────────────────────────────────────
+    // ─── Costes reales (totales plataforma) ──────────────────────────────────────
 
-    /// <summary>Devuelve todos los registros de costes (todos los usuarios, todos los meses)</summary>
+    /// <summary>Devuelve el histórico de costes mensuales totales de la plataforma</summary>
     [HttpGet("costos")]
     public async Task<IActionResult> GetCostos()
     {
@@ -244,30 +230,23 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>
-    /// Upsert de costes para un usuario/año/mes concreto.
-    /// Body: { "costoClaudeEur": 1.23, "costoOutscraperEur": 0.45, "notas": "..." }
+    /// Upsert del coste total de la plataforma para un año/mes concreto.
+    /// Body: { "costoClaudeEur": 12.50, "costoOutscraperEur": 3.20, "notas": "..." }
     /// </summary>
-    [HttpPut("costos/{usuarioId}/{anio}/{mes}")]
-    public async Task<IActionResult> UpsertCosto(Guid usuarioId, int anio, int mes, [FromBody] UpsertCostoRequest request)
+    [HttpPut("costos/{anio}/{mes}")]
+    public async Task<IActionResult> UpsertCosto(int anio, int mes, [FromBody] UpsertCostoRequest request)
     {
         if (!IsAdmin()) return Forbid();
         if (mes < 1 || mes > 12) return BadRequest("Mes inválido (1-12)");
 
-        // Buscar registro existente
         var existing = await _supabase.From<CostoMesEntity>()
-            .Where(c => c.UsuarioId == usuarioId && c.Anio == anio && c.Mes == mes)
+            .Where(c => c.Anio == anio && c.Mes == mes)
             .Limit(1).Get();
 
         var entity = existing.Models.FirstOrDefault();
         if (entity == null)
         {
-            entity = new CostoMesEntity
-            {
-                Id           = Guid.NewGuid(),
-                UsuarioId    = usuarioId,
-                Anio         = anio,
-                Mes          = mes,
-            };
+            entity = new CostoMesEntity { Id = Guid.NewGuid(), Anio = anio, Mes = mes };
         }
 
         entity.CostoClaudeEur     = request.CostoClaudeEur;
@@ -276,8 +255,8 @@ public class AdminController : ControllerBase
         entity.UpdatedAt          = DateTimeOffset.UtcNow;
 
         await _supabase.From<CostoMesEntity>().Upsert(entity);
-        _logger.LogInformation("[AdminController] Costo upsert usuario={UserId} {Anio}/{Mes} claude={C} outscraper={O}",
-            usuarioId, anio, mes, request.CostoClaudeEur, request.CostoOutscraperEur);
+        _logger.LogInformation("[AdminController] Costo plataforma {Anio}/{Mes} → claude={C} outscraper={O}",
+            anio, mes, request.CostoClaudeEur, request.CostoOutscraperEur);
         return Ok(new { total = request.CostoClaudeEur + request.CostoOutscraperEur });
     }
 

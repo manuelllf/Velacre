@@ -154,13 +154,6 @@ export async function getMyUsuario(): Promise<{ id: string; nombre?: string; tel
 
 export type EstadoUsuario = 'activo' | 'baneado' | 'prueba' | 'prueba_expirada'
 
-export interface CostoMes {
-  claude: number
-  outscraper: number
-  total: number
-  notas?: string
-}
-
 export interface AdminUsuario {
   id: string
   nombre?: string
@@ -177,7 +170,6 @@ export interface AdminUsuario {
   proOverrideHasta?: string
   proEfectivo: boolean
   notasAdmin?: string
-  costoMesActual?: CostoMes | null
 }
 
 export interface AdminStats {
@@ -187,7 +179,7 @@ export interface AdminStats {
   prueba: number
   baneados: number
   proUsers: number
-  costoMesActual: { claude: number; outscraper: number; total: number }
+  costoMesActual: { claude: number; outscraper: number; total: number; notas?: string }
 }
 
 export async function getAdminUsuarios(): Promise<AdminUsuario[]> {
@@ -238,14 +230,13 @@ export async function actualizarNotasAdmin(id: string, notas: string): Promise<v
 }
 
 export async function upsertCosto(
-  usuarioId: string,
   anio: number,
   mes: number,
   costoClaudeEur: number,
   costoOutscraperEur: number,
   notas?: string
 ): Promise<void> {
-  const res = await fetch(`${API_URL}/api/admin/costos/${usuarioId}/${anio}/${mes}`, {
+  const res = await fetch(`${API_URL}/api/admin/costos/${anio}/${mes}`, {
     method: 'PUT',
     headers: await authHeaders(),
     body: JSON.stringify({ costoClaudeEur, costoOutscraperEur, notas }),
