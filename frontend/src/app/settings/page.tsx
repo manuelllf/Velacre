@@ -135,7 +135,10 @@ export default function SettingsPage() {
               <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">Negocio conectado con Google</span>
+              <div>
+                <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">{negocio.nombre}</p>
+                <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">Conectado con Google</p>
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
