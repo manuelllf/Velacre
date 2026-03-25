@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -14,9 +14,11 @@ import {
   upsertCosto,
   setAdminPlaceId,
   cambiarPlan,
+  searchPlaces,
   type AdminUsuario,
   type AdminStats,
   type EstadoUsuario,
+  type PlaceResult,
 } from '@/lib/api'
 
 // ─── Inline cost editor ───────────────────────────────────────────────────────
@@ -362,15 +364,44 @@ function NotasModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClo
 // ─── Modal: Place ID ──────────────────────────────────────────────────────────
 
 function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
-  const [placeId, setPlaceId] = useState(usuario.negocio?.placeId ?? '')
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<PlaceResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [selected, setSelected] = useState<PlaceResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const skipRef = useRef(false)
+
+  // Negocio actual del usuario
+  const negocioActual = usuario.negocio
+
+  useEffect(() => {
+    if (skipRef.current) { skipRef.current = false; return }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!query.trim() || query.trim().length < 3) { setResults([]); return }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true)
+      try { setResults(await searchPlaces(query.trim())) }
+      catch { setResults([]) }
+      finally { setSearching(false) }
+    }, 500)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [query])
+
+  function handleSelect(place: PlaceResult) {
+    skipRef.current = true
+    setSelected(place)
+    setQuery(place.name)
+    setResults([])
+  }
 
   async function handleSave() {
-    if (!usuario.negocio?.id) { setErr('Sin negocio asociado'); return }
+    if (!negocioActual?.id) { setErr('Sin negocio asociado'); return }
+    if (!selected) { setErr('Selecciona un negocio de la lista'); return }
     setLoading(true); setErr('')
     try {
-      await setAdminPlaceId(usuario.negocio.id, placeId)
+      await setAdminPlaceId(negocioActual.id, selected.placeId)
       onDone()
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Error')
@@ -380,23 +411,79 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
   }
 
   return (
-    <Modal title={`Place ID · ${usuario.negocio?.nombre ?? 'Sin negocio'}`} onClose={onClose}>
+    <Modal title={`Cambiar negocio conectado · ${usuario.nombre ?? usuario.email}`} onClose={onClose}>
       <div className="space-y-4">
+
+        {/* Negocio actual */}
         <div>
-          <label className="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">Google Place ID</label>
-          <input type="text" value={placeId} onChange={e => setPlaceId(e.target.value)}
-            placeholder="ChIJ..."
-            className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-mono dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">Negocio actual</p>
+          {negocioActual ? (
+            <div className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
+              <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{negocioActual.nombre}</p>
+                {negocioActual.placeId && (
+                  <p className="text-xs text-slate-400 font-mono truncate">{negocioActual.placeId}</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-400">
+              Sin negocio asociado
+            </div>
+          )}
         </div>
-        <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">
-          Override de admin — el usuario no puede modificar el place_id desde su cuenta.
-        </p>
+
+        {/* Buscador */}
+        <div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">Buscar nuevo negocio en Google</p>
+          <div className="relative">
+            <input
+              type="text"
+              value={query}
+              onChange={e => { setQuery(e.target.value); setSelected(null) }}
+              placeholder="Nombre del negocio, dirección..."
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 pr-8"
+            />
+            {searching && (
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            )}
+          </div>
+
+          {/* Resultados */}
+          {results.length > 0 && (
+            <div className="mt-1 border border-slate-200 dark:border-slate-600 rounded-xl overflow-hidden shadow-lg">
+              {results.map(r => (
+                <button key={r.placeId} onClick={() => handleSelect(r)}
+                  className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0 cursor-pointer"
+                >
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{r.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.address}</p>
+                  {r.rating && <p className="text-xs text-amber-500 mt-0.5">★ {r.rating}</p>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Negocio seleccionado */}
+        {selected && (
+          <div className="flex items-start gap-3 px-3 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-700">
+            <svg className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">{selected.name}</p>
+              <p className="text-xs text-indigo-600 dark:text-indigo-400 truncate">{selected.address}</p>
+              {selected.rating && <p className="text-xs text-amber-500 mt-0.5">★ {selected.rating}</p>}
+            </div>
+          </div>
+        )}
+
         {err && <p className="text-xs text-red-600 dark:text-red-400">{err}</p>}
-        <button onClick={handleSave} disabled={loading}
+
+        <button onClick={handleSave} disabled={loading || !selected}
           className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Guardando...' : 'Actualizar Place ID'}
+          {loading ? 'Guardando...' : 'Confirmar cambio de negocio'}
         </button>
       </div>
     </Modal>
