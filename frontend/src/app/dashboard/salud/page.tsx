@@ -95,9 +95,9 @@ export default function SaludPage() {
         setNegocio(n)
         setReviews(r)
         if (m) setMetrics(m)
-        // Load persisted AI analysis
+        // Load persisted AI analysis (clave por negocio para evitar cross-contamination)
         try {
-          const cached = localStorage.getItem('velacre_ai_result')
+          const cached = localStorage.getItem(`velacre_ai_result_${n?.id}`)
           if (cached) {
             const parsed = JSON.parse(cached) as { result: SummaryData }
             setSummary(parsed.result)
@@ -125,7 +125,7 @@ export default function SaludPage() {
     getSummary()
       .then(s => {
         setSummary(s)
-        try { localStorage.setItem('velacre_ai_result', JSON.stringify({ result: s })) } catch { /* ignore */ }
+        try { localStorage.setItem(`velacre_ai_result_${negocio?.id}`, JSON.stringify({ result: s })) } catch { /* ignore */ }
       })
       .catch(() => setSummary({ brilla: 'No se pudo obtener el análisis.', quema: '—', accion: '—' }))
       .finally(() => setLoadingSummary(false))
