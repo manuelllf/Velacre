@@ -152,6 +152,15 @@ export async function getMyUsuario(): Promise<{ id: string; nombre?: string; tel
   return res.json()
 }
 
+export type EstadoUsuario = 'activo' | 'baneado' | 'prueba' | 'prueba_expirada'
+
+export interface CostoMes {
+  claude: number
+  outscraper: number
+  total: number
+  notas?: string
+}
+
 export interface AdminUsuario {
   id: string
   nombre?: string
@@ -159,8 +168,26 @@ export interface AdminUsuario {
   activo: boolean
   activoDesde?: string
   creadoFecha: string
-  negocio?: { id: string; nombre: string } | null
+  negocio?: { id: string; nombre: string; placeId?: string } | null
   plan?: string
+  // God Mode fields
+  estado: EstadoUsuario
+  pruebaHasta?: string
+  proOverride: boolean
+  proOverrideHasta?: string
+  proEfectivo: boolean
+  notasAdmin?: string
+  costoMesActual?: CostoMes | null
+}
+
+export interface AdminStats {
+  totalReviews: number
+  totalUsuarios: number
+  activos: number
+  prueba: number
+  baneados: number
+  proUsers: number
+  costoMesActual: { claude: number; outscraper: number; total: number }
 }
 
 export async function getAdminUsuarios(): Promise<AdminUsuario[]> {
@@ -169,26 +196,78 @@ export async function getAdminUsuarios(): Promise<AdminUsuario[]> {
   return res.json()
 }
 
-export async function getAdminStats(): Promise<{ totalReviews: number; proUsers: number }> {
+export async function getAdminStats(): Promise<AdminStats> {
   const res = await fetch(`${API_URL}/api/admin/stats`, { headers: await authHeaders() })
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
-export async function activarUsuario(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/activar`, {
+export async function cambiarEstado(
+  id: string,
+  estado: EstadoUsuario,
+  diasPrueba?: number
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/estado`, {
     method: 'POST',
     headers: await authHeaders(),
+    body: JSON.stringify({ estado, diasPrueba }),
   })
   if (!res.ok) throw new Error(await res.text())
 }
 
-export async function desactivarUsuario(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/desactivar`, {
+export async function setProOverride(
+  id: string,
+  activo: boolean,
+  diasExpira?: number
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/pro-override`, {
     method: 'POST',
     headers: await authHeaders(),
+    body: JSON.stringify({ activo, diasExpira: diasExpira ?? null }),
   })
   if (!res.ok) throw new Error(await res.text())
+}
+
+export async function actualizarNotasAdmin(id: string, notas: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/notas`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify({ notas }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function upsertCosto(
+  usuarioId: string,
+  anio: number,
+  mes: number,
+  costoClaudeEur: number,
+  costoOutscraperEur: number,
+  notas?: string
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/costos/${usuarioId}/${anio}/${mes}`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify({ costoClaudeEur, costoOutscraperEur, notas }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function setAdminPlaceId(negocioId: string, placeId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/negocios/${negocioId}/place`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify({ placeId }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function activarUsuario(id: string): Promise<void> {
+  return cambiarEstado(id, 'activo')
+}
+
+export async function desactivarUsuario(id: string): Promise<void> {
+  return cambiarEstado(id, 'baneado')
 }
 
 export async function cambiarPlan(id: string, plan: 'basic' | 'pro'): Promise<void> {

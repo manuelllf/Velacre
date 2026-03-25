@@ -44,4 +44,24 @@ public class UsuarioEntity : BaseModel
 
     [Column("respuestas_mes_reset")]
     public DateTimeOffset? RespuestasMesReset { get; set; }
+
+    /// <summary>Estado del usuario: "activo" | "baneado" | "prueba"</summary>
+    [Column("estado")]
+    public string Estado { get; set; } = "activo";
+
+    /// <summary>Fecha de expiración del período de prueba (solo aplica si Estado == "prueba")</summary>
+    [Column("prueba_hasta")]
+    public DateTimeOffset? PruebaHasta { get; set; }
+
+    /// <summary>Override manual de funciones Pro (Admin puede activar sin cambiar el plan)</summary>
+    [Column("pro_override")]
+    public bool ProOverride { get; set; } = false;
+
+    /// <summary>Fecha de expiración del override Pro (null = sin caducidad)</summary>
+    [Column("pro_override_hasta")]
+    public DateTimeOffset? ProOverrideHasta { get; set; }
+
+    /// <summary>Notas internas del admin (no visibles para el usuario)</summary>
+    [Column("notas_admin")]
+    public string? NotasAdmin { get; set; }
 }

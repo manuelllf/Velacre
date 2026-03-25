@@ -40,22 +40,43 @@ public class ReviewController : ControllerBase
 
         var usuario = usuarioResult.Models.FirstOrDefault();
 
-        if (usuario != null && usuario.Plan == "basic")
+        if (usuario != null)
         {
             var now = DateTimeOffset.UtcNow;
-            // Reset counter if it's a new month
-            if (usuario.RespuestasMesReset == null ||
-                usuario.RespuestasMesReset.Value.Year < now.Year ||
-                (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
+
+            // Verificar estado: baneado o prueba expirada → bloquear
+            if (usuario.Estado == "baneado")
             {
-                usuario.RespuestasManualesMes = 0;
-                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+                _logger.LogWarning("[ReviewController] Usuario {UserId} baneado intentó generar respuesta", userId);
+                return StatusCode(403, "Tu cuenta está suspendida. Contacta con soporte.");
+            }
+            if (usuario.Estado == "prueba" && usuario.PruebaHasta.HasValue && usuario.PruebaHasta.Value < now)
+            {
+                _logger.LogWarning("[ReviewController] Usuario {UserId} con prueba expirada intentó generar respuesta", userId);
+                return StatusCode(403, "Tu período de prueba ha expirado. Contacta con soporte para activar tu cuenta.");
             }
 
-            if (usuario.RespuestasManualesMes >= 30)
+            // Pro efectivo: plan pro O override activo
+            var esProEfectivo = usuario.Plan == "pro" ||
+                (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > now));
+
+            // Límite de respuestas manuales solo para no-Pro
+            if (!esProEfectivo)
             {
-                _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite de 30 respuestas manuales en plan basic", userId);
-                return StatusCode(403, "Has alcanzado el límite de 30 respuestas manuales este mes. Actualiza a Pro para respuestas ilimitadas.");
+                // Reset counter if it's a new month
+                if (usuario.RespuestasMesReset == null ||
+                    usuario.RespuestasMesReset.Value.Year < now.Year ||
+                    (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
+                {
+                    usuario.RespuestasManualesMes = 0;
+                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+                }
+
+                if (usuario.RespuestasManualesMes >= 30)
+                {
+                    _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite de 30 respuestas manuales en plan basic", userId);
+                    return StatusCode(403, "Has alcanzado el límite de 30 respuestas manuales este mes. Actualiza a Pro para respuestas ilimitadas.");
+                }
             }
         }
 
@@ -107,8 +128,10 @@ public class ReviewController : ControllerBase
             var saved = result.Models[0];
             _logger.LogInformation("[ReviewController] Review guardada: {ReviewId} ({Codigo})", saved.Id, saved.Codigo);
 
-            // Increment monthly counter for basic plan users
-            if (usuario != null && usuario.Plan == "basic")
+            // Increment monthly counter for non-Pro users
+            var esProEfectivoPostGen = usuario != null && (usuario.Plan == "pro" ||
+                (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > DateTimeOffset.UtcNow)));
+            if (usuario != null && !esProEfectivoPostGen)
             {
                 usuario.RespuestasManualesMes += 1;
                 if (usuario.RespuestasMesReset == null) usuario.RespuestasMesReset = DateTimeOffset.UtcNow;
