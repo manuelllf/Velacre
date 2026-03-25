@@ -301,7 +301,7 @@ export default function DashboardPage() {
               </div>
               <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500 rounded-full transition-all duration-200 ease-linear"
+                  className={`h-full bg-indigo-500 rounded-full transition-all duration-200 ease-linear ${syncProgress >= 98 ? 'animate-pulse' : ''}`}
                   style={{ width: `${syncProgress}%` }}
                 />
               </div>
