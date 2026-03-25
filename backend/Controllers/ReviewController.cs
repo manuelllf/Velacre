@@ -281,7 +281,52 @@ public class ReviewController : ControllerBase
                 .Update(review);
 
             _logger.LogInformation("[ReviewController] Respuesta generada y guardada para reviewId={ReviewId}", id);
-            return Ok(new { response = generated, tono = tone });
+
+            // Si la reseña es en idioma extranjero, generar contexto en español
+            // para que el propietario sepa qué dijo el cliente y qué responde la IA
+            string? contextoCliente = null;
+            string? contextoRespuesta = null;
+            var isSpanish = string.IsNullOrEmpty(review.ReviewLanguage) || review.ReviewLanguage == "es";
+
+            if (!isSpanish && !string.IsNullOrWhiteSpace(review.ClienteReview))
+            {
+                try
+                {
+                    var contextoPrompt = string.Concat(
+                        $"Tienes una reseña de cliente y la respuesta del negocio, ambas en idioma \"{review.ReviewLanguage}\".\n",
+                        "Resume cada una en UNA SOLA FRASE en español, muy breve y directa.\n",
+                        "Devuelve SOLO este JSON, sin markdown ni explicaciones:\n",
+                        "{\"cliente\":\"...\",\"respuesta\":\"...\"}\n\n",
+                        $"Reseña del cliente:\n{review.ClienteReview}\n\n",
+                        $"Respuesta del negocio:\n{generated}"
+                    );
+
+                    var contextoJson = await _aiService.GetClaudeMessageAsync(contextoPrompt, "");
+                    // Extraer el JSON limpio (Claude puede devolver texto extra antes/después)
+                    var jsonStart = contextoJson.IndexOf('{');
+                    var jsonEnd   = contextoJson.LastIndexOf('}');
+                    if (jsonStart >= 0 && jsonEnd > jsonStart)
+                    {
+                        var jsonSlice = contextoJson[jsonStart..(jsonEnd + 1)];
+                        var doc = System.Text.Json.JsonDocument.Parse(jsonSlice);
+                        contextoCliente   = doc.RootElement.GetProperty("cliente").GetString();
+                        contextoRespuesta = doc.RootElement.GetProperty("respuesta").GetString();
+                    }
+                }
+                catch (Exception ctxEx)
+                {
+                    // El contexto es opcional — si falla, no bloqueamos la respuesta principal
+                    _logger.LogWarning(ctxEx, "[ReviewController] No se pudo generar contexto para reviewId={ReviewId}", id);
+                }
+            }
+
+            return Ok(new
+            {
+                response          = generated,
+                tono              = tone,
+                contextoCliente   = contextoCliente,
+                contextoRespuesta = contextoRespuesta
+            });
         }
         catch (Exception ex)
         {

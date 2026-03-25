@@ -336,7 +336,16 @@ export async function getPendingReviews(): Promise<PendingReview[]> {
   return data
 }
 
-export async function generateForReview(reviewId: string): Promise<{ response: string; tono: string }> {
+export interface GenerateForReviewResult {
+  response: string
+  tono: string
+  /** Resumen en español de lo que dijo el cliente (solo para reseñas en idioma extranjero) */
+  contextoCliente?: string
+  /** Resumen en español de lo que responde la IA (solo para reseñas en idioma extranjero) */
+  contextoRespuesta?: string
+}
+
+export async function generateForReview(reviewId: string): Promise<GenerateForReviewResult> {
   console.log('[api] generateForReview →', reviewId)
   const res = await fetch(`${API_URL}/api/review/${reviewId}/generate`, {
     method: 'POST',
@@ -416,23 +425,6 @@ export async function getSummaryAnalysis(): Promise<{ brillante: string; preocup
   return data
 }
 
-export async function translateReview(reviewId: string): Promise<{ translation: string }> {
-  const res = await fetch(`${API_URL}/api/review/${reviewId}/translate`, {
-    method: 'POST',
-    headers: await authHeaders(),
-  })
-  if (!res.ok) throw new Error(await res.text())
-  return res.json()
-}
-
-export async function translateResponse(reviewId: string): Promise<{ translation: string }> {
-  const res = await fetch(`${API_URL}/api/review/${reviewId}/translate-response`, {
-    method: 'POST',
-    headers: await authHeaders(),
-  })
-  if (!res.ok) throw new Error(await res.text())
-  return res.json()
-}
 
 export async function createUsuario(data: {
   nombre?: string

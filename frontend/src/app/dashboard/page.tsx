@@ -11,8 +11,6 @@ import {
   getPendingReviews,
   generateForReview,
   syncReviews,
-  translateReview,
-  translateResponse,
   ApiError,
   type ReviewResponses,
   type Negocio,
@@ -93,10 +91,8 @@ export default function DashboardPage() {
   const [syncTip, setSyncTip] = useState(0)
   const tipIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [manualOpen, setManualOpen] = useState(false)
-  const [translations, setTranslations] = useState<Record<string, string>>({})
-  const [translatingId, setTranslatingId] = useState<string | null>(null)
-  const [responseTranslations, setResponseTranslations] = useState<Record<string, string>>({})
-  const [translatingResponseId, setTranslatingResponseId] = useState<string | null>(null)
+  // contexto[reviewId] = { cliente, respuesta } — resumen en español para reseñas en otro idioma
+  const [contextos, setContextos] = useState<Record<string, { cliente: string; respuesta: string }>>({})
 
   useEffect(() => {
     async function init() {
@@ -197,6 +193,12 @@ export default function DashboardPage() {
     try {
       const result = await generateForReview(reviewId)
       setGeneratedResponses(prev => ({ ...prev, [reviewId]: result.response }))
+      if (result.contextoCliente && result.contextoRespuesta) {
+        setContextos(prev => ({
+          ...prev,
+          [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! }
+        }))
+      }
     } catch (err) {
       setGeneratedResponses(prev => ({
         ...prev,
@@ -205,36 +207,6 @@ export default function DashboardPage() {
     } finally {
       setGeneratingIds(prev => { const s = new Set(prev); s.delete(reviewId); return s })
     }
-  }
-
-  async function handleTranslate(reviewId: string) {
-    setTranslatingId(reviewId)
-    try {
-      const result = await translateReview(reviewId)
-      setTranslations(prev => ({ ...prev, [reviewId]: result.translation }))
-    } catch {
-      setTranslations(prev => ({ ...prev, [reviewId]: 'Error al traducir.' }))
-    } finally {
-      setTranslatingId(null)
-    }
-  }
-
-  async function handleTranslateResponse(reviewId: string) {
-    setTranslatingResponseId(reviewId)
-    try {
-      const result = await translateResponse(reviewId)
-      setResponseTranslations(prev => ({ ...prev, [reviewId]: result.translation }))
-    } catch {
-      setResponseTranslations(prev => ({ ...prev, [reviewId]: 'Error al traducir la respuesta.' }))
-    } finally {
-      setTranslatingResponseId(null)
-    }
-  }
-
-  // Muestra botones de traducción si el idioma es explícitamente extranjero,
-  // O si es desconocido (null/undefined) — así no se pierden reseñas cuyo idioma no detectó Outscraper
-  function isForeignLanguage(lang?: string) {
-    return !lang || lang !== 'es'
   }
 
   async function handleLogout() {
@@ -421,85 +393,48 @@ export default function DashboardPage() {
                       {review.clientereview || <span className="italic text-slate-400">Sin texto</span>}
                     </p>
 
-                    {isForeignLanguage(review.reviewLanguage) && review.clientereview && (
-                      <div className="mb-2.5">
-                        {translations[review.id] ? (
-                          <div className="text-xs text-slate-500 dark:text-slate-400 italic border-l-2 border-slate-300 dark:border-slate-600 pl-2 py-0.5">
-                            <span className="not-italic text-slate-400 dark:text-slate-500 mr-1">🌐 ES:</span>
-                            {translations[review.id]}
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleTranslate(review.id)}
-                            disabled={translatingId === review.id}
-                            className="text-xs text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 disabled:opacity-50"
-                          >
-                            {translatingId === review.id ? (
-                              <><span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin inline-block" /> Traduciendo...</>
-                            ) : (
-                              <><span>🌐</span> Ver traducción</>
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    )}
-
                     {/* Respuesta generada */}
                     {generatedResponses[review.id] ? (
-                      <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3">
-                        {/* Aviso de idioma si la respuesta está en otro idioma */}
-                        {isForeignLanguage(review.reviewLanguage) && (
-                          <p className="text-xs text-indigo-500 dark:text-indigo-400 mb-1.5 flex items-center gap-1">
-                            <span>🌐</span> Respuesta en el idioma original de la reseña
-                          </p>
-                        )}
-                        <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-2">
-                          {generatedResponses[review.id]}
-                        </p>
-
-                        {/* Traducción de la respuesta */}
-                        {isForeignLanguage(review.reviewLanguage) && (
-                          <div className="mb-2">
-                            {responseTranslations[review.id] ? (
-                              <div className="text-xs text-slate-500 dark:text-slate-400 italic border-l-2 border-indigo-300 dark:border-indigo-600 pl-2 py-0.5">
-                                <span className="not-italic text-slate-400 dark:text-slate-500 mr-1">🌐 ES:</span>
-                                {responseTranslations[review.id]}
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => handleTranslateResponse(review.id)}
-                                disabled={translatingResponseId === review.id}
-                                className="text-xs text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors flex items-center gap-1 disabled:opacity-50"
-                              >
-                                {translatingResponseId === review.id ? (
-                                  <><span className="w-3 h-3 border border-indigo-400 border-t-transparent rounded-full animate-spin inline-block" /> Traduciendo respuesta...</>
-                                ) : (
-                                  <><span>🌐</span> Ver traducción de la respuesta</>
-                                )}
-                              </button>
-                            )}
+                      <div className="space-y-2">
+                        {/* Tarjeta contexto — solo para reseñas en idioma extranjero */}
+                        {contextos[review.id] && (
+                          <div className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2.5 space-y-1.5">
+                            <div className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+                              <span className="shrink-0 font-medium text-slate-400 dark:text-slate-500 w-16">Cliente</span>
+                              <span className="leading-relaxed">{contextos[review.id].cliente}</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+                              <span className="shrink-0 font-medium text-slate-400 dark:text-slate-500 w-16">Respuesta</span>
+                              <span className="leading-relaxed">{contextos[review.id].respuesta}</span>
+                            </div>
                           </div>
                         )}
 
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(generatedResponses[review.id])
-                              setCopiedId(review.id)
-                              setTimeout(() => setCopiedId(null), 2000)
-                            }}
-                            className="text-xs font-medium px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
-                          >
-                            {copiedId === review.id ? '✓ Copiado' : 'Copiar respuesta'}
-                          </button>
-                          <a
-                            href="https://business.google.com/reviews"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-medium px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                          >
-                            Pegar en Google
-                          </a>
+                        {/* Respuesta en el idioma del cliente */}
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3">
+                          <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-2.5">
+                            {generatedResponses[review.id]}
+                          </p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(generatedResponses[review.id])
+                                setCopiedId(review.id)
+                                setTimeout(() => setCopiedId(null), 2000)
+                              }}
+                              className="text-xs font-medium px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                            >
+                              {copiedId === review.id ? '✓ Copiado' : 'Copiar respuesta'}
+                            </button>
+                            <a
+                              href="https://business.google.com/reviews"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-medium px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            >
+                              Pegar en Google
+                            </a>
+                          </div>
                         </div>
                       </div>
                     ) : generatedResponses[review.id + '_error'] ? (
