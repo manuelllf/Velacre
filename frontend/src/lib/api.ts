@@ -398,18 +398,11 @@ export async function updateUsuario(data: { nombre?: string; telefono?: string }
 }
 
 export async function searchPlaces(query: string): Promise<PlaceResult[]> {
-  console.log('[api] searchPlaces →', query)
   const res = await fetch(`${API_URL}/api/places/search?q=${encodeURIComponent(query)}`, {
     headers: await authHeaders(),
   })
-  if (!res.ok) {
-    const body = await res.text()
-    console.error('[api] searchPlaces ERROR', res.status, body)
-    throw new Error(body)
-  }
-  const data = await res.json()
-  console.log('[api] searchPlaces ← OK', data.length, 'resultados')
-  return data
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
 }
 
 export async function syncReviews(): Promise<{ newReviews: number }> {

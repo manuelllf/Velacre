@@ -85,15 +85,11 @@ public class LemonController : ControllerBase
         };
 
         var serializedPayload = JsonSerializer.Serialize(payload);
-        _logger.LogInformation("Lemon checkout payload: storeId={StoreId} variantId={VariantId} apiKeyPrefix={Prefix} body={Body}",
-            storeId, variantId, apiKey.Length > 10 ? apiKey[..10] : "SHORT", serializedPayload);
-
         var http = _httpFactory.CreateClient();
         var req  = new HttpRequestMessage(HttpMethod.Post, "https://api.lemonsqueezy.com/v1/checkouts");
         req.Headers.Add("Authorization", $"Bearer {apiKey}");
         req.Headers.Add("Accept",        "application/vnd.api+json");
-        req.Content = new StringContent(
-            serializedPayload, Encoding.UTF8, "application/vnd.api+json");
+        req.Content = new StringContent(serializedPayload, Encoding.UTF8, "application/vnd.api+json");
 
         var res  = await http.SendAsync(req);
         var body = await res.Content.ReadAsStringAsync();
