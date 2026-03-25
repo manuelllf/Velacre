@@ -602,6 +602,7 @@ export default function AdminPage() {
   const [usuarios, setUsuarios] = useState<AdminUsuario[]>([])
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [loadingInit, setLoadingInit] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
   const [adminId, setAdminId] = useState<string>('')
   const [filterEstado, setFilterEstado] = useState<EstadoUsuario | 'todos'>('todos')
@@ -679,9 +680,13 @@ export default function AdminPage() {
             </Link>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={load} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              Actualizar
+            <button
+              onClick={async () => { setRefreshing(true); await load(); setRefreshing(false) }}
+              disabled={refreshing}
+              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+            >
+              <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              {refreshing ? 'Actualizando...' : 'Actualizar'}
             </button>
             <button onClick={() => supabase.auth.signOut().then(() => router.replace('/'))}
               className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
