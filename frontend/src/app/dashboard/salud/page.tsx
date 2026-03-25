@@ -442,7 +442,7 @@ export default function SaludPage() {
             {/* ── EVOLUCIÓN HISTÓRICA ── */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Evolución histórica mensual</p>
-              <div className="overflow-x-auto max-h-72 overflow-y-auto">
+              <div className="overflow-x-auto max-h-72 overflow-y-auto scroll-thin">
                 <table className="w-full text-sm min-w-[500px]">
                   <thead className="sticky top-0 bg-slate-900">
                     <tr className="border-b border-slate-800">
