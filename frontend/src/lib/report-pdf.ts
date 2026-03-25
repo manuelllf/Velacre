@@ -137,11 +137,13 @@ interface PdfReportData {
   negative: number
   keywords: { word: string; sentiment: 'positive' | 'neutral' | 'negative' }[]
   summary: SummaryData | null
+  reportType?: 'month' | 'year'
 }
 
 export async function generateReputationPDF(data: PdfReportData): Promise<void> {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF('p', 'mm', 'a4')
+  const isYear = data.reportType === 'year'
 
   const W = 210
   const ML = 18   // margin left
@@ -176,7 +178,10 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   doc.text('velacre.com', ML, 20)
 
   // Business name + report period
-  const thisMonth = data.months[data.months.length - 1]
+  const thisMonth = data.months[0] ?? data.months[data.months.length - 1]
+  const reportLabel = isYear
+    ? `Informe Anual · ${new Date().getFullYear()}`
+    : `Informe Mensual · ${thisMonth.label}`
   set(WHITE)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -184,7 +189,7 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   set(LIGHT)
-  doc.text(`Informe de Reputación · ${thisMonth.label}`, MR, 20, { align: 'right' })
+  doc.text(reportLabel, MR, 20, { align: 'right' })
 
   y = 36
 
@@ -239,7 +244,7 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   set(DARK)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
-  doc.text('Evolución mensual (últimos 4 meses)', ML, y)
+  doc.text(isYear ? 'Evolucion anual (por ano)' : 'Evolucion mensual (ultimos 4 meses)', ML, y)
   draw([226, 232, 240])
   doc.line(ML, y + 1.5, MR, y + 1.5)
   y += 7
@@ -472,6 +477,7 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   }
 
   const slug = data.negocioNombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  const period = thisMonth.label.replace(/\s/g, '-')
-  doc.save(`velacre-informe-${slug}-${period}.pdf`)
+  const period = isYear ? String(new Date().getFullYear()) : thisMonth.label.replace(/\s/g, '-')
+  const tipo = isYear ? 'anual' : 'mensual'
+  doc.save(`velacre-informe-${tipo}-${slug}-${period}.pdf`)
 }

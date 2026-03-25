@@ -78,9 +78,8 @@ export default function SaludPage() {
   const [summary, setSummary] = useState<SummaryData | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [downloadingPdf, setDownloadingPdf] = useState(false)
+  const [downloadingPdf, setDownloadingPdf] = useState<'month' | 'year' | null>(null)
   const [aiUsed, setAiUsed] = useState(0)
-  const [evolutionView, setEvolutionView] = useState<'month' | 'year'>('month')
 
   useEffect(() => {
     async function init() {
@@ -209,29 +208,42 @@ export default function SaludPage() {
   const negDrift = drift(currentM.negativeRatio, previousM.negativeRatio)
   const respDrift = drift(currentM.responseRate, previousM.responseRate)
 
-  // Tabla histórica: por mes o por ejercicio
-  const evolutionRows: MonthMetrics[] = evolutionView === 'year' ? getAllYears(reviews) : getAllMonths(reviews)
+  const allMonths: MonthMetrics[] = getAllMonths(reviews)
+  const allYears: MonthMetrics[] = getAllYears(reviews)
 
-  async function handleDownloadPdf() {
+  async function handleDownloadPdf(type: 'month' | 'year') {
     if (!negocio) return
-    setDownloadingPdf(true)
+    setDownloadingPdf(type)
     try {
-      await generateReputationPDF({
-        negocioNombre: negocio.nombre,
-        months: last4,
-        allTimeAvg: avgRating,
-        allTimeCount: reviews.length,
-        responseRate,
-        positive,
-        neutral,
-        negative,
-        keywords: keywords.map(k => ({ word: k.word, sentiment: k.sentiment })),
-        summary,
-      })
+      if (type === 'month') {
+        await generateReputationPDF({
+          negocioNombre: negocio.nombre,
+          months: last4,
+          allTimeAvg: avgRating,
+          allTimeCount: reviews.length,
+          responseRate,
+          positive, neutral, negative,
+          keywords: keywords.map(k => ({ word: k.word, sentiment: k.sentiment })),
+          summary,
+          reportType: 'month',
+        })
+      } else {
+        await generateReputationPDF({
+          negocioNombre: negocio.nombre,
+          months: allYears,
+          allTimeAvg: avgRating,
+          allTimeCount: reviews.length,
+          responseRate,
+          positive, neutral, negative,
+          keywords: keywords.map(k => ({ word: k.word, sentiment: k.sentiment })),
+          summary,
+          reportType: 'year',
+        })
+      }
     } catch (e) {
       console.error('PDF error', e)
     } finally {
-      setDownloadingPdf(false)
+      setDownloadingPdf(null)
     }
   }
 
@@ -278,22 +290,27 @@ export default function SaludPage() {
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 capitalize">{monthName}</p>
           </div>
           {reviews.length > 0 && (
-            <button
-              onClick={handleDownloadPdf}
-              disabled={downloadingPdf}
-              className="shrink-0 flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
-            >
-              {downloadingPdf ? (
-                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generando...</>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Descargar informe PDF
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {(['month', 'year'] as const).map(type => (
+                <button
+                  key={type}
+                  onClick={() => handleDownloadPdf(type)}
+                  disabled={downloadingPdf !== null}
+                  className="shrink-0 flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                >
+                  {downloadingPdf === type ? (
+                    <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generando...</>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      {type === 'month' ? 'PDF mensual' : 'PDF ejercicio'}
+                    </>
+                  )}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -350,28 +367,15 @@ export default function SaludPage() {
               </div>
             </div>
 
-            {/* Evolución histórica */}
+            {/* Evolución mensual histórica */}
             {reviews.length > 0 && (
               <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Evolución</h2>
-                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
-                    <button
-                      onClick={() => setEvolutionView('month')}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${evolutionView === 'month' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                    >
-                      Por mes
-                    </button>
-                    <button
-                      onClick={() => setEvolutionView('year')}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${evolutionView === 'year' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                    >
-                      Por ejercicio
-                    </button>
-                  </div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Evolución mensual</h2>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">vs. mes anterior</span>
                 </div>
 
-                {/* Drift KPIs (siempre mes actual vs anterior) */}
+                {/* Drift KPIs (mes actual vs anterior) */}
                 {(rDrift || posDrift || negDrift || respDrift) && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
                     {[
@@ -398,14 +402,12 @@ export default function SaludPage() {
                   </div>
                 )}
 
-                {/* Tabla histórica */}
+                {/* Tabla histórica completa */}
                 <div className="overflow-x-auto max-h-80 overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 bg-white dark:bg-slate-800">
                       <tr className="border-b border-slate-100 dark:border-slate-700">
-                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 pb-2 capitalize">
-                          {evolutionView === 'year' ? 'Año' : 'Mes'}
-                        </th>
+                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 pb-2 capitalize">Mes</th>
                         <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Reseñas</th>
                         <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Nota</th>
                         <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Positivas</th>
@@ -413,7 +415,7 @@ export default function SaludPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {evolutionRows.map((m, i) => {
+                      {allMonths.map((m, i) => {
                         const isCurrent = i === 0
                         return (
                           <tr key={`${m.year}-${m.month}`} className={`border-b border-slate-50 dark:border-slate-700/50 last:border-0 ${isCurrent ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
