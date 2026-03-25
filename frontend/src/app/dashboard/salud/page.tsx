@@ -279,35 +279,27 @@ export default function SaludPage() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        {/* Page title */}
-        <div className="flex items-start justify-between gap-4">
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+
+        {/* ── CABECERA DE PÁGINA ── */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Salud de tu reputación
-              {negocio && <span className="text-slate-400 dark:text-slate-500 font-normal"> — {negocio.nombre}</span>}
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 capitalize">{monthName}</p>
+            <h1 className="text-xl font-bold text-white tracking-tight">Reputación online</h1>
+            {negocio && <p className="text-sm text-slate-400 mt-0.5">{negocio.nombre} <span className="text-slate-600">·</span> <span className="capitalize">{monthName}</span></p>}
           </div>
           {reviews.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap">
               {(['month', 'year'] as const).map(type => (
                 <button
                   key={type}
                   onClick={() => handleDownloadPdf(type)}
                   disabled={downloadingPdf !== null}
-                  className="shrink-0 flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 text-slate-300 rounded-lg text-xs font-medium hover:bg-slate-800 transition-colors disabled:opacity-40"
                 >
-                  {downloadingPdf === type ? (
-                    <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generando...</>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      {type === 'month' ? 'PDF mensual' : 'PDF ejercicio'}
-                    </>
-                  )}
+                  {downloadingPdf === type
+                    ? <><span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />Generando...</>
+                    : <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>{type === 'month' ? 'PDF mes' : 'PDF ejercicio'}</>
+                  }
                 </button>
               ))}
             </div>
@@ -315,188 +307,206 @@ export default function SaludPage() {
         </div>
 
         {reviews.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-10 text-center">
-            <p className="text-slate-500 dark:text-slate-400">Aún no tienes reseñas. Sincroniza desde el panel principal.</p>
-            <Link href="/dashboard" className="inline-block mt-4 px-5 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
+            <p className="text-slate-400 mb-4">Aún no hay reseñas. Sincroniza desde el panel principal.</p>
+            <Link href="/dashboard" className="inline-block px-5 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm">
               Ir al panel
             </Link>
           </div>
         ) : (
           <>
-            {/* KPI cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Avg rating */}
-              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{displayRatingLabel}</p>
-                <div className="flex items-end gap-2">
-                  <span className="text-4xl font-bold text-slate-900 dark:text-white">{displayRating.toFixed(1)}</span>
-                  <span className="text-amber-500 text-xl mb-1">★</span>
-                  {ratingDiff !== 0 && (
-                    <span className={`text-sm font-semibold mb-1 ${ratingUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {ratingUp ? '▲' : '▼'} {Math.abs(ratingDiff).toFixed(1)}
-                    </span>
-                  )}
+            {/* ── HERO DE PUNTUACIÓN ── */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+              <div className="flex flex-wrap items-center justify-between gap-6">
+                {/* Nota global */}
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Nota media global</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-6xl font-black text-white tabular-nums">{avgRating.toFixed(1)}</span>
+                    <span className="text-slate-500 text-2xl font-light">/5</span>
+                  </div>
+                  <div className="flex gap-1 mt-2">
+                    {[1,2,3,4,5].map(s => (
+                      <span key={s} className={`text-lg ${s <= Math.round(avgRating) ? 'text-amber-400' : 'text-slate-700'}`}>★</span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">Basado en {reviews.length} reseñas totales</p>
                 </div>
-                {avgLastMonth > 0 && avgThisMonth > 0 && (
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                    Mes anterior: {avgLastMonth.toFixed(1)}★
-                  </p>
-                )}
-              </div>
 
-              {/* Response rate */}
-              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Índice de respuesta</p>
-                <div className="flex items-end gap-2">
-                  <span className="text-4xl font-bold text-slate-900 dark:text-white">{responseRate}%</span>
-                </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                  Has respondido a {responded} de {reviews.length} reseñas
-                </p>
-              </div>
+                {/* Divider vertical */}
+                <div className="hidden md:block w-px h-20 bg-slate-800" />
 
-              {/* Reviews this month */}
-              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Reseñas este mes</p>
-                <div className="flex items-end gap-2">
-                  <span className="text-4xl font-bold text-slate-900 dark:text-white">{thisMonthReviews.length}</span>
+                {/* KPIs rápidos */}
+                <div className="flex flex-wrap gap-6">
+                  {/* Nota este mes */}
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1 uppercase tracking-widest">Este mes</p>
+                    {avgThisMonth > 0 ? (
+                      <>
+                        <p className="text-3xl font-bold text-white tabular-nums">{avgThisMonth.toFixed(1)}<span className="text-slate-500 text-lg font-normal"> /5</span></p>
+                        {ratingDiff !== 0 && (
+                          <p className={`text-xs font-semibold mt-0.5 ${ratingDiff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {ratingDiff > 0 ? '▲' : '▼'} {Math.abs(ratingDiff).toFixed(2)} vs mes anterior
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-2xl font-bold text-slate-600">—</p>
+                    )}
+                  </div>
+                  {/* Reseñas este mes */}
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1 uppercase tracking-widest">Reseñas este mes</p>
+                    <p className="text-3xl font-bold text-white tabular-nums">{thisMonthReviews.length}</p>
+                    {lastMonthReviews.length > 0 && (
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {thisMonthReviews.length - lastMonthReviews.length >= 0 ? '+' : ''}{thisMonthReviews.length - lastMonthReviews.length} vs anterior
+                      </p>
+                    )}
+                  </div>
+                  {/* Índice respuesta */}
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1 uppercase tracking-widest">Respondidas</p>
+                    <p className="text-3xl font-bold text-white tabular-nums">{responseRate}<span className="text-slate-500 text-lg font-normal">%</span></p>
+                    <p className="text-xs text-slate-500 mt-0.5">{responded} de {reviews.length}</p>
+                  </div>
+                  {/* Pendientes */}
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1 uppercase tracking-widest">Sin responder</p>
+                    <p className={`text-3xl font-bold tabular-nums ${reviews.length - responded > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>{reviews.length - responded}</p>
+                    <Link href="/dashboard" className="text-xs text-indigo-400 hover:text-indigo-300 mt-0.5 block transition-colors">Ver pendientes →</Link>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                  {thisMonthReviews.length} reseñas nuevas
-                </p>
               </div>
             </div>
 
-            {/* Evolución mensual histórica */}
-            {reviews.length > 0 && (
-              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Evolución mensual</h2>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">vs. mes anterior</span>
-                </div>
-
-                {/* Drift KPIs (mes actual vs anterior) */}
-                {(rDrift || posDrift || negDrift || respDrift) && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-                    {[
-                      { label: 'Nota media', d: rDrift, value: currentM.avgRating != null ? `${currentM.avgRating.toFixed(1)}★` : '—', positiveIsUp: true },
-                      { label: 'Reseñas positivas', d: posDrift, value: currentM.positiveRatio != null ? `${currentM.positiveRatio.toFixed(0)}%` : '—', positiveIsUp: true },
-                      { label: 'Reseñas negativas', d: negDrift, value: currentM.negativeRatio != null ? `${currentM.negativeRatio.toFixed(0)}%` : '—', positiveIsUp: false },
-                      { label: 'Índice respuesta', d: respDrift, value: currentM.responseRate != null ? `${currentM.responseRate.toFixed(0)}%` : '—', positiveIsUp: true },
-                    ].map(({ label, d, value, positiveIsUp }) => {
-                      const isGood = d ? (positiveIsUp ? d.dir === 'up' : d.dir === 'down') : null
-                      return (
-                        <div key={label} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</p>
-                          <p className="text-xl font-bold text-slate-900 dark:text-white">{value}</p>
-                          {d ? (
-                            <p className={`text-xs font-semibold mt-0.5 ${isGood ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                              {d.dir === 'up' ? '▲' : '▼'} {d.label}
-                            </p>
-                          ) : (
-                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Sin cambios</p>
-                          )}
+            {/* ── SENTIMIENTO + COMPARATIVA MES ── */}
+            <div className="grid md:grid-cols-2 gap-5">
+              {/* Distribución global */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Distribución global</p>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Positivas', count: positive, total: sentimentTotal, color: 'bg-emerald-500', textColor: 'text-emerald-400', range: '4–5 ★' },
+                    { label: 'Neutras',   count: neutral,  total: sentimentTotal, color: 'bg-amber-400',  textColor: 'text-amber-400',   range: '3 ★' },
+                    { label: 'Negativas', count: negative, total: sentimentTotal, color: 'bg-red-500',    textColor: 'text-red-400',     range: '1–2 ★' },
+                  ].map(row => {
+                    const pct = Math.round((row.count / row.total) * 100)
+                    return (
+                      <div key={row.label}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm text-slate-300 flex items-center gap-1.5">
+                            <span className={`w-2 h-2 rounded-full ${row.color} inline-block`} />
+                            {row.label} <span className="text-slate-600 text-xs">({row.range})</span>
+                          </span>
+                          <span className={`text-sm font-bold ${row.textColor}`}>{row.count} <span className="text-slate-500 font-normal text-xs">({pct}%)</span></span>
                         </div>
+                        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                          <div className={`h-2 ${row.color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Este mes vs anterior */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Este mes vs anterior</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Nota media', d: rDrift, value: currentM.avgRating != null ? `${currentM.avgRating.toFixed(2)}` : '—', unit: '/5', positiveIsUp: true },
+                    { label: '% Positivas', d: posDrift, value: currentM.positiveRatio != null ? `${currentM.positiveRatio.toFixed(0)}` : '—', unit: '%', positiveIsUp: true },
+                    { label: '% Negativas', d: negDrift, value: currentM.negativeRatio != null ? `${currentM.negativeRatio.toFixed(0)}` : '—', unit: '%', positiveIsUp: false },
+                    { label: 'Respondidas', d: respDrift, value: currentM.responseRate != null ? `${currentM.responseRate.toFixed(0)}` : '—', unit: '%', positiveIsUp: true },
+                  ].map(({ label, d, value, unit, positiveIsUp }) => {
+                    const isGood = d ? (positiveIsUp ? d.dir === 'up' : d.dir === 'down') : null
+                    return (
+                      <div key={label} className="bg-slate-800/60 rounded-xl p-3">
+                        <p className="text-xs text-slate-500 mb-1">{label}</p>
+                        <p className="text-xl font-bold text-white">{value}<span className="text-slate-500 text-sm font-normal">{unit}</span></p>
+                        {d ? (
+                          <p className={`text-xs font-semibold mt-0.5 ${isGood ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {d.dir === 'up' ? '▲' : '▼'} {d.label}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-slate-600 mt-0.5">Sin variación</p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* ── EVOLUCIÓN HISTÓRICA ── */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Evolución histórica mensual</p>
+              <div className="overflow-x-auto max-h-72 overflow-y-auto">
+                <table className="w-full text-sm min-w-[500px]">
+                  <thead className="sticky top-0 bg-slate-900">
+                    <tr className="border-b border-slate-800">
+                      {['Mes', 'Reseñas', 'Nota', 'Positivas', 'Negativas', 'Respondidas'].map((h, i) => (
+                        <th key={h} className={`pb-2 text-xs font-semibold text-slate-500 ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allMonths.map((m, i) => {
+                      const isCurrent = i === 0
+                      const prev = allMonths[i + 1]
+                      const notaDelta = prev && m.avgRating != null && prev.avgRating != null ? m.avgRating - prev.avgRating : null
+                      return (
+                        <tr key={`${m.year}-${m.month}`} className={`border-b border-slate-800/50 last:border-0 ${isCurrent ? 'bg-indigo-950/30' : ''}`}>
+                          <td className={`py-2.5 capitalize text-xs ${isCurrent ? 'font-semibold text-indigo-300' : 'text-slate-300'}`}>
+                            {m.label}
+                            {isCurrent && <span className="ml-2 text-[10px] bg-indigo-900/60 text-indigo-400 px-1.5 py-0.5 rounded-full font-medium">actual</span>}
+                          </td>
+                          <td className="py-2.5 text-right text-xs text-slate-400">{m.count === 0 ? <span className="text-slate-700">—</span> : m.count}</td>
+                          <td className="py-2.5 text-right text-xs font-semibold">
+                            {m.avgRating != null
+                              ? <span className="text-amber-400">{m.avgRating.toFixed(2)}</span>
+                              : <span className="text-slate-700">—</span>}
+                            {notaDelta != null && Math.abs(notaDelta) >= 0.05 && (
+                              <span className={`ml-1 text-[10px] ${notaDelta > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                {notaDelta > 0 ? '▲' : '▼'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 text-right text-xs font-medium text-emerald-500">
+                            {m.positiveRatio != null ? `${m.positiveRatio.toFixed(0)}%` : <span className="text-slate-700">—</span>}
+                          </td>
+                          <td className="py-2.5 text-right text-xs font-medium">
+                            {m.negativeRatio != null
+                              ? <span className={m.negativeRatio > 30 ? 'text-red-400' : 'text-slate-400'}>{m.negativeRatio.toFixed(0)}%</span>
+                              : <span className="text-slate-700">—</span>}
+                          </td>
+                          <td className="py-2.5 text-right text-xs font-medium text-indigo-400">
+                            {m.responseRate != null ? `${m.responseRate.toFixed(0)}%` : <span className="text-slate-700">—</span>}
+                          </td>
+                        </tr>
                       )
                     })}
-                  </div>
-                )}
-
-                {/* Tabla histórica completa */}
-                <div className="overflow-x-auto max-h-80 overflow-y-auto">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-white dark:bg-slate-800">
-                      <tr className="border-b border-slate-100 dark:border-slate-700">
-                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 pb-2 capitalize">Mes</th>
-                        <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Reseñas</th>
-                        <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Nota</th>
-                        <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Positivas</th>
-                        <th className="text-right text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Respondidas</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {allMonths.map((m, i) => {
-                        const isCurrent = i === 0
-                        return (
-                          <tr key={`${m.year}-${m.month}`} className={`border-b border-slate-50 dark:border-slate-700/50 last:border-0 ${isCurrent ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
-                            <td className={`py-2 capitalize text-xs ${isCurrent ? 'font-semibold text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>
-                              {m.label}
-                              {isCurrent && <span className="ml-1.5 text-[10px] bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">actual</span>}
-                            </td>
-                            <td className="py-2 text-right text-xs text-slate-600 dark:text-slate-400">{m.count === 0 ? '—' : m.count}</td>
-                            <td className="py-2 text-right text-xs text-amber-600 dark:text-amber-400 font-medium">
-                              {m.avgRating != null ? `${m.avgRating.toFixed(1)}★` : '—'}
-                            </td>
-                            <td className="py-2 text-right text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                              {m.positiveRatio != null ? `${m.positiveRatio.toFixed(0)}%` : '—'}
-                            </td>
-                            <td className="py-2 text-right text-xs text-indigo-600 dark:text-indigo-400 font-medium">
-                              {m.responseRate != null ? `${m.responseRate.toFixed(0)}%` : '—'}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Sentiment bar */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Sentimiento general</h2>
-              <div className="flex rounded-full overflow-hidden h-6 mb-3">
-                {positive > 0 && (
-                  <div
-                    className="bg-emerald-500 flex items-center justify-center text-white text-xs font-semibold"
-                    style={{ width: `${(positive / sentimentTotal) * 100}%` }}
-                  >
-                    {Math.round((positive / sentimentTotal) * 100)}%
-                  </div>
-                )}
-                {neutral > 0 && (
-                  <div
-                    className="bg-amber-400 flex items-center justify-center text-white text-xs font-semibold"
-                    style={{ width: `${(neutral / sentimentTotal) * 100}%` }}
-                  >
-                    {Math.round((neutral / sentimentTotal) * 100)}%
-                  </div>
-                )}
-                {negative > 0 && (
-                  <div
-                    className="bg-red-500 flex items-center justify-center text-white text-xs font-semibold"
-                    style={{ width: `${(negative / sentimentTotal) * 100}%` }}
-                  >
-                    {Math.round((negative / sentimentTotal) * 100)}%
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-4 text-sm text-slate-600 dark:text-slate-300">
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" /> Positivas ({positive})</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-400 inline-block" /> Neutras ({neutral})</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-500 inline-block" /> Negativas ({negative})</span>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            {/* Keywords */}
+            {/* ── PALABRAS CLAVE ── */}
             {keywords.length > 0 && (
-              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Palabras clave más mencionadas</h2>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Palabras más mencionadas</p>
                 <div className="flex flex-wrap gap-2">
                   {keywords.map(kw => {
-                    const size = 12 + Math.round((kw.count / maxKeywordCount) * 8)
-                    const color = kw.sentiment === 'positive'
-                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300'
+                    const size = 11 + Math.round((kw.count / maxKeywordCount) * 7)
+                    const cls = kw.sentiment === 'positive'
+                      ? 'bg-emerald-950/60 border-emerald-800/50 text-emerald-300'
                       : kw.sentiment === 'negative'
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                        ? 'bg-red-950/60 border-red-800/50 text-red-300'
+                        : 'bg-slate-800 border-slate-700 text-slate-300'
                     return (
-                      <span
-                        key={kw.word}
-                        className={`px-3 py-1.5 rounded-full font-medium ${color}`}
-                        style={{ fontSize: `${size}px` }}
-                      >
-                        {kw.word} <span className="opacity-60 text-xs">({kw.count})</span>
+                      <span key={kw.word} className={`px-3 py-1.5 rounded-full border font-medium ${cls}`} style={{ fontSize: `${size}px` }}>
+                        {kw.word} <span className="opacity-50 text-[10px]">×{kw.count}</span>
                       </span>
                     )
                   })}
@@ -504,67 +514,63 @@ export default function SaludPage() {
               </div>
             )}
 
-            {/* AI Insights */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+            {/* ── ANÁLISIS IA ── */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Análisis IA</h2>
-                <span className="text-xs text-slate-400 dark:text-slate-500">{aiUsed}/{AI_LIMIT} usos hoy</span>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Diagnóstico IA</p>
+                <span className="text-[11px] text-slate-600">{aiUsed}/{AI_LIMIT} análisis hoy</span>
               </div>
               {loadingSummary ? (
-                <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-3 text-slate-400">
                   <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm">Analizando tus reseñas con IA...</span>
+                  <span className="text-sm">Analizando reseñas...</span>
                 </div>
               ) : summary ? (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
-                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">Lo que brilla</p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">{summary.brilla}</p>
+                  <div className="grid md:grid-cols-3 gap-3">
+                    <div className="border-l-2 border-emerald-500 pl-4 py-1">
+                      <p className="text-xs font-semibold text-emerald-400 mb-1.5 uppercase tracking-wide">Lo que brilla</p>
+                      <p className="text-sm text-slate-300 leading-relaxed">{summary.brilla}</p>
                     </div>
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-                      <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-2">Lo que quema</p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">{summary.quema}</p>
+                    <div className="border-l-2 border-red-500 pl-4 py-1">
+                      <p className="text-xs font-semibold text-red-400 mb-1.5 uppercase tracking-wide">Lo que preocupa</p>
+                      <p className="text-sm text-slate-300 leading-relaxed">{summary.quema}</p>
                     </div>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                      <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">La acción</p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">{summary.accion}</p>
+                    <div className="border-l-2 border-indigo-500 pl-4 py-1">
+                      <p className="text-xs font-semibold text-indigo-400 mb-1.5 uppercase tracking-wide">Acción recomendada</p>
+                      <p className="text-sm text-slate-300 leading-relaxed">{summary.accion}</p>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center gap-3">
+                  <div className="mt-4 flex items-center gap-3 pt-4 border-t border-slate-800">
                     <button
                       onClick={handleRunAnalysis}
                       disabled={aiUsed >= AI_LIMIT || loadingSummary}
-                      className="text-sm px-4 py-2 border border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="text-xs px-3 py-1.5 border border-slate-700 text-slate-400 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      Regenerar
+                      Regenerar análisis
                     </button>
-                    {aiUsed >= AI_LIMIT ? (
-                      <p className="text-xs text-slate-400 dark:text-slate-500">Límite diario alcanzado · se restablece mañana</p>
-                    ) : (
-                      <p className="text-xs text-slate-400 dark:text-slate-500">{AI_LIMIT - aiUsed} uso{AI_LIMIT - aiUsed !== 1 ? 's' : ''} restante{AI_LIMIT - aiUsed !== 1 ? 's' : ''} hoy</p>
+                    {aiUsed >= AI_LIMIT && (
+                      <p className="text-xs text-slate-600">Límite diario alcanzado · se restablece mañana</p>
                     )}
                   </div>
                 </>
               ) : (
                 <div className="flex flex-col items-start gap-3">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Usa la IA para analizar el estado de tu reputación: qué funciona, qué preocupa y qué acción tomar.
+                  <p className="text-sm text-slate-400">
+                    Genera un diagnóstico automático: qué aspectos destacan, qué preocupa y qué acción tomar.
                   </p>
                   {aiUsed < AI_LIMIT ? (
                     <button
                       onClick={handleRunAnalysis}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
-                      Generar análisis IA
+                      Generar diagnóstico IA
                     </button>
                   ) : (
-                    <p className="text-sm text-slate-400 dark:text-slate-500">
-                      Límite diario de {AI_LIMIT} análisis alcanzado. Vuelve mañana.
-                    </p>
+                    <p className="text-sm text-slate-600">Límite diario alcanzado. Vuelve mañana.</p>
                   )}
                 </div>
               )}
@@ -573,13 +579,13 @@ export default function SaludPage() {
         )}
       </main>
 
-      <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-5">
-        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
+      <footer className="mt-8 border-t border-slate-800 py-5">
+        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
           <span>© {new Date().getFullYear()} Velacre · Todos los derechos reservados</span>
           <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Privacidad</Link>
-            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Términos</Link>
-            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Contacto</Link>
+            <Link href="/privacidad" className="hover:text-slate-400 transition-colors">Privacidad</Link>
+            <Link href="/terminos" className="hover:text-slate-400 transition-colors">Términos</Link>
+            <Link href="/contacto" className="hover:text-slate-400 transition-colors">Contacto</Link>
           </div>
         </div>
       </footer>

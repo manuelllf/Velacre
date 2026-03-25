@@ -177,8 +177,9 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   set(LIGHT)
   doc.text('velacre.com', ML, 20)
 
-  // Business name + report period
-  const thisMonth = data.months[0] ?? data.months[data.months.length - 1]
+  // months: para 'year' vienen desc (months[0]=más reciente), para 'month' vienen asc (months[last]=más reciente)
+  const thisMonth = isYear ? data.months[0] : data.months[data.months.length - 1]
+  const prevMonth = isYear ? data.months[1] ?? null : data.months[data.months.length - 2] ?? null
   const reportLabel = isYear
     ? `Informe Anual · ${new Date().getFullYear()}`
     : `Informe Mensual · ${thisMonth.label}`
@@ -205,12 +206,23 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
 
   // ── KPI ROW ──
   // Nota: jsPDF/Helvetica solo soporta Latin-1; usar formato texto en vez de simbolos Unicode
-  const kpis = [
-    { label: 'Nota media global', value: data.allTimeAvg > 0 ? `${data.allTimeAvg.toFixed(1)} / 5` : 'Sin datos', color: AMBER },
-    { label: 'Total reseñas importadas', value: String(data.allTimeCount), color: INDIGO },
-    { label: 'Reseñas este mes', value: String(thisMonth.count), color: INDIGO },
-    { label: 'Índice de respuesta', value: `${data.responseRate.toFixed(0)}%`, color: GREEN },
-  ]
+  const thisMonthAvg = thisMonth.avgRating != null ? `${thisMonth.avgRating.toFixed(2)} / 5` : 'Sin datos'
+  const prevCompar = prevMonth?.avgRating != null && thisMonth.avgRating != null
+    ? (() => { const d = thisMonth.avgRating! - prevMonth!.avgRating!; return `${d >= 0 ? '+' : ''}${d.toFixed(2)} vs anterior` })()
+    : null
+  const kpis = isYear
+    ? [
+        { label: 'Nota media global', value: data.allTimeAvg > 0 ? `${data.allTimeAvg.toFixed(1)} / 5` : 'Sin datos', color: AMBER },
+        { label: 'Total resenas', value: String(data.allTimeCount), color: INDIGO },
+        { label: 'Indice de respuesta', value: `${data.responseRate.toFixed(0)}%`, color: GREEN },
+        { label: 'Anos con datos', value: String(data.months.length), color: MID },
+      ]
+    : [
+        { label: `Nota ${thisMonth.label}`, value: thisMonthAvg, color: AMBER },
+        { label: `Resenas ${thisMonth.label}`, value: String(thisMonth.count), color: INDIGO },
+        { label: 'Comparativa', value: prevCompar ?? '—', color: prevCompar?.startsWith('+') ? GREEN : RED },
+        { label: 'Indice de respuesta', value: `${data.responseRate.toFixed(0)}%`, color: GREEN },
+      ]
   const kW = CW / 4
   kpis.forEach((k, i) => {
     const x = ML + i * kW
@@ -244,7 +256,7 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
   set(DARK)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
-  doc.text(isYear ? 'Evolucion anual (por ano)' : 'Evolucion mensual (ultimos 4 meses)', ML, y)
+  doc.text(isYear ? 'Evolucion anual por ejercicio' : 'Evolucion mensual (ultimos 4 meses)', ML, y)
   draw([226, 232, 240])
   doc.line(ML, y + 1.5, MR, y + 1.5)
   y += 7
@@ -319,17 +331,14 @@ export async function generateReputationPDF(data: PdfReportData): Promise<void> 
     doc.text(m.responseRate == null ? '—' : `${m.responseRate.toFixed(0)}%`, cx, y + 4.5)
     cx += cols[5].w
 
-    // Variación nota vs mes anterior
-    if (idx > 0) {
-      const prev = data.months[idx - 1]
-      if (m.avgRating != null && prev.avgRating != null) {
-        const d = m.avgRating - prev.avgRating
-        set(Math.abs(d) < 0.05 ? LIGHT : d > 0 ? GREEN : RED)
-        doc.text(`${d > 0 ? '+' : ''}${d.toFixed(2)}`, cx, y + 4.5)
-      } else {
-        set(LIGHT)
-        doc.text('—', cx, y + 4.5)
-      }
+    // Variación nota: para annual (desc), compara con months[idx+1] (año anterior)
+    // Para monthly (asc), compara con months[idx-1] (mes anterior)
+    const compareIdx = isYear ? idx + 1 : idx - 1
+    const compareM = data.months[compareIdx]
+    if (compareM && m.avgRating != null && compareM.avgRating != null) {
+      const d = m.avgRating - compareM.avgRating
+      set(Math.abs(d) < 0.05 ? LIGHT : d > 0 ? GREEN : RED)
+      doc.text(`${d > 0 ? '+' : ''}${d.toFixed(2)}`, cx, y + 4.5)
     } else {
       set(LIGHT)
       doc.text('—', cx, y + 4.5)
