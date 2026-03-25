@@ -25,8 +25,8 @@ export default function OnboardingPlanPage() {
   const [error, setError] = useState('')
 
   const redirectUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/dashboard`
-    : '/dashboard'
+    ? `${window.location.origin}/onboarding`
+    : '/onboarding'
 
   async function handlePlan(plan: 'core' | 'pro') {
     setLoading(plan)
@@ -156,7 +156,7 @@ export default function OnboardingPlanPage() {
 
       {/* Skip */}
       <button
-        onClick={() => router.replace('/dashboard')}
+        onClick={() => router.replace('/onboarding')}
         disabled={loading !== null}
         className="text-sm text-slate-500 hover:text-slate-400 transition-colors cursor-pointer disabled:opacity-50"
       >

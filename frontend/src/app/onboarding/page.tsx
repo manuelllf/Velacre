@@ -127,7 +127,7 @@ export default function OnboardingPage() {
       setDoneSteps([0, 1, 2])
 
       stopLoadingUI()
-      router.replace('/onboarding/plan')
+      router.replace('/dashboard')
     } catch (err) {
       stopLoadingUI()
       setError(err instanceof Error ? err.message : 'No se pudieron guardar los datos. Inténtalo de nuevo.')
