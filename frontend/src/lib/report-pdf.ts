@@ -164,75 +164,49 @@ function varText(
 }
 
 // ── Utilidades compartidas para jsPDF ────────────────────────────────────────
+// Usamos 'any' para el doc porque jsPDF no exporta un tipo base limpio
 
-function pdfHeader(doc: ReturnType<Awaited<ReturnType<typeof import('jspdf')>>['jsPDF']['prototype']['constructor'] & (new (...a: never[]) => unknown)> & import('jspdf').jsPDF, W: number, ML: number, MR: number, negocioNombre: string, reportLabel: string) {
-  type C = readonly [number, number, number]
-  const DARK: C = [15, 23, 42], LIGHT: C = [148, 163, 184], WHITE: C = [255, 255, 255]
-  const INDIGO: C = [79, 70, 229]
-  doc.setFillColor(DARK[0], DARK[1], DARK[2])
-  doc.rect(0, 0, W, 30, 'F')
-  doc.setTextColor(WHITE[0], WHITE[1], WHITE[2])
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(18)
-  doc.text('Velacre', ML, 14)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
-  doc.text('velacre.com', ML, 21)
-  doc.setTextColor(WHITE[0], WHITE[1], WHITE[2])
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
-  doc.text(safe(negocioNombre), MR, 13, { align: 'right' })
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
-  doc.text(reportLabel, MR, 21, { align: 'right' })
-  // Línea accent bajo header
-  doc.setFillColor(INDIGO[0], INDIGO[1], INDIGO[2])
-  doc.rect(0, 30, W, 1.5, 'F')
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function pdfHeader(doc: any, W: number, ML: number, MR: number, negocioNombre: string, reportLabel: string) {
+  const DARK = [15, 23, 42], LIGHT = [148, 163, 184], WHITE = [255, 255, 255], INDIGO = [79, 70, 229]
+  doc.setFillColor(...DARK); doc.rect(0, 0, W, 30, 'F')
+  doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('Velacre', ML, 14)
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...LIGHT); doc.text('velacre.com', ML, 21)
+  doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text(safe(negocioNombre), MR, 13, { align: 'right' })
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...LIGHT); doc.text(reportLabel, MR, 21, { align: 'right' })
+  doc.setFillColor(...INDIGO); doc.rect(0, 30, W, 1.5, 'F')
 }
 
-function pdfFooter(doc: import('jspdf').jsPDF, W: number, ML: number, MR: number) {
+function pdfFooter(doc: any, W: number, ML: number, MR: number) {
   const n = doc.getNumberOfPages()
-  const DARK: RGB = [15, 23, 42], LIGHT: RGB = [148, 163, 184]
+  const DARK = [15, 23, 42], LIGHT = [148, 163, 184]
   for (let p = 1; p <= n; p++) {
     doc.setPage(p)
-    doc.setFillColor(DARK[0], DARK[1], DARK[2])
-    doc.rect(0, 284, W, 13, 'F')
-    doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(6.5)
-    const d = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
-    doc.text(`Generado por Velacre - velacre.com - ${d}`, ML, 291)
+    doc.setFillColor(...DARK); doc.rect(0, 284, W, 13, 'F')
+    doc.setTextColor(...LIGHT); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
+    const dt = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+    doc.text(`Generado por Velacre - velacre.com - ${dt}`, ML, 291)
     doc.text(`Pag. ${p} / ${n}`, MR, 291, { align: 'right' })
   }
 }
 
-function sectionLabel(doc: import('jspdf').jsPDF, text: string, y: number, ML: number) {
-  const DARK: RGB = [15, 23, 42], SLATE400: RGB = [148, 163, 184], INDIGO: RGB = [79, 70, 229]
-  doc.setFillColor(INDIGO[0], INDIGO[1], INDIGO[2])
-  doc.rect(ML, y, 2.5, 8, 'F')
-  doc.setTextColor(DARK[0], DARK[1], DARK[2])
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(8.5)
-  doc.text(text, ML + 6, y + 5.8)
-  doc.setTextColor(SLATE400[0], SLATE400[1], SLATE400[2])
+function sectionLabel(doc: any, text: string, y: number, ML: number) {
+  const DARK = [15, 23, 42], INDIGO = [79, 70, 229], LIGHT = [148, 163, 184]
+  doc.setFillColor(...INDIGO); doc.rect(ML, y, 2.5, 8, 'F')
+  doc.setTextColor(...DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text(text, ML + 6, y + 5.8)
+  doc.setTextColor(...LIGHT)
 }
 
-function tableHeader(doc: import('jspdf').jsPDF, headers: string[], widths: number[], y: number, ML: number) {
+function tableHeader(doc: any, headers: string[], widths: number[], y: number, ML: number): number {
   const CW = widths.reduce((a, b) => a + b, 0)
-  const DARK: RGB = [15, 23, 42], WHITE: RGB = [255, 255, 255], SLATE200: RGB = [226, 232, 240]
-  doc.setFillColor(DARK[0], DARK[1], DARK[2])
-  doc.setDrawColor(SLATE200[0], SLATE200[1], SLATE200[2])
-  doc.setLineWidth(0.2)
-  doc.rect(ML, y, CW, 6.5, 'FD')
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7)
-  doc.setTextColor(WHITE[0], WHITE[1], WHITE[2])
+  const DARK = [15, 23, 42], WHITE = [255, 255, 255], S200 = [226, 232, 240]
+  doc.setFillColor(...DARK); doc.setDrawColor(...S200); doc.setLineWidth(0.2); doc.rect(ML, y, CW, 6.5, 'FD')
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...WHITE)
   let cx = ML + 2
   headers.forEach((h, i) => { doc.text(h, cx, y + 4.5); cx += widths[i] })
   return y + 6.5
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // ── PDF MENSUAL ───────────────────────────────────────────────────────────────
 
@@ -259,7 +233,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   const slug = safe(data.negocioNombre).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
   // CABECERA
-  pdfHeader(doc as never, W, ML, MR, data.negocioNombre, `Revision mensual - ${mLabel}`)
+  pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revision mensual - ${mLabel}`)
   y = 38
 
   // TITULO
@@ -270,7 +244,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   y += 16
 
   // SECTION 1: KPIs del mes
-  sectionLabel(doc as never, `INDICADORES DE ${mLabel.toUpperCase()}`, y, ML)
+  sectionLabel(doc, `INDICADORES DE ${mLabel.toUpperCase()}`, y, ML)
   y += 13
 
   const kW = CW / 4
@@ -298,11 +272,11 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
 
   // SECTION 2: Comparativa directa mes actual vs anterior
   if (pm && pLabel) {
-    sectionLabel(doc as never, `COMPARATIVA: ${mLabel.toUpperCase()} VS ${pLabel.toUpperCase()}`, y, ML)
+    sectionLabel(doc, `COMPARATIVA: ${mLabel.toUpperCase()} VS ${pLabel.toUpperCase()}`, y, ML)
     y += 13
 
     const cW1 = 56, cW2 = 36, cW3 = 36, cW4 = 46  // 174mm
-    y = tableHeader(doc as never, ['Indicador', mLabel, pLabel, 'Variacion'], [cW1, cW2, cW3, cW4], y, ML)
+    y = tableHeader(doc, ['Indicador', mLabel, pLabel, 'Variacion'], [cW1, cW2, cW3, cW4], y, ML)
 
     const rows = [
       { m: 'Nota media', cv: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : '—', pv: pm.avgRating != null ? `${pm.avgRating.toFixed(2)} / 5` : '—', vt: varText(cm.avgRating, pm.avgRating, 2), up: true },
@@ -332,11 +306,11 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   // SECTION 3: Evolución en el año
   if (data.yearMonths.length > 0) {
     if (y > 210) { doc.addPage(); y = 20 }
-    sectionLabel(doc as never, `EVOLUCION MES A MES EN ${cm.year}`, y, ML)
+    sectionLabel(doc, `EVOLUCION MES A MES EN ${cm.year}`, y, ML)
     y += 13
 
     const tw = [34, 18, 24, 20, 24, 24, 30]  // 174mm
-    y = tableHeader(doc as never, ['Mes', 'Resenas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML)
+    y = tableHeader(doc, ['Mes', 'Resenas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML)
 
     data.yearMonths.forEach((m, idx) => {
       if (y > 272) { doc.addPage(); y = 20 }
@@ -370,7 +344,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   // SECTION 4: Keywords
   if (data.keywords.length > 0) {
     if (y > 235) { doc.addPage(); y = 20 }
-    sectionLabel(doc as never, 'PALABRAS MAS MENCIONADAS', y, ML)
+    sectionLabel(doc, 'PALABRAS MAS MENCIONADAS', y, ML)
     y += 13
     const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
     const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
@@ -392,7 +366,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   // SECTION 5: IA
   if (data.summary) {
     if (y > 205) { doc.addPage(); y = 20 }
-    sectionLabel(doc as never, 'DIAGNOSTICO IA', y, ML)
+    sectionLabel(doc, 'DIAGNOSTICO IA', y, ML)
     y += 13
     const ins = [
       { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: [240, 253, 244] as RGB },
@@ -414,7 +388,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
     y += 5
   }
 
-  pdfFooter(doc as never, W, ML, MR)
+  pdfFooter(doc, W, ML, MR)
   doc.save(`velacre-mensual-${slug}-${mLabel.replace(/\s/g, '-').toLowerCase()}.pdf`)
 }
 
@@ -441,7 +415,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   const py = data.allYears.find(yr => yr.year === data.currentYear - 1) ?? null
 
   // CABECERA
-  pdfHeader(doc as never, W, ML, MR, data.negocioNombre, `Revision anual - ${data.currentYear}`)
+  pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revision anual - ${data.currentYear}`)
   y = 38
 
   // TITULO
@@ -453,7 +427,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
 
   // SECTION 1: KPIs del ejercicio actual
   if (cy) {
-    sectionLabel(doc as never, `INDICADORES DEL EJERCICIO ${data.currentYear}`, y, ML)
+    sectionLabel(doc, `INDICADORES DEL EJERCICIO ${data.currentYear}`, y, ML)
     y += 13
 
     const kW = CW / 4
@@ -479,12 +453,12 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   }
 
   // SECTION 2: Evolución interanual
-  sectionLabel(doc as never, 'EVOLUCION INTERANUAL (POR EJERCICIO)', y, ML)
+  sectionLabel(doc, 'EVOLUCION INTERANUAL (POR EJERCICIO)', y, ML)
   y += 13
 
   // cols: Ejercicio | Resenas | Nota | Var.nota | Positivas | Negativas | Respondidas = 174mm
   const yw = [22, 22, 28, 24, 26, 26, 26]
-  y = tableHeader(doc as never, ['Ejercicio', 'Resenas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML)
+  y = tableHeader(doc, ['Ejercicio', 'Resenas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML)
 
   data.allYears.forEach((yr, idx) => {
     const prevYr = data.allYears[idx + 1] ?? null  // más antiguo (lista desc)
@@ -514,11 +488,11 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   // SECTION 3: Desglose mensual del año actual
   if (data.currentYearMonths.length > 0) {
     if (y > 200) { doc.addPage(); y = 20 }
-    sectionLabel(doc as never, `DESGLOSE MENSUAL ${data.currentYear}`, y, ML)
+    sectionLabel(doc, `DESGLOSE MENSUAL ${data.currentYear}`, y, ML)
     y += 13
 
     const mw = [34, 18, 28, 20, 26, 26, 22]  // 174mm
-    y = tableHeader(doc as never, ['Mes', 'Resenas', 'Nota media', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], mw, y, ML)
+    y = tableHeader(doc, ['Mes', 'Resenas', 'Nota media', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], mw, y, ML)
 
     data.currentYearMonths.forEach((m, idx) => {
       if (y > 272) { doc.addPage(); y = 20 }
@@ -548,7 +522,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   // SECTION 4: Keywords
   if (data.keywords.length > 0) {
     if (y > 235) { doc.addPage(); y = 20 }
-    sectionLabel(doc as never, 'PALABRAS MAS MENCIONADAS', y, ML)
+    sectionLabel(doc, 'PALABRAS MAS MENCIONADAS', y, ML)
     y += 13
     const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
     const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
@@ -570,7 +544,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   // SECTION 5: IA
   if (data.summary) {
     if (y > 205) { doc.addPage(); y = 20 }
-    sectionLabel(doc as never, 'DIAGNOSTICO IA', y, ML)
+    sectionLabel(doc, 'DIAGNOSTICO IA', y, ML)
     y += 13
     const ins = [
       { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: [240, 253, 244] as RGB },
@@ -591,6 +565,6 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
     doc.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
   }
 
-  pdfFooter(doc as never, W, ML, MR)
+  pdfFooter(doc, W, ML, MR)
   doc.save(`velacre-anual-${slug}-${data.currentYear}.pdf`)
 }
