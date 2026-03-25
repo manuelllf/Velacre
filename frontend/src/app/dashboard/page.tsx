@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
@@ -67,6 +67,16 @@ export default function DashboardPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [syncLoading, setSyncLoading] = useState(false)
   const [syncMessage, setSyncMessage] = useState('')
+  const [syncProgress, setSyncProgress] = useState(0)
+  const [syncStep, setSyncStep] = useState(0)
+  const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const SYNC_STEPS = [
+    'Conectando con Google Maps...',
+    'Extrayendo resenas y metadatos...',
+    'Analizando sentimientos con IA...',
+    'Finalizando panel de salud...',
+  ]
   const [manualOpen, setManualOpen] = useState(false)
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const [translatingId, setTranslatingId] = useState<string | null>(null)
@@ -119,8 +129,29 @@ export default function DashboardPage() {
   async function handleSync() {
     setSyncLoading(true)
     setSyncMessage('')
+    setSyncProgress(0)
+    setSyncStep(0)
+
+    // Avanza el progreso en ~15s distribuido en 4 etapas
+    const TOTAL_MS = 14000
+    const TICK_MS = 200
+    const ticks = TOTAL_MS / TICK_MS
+    // Umbral de % donde cambia cada paso: 0→22, 22→55, 55→82, 82→98
+    const stepBreaks = [0, 22, 55, 82, 98]
+    let tick = 0
+    syncIntervalRef.current = setInterval(() => {
+      tick++
+      const pct = Math.min(98, Math.round((tick / ticks) * 98))
+      setSyncProgress(pct)
+      const step = stepBreaks.findIndex((b, i) => pct < (stepBreaks[i + 1] ?? 99))
+      setSyncStep(Math.min(step >= 0 ? step : 3, 3))
+    }, TICK_MS)
+
     try {
       const result = await syncReviews()
+      clearInterval(syncIntervalRef.current!)
+      setSyncProgress(100)
+      setSyncStep(3)
       await loadPendingReviews()
       if (result.newReviews > 0) {
         setSyncMessage(`Se importaron ${result.newReviews} reseña${result.newReviews !== 1 ? 's' : ''} nueva${result.newReviews !== 1 ? 's' : ''}`)
@@ -128,10 +159,11 @@ export default function DashboardPage() {
         setSyncMessage('Todo al día, no hay reseñas nuevas')
       }
     } catch (err) {
+      clearInterval(syncIntervalRef.current!)
       setSyncMessage(err instanceof Error ? err.message : 'Error al sincronizar')
     } finally {
       setSyncLoading(false)
-      setTimeout(() => setSyncMessage(''), 5000)
+      setTimeout(() => { setSyncProgress(0); setSyncMessage('') }, 4000)
     }
   }
 
@@ -235,32 +267,38 @@ export default function DashboardPage() {
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
               Reseñas pendientes
             </h2>
-            <div className="flex items-center gap-3">
-              {syncMessage && (
-                <span className="text-sm text-slate-500 dark:text-slate-400">{syncMessage}</span>
-              )}
-              <button
-                onClick={handleSync}
-                disabled={syncLoading}
-                className="flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {syncLoading ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-                    Sincronizando...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Sincronizar
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              onClick={handleSync}
+              disabled={syncLoading}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className={`w-4 h-4 ${syncLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {syncLoading ? 'Sincronizando...' : 'Sincronizar'}
+            </button>
           </div>
-          <p className="text-base text-slate-500 dark:text-slate-400 mb-5">
+
+          {/* Barra de progreso de sync */}
+          {syncLoading && (
+            <div className="mt-3 mb-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs text-slate-500 dark:text-slate-400">{SYNC_STEPS[syncStep]}</span>
+                <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{syncProgress}%</span>
+              </div>
+              <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 rounded-full transition-all duration-200 ease-linear"
+                  style={{ width: `${syncProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {!syncLoading && syncMessage && (
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{syncMessage}</p>
+          )}
+
+          <p className="text-base text-slate-500 dark:text-slate-400 mb-5 mt-3">
             Estas reseñas están esperando tu respuesta. Genera una con IA y cópiala en Google.
             {negocio && (
               <span className="ml-1 font-medium text-indigo-600 dark:text-indigo-400">
@@ -270,8 +308,23 @@ export default function DashboardPage() {
           </p>
 
           {loadingPending ? (
-            <div className="flex justify-center py-8">
-              <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="rounded-xl border border-slate-100 dark:border-slate-700 p-4 animate-pulse">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/3" />
+                      <div className="h-2.5 bg-slate-100 dark:bg-slate-600 rounded w-1/5" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded w-full" />
+                    <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded w-5/6" />
+                    <div className="h-2.5 bg-slate-100 dark:bg-slate-600 rounded w-2/3" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : pendingReviews.length === 0 ? (
             <div className="text-center py-8 text-slate-400 dark:text-slate-500">
