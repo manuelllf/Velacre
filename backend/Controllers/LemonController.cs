@@ -60,23 +60,25 @@ public class LemonController : ControllerBase
         if (usuario == null) return NotFound("Usuario no encontrado");
 
         // Build the JSON:API payload for Lemon Squeezy
+        var checkoutData = new Dictionary<string, object>
+        {
+            ["custom"] = new Dictionary<string, string> { { "user_id", userId.ToString() } },
+            ["email"]  = usuario.Email ?? ""
+        };
+
+        var attributes = new Dictionary<string, object>
+        {
+            ["checkout_data"] = checkoutData
+        };
+        if (!string.IsNullOrEmpty(redirectUrl))
+            attributes["checkout_options"] = new Dictionary<string, string> { { "redirect_url", redirectUrl } };
+
         var payload = new
         {
             data = new
             {
-                type       = "checkouts",
-                attributes = new
-                {
-                    checkout_options = new
-                    {
-                        redirect_url = string.IsNullOrEmpty(redirectUrl) ? null : redirectUrl
-                    },
-                    checkout_data = new
-                    {
-                        custom = new Dictionary<string, string> { { "user_id", userId.ToString() } },
-                        email  = usuario.Email
-                    }
-                },
+                type          = "checkouts",
+                attributes,
                 relationships = new
                 {
                     store   = new { data = new { type = "stores",   id = storeId   } },
