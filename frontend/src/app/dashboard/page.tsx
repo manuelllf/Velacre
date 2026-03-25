@@ -78,6 +78,19 @@ export default function DashboardPage() {
     'Analizando sentimientos con IA...',
     'Finalizando panel de salud...',
   ]
+
+  const SYNC_TIPS = [
+    'Responder resenas aumenta la confianza de nuevos clientes un 30%.',
+    'Un tono cercano genera mas engagement que uno formal.',
+    'Las resenas de 3 estrellas son las mas valiosas para mejorar.',
+    'Responder en menos de 48h mejora tu posicionamiento en Maps.',
+    'Los clientes leen las respuestas tanto como la resena original.',
+    'Mencionar el nombre del negocio en la respuesta refuerza la marca.',
+    'Una disculpa sincera convierte una mala resena en una oportunidad.',
+    'El 88% de los usuarios confian en resenas tanto como en recomendaciones personales.',
+  ]
+  const [syncTip, setSyncTip] = useState(0)
+  const tipIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [manualOpen, setManualOpen] = useState(false)
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const [translatingId, setTranslatingId] = useState<string | null>(null)
@@ -133,6 +146,12 @@ export default function DashboardPage() {
     setSyncProgress(0)
     setSyncStep(0)
 
+    // Tips rotativos cada 3.5s
+    setSyncTip(Math.floor(Math.random() * SYNC_TIPS.length))
+    tipIntervalRef.current = setInterval(() => {
+      setSyncTip(t => (t + 1) % SYNC_TIPS.length)
+    }, 3500)
+
     // Avanza el progreso en ~15s distribuido en 4 etapas
     const TOTAL_MS = 14000
     const TICK_MS = 200
@@ -151,6 +170,7 @@ export default function DashboardPage() {
     try {
       const result = await syncReviews()
       clearInterval(syncIntervalRef.current!)
+      clearInterval(tipIntervalRef.current!)
       setSyncProgress(100)
       setSyncStep(3)
       await loadPendingReviews()
@@ -161,6 +181,7 @@ export default function DashboardPage() {
       }
     } catch (err) {
       clearInterval(syncIntervalRef.current!)
+      clearInterval(tipIntervalRef.current!)
       setSyncMessage(err instanceof Error ? err.message : 'Error al sincronizar')
     } finally {
       setSyncLoading(false)
@@ -305,6 +326,9 @@ export default function DashboardPage() {
                   style={{ width: `${syncProgress}%` }}
                 />
               </div>
+              <p key={syncTip} className="text-xs text-slate-400 dark:text-slate-500 italic mt-2 animate-pulse">
+                {SYNC_TIPS[syncTip]}
+              </p>
             </div>
           )}
           {!syncLoading && syncMessage && (
