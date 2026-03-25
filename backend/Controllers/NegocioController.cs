@@ -13,11 +13,16 @@ public class NegocioController : ControllerBase
     private readonly Supabase.Client _supabase;
     private readonly ILogger<NegocioController> _logger;
 
+    private readonly Guid _adminUserId;
+
     public NegocioController(Supabase.Client supabase, ILogger<NegocioController> logger)
     {
         _supabase = supabase;
         _logger = logger;
+        _adminUserId = Guid.Parse(Environment.GetEnvironmentVariable("ADMIN_USER_ID") ?? "00000000-0000-0000-0000-000000000000");
     }
+
+    private bool IsAdmin() => Guid.Parse(User.FindFirst("sub")!.Value) == _adminUserId;
 
     [HttpGet("me")]
     public async Task<IActionResult> GetMyNegocio()
@@ -112,7 +117,19 @@ public class NegocioController : ControllerBase
         negocio.Telefono = request.Telefono ?? negocio.Telefono;
         negocio.Descripcion = request.Descripcion ?? negocio.Descripcion;
         negocio.TonoPredefinido = request.TonoPredefinido ?? negocio.TonoPredefinido;
-        if (request.PlaceId != null) negocio.PlaceId = request.PlaceId;
+
+        // place_id queda bloqueado tras el registro inicial.
+        // Solo se puede cambiar si aún no está establecido (onboarding) o si el usuario es admin.
+        if (request.PlaceId != null)
+        {
+            if (negocio.PlaceId != null && !IsAdmin())
+            {
+                _logger.LogWarning("[NegocioController] Usuario {UserId} intentó cambiar place_id bloqueado (actual={Current})", userId, negocio.PlaceId);
+                return Forbid();
+            }
+            negocio.PlaceId = request.PlaceId;
+        }
+
         negocio.ActualizadoPor = userId;
         negocio.ActualizadoFecha = DateTimeOffset.UtcNow;
 

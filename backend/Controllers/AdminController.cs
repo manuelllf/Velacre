@@ -115,6 +115,27 @@ public class AdminController : ControllerBase
         _logger.LogInformation("[AdminController] Usuario {UserId} plan cambiado a {Plan}", id, request.Plan);
         return Ok();
     }
+
+    // Único endpoint que permite cambiar el place_id de un negocio ya registrado
+    [HttpPut("negocios/{negocioId}/place")]
+    public async Task<IActionResult> SetPlaceId(Guid negocioId, [FromBody] SetPlaceIdRequest request)
+    {
+        if (!IsAdmin()) return Forbid();
+        if (string.IsNullOrWhiteSpace(request.PlaceId)) return BadRequest("place_id no puede estar vacío.");
+
+        var result = await _supabase.From<NegocioEntity>().Where(n => n.Id == negocioId).Limit(1).Get();
+        var negocio = result.Models.FirstOrDefault();
+        if (negocio == null) return NotFound();
+
+        var old = negocio.PlaceId;
+        negocio.PlaceId = request.PlaceId;
+        negocio.ActualizadoFecha = DateTimeOffset.UtcNow;
+        await _supabase.From<NegocioEntity>().Where(n => n.Id == negocioId).Update(negocio);
+
+        _logger.LogInformation("[AdminController] place_id de negocio {NegocioId} cambiado: {Old} → {New}", negocioId, old, request.PlaceId);
+        return Ok(new { negocioId, placeId = request.PlaceId });
+    }
 }
 
 public record CambiarPlanRequest(string Plan);
+public record SetPlaceIdRequest(string PlaceId);
