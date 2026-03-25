@@ -460,6 +460,7 @@ public class ReviewController : ControllerBase
                 Quema       = quema,
                 Accion      = accion,
                 ReviewCount = reviews.Count,
+                CreatedAt   = DateTimeOffset.UtcNow,
             };
             await _supabase.From<AnalisisIaEntity>().Insert(entity);
 
