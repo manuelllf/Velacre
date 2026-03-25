@@ -67,6 +67,7 @@ export default function DashboardPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [syncLoading, setSyncLoading] = useState(false)
   const [syncMessage, setSyncMessage] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
   const [syncProgress, setSyncProgress] = useState(0)
   const [syncStep, setSyncStep] = useState(0)
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -267,16 +268,28 @@ export default function DashboardPage() {
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
               Reseñas pendientes
             </h2>
-            <button
-              onClick={handleSync}
-              disabled={syncLoading}
-              className="flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg className={`w-4 h-4 ${syncLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              {syncLoading ? 'Sincronizando...' : 'Sincronizar'}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={async () => { setRefreshing(true); await loadPendingReviews(); setRefreshing(false) }}
+                disabled={refreshing || syncLoading}
+                title="Actualizar panel"
+                className="p-2 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+              <button
+                onClick={handleSync}
+                disabled={syncLoading}
+                className="flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className={`w-4 h-4 ${syncLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {syncLoading ? 'Sincronizando...' : 'Sincronizar'}
+              </button>
+            </div>
           </div>
 
           {/* Barra de progreso de sync */}
