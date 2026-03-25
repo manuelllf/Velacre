@@ -450,18 +450,25 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
             )}
           </div>
 
-          {/* Resultados */}
+          {/* Resultados — máx 5, scrollable */}
           {results.length > 0 && (
             <div className="mt-1 border border-slate-200 dark:border-slate-600 rounded-xl overflow-hidden shadow-lg">
-              {results.map(r => (
-                <button key={r.placeId} onClick={() => handleSelect(r)}
-                  className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0 cursor-pointer"
-                >
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{r.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.address}</p>
-                  {r.rating && <p className="text-xs text-amber-500 mt-0.5">★ {r.rating}</p>}
-                </button>
-              ))}
+              <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
+                {results.slice(0, 5).map(r => (
+                  <button key={r.placeId} onClick={() => handleSelect(r)}
+                    className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors cursor-pointer"
+                  >
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{r.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.address}</p>
+                    {r.rating && <p className="text-xs text-amber-500 mt-0.5">★ {r.rating}</p>}
+                  </button>
+                ))}
+              </div>
+              {results.length > 5 && (
+                <div className="px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700">
+                  <p className="text-xs text-slate-400">+{results.length - 5} resultados — refina la búsqueda para más precisión</p>
+                </div>
+              )}
             </div>
           )}
         </div>
