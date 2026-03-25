@@ -20,9 +20,11 @@ function fmt(n: number) {
 }
 
 function BadgePlan({ plan }: { plan: string }) {
-  return plan === 'pro'
-    ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">Pro</span>
-    : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">Basic</span>
+  if (plan === 'pro')
+    return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">Pro</span>
+  if (plan === 'core')
+    return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300">Core</span>
+  return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">Basic</span>
 }
 
 function BadgeEstado({ estado }: { estado: string }) {
@@ -133,7 +135,7 @@ export default function SalesDashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'Clientes asignados', value: portfolio.length.toString() },
-            { label: 'Clientes Pro', value: portfolio.filter(n => n.plan === 'pro').length.toString() },
+            { label: 'Clientes de pago', value: portfolio.filter(n => n.plan === 'core' || n.plan === 'pro').length.toString() },
             { label: 'Ingresos generados', value: fmt(ingresosHistorico) },
             { label: 'Pendiente de cobro', value: fmt(pendienteCobro), highlight: pendienteCobro > 0 },
           ].map(k => (

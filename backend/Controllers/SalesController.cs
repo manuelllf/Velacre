@@ -99,10 +99,12 @@ public class SalesController : ControllerBase
         var ownerMap = usuariosResult.Models.Where(u => ownerIds.Contains(u.Id)).ToDictionary(u => u.Id);
         var totalClientes = usuariosResult.Models.Count(u => u.Rol == "cliente" && u.Activo);
 
-        // Ingresos estimados: pro = 49€, basic = 0€
-        const decimal PRO_PRICE = 49m;
-        var proClientes  = negocios.Count(n => n.IdUsuario.HasValue && ownerMap.TryGetValue(n.IdUsuario!.Value, out var o) && o.Plan == "pro");
-        var ingresosEstimados = proClientes * PRO_PRICE;
+        // Ingresos estimados: core = 19€, pro = 29€, basic = 0€
+        const decimal CORE_PRICE = 19m;
+        const decimal PRO_PRICE  = 29m;
+        var coreClientes = negocios.Count(n => n.IdUsuario.HasValue && ownerMap.TryGetValue(n.IdUsuario!.Value, out var o) && o.Plan == "core");
+        var proClientes  = negocios.Count(n => n.IdUsuario.HasValue && ownerMap.TryGetValue(n.IdUsuario!.Value, out var o2) && o2.Plan == "pro");
+        var ingresosEstimados = coreClientes * CORE_PRICE + proClientes * PRO_PRICE;
 
         // Costos API prorrateados desde costos_mes
         var costoMesResult = await _supabase.From<CostoMesEntity>()
@@ -122,6 +124,7 @@ public class SalesController : ControllerBase
             neto     = Math.Round(neto, 2),
             comision = Math.Round(comision, 2),
             totalClientes = negocios.Count,
+            coreClientes,
             proClientes,
         });
     }
