@@ -414,13 +414,11 @@ export default function SaludPage() {
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                   <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Impacto Velacre</p>
                   <div className="grid grid-cols-3 gap-4">
-                    {/* Reseñas gestionadas */}
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Gestionadas con IA</p>
                       <p className="text-3xl font-black text-white tabular-nums">{metrics.velacreCount}</p>
                       <p className="text-xs text-slate-600 mt-1">de {metrics.total} totales</p>
                     </div>
-                    {/* Tiempo ahorrado */}
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Tiempo ahorrado</p>
                       <p className="text-3xl font-black text-indigo-400 tabular-nums">
@@ -430,29 +428,21 @@ export default function SaludPage() {
                       </p>
                       <p className="text-xs text-slate-600 mt-1">~4 min por reseña</p>
                     </div>
-                    {/* Mejora de respuesta */}
+                    {/* Cobertura: % de tus reseñas que Velacre ha gestionado */}
                     <div>
-                      <p className="text-xs text-slate-500 mb-1">Mejora respuesta</p>
-                      {metrics.historicResponseRate > 0 ? (
-                        <>
-                          <p className={`text-3xl font-black tabular-nums ${metrics.improvement > 0 ? 'text-emerald-400' : metrics.improvement < 0 ? 'text-red-400' : 'text-slate-400'}`}>
-                            {metrics.improvement > 0 ? '+' : ''}{metrics.improvement.toFixed(0)}%
-                          </p>
-                          <p className="text-xs text-slate-600 mt-1">{metrics.historicResponseRate.toFixed(0)}% → {metrics.currentResponseRate.toFixed(0)}%</p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-3xl font-black text-emerald-400 tabular-nums">{metrics.currentResponseRate.toFixed(0)}%</p>
-                          <p className="text-xs text-slate-600 mt-1">tasa actual</p>
-                        </>
-                      )}
+                      <p className="text-xs text-slate-500 mb-1">Cobertura Velacre</p>
+                      <p className="text-3xl font-black text-emerald-400 tabular-nums">
+                        {metrics.total > 0 ? Math.round((metrics.velacreCount / metrics.total) * 100) : 0}%
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">de tus reseñas con IA</p>
                     </div>
                   </div>
                 </div>
               )}
+            </div>
 
-              {/* Este mes vs anterior */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            {/* Este mes vs anterior — ancho completo */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Este mes vs anterior</p>
                 <div className="grid grid-cols-2 gap-3">
                   {[
@@ -478,7 +468,6 @@ export default function SaludPage() {
                   })}
                 </div>
               </div>
-            </div>
 
             {/* ── EVOLUCIÓN HISTÓRICA ── */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
