@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createNegocio, updateNegocio, searchPlaces, syncReviews, type PlaceResult } from '@/lib/api'
+import { createNegocio, updateNegocio, searchPlaces, syncReviews, getMyNegocio, type PlaceResult } from '@/lib/api'
 
 const TONOS = [
   { value: 'Profesional', label: 'Profesional', desc: 'Formal y cercano a la excelencia' },
@@ -19,6 +19,12 @@ const STEPS = [
 
 export default function OnboardingPage() {
   const router = useRouter()
+
+  // Si el usuario ya tiene negocio, saltar al plan
+  useEffect(() => {
+    getMyNegocio().then(n => { if (n) router.replace('/onboarding/plan') }).catch(() => {})
+  }, [router])
+
   const [tono, setTono] = useState('Profesional')
   const [descripcion, setDescripcion] = useState('')
   const [error, setError] = useState('')

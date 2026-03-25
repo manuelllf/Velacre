@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getLemonCheckoutUrl } from '@/lib/api'
+import { getLemonCheckoutUrl, getMyNegocio, getMyUsuario } from '@/lib/api'
 
 const FEATURES_CORE = [
   'Respuestas ilimitadas a reseñas',
@@ -23,6 +23,22 @@ export default function OnboardingPlanPage() {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
   const [loading, setLoading] = useState<'core' | 'pro' | null>(null)
   const [error, setError] = useState('')
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    async function guard() {
+      try {
+        const [n, u] = await Promise.all([getMyNegocio(), getMyUsuario()])
+        if (!n) { router.replace('/onboarding'); return }
+        if (u.plan && u.plan !== 'basic') { router.replace('/dashboard'); return }
+      } catch {
+        router.replace('/onboarding')
+        return
+      }
+      setReady(true)
+    }
+    guard()
+  }, [router])
 
   async function handlePlan(plan: 'core' | 'pro') {
     setLoading(plan)
@@ -35,6 +51,12 @@ export default function OnboardingPlanPage() {
       setLoading(null)
     }
   }
+
+  if (!ready) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12">
