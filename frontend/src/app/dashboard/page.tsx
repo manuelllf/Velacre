@@ -12,6 +12,7 @@ import {
   generateForReview,
   syncReviews,
   translateReview,
+  translateResponse,
   ApiError,
   type ReviewResponses,
   type Negocio,
@@ -94,6 +95,8 @@ export default function DashboardPage() {
   const [manualOpen, setManualOpen] = useState(false)
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const [translatingId, setTranslatingId] = useState<string | null>(null)
+  const [responseTranslations, setResponseTranslations] = useState<Record<string, string>>({})
+  const [translatingResponseId, setTranslatingResponseId] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -214,6 +217,22 @@ export default function DashboardPage() {
     } finally {
       setTranslatingId(null)
     }
+  }
+
+  async function handleTranslateResponse(reviewId: string) {
+    setTranslatingResponseId(reviewId)
+    try {
+      const result = await translateResponse(reviewId)
+      setResponseTranslations(prev => ({ ...prev, [reviewId]: result.translation }))
+    } catch {
+      setResponseTranslations(prev => ({ ...prev, [reviewId]: 'Error al traducir la respuesta.' }))
+    } finally {
+      setTranslatingResponseId(null)
+    }
+  }
+
+  function isForeignLanguage(lang?: string) {
+    return !!lang && lang !== 'es'
   }
 
   async function handleLogout() {
@@ -395,33 +414,71 @@ export default function DashboardPage() {
                       <StarRating rating={review.starRating} />
                     </div>
 
+                    {/* Texto reseña + botón traducción */}
                     <p className="text-sm text-slate-700 dark:text-slate-300 mb-1.5 leading-relaxed">
                       {review.clientereview || <span className="italic text-slate-400">Sin texto</span>}
                     </p>
-                    {/* Traducción */}
-                    {translations[review.id] ? (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 italic mb-2.5 border-l-2 border-slate-300 dark:border-slate-600 pl-2">
-                        {translations[review.id]}
-                      </p>
-                    ) : review.reviewLanguage && review.reviewLanguage !== 'es' && review.clientereview ? (
-                      <button
-                        onClick={() => handleTranslate(review.id)}
-                        disabled={translatingId === review.id}
-                        className="text-xs text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors mb-2.5 flex items-center gap-1 disabled:opacity-50"
-                      >
-                        {translatingId === review.id ? (
-                          <><span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />Traduciendo...</>
-                        ) : (
-                          <><span>🌐</span> Traducir al español</>
-                        )}
-                      </button>
-                    ) : null}
 
+                    {isForeignLanguage(review.reviewLanguage) && review.clientereview && (
+                      <div className="mb-2.5">
+                        {translations[review.id] ? (
+                          <div className="text-xs text-slate-500 dark:text-slate-400 italic border-l-2 border-slate-300 dark:border-slate-600 pl-2 py-0.5">
+                            <span className="not-italic text-slate-400 dark:text-slate-500 mr-1">🌐 ES:</span>
+                            {translations[review.id]}
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleTranslate(review.id)}
+                            disabled={translatingId === review.id}
+                            className="text-xs text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 disabled:opacity-50"
+                          >
+                            {translatingId === review.id ? (
+                              <><span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin inline-block" /> Traduciendo...</>
+                            ) : (
+                              <><span>🌐</span> Ver traducción</>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Respuesta generada */}
                     {generatedResponses[review.id] ? (
                       <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3">
+                        {/* Aviso de idioma si la respuesta está en otro idioma */}
+                        {isForeignLanguage(review.reviewLanguage) && (
+                          <p className="text-xs text-indigo-500 dark:text-indigo-400 mb-1.5 flex items-center gap-1">
+                            <span>🌐</span> Respuesta en el idioma original de la reseña
+                          </p>
+                        )}
                         <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-2">
                           {generatedResponses[review.id]}
                         </p>
+
+                        {/* Traducción de la respuesta */}
+                        {isForeignLanguage(review.reviewLanguage) && (
+                          <div className="mb-2">
+                            {responseTranslations[review.id] ? (
+                              <div className="text-xs text-slate-500 dark:text-slate-400 italic border-l-2 border-indigo-300 dark:border-indigo-600 pl-2 py-0.5">
+                                <span className="not-italic text-slate-400 dark:text-slate-500 mr-1">🌐 ES:</span>
+                                {responseTranslations[review.id]}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleTranslateResponse(review.id)}
+                                disabled={translatingResponseId === review.id}
+                                className="text-xs text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors flex items-center gap-1 disabled:opacity-50"
+                              >
+                                {translatingResponseId === review.id ? (
+                                  <><span className="w-3 h-3 border border-indigo-400 border-t-transparent rounded-full animate-spin inline-block" /> Traduciendo respuesta...</>
+                                ) : (
+                                  <><span>🌐</span> Ver traducción de la respuesta</>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        )}
+
                         <div className="flex items-center gap-2 flex-wrap">
                           <button
                             onClick={() => {

@@ -210,23 +210,30 @@ export default function OnboardingPage() {
               </div>
 
               {placeResults.length > 0 && (
-                <ul className="mt-2 border border-slate-200 dark:border-slate-600 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-700">
-                  {placeResults.map(place => (
-                    <li key={place.placeId}>
-                      <button
-                        type="button"
-                        onClick={() => handleSelectPlace(place)}
-                        className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                      >
-                        <div className="text-base font-medium text-slate-900 dark:text-white">{place.name}</div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{place.address}</div>
-                        {place.rating != null && (
-                          <div className="text-sm text-amber-500 mt-0.5">★ {place.rating.toFixed(1)}</div>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-2 border border-slate-200 dark:border-slate-600 rounded-xl overflow-hidden">
+                  <ul className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
+                    {placeResults.slice(0, 5).map(place => (
+                      <li key={place.placeId}>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectPlace(place)}
+                          className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                          <div className="text-base font-medium text-slate-900 dark:text-white">{place.name}</div>
+                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{place.address}</div>
+                          {place.rating != null && (
+                            <div className="text-sm text-amber-500 mt-0.5">★ {place.rating.toFixed(1)}</div>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {placeResults.length > 5 && (
+                    <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700">
+                      <p className="text-sm text-slate-400">+{placeResults.length - 5} resultados — refina la búsqueda para más precisión</p>
+                    </div>
+                  )}
+                </div>
               )}
 
               {selectedPlace && (

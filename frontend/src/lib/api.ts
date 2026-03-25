@@ -425,6 +425,15 @@ export async function translateReview(reviewId: string): Promise<{ translation: 
   return res.json()
 }
 
+export async function translateResponse(reviewId: string): Promise<{ translation: string }> {
+  const res = await fetch(`${API_URL}/api/review/${reviewId}/translate-response`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
 export async function createUsuario(data: {
   nombre?: string
   telefono?: string

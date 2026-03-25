@@ -355,6 +355,51 @@ public class ReviewController : ControllerBase
     }
 
     /// <summary>
+    /// Traduce al español la respuesta ya generada para una reseña.
+    /// Útil cuando la reseña es en otro idioma y el propietario quiere revisar la respuesta antes de publicarla.
+    /// </summary>
+    [HttpPost("{id}/translate-response")]
+    public async Task<IActionResult> TranslateResponse(Guid id)
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+
+        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
+        var negocio = negocioResult.Models.FirstOrDefault();
+        if (negocio == null) return NotFound();
+
+        var reviewResult = await _supabase.From<ReviewEntity>()
+            .Where(r => r.Id == id && r.IdNegocio == negocio.Id)
+            .Limit(1).Get();
+        var review = reviewResult.Models.FirstOrDefault();
+        if (review == null) return NotFound("Reseña no encontrada.");
+
+        // Leer la respuesta generada según el tono usado
+        var toneLower = (review.TonoGenerado ?? negocio.TonoPredefinido).ToLower();
+        var responseText = toneLower switch
+        {
+            "cercano" => review.RespuestaCercano,
+            "directo" => review.RespuestaDirecto,
+            _         => review.RespuestaProfesional
+        };
+
+        if (string.IsNullOrWhiteSpace(responseText))
+            return BadRequest("No hay respuesta generada para traducir.");
+
+        var prompt = $"Traduce al español este texto de respuesta a una reseña. Devuelve SOLO la traducción, sin explicaciones ni comillas:\n\n{responseText}";
+
+        try
+        {
+            var translation = await _aiService.GetClaudeMessageAsync(prompt, "");
+            return Ok(new { translation = translation.Trim() });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ReviewController] Error traduciendo respuesta para reviewId={ReviewId}", id);
+            return StatusCode(500, "Error al traducir la respuesta.");
+        }
+    }
+
+    /// <summary>
     /// Métricas de rentabilidad Velacre.
     /// is_velacre_response = tonoGenerado != null AND tonoGenerado != "google"
     /// No necesita columna nueva: tonoGenerado ya captura el origen de la respuesta.
