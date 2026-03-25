@@ -23,39 +23,72 @@ export default function OnboardingPage() {
   const [descripcion, setDescripcion] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [currentStep, setCurrentStep] = useState(-1)  // -1 = not started, 0/1/2 = active step
+  const [currentStep, setCurrentStep] = useState(-1)
   const [doneSteps, setDoneSteps] = useState<number[]>([])
 
   const [placeQuery, setPlaceQuery] = useState('')
   const [placeResults, setPlaceResults] = useState<PlaceResult[]>([])
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null)
   const [searchingPlaces, setSearchingPlaces] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const skipSearchRef = useRef(false)
+  const searchContainerRef = useRef<HTMLDivElement>(null)
 
   // Progress bar
   const [progress, setProgress] = useState(0)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-
+  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
-    if (skipSearchRef.current) { skipSearchRef.current = false; return }
+    function handleClickOutside(e: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  function handleQueryChange(value: string) {
+    setPlaceQuery(value)
+
+    // Si el usuario borra o cambia lo que había seleccionado, limpiar selección
+    if (selectedPlace && value !== selectedPlace.name) {
+      setSelectedPlace(null)
+    }
+
+    // Siempre cancelar el timer anterior antes de nada
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!placeQuery.trim() || placeQuery.trim().length < 3) { setPlaceResults([]); return }
+
+    if (!value.trim() || value.trim().length < 3) {
+      setPlaceResults([])
+      setDropdownOpen(false)
+      return
+    }
+
     debounceRef.current = setTimeout(async () => {
       setSearchingPlaces(true)
-      try { setPlaceResults(await searchPlaces(placeQuery.trim())) }
-      catch { setPlaceResults([]) }
-      finally { setSearchingPlaces(false) }
+      try {
+        const results = await searchPlaces(value.trim())
+        setPlaceResults(results)
+        setDropdownOpen(results.length > 0)
+      } catch {
+        setPlaceResults([])
+        setDropdownOpen(false)
+      } finally {
+        setSearchingPlaces(false)
+      }
     }, 500)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [placeQuery])
+  }
 
   function handleSelectPlace(place: PlaceResult) {
-    skipSearchRef.current = true
+    // Cancelar cualquier búsqueda pendiente antes de seleccionar
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSearchingPlaces(false)
     setSelectedPlace(place)
     setPlaceQuery(place.name)
     setPlaceResults([])
+    setDropdownOpen(false)
   }
 
   function startLoadingUI() {
@@ -183,7 +216,7 @@ export default function OnboardingPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* Buscador de negocio */}
-            <div>
+            <div ref={searchContainerRef}>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                 Busca tu negocio en Google <span className="text-red-500">*</span>
               </label>
@@ -195,54 +228,70 @@ export default function OnboardingPage() {
                 <input
                   type="text"
                   value={placeQuery}
-                  onChange={e => {
-                    setPlaceQuery(e.target.value)
-                    if (selectedPlace && e.target.value !== selectedPlace.name) setSelectedPlace(null)
-                  }}
-                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  onChange={e => handleQueryChange(e.target.value)}
+                  onFocus={() => { if (placeResults.length > 0 && !selectedPlace) setDropdownOpen(true) }}
+                  autoComplete="off"
+                  className={`w-full px-4 py-3 border rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                    selectedPlace
+                      ? 'border-green-400 dark:border-green-600'
+                      : 'border-slate-300 dark:border-slate-600'
+                  }`}
                   placeholder="Bar El Rincón, Hotel Costa, Peluquería Marta..."
                 />
-                {searchingPlaces && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {searchingPlaces ? (
                     <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  ) : selectedPlace ? (
+                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : null}
+                </div>
+
+                {/* Dropdown */}
+                {dropdownOpen && placeResults.length > 0 && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-lg overflow-hidden">
+                    <ul className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
+                      {placeResults.slice(0, 5).map(place => (
+                        <li key={place.placeId}>
+                          <button
+                            type="button"
+                            onMouseDown={e => { e.preventDefault(); handleSelectPlace(place) }}
+                            className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                          >
+                            <div className="text-sm font-medium text-slate-900 dark:text-white">{place.name}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{place.address}</div>
+                            {place.rating != null && (
+                              <div className="text-xs text-amber-500 mt-0.5">★ {place.rating.toFixed(1)}</div>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    {placeResults.length > 5 && (
+                      <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700">
+                        <p className="text-xs text-slate-400">Mostrando 5 de {placeResults.length} — refina la búsqueda</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {placeResults.length > 0 && (
-                <div className="mt-2 border border-slate-200 dark:border-slate-600 rounded-xl overflow-hidden">
-                  <ul className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
-                    {placeResults.slice(0, 5).map(place => (
-                      <li key={place.placeId}>
-                        <button
-                          type="button"
-                          onClick={() => handleSelectPlace(place)}
-                          className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                        >
-                          <div className="text-base font-medium text-slate-900 dark:text-white">{place.name}</div>
-                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{place.address}</div>
-                          {place.rating != null && (
-                            <div className="text-sm text-amber-500 mt-0.5">★ {place.rating.toFixed(1)}</div>
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  {placeResults.length > 5 && (
-                    <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700">
-                      <p className="text-sm text-slate-400">+{placeResults.length - 5} resultados — refina la búsqueda para más precisión</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
               {selectedPlace && (
                 <div className="mt-2 flex items-start gap-2 px-4 py-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
                   <span className="text-green-600 dark:text-green-400 text-lg mt-0.5">✓</span>
-                  <div>
-                    <div className="text-base font-medium text-green-800 dark:text-green-200">{selectedPlace.name}</div>
-                    <div className="text-sm text-green-700 dark:text-green-300">{selectedPlace.address}</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-green-800 dark:text-green-200 truncate">{selectedPlace.name}</div>
+                    <div className="text-xs text-green-700 dark:text-green-300 truncate">{selectedPlace.address}</div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedPlace(null); setPlaceQuery(''); setPlaceResults([]); setDropdownOpen(false) }}
+                    className="ml-auto text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 shrink-0 text-lg leading-none"
+                    title="Cambiar negocio"
+                  >
+                    ×
+                  </button>
                 </div>
               )}
             </div>
