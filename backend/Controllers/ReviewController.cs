@@ -425,7 +425,7 @@ public class ReviewController : ControllerBase
             .Order("created_at", Postgrest.Constants.Ordering.Descending)
             .Get();
 
-        var todayCount = allAnalysisResult.Models.Count(a => a.CreatedAt.UtcDateTime.Date == todayUtc);
+        var todayCount = allAnalysisResult.Models.Count(a => a.CreatedAt.HasValue && a.CreatedAt.Value.UtcDateTime.Date == todayUtc);
         var lastAnalysis = allAnalysisResult.Models.FirstOrDefault();
         var reviewDelta = lastAnalysis != null ? reviews.Count - lastAnalysis.ReviewCount : reviews.Count;
         var dailyLimit = reviewDelta >= 5 ? 4 : 3;

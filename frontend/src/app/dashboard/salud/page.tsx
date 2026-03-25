@@ -27,24 +27,6 @@ interface SummaryData {
   accion: string
 }
 
-const AI_LIMIT = 999
-
-function getAiUsageToday(): number {
-  if (typeof window === 'undefined') return 0
-  try {
-    const stored = localStorage.getItem('velacre_ai_usage')
-    if (!stored) return 0
-    const { date, count } = JSON.parse(stored) as { date: string; count: number }
-    return date === new Date().toISOString().slice(0, 10) ? count : 0
-  } catch { return 0 }
-}
-
-function incrementAiUsage(): void {
-  try {
-    const today = new Date().toISOString().slice(0, 10)
-    localStorage.setItem('velacre_ai_usage', JSON.stringify({ date: today, count: getAiUsageToday() + 1 }))
-  } catch { /* ignore */ }
-}
 
 function computeKeywords(reviews: PendingReview[]): KeywordInfo[] {
   const freq: Record<string, { count: number; pos: number; neg: number }> = {}
@@ -79,7 +61,7 @@ export default function SaludPage() {
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState<'month' | 'year' | null>(null)
-  const [aiUsed, setAiUsed] = useState(0)
+  const [aiLimitReached, setAiLimitReached] = useState(false)
   const [metrics, setMetrics] = useState<VelacreMetrics | null>(null)
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null)
 
@@ -95,7 +77,6 @@ export default function SaludPage() {
           getAnalysis().catch(() => null),
         ])
         setIsAdmin(u.isAdmin)
-        setAiUsed(getAiUsageToday())
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
@@ -121,15 +102,19 @@ export default function SaludPage() {
   function handleRunAnalysis() {
     if (loadingSummary) return
     setLoadingSummary(true)
+    setAiLimitReached(false)
     getSummary()
       .then(s => {
         setSummary(s)
-        // Refrescar analysisData para actualizar el estado del botón
         getAnalysis().then(ad => setAnalysisData(ad)).catch(() => null)
       })
       .catch(err => {
         const msg = err instanceof Error ? err.message : 'Error al generar análisis'
-        setSummary({ brilla: msg, quema: '—', accion: '—' })
+        if (msg.includes('Límite diario')) {
+          setAiLimitReached(true)
+        } else {
+          setSummary({ brilla: msg, quema: '—', accion: '—' })
+        }
       })
       .finally(() => setLoadingSummary(false))
   }
@@ -551,12 +536,30 @@ export default function SaludPage() {
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Diagnóstico IA</p>
-                <span className="text-[11px] text-slate-600">{aiUsed}/{AI_LIMIT} análisis hoy</span>
+                {analysisData?.analysis?.createdAt && !loadingSummary && (
+                  <span className="text-[11px] text-slate-600">
+                    {(() => {
+                      const d = new Date(analysisData.analysis.createdAt)
+                      return isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                    })()}
+                  </span>
+                )}
               </div>
               {loadingSummary ? (
                 <div className="flex items-center gap-3 text-slate-400">
                   <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                   <span className="text-sm">Analizando reseñas...</span>
+                </div>
+              ) : aiLimitReached ? (
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm text-slate-400">Límite diario alcanzado (3 análisis/día). Se restablece mañana.</p>
+                  {summary && (
+                    <div className="grid md:grid-cols-3 gap-3 opacity-60">
+                      <div className="border-l-2 border-emerald-500 pl-4 py-1"><p className="text-xs font-semibold text-emerald-400 mb-1 uppercase tracking-wide">Lo que brilla</p><p className="text-sm text-slate-300 leading-relaxed">{summary.brilla}</p></div>
+                      <div className="border-l-2 border-red-500 pl-4 py-1"><p className="text-xs font-semibold text-red-400 mb-1 uppercase tracking-wide">Lo que preocupa</p><p className="text-sm text-slate-300 leading-relaxed">{summary.quema}</p></div>
+                      <div className="border-l-2 border-indigo-500 pl-4 py-1"><p className="text-xs font-semibold text-indigo-400 mb-1 uppercase tracking-wide">Acción recomendada</p><p className="text-sm text-slate-300 leading-relaxed">{summary.accion}</p></div>
+                    </div>
+                  )}
                 </div>
               ) : summary ? (
                 <>
@@ -574,7 +577,7 @@ export default function SaludPage() {
                       <p className="text-sm text-slate-300 leading-relaxed">{summary.accion}</p>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center gap-3 pt-4 border-t border-slate-800">
+                  <div className="mt-4 pt-4 border-t border-slate-800">
                     <button
                       onClick={handleRunAnalysis}
                       disabled={loadingSummary}
@@ -582,11 +585,6 @@ export default function SaludPage() {
                     >
                       Actualizar análisis
                     </button>
-                    {analysisData?.analysis?.createdAt && (
-                      <p className="text-xs text-slate-600">
-                        {new Date(analysisData.analysis.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    )}
                   </div>
                 </>
               ) : (
