@@ -60,7 +60,9 @@ export default function LoginPage() {
 
     try {
       const u = await getMyUsuario()
-      router.replace(u.isAdmin ? '/admin' : '/dashboard')
+      if (u.isAdmin || u.rol === 'admin') router.replace('/admin')
+      else if (u.rol === 'sales') router.replace('/sales')
+      else router.replace('/dashboard')
     } catch {
       router.replace('/dashboard')
     }

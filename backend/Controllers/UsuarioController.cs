@@ -32,6 +32,8 @@ public class UsuarioController : ControllerBase
         var usuario = result.Models.FirstOrDefault();
         if (usuario == null) return NotFound();
         var isAdmin = userId == _adminUserId;
+        // El rol efectivo es "admin" si coincide con ADMIN_USER_ID, si no, el del registro
+        var rolEfectivo = isAdmin ? "admin" : usuario.Rol;
         return Ok(new
         {
             id = usuario.Id,
@@ -40,6 +42,7 @@ public class UsuarioController : ControllerBase
             activo = usuario.Activo,
             activoDesde = usuario.ActivoDesde,
             isAdmin,
+            rol = rolEfectivo,
             plan = usuario.Plan
         });
     }

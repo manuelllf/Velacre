@@ -104,6 +104,9 @@ export default function DashboardPage() {
       try {
         // Parallelizar usuario + negocio para reducir tiempo de carga
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
+        // Admin y Sales tienen su propio panel, no necesitan negocio
+        if (u.isAdmin || u.rol === 'admin') { router.replace('/admin'); return }
+        if (u.rol === 'sales') { router.replace('/sales'); return }
         setUserPlan(u.plan ?? 'basic')
         setUserId(u.id)
         setIsAdmin(u.isAdmin)

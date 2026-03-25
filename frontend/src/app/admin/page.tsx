@@ -15,10 +15,18 @@ import {
   setAdminPlaceId,
   cambiarPlan,
   searchPlaces,
+  asignarRol,
+  asignarSales,
+  getSalesTeam,
+  getLiquidaciones,
+  upsertLiquidacion,
+  marcarLiquidacionPagada,
   type AdminUsuario,
   type AdminStats,
   type EstadoUsuario,
   type PlaceResult,
+  type SalesTeamMember,
+  type Liquidacion,
 } from '@/lib/api'
 
 // ─── Inline cost editor ───────────────────────────────────────────────────────
@@ -499,7 +507,7 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
 
 // ─── Fila de usuario ──────────────────────────────────────────────────────────
 
-type ModalType = 'estado' | 'override' | 'notas' | 'place'
+type ModalType = 'estado' | 'override' | 'notas' | 'place' | 'rol'
 
 function UsuarioRow({
   usuario,
@@ -589,6 +597,308 @@ function UsuarioRow({
               className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer font-medium"
             >Place ID</button>
           )}
+          <button onClick={() => onAction(usuario, 'rol')}
+            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors cursor-pointer font-medium ${
+              usuario.rol === 'sales'
+                ? 'border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20'
+                : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+            }`}
+          >{usuario.rol === 'sales' ? '● Sales' : 'Rol'}</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Modal: Asignar Rol ───────────────────────────────────────────────────────
+
+function RolModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
+  const [rol, setRol] = useState<'cliente' | 'sales'>(usuario.rol === 'sales' ? 'sales' : 'cliente')
+  const [loading, setLoading] = useState(false)
+  const [err, setErr] = useState('')
+  async function handleSave() {
+    setLoading(true); setErr('')
+    try { await asignarRol(usuario.id, rol); onDone() }
+    catch (e) { setErr(e instanceof Error ? e.message : 'Error') }
+    finally { setLoading(false) }
+  }
+  return (
+    <Modal title={`Rol — ${usuario.nombre ?? usuario.email}`} onClose={onClose}>
+      <div className="space-y-4">
+        <div className="flex gap-3">
+          {(['cliente', 'sales'] as const).map(r => (
+            <button key={r} type="button" onClick={() => setRol(r)}
+              className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-colors ${
+                rol === r ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+                          : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'
+              }`}
+            >{r === 'sales' ? 'Sales (comercial)' : 'Cliente'}</button>
+          ))}
+        </div>
+        {err && <p className="text-sm text-red-600 dark:text-red-400">{err}</p>}
+        <button onClick={handleSave} disabled={loading}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-50"
+        >{loading ? 'Guardando...' : 'Guardar rol'}</button>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── Sales Team Section ───────────────────────────────────────────────────────
+
+function SalesTeamSection({
+  usuarios, salesTeam, onRefresh
+}: { usuarios: AdminUsuario[]; salesTeam: SalesTeamMember[]; onRefresh: () => void }) {
+  const [selectedSales, setSelectedSales] = useState('')
+  const [selectedNegocio, setSelectedNegocio] = useState('')
+  const [assigning, setAssigning] = useState(false)
+  const [err, setErr] = useState('')
+
+  // Negocios con dueño cliente (no ya asignados a otro sales)
+  const negocios = usuarios.filter(u => u.negocio).map(u => ({ id: u.negocio!.id, nombre: u.negocio!.nombre, salesId: u.negocio!.salesId }))
+
+  async function handleAsignar() {
+    if (!selectedSales || !selectedNegocio) return
+    setAssigning(true); setErr('')
+    try { await asignarSales(selectedNegocio, selectedSales); onRefresh() }
+    catch (e) { setErr(e instanceof Error ? e.message : 'Error') }
+    finally { setAssigning(false) }
+  }
+
+  async function handleDesasignar(negocioId: string) {
+    try { await asignarSales(negocioId, null); onRefresh() }
+    catch (e) { setErr(e instanceof Error ? e.message : 'Error') }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Asignar cliente a sales */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Vincular cliente a Sales</h3>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Sales</label>
+            <select value={selectedSales} onChange={e => setSelectedSales(e.target.value)}
+              className="border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            >
+              <option value="">— Seleccionar —</option>
+              {salesTeam.map(s => <option key={s.id} value={s.id}>{s.nombre ?? s.email ?? s.id}</option>)}
+            </select>
+          </div>
+          <div className="flex-1 min-w-48">
+            <label className="text-xs text-slate-400 block mb-1">Negocio / Cliente</label>
+            <select value={selectedNegocio} onChange={e => setSelectedNegocio(e.target.value)}
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            >
+              <option value="">— Seleccionar —</option>
+              {negocios.map(n => <option key={n.id} value={n.id}>{n.nombre}{n.salesId ? ' (asignado)' : ''}</option>)}
+            </select>
+          </div>
+          <button onClick={handleAsignar} disabled={!selectedSales || !selectedNegocio || assigning}
+            className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          >{assigning ? '...' : 'Asignar'}</button>
+        </div>
+        {err && <p className="text-xs text-red-600 dark:text-red-400 mt-2">{err}</p>}
+      </div>
+
+      {/* Lista del equipo */}
+      {salesTeam.length === 0 ? (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center text-slate-400 text-sm">
+          No hay usuarios con rol Sales. Asigna el rol desde la pestaña Usuarios.
+        </div>
+      ) : salesTeam.map(s => (
+        <div key={s.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-slate-900 dark:text-white text-sm">{s.nombre ?? s.email}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">{s.email} · {s.clientes} cliente{s.clientes !== 1 ? 's' : ''} asignado{s.clientes !== 1 ? 's' : ''}</p>
+            </div>
+            <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full">Sales</span>
+          </div>
+          {s.negocios.length === 0 ? (
+            <p className="px-5 py-4 text-sm text-slate-400 dark:text-slate-500 italic">Sin clientes asignados</p>
+          ) : (
+            <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
+              {s.negocios.map(n => (
+                <div key={n.id} className="px-5 py-3 flex items-center justify-between">
+                  <span className="text-sm text-slate-700 dark:text-slate-300">{n.nombre}</span>
+                  <button onClick={() => handleDesasignar(n.id)}
+                    className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+                  >Desasignar</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── Liquidaciones Section ────────────────────────────────────────────────────
+
+function LiquidacionesSection({ salesTeam, liquidaciones, onRefresh }: {
+  salesTeam: SalesTeamMember[]
+  liquidaciones: Liquidacion[]
+  onRefresh: () => void
+}) {
+  const now = new Date()
+  const [form, setForm] = useState({ salesId: '', anio: now.getFullYear(), mes: now.getMonth() + 1, ingresos: '', costos: '', fees: '', pct: '30', notas: '' })
+  const [saving, setSaving] = useState(false)
+  const [paying, setPaying] = useState<string | null>(null)
+  const [err, setErr] = useState('')
+
+  async function handleUpsert() {
+    if (!form.salesId) return
+    setSaving(true); setErr('')
+    try {
+      await upsertLiquidacion(form.salesId, form.anio, form.mes, {
+        ingresosBrutos: parseFloat(form.ingresos) || 0,
+        costosApi: parseFloat(form.costos) || 0,
+        feesPasarela: parseFloat(form.fees) || 0,
+        comisionPct: parseFloat(form.pct) || 30,
+        notas: form.notas || undefined,
+      })
+      onRefresh()
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Error') }
+    finally { setSaving(false) }
+  }
+
+  async function handlePagar(id: string) {
+    setPaying(id)
+    try { await marcarLiquidacionPagada(id); onRefresh() }
+    catch (e) { setErr(e instanceof Error ? e.message : 'Error') }
+    finally { setPaying(null) }
+  }
+
+  const neto     = (parseFloat(form.ingresos) || 0) - (parseFloat(form.costos) || 0) - (parseFloat(form.fees) || 0)
+  const comision = neto * ((parseFloat(form.pct) || 30) / 100)
+
+  const pending   = liquidaciones.filter(l => !l.pagado)
+  const paid      = liquidaciones.filter(l => l.pagado)
+
+  return (
+    <div className="space-y-6">
+      {/* Formulario nueva liquidación */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Registrar / actualizar liquidación</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+          <div className="col-span-2 sm:col-span-1">
+            <label className="text-xs text-slate-400 block mb-1">Sales</label>
+            <select value={form.salesId} onChange={e => setForm(f => ({ ...f, salesId: e.target.value }))}
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            >
+              <option value="">— Seleccionar —</option>
+              {salesTeam.map(s => <option key={s.id} value={s.id}>{s.nombre ?? s.email}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Año</label>
+            <input type="number" value={form.anio} onChange={e => setForm(f => ({ ...f, anio: Number(e.target.value) }))}
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Mes</label>
+            <select value={form.mes} onChange={e => setForm(f => ({ ...f, mes: Number(e.target.value) }))}
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            >
+              {MES_NAMES.map((n, i) => <option key={i + 1} value={i + 1}>{n}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Comisión %</label>
+            <input type="number" min="0" max="100" step="1" value={form.pct} onChange={e => setForm(f => ({ ...f, pct: e.target.value }))}
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Ingresos brutos (€)</label>
+            <input type="number" min="0" step="0.01" placeholder="0.00" value={form.ingresos} onChange={e => setForm(f => ({ ...f, ingresos: e.target.value }))}
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Costes API (€)</label>
+            <input type="number" min="0" step="0.01" placeholder="0.00" value={form.costos} onChange={e => setForm(f => ({ ...f, costos: e.target.value }))}
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Fees pasarela (€)</label>
+            <input type="number" min="0" step="0.01" placeholder="0.00" value={form.fees} onChange={e => setForm(f => ({ ...f, fees: e.target.value }))}
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          </div>
+          <div className="flex flex-col justify-end">
+            <div className="text-right">
+              <p className="text-xs text-slate-400 mb-0.5">Comisión calculada</p>
+              <p className="text-base font-bold text-indigo-600 dark:text-indigo-400">{fmtEur(Math.max(0, comision))}</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-3 items-center">
+          <input type="text" placeholder="Notas (opcional)" value={form.notas} onChange={e => setForm(f => ({ ...f, notas: e.target.value }))}
+            className="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          <button onClick={handleUpsert} disabled={saving || !form.salesId}
+            className="px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+          >{saving ? 'Guardando...' : 'Guardar'}</button>
+        </div>
+        {err && <p className="text-xs text-red-600 dark:text-red-400 mt-2">{err}</p>}
+      </div>
+
+      {/* Pendientes de pago */}
+      {pending.length > 0 && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-amber-800">
+          <div className="px-5 py-4 border-b border-amber-100 dark:border-amber-800/50">
+            <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400">Pendientes de pago ({pending.length})</h3>
+          </div>
+          <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
+            {pending.map(l => (
+              <div key={l.id} className="px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{l.salesNombre} · {MES_NAMES[l.mes - 1]} {l.anio}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Ingresos {fmtEur(l.ingresosBrutos)} → Neto {fmtEur(l.neto)}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">{fmtEur(l.comision)}</span>
+                  <button onClick={() => handlePagar(l.id)} disabled={paying === l.id}
+                    className="text-xs px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  >{paying === l.id ? '...' : 'Marcar pagado'}</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Histórico pagadas */}
+      {paid.length > 0 && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Histórico pagadas ({paid.length})</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-700">
+                  <th className="px-5 py-2 text-left font-medium">Sales · Período</th>
+                  <th className="px-4 py-2 text-right font-medium">Ingresos</th>
+                  <th className="px-4 py-2 text-right font-medium">Costes</th>
+                  <th className="px-4 py-2 text-right font-medium">Neto</th>
+                  <th className="px-4 py-2 text-right font-medium">Comisión</th>
+                  <th className="px-4 py-2 text-center font-medium">Pagado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                {paid.map(l => (
+                  <tr key={l.id} className="text-slate-600 dark:text-slate-300">
+                    <td className="px-5 py-2">{l.salesNombre} · {MES_NAMES[l.mes - 1]} {l.anio}</td>
+                    <td className="px-4 py-2 text-right font-mono">{fmtEur(l.ingresosBrutos)}</td>
+                    <td className="px-4 py-2 text-right font-mono text-slate-400">{fmtEur(l.costosApi + l.feesPasarela)}</td>
+                    <td className="px-4 py-2 text-right font-mono">{fmtEur(l.neto)}</td>
+                    <td className="px-4 py-2 text-right font-mono font-semibold text-indigo-600 dark:text-indigo-400">{fmtEur(l.comision)}</td>
+                    <td className="px-4 py-2 text-center text-emerald-600 dark:text-emerald-400">{fmtDate(l.pagadoFecha)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -601,20 +911,27 @@ export default function AdminPage() {
   const router = useRouter()
   const [usuarios, setUsuarios] = useState<AdminUsuario[]>([])
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [salesTeam, setSalesTeam] = useState<SalesTeamMember[]>([])
+  const [liquidaciones, setLiquidaciones] = useState<Liquidacion[]>([])
   const [loadingInit, setLoadingInit] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
   const [adminId, setAdminId] = useState<string>('')
   const [filterEstado, setFilterEstado] = useState<EstadoUsuario | 'todos'>('todos')
   const [search, setSearch] = useState('')
+  const [activeTab, setActiveTab] = useState<'usuarios' | 'equipo' | 'liquidaciones'>('usuarios')
 
   // Modal state
   const [modal, setModal] = useState<{ usuario: AdminUsuario; tipo: ModalType } | null>(null)
 
   const load = useCallback(async () => {
-    const [data, s] = await Promise.all([getAdminUsuarios(), getAdminStats()])
+    const [data, s, team, liqs] = await Promise.all([
+      getAdminUsuarios(), getAdminStats(), getSalesTeam(), getLiquidaciones()
+    ])
     setUsuarios(data)
     setStats(s)
+    setSalesTeam(team)
+    setLiquidaciones(liqs)
   }, [])
 
   useEffect(() => {
@@ -695,6 +1012,25 @@ export default function AdminPage() {
         </div>
       </header>
 
+      {/* Tabs */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-6xl mx-auto px-4 flex gap-1">
+          {([
+            { key: 'usuarios',      label: 'Usuarios' },
+            { key: 'equipo',        label: 'Equipo Sales' },
+            { key: 'liquidaciones', label: `Liquidaciones${liquidaciones.filter(l => !l.pagado).length > 0 ? ` (${liquidaciones.filter(l => !l.pagado).length})` : ''}` },
+          ] as const).map(t => (
+            <button key={t.key} onClick={() => setActiveTab(t.key)}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === t.key
+                  ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >{t.label}</button>
+          ))}
+        </div>
+      </div>
+
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
 
         {/* KPI Strip */}
@@ -745,8 +1081,18 @@ export default function AdminPage() {
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3 text-sm text-red-700 dark:text-red-400">{error}</div>
         )}
 
+        {/* Equipo Sales tab */}
+        {activeTab === 'equipo' && (
+          <SalesTeamSection usuarios={usuarios} salesTeam={salesTeam} onRefresh={load} />
+        )}
+
+        {/* Liquidaciones tab */}
+        {activeTab === 'liquidaciones' && (
+          <LiquidacionesSection salesTeam={salesTeam} liquidaciones={liquidaciones} onRefresh={load} />
+        )}
+
         {/* Tabla usuarios */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        {activeTab === 'usuarios' && <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
           {/* Toolbar */}
           <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3 flex-wrap">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white shrink-0">
@@ -797,7 +1143,7 @@ export default function AdminPage() {
               ))}
             </div>
           )}
-        </div>
+        </div>}
 
       </main>
 
@@ -806,6 +1152,7 @@ export default function AdminPage() {
       {modal?.tipo === 'override' && <ProOverrideModal  usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
       {modal?.tipo === 'notas'    && <NotasModal        usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
       {modal?.tipo === 'place'    && <PlaceIdModal      usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
+      {modal?.tipo === 'rol'      && <RolModal          usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
     </div>
   )
 }

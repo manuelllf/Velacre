@@ -64,4 +64,8 @@ public class UsuarioEntity : BaseModel
     /// <summary>Notas internas del admin (no visibles para el usuario)</summary>
     [Column("notas_admin")]
     public string? NotasAdmin { get; set; }
+
+    /// <summary>Rol del usuario: "cliente" | "sales" | "admin"</summary>
+    [Column("rol")]
+    public string Rol { get; set; } = "cliente";
 }

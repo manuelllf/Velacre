@@ -146,7 +146,9 @@ export async function updateNegocio(data: {
 }
 
 
-export async function getMyUsuario(): Promise<{ id: string; nombre?: string; telefono?: string; activo: boolean; activoDesde?: string; isAdmin: boolean; plan: string }> {
+export type UserRol = 'admin' | 'sales' | 'cliente'
+
+export async function getMyUsuario(): Promise<{ id: string; nombre?: string; telefono?: string; activo: boolean; activoDesde?: string; isAdmin: boolean; rol: UserRol; plan: string }> {
   const res = await fetch(`${API_URL}/api/usuario/me`, { headers: await authHeaders() })
   if (!res.ok) throw new ApiError(res.status, await res.text())
   return res.json()
@@ -161,8 +163,9 @@ export interface AdminUsuario {
   activo: boolean
   activoDesde?: string
   creadoFecha: string
-  negocio?: { id: string; nombre: string; placeId?: string } | null
+  negocio?: { id: string; nombre: string; placeId?: string; salesId?: string } | null
   plan?: string
+  rol: UserRol
   // God Mode fields
   estado: EstadoUsuario
   pruebaHasta?: string
@@ -170,6 +173,51 @@ export interface AdminUsuario {
   proOverrideHasta?: string
   proEfectivo: boolean
   notasAdmin?: string
+}
+
+export interface SalesTeamMember {
+  id: string
+  nombre?: string
+  email?: string
+  rol: string
+  clientes: number
+  negocios: Array<{ id: string; nombre: string; placeId?: string }>
+}
+
+export interface Liquidacion {
+  id: string
+  salesId: string
+  salesNombre?: string
+  anio: number
+  mes: number
+  ingresosBrutos: number
+  costosApi: number
+  feesPasarela: number
+  neto: number
+  comisionPct: number
+  comision: number
+  pagado: boolean
+  pagadoFecha?: string
+  notas?: string
+}
+
+export interface SalesPortfolioItem {
+  negocioId: string
+  nombre: string
+  placeId?: string
+  plan: string
+  estadoUsuario: string
+  activoDesde?: string
+  userId?: string
+}
+
+export interface SalesComision {
+  ingresosEstimados: number
+  costosApiProrrateados: number
+  neto: number
+  comision: number
+  totalClientes: number
+  proClientes: number
 }
 
 export interface AdminStats {
@@ -251,6 +299,76 @@ export async function setAdminPlaceId(negocioId: string, placeId: string): Promi
     body: JSON.stringify({ placeId }),
   })
   if (!res.ok) throw new Error(await res.text())
+}
+
+export async function asignarRol(id: string, rol: 'cliente' | 'sales'): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/rol`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify({ rol }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function asignarSales(negocioId: string, salesId: string | null): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/negocios/${negocioId}/sales`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify({ salesId }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function getSalesTeam(): Promise<SalesTeamMember[]> {
+  const res = await fetch(`${API_URL}/api/admin/sales-team`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+export async function getLiquidaciones(): Promise<Liquidacion[]> {
+  const res = await fetch(`${API_URL}/api/admin/liquidaciones`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+export async function upsertLiquidacion(
+  salesId: string, anio: number, mes: number,
+  data: { ingresosBrutos: number; costosApi: number; feesPasarela: number; comisionPct: number; notas?: string }
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/liquidaciones/${salesId}/${anio}/${mes}`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function marcarLiquidacionPagada(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/liquidaciones/${id}/pagar`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+// ─── Sales API ────────────────────────────────────────────────────────────────
+
+export async function getSalesPortfolio(): Promise<{ negocios: SalesPortfolioItem[] }> {
+  const res = await fetch(`${API_URL}/api/sales/portfolio`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+export async function getSalesComision(): Promise<SalesComision> {
+  const res = await fetch(`${API_URL}/api/sales/comision`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+export async function getSalesLiquidaciones(): Promise<Liquidacion[]> {
+  const res = await fetch(`${API_URL}/api/sales/liquidaciones`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
 }
 
 export async function activarUsuario(id: string): Promise<void> {
