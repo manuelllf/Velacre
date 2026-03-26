@@ -20,9 +20,9 @@ const STEPS = [
 export default function OnboardingPage() {
   const router = useRouter()
 
-  // Si el usuario ya tiene negocio, saltar al plan
+  // Si el usuario ya tiene negocio, ir al dashboard directamente
   useEffect(() => {
-    getMyNegocio().then(n => { if (n) router.replace('/onboarding/plan') }).catch(() => {})
+    getMyNegocio().then(n => { if (n) router.replace('/dashboard') }).catch(() => {})
   }, [router])
 
   const [tono, setTono] = useState('Profesional')
@@ -307,7 +307,7 @@ export default function OnboardingPage() {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
                 ¿Cómo quieres que suenen tus respuestas?
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {TONOS.map(t => (
                   <button
                     key={t.value}

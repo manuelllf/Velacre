@@ -163,21 +163,21 @@ public class LemonController : ControllerBase
             return Ok(); // Return 200 so LS doesn't retry forever
         }
 
+        var dataEl = root.GetProperty("data");
+
         switch (eventName)
         {
             case "subscription_created":
             case "subscription_resumed":
-                await SetPlan(userGuid, "pro");
+                await SetPlan(userGuid, DetectPlan(dataEl));
                 break;
 
             case "subscription_updated":
-                // Only downgrade if the subscription is no longer active
-                var status = root
-                    .GetProperty("data")
+                var status = dataEl
                     .GetProperty("attributes")
                     .GetProperty("status")
                     .GetString();
-                var plan = status is "active" or "past_due" ? "pro" : "basic";
+                var plan = status is "active" or "past_due" ? DetectPlan(dataEl) : "basic";
                 await SetPlan(userGuid, plan);
                 break;
 
@@ -210,6 +210,23 @@ public class LemonController : ControllerBase
         usuario.Plan = plan;
         await _supabase.From<UsuarioEntity>().Update(usuario);
         _logger.LogInformation("SetPlan: user {UserId} → {Plan}", userId, plan);
+    }
+
+    private static string DetectPlan(JsonElement data)
+    {
+        var variantId = data
+            .GetProperty("attributes")
+            .GetProperty("variant_id")
+            .GetInt32()
+            .ToString();
+
+        var coreVariants = new[]
+        {
+            Environment.GetEnvironmentVariable("LEMONSQUEEZY_VARIANT_ID_CORE_MONTHLY") ?? "",
+            Environment.GetEnvironmentVariable("LEMONSQUEEZY_VARIANT_ID_CORE_YEARLY")  ?? ""
+        };
+
+        return coreVariants.Contains(variantId) ? "core" : "pro";
     }
 
     private static string ComputeHmacSha256Hex(string data, string key)

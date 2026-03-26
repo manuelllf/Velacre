@@ -374,8 +374,8 @@ export default function DashboardPage() {
                     className={`border-l-4 border rounded-xl p-4 ${reviewBorderClass(review.starRating)}`}
                   >
                     {/* Header row */}
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
                         <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                           {review.authorName ?? 'Cliente anónimo'}
                         </span>

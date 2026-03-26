@@ -28,7 +28,9 @@ export default function AuthCallback() {
         // Intentar obtener perfil existente
         try {
           const u = await getMyUsuario()
-          router.replace(u.isAdmin ? '/admin' : '/dashboard')
+          if (u.isAdmin) router.replace('/admin')
+          else if (u.rol === 'sales') router.replace('/sales')
+          else router.replace('/dashboard')
         } catch {
           // Usuario nuevo — crear perfil con nombre de Google si está disponible
           const fullName =

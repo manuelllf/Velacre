@@ -340,7 +340,7 @@ export default function SettingsPage() {
               <div>
                 <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-1">Tono de las respuestas</label>
                 <p className="text-sm text-slate-400 dark:text-slate-500 mb-3">El tono se usará para generar las respuestas automáticas. Puedes cambiarlo cuando quieras.</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {TONOS.map(tono => (
                     <button
                       key={tono.value}
