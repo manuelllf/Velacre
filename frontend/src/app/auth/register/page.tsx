@@ -74,7 +74,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Crea tu cuenta gratis</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Crea tu cuenta</h1>
           <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Empieza a responder reseñas en minutos</p>
         </div>
 
@@ -155,7 +155,7 @@ export default function RegisterPage() {
               disabled={disabled}
               className="w-full bg-indigo-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+              {loading ? 'Creando cuenta...' : 'Crear cuenta'}
             </button>
 
             <p className="text-center text-sm text-slate-400 dark:text-slate-500">

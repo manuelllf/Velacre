@@ -146,7 +146,7 @@ export default function SettingsPage() {
           {plan === 'basic' ? (
             <>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Estás en el plan gratuito. Elige un plan para desbloquear todo Velacre.
+                Elige un plan para activar Velacre.
               </p>
 
               {/* Toggle mensual / anual */}
