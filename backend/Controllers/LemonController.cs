@@ -177,8 +177,10 @@ public class LemonController : ControllerBase
                     .GetProperty("attributes")
                     .GetProperty("status")
                     .GetString();
-                var plan = status is "active" or "past_due" ? DetectPlan(dataEl) : "basic";
-                await SetPlan(userGuid, plan);
+                // "cancelled" = user cancelled but period not ended → keep plan
+                // Only update plan for active/past_due states
+                if (status is "active" or "past_due")
+                    await SetPlan(userGuid, DetectPlan(dataEl));
                 break;
 
             case "subscription_cancelled":

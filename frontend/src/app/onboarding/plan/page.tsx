@@ -30,7 +30,7 @@ export default function OnboardingPlanPage() {
       try {
         const [n, u] = await Promise.all([getMyNegocio(), getMyUsuario()])
         if (!n) { router.replace('/onboarding'); return }
-        if (u.plan && u.plan !== 'basic') { router.replace('/dashboard'); return }
+        if (u.plan && u.plan !== 'basic') { router.replace('/inicio'); return }
       } catch {
         router.replace('/onboarding')
         return
@@ -174,7 +174,7 @@ export default function OnboardingPlanPage() {
 
       {/* Skip */}
       <button
-        onClick={() => router.replace('/dashboard')}
+        onClick={() => router.replace('/inicio')}
         disabled={loading !== null}
         className="text-sm text-slate-500 hover:text-slate-400 transition-colors cursor-pointer disabled:opacity-50"
       >

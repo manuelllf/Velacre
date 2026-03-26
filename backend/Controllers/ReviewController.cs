@@ -183,6 +183,7 @@ public class ReviewController : ControllerBase
                 reviewDate = r.ReviewDate ?? r.CreadoFecha,
                 clientereview = r.ClienteReview,
                 reviewLanguage = r.ReviewLanguage,
+                estado = r.Estado,
                 respuestaProfesional = r.RespuestaProfesional,
                 respuestaCercano = r.RespuestaCercano,
                 respuestaDirecto = r.RespuestaDirecto,
@@ -342,6 +343,7 @@ public class ReviewController : ControllerBase
                 starRating = r.StarRating,
                 reviewDate = r.ReviewDate ?? r.CreadoFecha,
                 clientereview = r.ClienteReview,
+                estado = r.Estado,
                 respuestaProfesional = r.RespuestaProfesional,
                 respuestaCercano = r.RespuestaCercano,
                 respuestaDirecto = r.RespuestaDirecto,
@@ -574,4 +576,28 @@ public class ReviewController : ControllerBase
     // Mantenemos el endpoint viejo para no romper llamadas existentes
     [HttpPost("summary")]
     public Task<IActionResult> GetSummary() => GenerateAnalysis();
+
+    [HttpPut("{id}/estado")]
+    public async Task<IActionResult> SetEstado(Guid id, [FromBody] SetEstadoRequest request)
+    {
+        if (request.Estado != "pendiente" && request.Estado != "respondida" && request.Estado != "ignorada")
+            return BadRequest("Estado inválido");
+
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var negocioResult = await _supabase.From<NegocioEntity>()
+            .Where(n => n.IdUsuario == userId).Limit(1).Get();
+        var negocio = negocioResult.Models.FirstOrDefault();
+        if (negocio == null) return NotFound("Negocio no encontrado");
+
+        var reviewResult = await _supabase.From<ReviewEntity>()
+            .Where(r => r.Id == id && r.IdNegocio == negocio.Id).Limit(1).Get();
+        var review = reviewResult.Models.FirstOrDefault();
+        if (review == null) return NotFound("Reseña no encontrada");
+
+        review.Estado = request.Estado;
+        await _supabase.From<ReviewEntity>().Where(r => r.Id == id).Update(review);
+        return Ok(new { id, estado = request.Estado });
+    }
 }
+
+public record SetEstadoRequest(string Estado);

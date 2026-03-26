@@ -56,6 +56,7 @@ export interface PendingReview {
   respuestaDirecto?: string
   tonoGenerado?: string
   reviewLanguage?: string
+  estado?: string
 }
 
 export async function generateResponses(
@@ -282,6 +283,24 @@ export async function getAllReviews(): Promise<PendingReview[]> {
     throw new ApiError(res.status, body)
   }
   return res.json()
+}
+
+export async function setReviewEstado(id: string, estado: 'pendiente' | 'respondida' | 'ignorada'): Promise<void> {
+  const res = await fetch(`${API_URL}/api/review/${id}/estado`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify({ estado }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+export async function asignarRol(id: string, rol: 'cliente' | 'admin'): Promise<void> {
+  const res = await fetch(`${API_URL}/api/admin/usuarios/${id}/rol`, {
+    method: 'PUT',
+    headers: await authHeaders(),
+    body: JSON.stringify({ rol }),
+  })
+  if (!res.ok) throw new Error(await res.text())
 }
 
 export async function getPendingReviews(): Promise<PendingReview[]> {

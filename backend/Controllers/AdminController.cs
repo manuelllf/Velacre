@@ -20,14 +20,20 @@ public class AdminController : ControllerBase
         _adminUserId = Guid.Parse(Environment.GetEnvironmentVariable("ADMIN_USER_ID") ?? "00000000-0000-0000-0000-000000000000");
     }
 
-    private bool IsAdmin() => Guid.Parse(User.FindFirst("sub")!.Value) == _adminUserId;
+    private async Task<bool> IsAdminAsync()
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        if (userId == _adminUserId) return true;
+        var r = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
+        return r.Models.FirstOrDefault()?.Rol == "admin";
+    }
 
     // ─── Usuarios ────────────────────────────────────────────────────────────
 
     [HttpGet("usuarios")]
     public async Task<IActionResult> GetUsuarios()
     {
-        if (!IsAdmin()) return Forbid();
+        if (!await IsAdminAsync()) return Forbid();
 
         var usuariosResult = await _supabase.From<UsuarioEntity>().Get();
         var negociosResult = await _supabase.From<NegocioEntity>().Get();
@@ -80,7 +86,7 @@ public class AdminController : ControllerBase
     [HttpPost("usuarios/{id}/estado")]
     public async Task<IActionResult> CambiarEstado(Guid id, [FromBody] CambiarEstadoRequest request)
     {
-        if (!IsAdmin()) return Forbid();
+        if (!await IsAdminAsync()) return Forbid();
         if (request.Estado != "activo" && request.Estado != "baneado" && request.Estado != "prueba")
             return BadRequest("Estado inválido. Valores: activo, baneado, prueba");
 
@@ -112,7 +118,7 @@ public class AdminController : ControllerBase
     [HttpPost("usuarios/{id}/pro-override")]
     public async Task<IActionResult> ProOverride(Guid id, [FromBody] ProOverrideRequest request)
     {
-        if (!IsAdmin()) return Forbid();
+        if (!await IsAdminAsync()) return Forbid();
 
         var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
         var usuario = result.Models.FirstOrDefault();
@@ -133,7 +139,7 @@ public class AdminController : ControllerBase
     [HttpPut("usuarios/{id}/notas")]
     public async Task<IActionResult> ActualizarNotas(Guid id, [FromBody] NotasAdminRequest request)
     {
-        if (!IsAdmin()) return Forbid();
+        if (!await IsAdminAsync()) return Forbid();
 
         var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
         var usuario = result.Models.FirstOrDefault();
@@ -149,7 +155,7 @@ public class AdminController : ControllerBase
     [HttpPost("usuarios/{id}/plan")]
     public async Task<IActionResult> CambiarPlan(Guid id, [FromBody] CambiarPlanRequest request)
     {
-        if (!IsAdmin()) return Forbid();
+        if (!await IsAdminAsync()) return Forbid();
         if (request.Plan != "basic" && request.Plan != "core" && request.Plan != "pro")
             return BadRequest("Plan inválido. Valores: basic, core, pro");
 
@@ -168,7 +174,7 @@ public class AdminController : ControllerBase
     [HttpPut("negocios/{negocioId}/place")]
     public async Task<IActionResult> SetPlaceId(Guid negocioId, [FromBody] SetPlaceIdRequest request)
     {
-        if (!IsAdmin()) return Forbid();
+        if (!await IsAdminAsync()) return Forbid();
         if (string.IsNullOrWhiteSpace(request.PlaceId)) return BadRequest("place_id no puede estar vacío.");
 
         try
@@ -197,15 +203,34 @@ public class AdminController : ControllerBase
     [HttpPost("usuarios/{id}/activar")]
     public async Task<IActionResult> Activar(Guid id)
     {
-        if (!IsAdmin()) return Forbid();
+        if (!await IsAdminAsync()) return Forbid();
         return await CambiarEstado(id, new CambiarEstadoRequest("activo", null));
     }
 
     [HttpPost("usuarios/{id}/desactivar")]
     public async Task<IActionResult> Desactivar(Guid id)
     {
-        if (!IsAdmin()) return Forbid();
+        if (!await IsAdminAsync()) return Forbid();
         return await CambiarEstado(id, new CambiarEstadoRequest("baneado", null));
+    }
+
+    // ─── Asignar Rol ──────────────────────────────────────────────────────────
+
+    [HttpPut("usuarios/{id}/rol")]
+    public async Task<IActionResult> AsignarRol(Guid id, [FromBody] AsignarRolRequest request)
+    {
+        if (!await IsAdminAsync()) return Forbid();
+        if (request.Rol != "cliente" && request.Rol != "admin")
+            return BadRequest("Rol inválido. Valores: cliente, admin");
+
+        var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
+        var usuario = result.Models.FirstOrDefault();
+        if (usuario == null) return NotFound();
+
+        usuario.Rol = request.Rol;
+        await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Update(usuario);
+        _logger.LogInformation("[AdminController] Usuario {UserId} rol → {Rol}", id, request.Rol);
+        return Ok(new { rol = request.Rol });
     }
 }
 
@@ -216,3 +241,4 @@ public record ProOverrideRequest(bool Activo, int? DiasExpira);
 public record NotasAdminRequest(string? Notas);
 public record CambiarPlanRequest(string Plan);
 public record SetPlaceIdRequest(string PlaceId);
+public record AsignarRolRequest(string Rol);

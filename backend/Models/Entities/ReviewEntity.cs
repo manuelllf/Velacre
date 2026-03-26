@@ -62,4 +62,8 @@ public class ReviewEntity : BaseModel
 
     [Column("review_language")]
     public string? ReviewLanguage { get; set; }
+
+    /// <summary>Estado de la reseña: "pendiente" | "respondida" | "ignorada"</summary>
+    [Column("estado")]
+    public string Estado { get; set; } = "pendiente";
 }

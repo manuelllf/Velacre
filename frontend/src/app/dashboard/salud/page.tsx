@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData } from '@/lib/api'
+import SectionNav from '@/components/SectionNav'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, type MonthMetrics } from '@/lib/report-pdf'
 
 const STOPWORDS = new Set([
@@ -60,6 +61,7 @@ export default function SaludPage() {
   const [summary, setSummary] = useState<SummaryData | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [userPlan, setUserPlan] = useState<string>('basic')
   const [downloadingPdf, setDownloadingPdf] = useState<'month' | 'year' | null>(null)
   const [aiLimitReached, setAiLimitReached] = useState(false)
   const [metrics, setMetrics] = useState<VelacreMetrics | null>(null)
@@ -77,6 +79,7 @@ export default function SaludPage() {
           getAnalysis().catch(() => null),
         ])
         setIsAdmin(u.isAdmin)
+        setUserPlan(u.plan ?? 'basic')
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
@@ -241,7 +244,7 @@ export default function SaludPage() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center justify-between h-12">
             <div className="flex items-center gap-2">
-              <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
+              <Link href="/inicio" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
               {negocio && <span className="hidden sm:inline text-sm text-slate-500 dark:text-slate-400 font-normal">· {negocio.nombre}</span>}
             </div>
             <button
@@ -252,21 +255,47 @@ export default function SaludPage() {
               <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
           </div>
-          <nav className="flex gap-1 overflow-x-auto pb-2">
-            <Link href="/dashboard" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Reseñas</Link>
-            <span className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white whitespace-nowrap">Salud</span>
-            <Link href="/settings" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Configuración</Link>
-            {isAdmin && (
-              <Link href="/admin" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 whitespace-nowrap">
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                Admin
-              </Link>
-            )}
-          </nav>
         </div>
       </header>
+      <SectionNav />
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+      {/* Pro lock overlay for non-Pro users */}
+      {userPlan !== 'pro' && (
+        <div className="relative">
+          <div className="max-w-5xl mx-auto px-4 py-6 space-y-5" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
+            {/* Dummy blurred charts */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[['4.2', 'Nota media'], ['87%', 'Respuestas'], ['124', 'Reseñas'], ['+12%', 'Tendencia']].map(([val, label]) => (
+                <div key={label} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{val}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 h-48" />
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 h-32" />
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-8 text-center max-w-sm mx-4">
+              <div className="w-12 h-12 bg-violet-100 dark:bg-violet-900/40 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Panel de Salud Pro</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Este panel está disponible con el plan Pro. Accede a analítica de reputación, tendencias y resumen IA.</p>
+              <Link
+                href="/onboarding/plan"
+                className="block w-full py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-sm transition-colors text-center"
+              >
+                Ver planes
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {userPlan === 'pro' && <main className="max-w-5xl mx-auto px-4 py-6 space-y-5">
 
         {/* ── CABECERA DE PÁGINA ── */}
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -607,7 +636,7 @@ export default function SaludPage() {
             </div>
           </>
         )}
-      </main>
+      </main>}
 
       <footer className="mt-8 border-t border-slate-800 py-5">
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">

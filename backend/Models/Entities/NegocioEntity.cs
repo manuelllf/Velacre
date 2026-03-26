@@ -33,10 +33,6 @@ public class NegocioEntity : BaseModel
     [Column("idusuario")]
     public Guid? IdUsuario { get; set; }
 
-    /// <summary>ID del comercial (Sales) que gestionó la captación de este negocio</summary>
-    [Column("sales_id")]
-    public Guid? SalesId { get; set; }
-
     [Column("creadopor")]
     public Guid CreadoPor { get; set; }
 

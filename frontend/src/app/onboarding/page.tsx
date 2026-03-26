@@ -22,7 +22,7 @@ export default function OnboardingPage() {
 
   // Si el usuario ya tiene negocio, ir al dashboard directamente
   useEffect(() => {
-    getMyNegocio().then(n => { if (n) router.replace('/dashboard') }).catch(() => {})
+    getMyNegocio().then(n => { if (n) router.replace('/inicio') }).catch(() => {})
   }, [router])
 
   const [tono, setTono] = useState('Profesional')
