@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
@@ -26,19 +25,9 @@ const DEMO_REVIEW = {
 const DEMO_RESPONSE = `Estimado Carlos, lamentamos profundamente que su experiencia no haya estado a la altura de nuestros estándares. Los tiempos de espera que describes y el servicio recibido no reflejan los valores que nos guían. Hemos trasladado tu comentario al equipo y tomaremos las medidas necesarias para que no se repita. Te invitamos a darnos una nueva oportunidad — con mucho gusto nos pondremos en contacto contigo directamente para compensarte.`
 
 export default function LandingPage() {
-  const router = useRouter()
-  const [loggedIn, setLoggedIn] = useState(false)
-  const [checking, setChecking] = useState(true)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [typedText, setTypedText] = useState('')
   const [showResponse, setShowResponse] = useState(false)
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setLoggedIn(!!session)
-      setChecking(false)
-    })
-  }, [])
 
   // Typing animation for demo response
   useEffect(() => {
@@ -61,12 +50,6 @@ export default function LandingPage() {
     })
   }
 
-  if (checking) return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950">
-      <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
-
   return (
     <div className="min-h-screen bg-slate-950 text-white">
 
@@ -75,23 +58,12 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-xl font-bold tracking-tight text-white">Velacre</button>
           <div className="flex items-center gap-3">
-            {loggedIn ? (
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Mi panel →
-              </button>
-            ) : (
-              <>
-                <Link href="/auth/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2">
-                  Iniciar sesión
-                </Link>
-                <Link href="/auth/register" className="text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-colors">
-                  Empezar gratis
-                </Link>
-              </>
-            )}
+            <Link href="/auth/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2">
+              Iniciar sesión
+            </Link>
+            <Link href="/auth/register" className="text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-colors">
+              Empezar gratis
+            </Link>
           </div>
         </div>
       </header>
