@@ -209,8 +209,10 @@ public class LemonController : ControllerBase
             _logger.LogWarning("SetPlan: user {UserId} not found", userId);
             return;
         }
-        usuario.Plan = plan;
-        await _supabase.From<UsuarioEntity>().Update(usuario);
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == userId)
+            .Set(u => u.Plan, plan)
+            .Update();
         _logger.LogInformation("SetPlan: user {UserId} → {Plan}", userId, plan);
     }
 

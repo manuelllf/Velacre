@@ -40,6 +40,7 @@ builder.Services.AddScoped<IReviewAiService>(sp =>
 
 builder.Services.AddHttpClient<IGooglePlacesService, GooglePlacesService>();
 builder.Services.AddHttpClient<IOutscraperService, OutscraperService>();
+builder.Services.AddScoped<EmailService>();
 
 builder.Services.AddSingleton<Supabase.Client>(sp =>
 {

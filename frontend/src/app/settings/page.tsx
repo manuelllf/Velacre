@@ -130,238 +130,245 @@ export default function SettingsPage() {
       </header>
       <SectionNav />
 
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-2xl mx-auto px-4 py-6 space-y-4">
 
         {/* Plan */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">{s.planSection}</h2>
-
+        <section className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.planSection}</h2>
+          </div>
+          <div className="p-5">
           {plan === 'basic' ? (
             <>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                {s.planChoose}
-              </p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{s.planChoose}</p>
 
-              {/* Toggle monthly / yearly */}
-              <div className="flex items-center justify-center mb-5">
-                <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
-                  <button
-                    type="button"
-                    onClick={() => setBilling('monthly')}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${billing === 'monthly' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                  >
-                    {s.monthly}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBilling('yearly')}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${billing === 'yearly' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                  >
-                    {s.yearly}
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">−17%</span>
-                  </button>
-                </div>
+              {/* Billing toggle */}
+              <div className="flex items-center gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setBilling('monthly')}
+                  className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors cursor-pointer ${billing === 'monthly' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white' : 'border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400'}`}
+                >
+                  {s.monthly}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBilling('yearly')}
+                  className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1.5 ${billing === 'yearly' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white' : 'border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400'}`}
+                >
+                  {s.yearly}
+                  <span className="text-emerald-500 dark:text-emerald-400">−17%</span>
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Core */}
-                <div className="rounded-xl border-2 border-slate-200 dark:border-slate-600 p-5 flex flex-col gap-3">
-                  <div>
-                    <p className="text-base font-bold text-slate-900 dark:text-white">Core</p>
+              <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                {/* Core row */}
+                <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Core</p>
+                    <ul className="mt-1 space-y-0.5">
+                      {s.planCore.map(f => (
+                        <li key={f} className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                          <span className="text-slate-400">·</span>{f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="ml-4 text-right flex-shrink-0">
                     {billing === 'yearly' ? (
-                      <div className="mt-1">
-                        <p className="text-2xl font-extrabold text-slate-900 dark:text-white">190 €<span className="text-sm font-normal text-slate-400">/año</span></p>
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">≈ 15,83 €/mes · 2 meses gratis</p>
+                      <div>
+                        <p className="text-lg font-bold text-slate-900 dark:text-white">190 €<span className="text-xs font-normal text-slate-400">/año</span></p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">≈ 15,83 €/mes</p>
                       </div>
                     ) : (
-                      <p className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">19 €<span className="text-sm font-normal text-slate-400">/mes</span></p>
+                      <p className="text-lg font-bold text-slate-900 dark:text-white">19 €<span className="text-xs font-normal text-slate-400">/mes</span></p>
                     )}
+                    <button
+                      onClick={() => handleUpgrade('core')}
+                      disabled={checkoutLoading !== null}
+                      className="mt-2 px-4 py-1.5 rounded border border-slate-300 dark:border-slate-600 text-xs font-medium text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      {checkoutLoading === 'core' && <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />}
+                      {checkoutLoading === 'core' ? s.planRedirecting : s.planChooseCore}
+                    </button>
                   </div>
-                  <ul className="space-y-1 text-sm text-slate-600 dark:text-slate-300 flex-1">
-                    {s.planCore.map(f => (
-                      <li key={f} className="flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => handleUpgrade('core')}
-                    disabled={checkoutLoading !== null}
-                    className="w-full py-2 rounded-xl border-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    {checkoutLoading === 'core' && <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />}
-                    {checkoutLoading === 'core' ? s.planRedirecting : s.planChooseCore}
-                  </button>
                 </div>
 
-                {/* Pro */}
-                <div className="rounded-xl border-2 border-indigo-500 dark:border-indigo-400 p-5 flex flex-col gap-3 relative">
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-0.5 rounded-full bg-indigo-600 text-white">{s.planRecommended}</span>
-                  <div>
-                    <p className="text-base font-bold text-slate-900 dark:text-white">Pro</p>
+                {/* Pro row */}
+                <div className="flex items-center justify-between p-4 bg-indigo-50/50 dark:bg-indigo-950/20">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Pro</p>
+                      <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-1.5 py-0.5 rounded">{s.planRecommended}</span>
+                    </div>
+                    <ul className="mt-1 space-y-0.5">
+                      {s.planPro.map(f => (
+                        <li key={f} className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                          <span className="text-indigo-400">·</span>{f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="ml-4 text-right flex-shrink-0">
                     {billing === 'yearly' ? (
-                      <div className="mt-1">
-                        <p className="text-2xl font-extrabold text-slate-900 dark:text-white">290 €<span className="text-sm font-normal text-slate-400">/año</span></p>
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">≈ 24,17 €/mes · 2 meses gratis</p>
+                      <div>
+                        <p className="text-lg font-bold text-slate-900 dark:text-white">290 €<span className="text-xs font-normal text-slate-400">/año</span></p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">≈ 24,17 €/mes</p>
                       </div>
                     ) : (
-                      <p className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">29 €<span className="text-sm font-normal text-slate-400">/mes</span></p>
+                      <p className="text-lg font-bold text-slate-900 dark:text-white">29 €<span className="text-xs font-normal text-slate-400">/mes</span></p>
                     )}
+                    <button
+                      onClick={() => handleUpgrade('pro')}
+                      disabled={checkoutLoading !== null}
+                      className="mt-2 px-4 py-1.5 rounded bg-indigo-600 hover:bg-indigo-700 text-xs font-medium text-white disabled:opacity-50 transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      {checkoutLoading === 'pro' && <span className="w-3 h-3 border border-white/60 border-t-transparent rounded-full animate-spin" />}
+                      {checkoutLoading === 'pro' ? s.planRedirecting : s.planChoosePro}
+                    </button>
                   </div>
-                  <ul className="space-y-1 text-sm text-slate-600 dark:text-slate-300 flex-1">
-                    {s.planPro.map(f => (
-                      <li key={f} className="flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => handleUpgrade('pro')}
-                    disabled={checkoutLoading !== null}
-                    className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    {checkoutLoading === 'pro' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                    {checkoutLoading === 'pro' ? s.planRedirecting : s.planChoosePro}
-                  </button>
                 </div>
               </div>
             </>
           ) : (
-            <div className="mt-3 flex items-center gap-3 px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
-              <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <div>
-                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300 capitalize">{s.planCurrent.replace('{plan}', plan)}</p>
-                <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-0.5">{s.planThanks}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Google Business */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">{s.googleSection}</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
-            {s.googleDesc}
-          </p>
-          {negocio?.placeId ? (
-            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-              <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg">
+              <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <div>
-                <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">{negocio.nombre}</p>
-                <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">{s.googleConnected}</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white capitalize">{s.planCurrent.replace('{plan}', plan)}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.planThanks}</p>
               </div>
             </div>
-          ) : (
-            <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm text-amber-700 dark:text-amber-300 font-medium">{s.googleNotConnected}</span>
-            </div>
           )}
-        </div>
+          </div>
+        </section>
 
-        <form onSubmit={handleSave} className="space-y-6">
+        {/* Google Business */}
+        <section className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.googleSection}</h2>
+          </div>
+          <div className="p-5">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{s.googleDesc}</p>
+            {negocio?.placeId ? (
+              <div className="flex items-center gap-2.5 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <div>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">{negocio.nombre}</p>
+                  <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">{s.googleConnected}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-amber-700 dark:text-amber-300">{s.googleNotConnected}</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <form onSubmit={handleSave} className="space-y-4">
           {/* Personal data */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-5">{s.profileSection}</h2>
-            <div>
-              <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">{s.nameLabel}</label>
+          <section className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.profileSection}</h2>
+            </div>
+            <div className="p-5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.nameLabel}</label>
               <input
                 type="text"
                 value={nombre}
                 onChange={e => setNombre(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="María, Carlos, Ana..."
               />
             </div>
-          </div>
+          </section>
 
           {/* Business data */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-5">{s.businessSection}</h2>
-            <div className="space-y-4">
+          <section className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.businessSection}</h2>
+            </div>
+            <div className="p-5 space-y-4">
               <div>
-                <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">{s.businessNameLabel}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.businessNameLabel}</label>
                 <input
                   type="text"
                   value={form.nombre}
                   onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">{s.emailLabel}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.emailLabel}</label>
                   <input
                     type="email"
                     value={form.email}
                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="contacto@negocio.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">{s.phoneLabel}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.phoneLabel}</label>
                   <input
                     type="tel"
                     value={form.telefono}
                     onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))}
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="981 000 000"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
-                  {s.descLabel}
-                </label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.descLabel}</label>
                 <textarea
                   rows={3}
                   value={form.descripcion}
                   onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
-                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
                   placeholder={s.descPlaceholder}
                 />
               </div>
               <div>
-                <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-1">{s.toneSection}</label>
-                <p className="text-sm text-slate-400 dark:text-slate-500 mb-3">{s.toneSubtitle}</p>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{s.toneSection}</label>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{s.toneSubtitle}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {TONOS.map(tono => (
                     <button
                       key={tono.value}
                       type="button"
                       onClick={() => setForm(f => ({ ...f, tonopredefinido: tono.value }))}
-                      className={`p-3 rounded-xl border-2 text-left transition-colors cursor-pointer ${
+                      className={`p-3 rounded-lg border text-left transition-colors cursor-pointer ${
                         form.tonopredefinido === tono.value
-                          ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30'
+                          ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
                           : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
                       }`}
                     >
-                      <div className="text-base font-medium text-slate-900 dark:text-white">{tono.label}</div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{tono.desc}</div>
+                      <div className="text-sm font-medium text-slate-900 dark:text-white">{tono.label}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tono.desc}</div>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
           {error && (
-            <p className="text-base text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-xl">{error}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2.5 rounded-lg border border-red-200 dark:border-red-800">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {saving ? (
               <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.app.common.saving}</>

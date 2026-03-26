@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Models.Entities;
 using backend.Models.Requests;
+using backend.Services;
 
 namespace backend.Controllers;
 
@@ -13,12 +14,14 @@ public class UsuarioController : ControllerBase
     private readonly Supabase.Client _supabase;
     private readonly ILogger<UsuarioController> _logger;
     private readonly Guid _adminUserId;
+    private readonly EmailService _email;
 
-    public UsuarioController(Supabase.Client supabase, ILogger<UsuarioController> logger)
+    public UsuarioController(Supabase.Client supabase, ILogger<UsuarioController> logger, EmailService email)
     {
         _supabase = supabase;
         _logger = logger;
         _adminUserId = Guid.Parse(Environment.GetEnvironmentVariable("ADMIN_USER_ID") ?? "00000000-0000-0000-0000-000000000000");
+        _email = email;
     }
 
     [HttpGet("me")]
@@ -58,12 +61,13 @@ public class UsuarioController : ControllerBase
         var usuario = result.Models.FirstOrDefault();
         if (usuario == null) return NotFound();
 
-        usuario.Nombre = request.Nombre ?? usuario.Nombre;
-        usuario.Telefono = request.Telefono ?? usuario.Telefono;
-        usuario.ActualizadoPor = userId;
-        usuario.ActualizadoFecha = DateTimeOffset.UtcNow;
-
-        await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == userId)
+            .Set(u => u.Nombre,           request.Nombre    ?? usuario.Nombre)
+            .Set(u => u.Telefono,         request.Telefono  ?? usuario.Telefono)
+            .Set(u => u.ActualizadoPor,   userId)
+            .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
+            .Update();
         _logger.LogInformation("[UsuarioController] Perfil actualizado para userId={UserId}", userId);
         return Ok(new { id = usuario.Id, nombre = usuario.Nombre, telefono = usuario.Telefono });
     }
@@ -98,6 +102,11 @@ public class UsuarioController : ControllerBase
             }
 
             _logger.LogInformation("[UsuarioController] Perfil creado para userId={UserId}", userId);
+
+            // Fire-and-forget welcome email
+            if (!string.IsNullOrEmpty(email))
+                _ = _email.SendWelcomeAsync(email, request.Nombre ?? "");
+
             return NoContent();
         }
         catch (Exception ex)
