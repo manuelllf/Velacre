@@ -120,6 +120,17 @@ export default function InicioPage() {
           </Link>
         </div>
       </main>
+
+      <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-5">
+        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
+          <span>© {new Date().getFullYear()} Velacre · Todos los derechos reservados</span>
+          <div className="flex gap-4">
+            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Privacidad</Link>
+            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Términos</Link>
+            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Contacto</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
