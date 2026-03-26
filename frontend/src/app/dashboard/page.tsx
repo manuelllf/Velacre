@@ -11,12 +11,14 @@ import {
   getPendingReviews,
   generateForReview,
   syncReviews,
+  setReviewEstado,
   ApiError,
   type ReviewResponses,
   type Negocio,
   type PendingReview,
 } from '@/lib/api'
 import ResponseCard from '@/components/ResponseCard'
+import SectionNav from '@/components/SectionNav'
 
 function StarRating({ rating }: { rating?: number }) {
   if (!rating) return null
@@ -93,6 +95,8 @@ export default function DashboardPage() {
   const [manualOpen, setManualOpen] = useState(false)
   // contexto[reviewId] = { cliente, respuesta } — resumen en español para reseñas en otro idioma
   const [contextos, setContextos] = useState<Record<string, { cliente: string; respuesta: string }>>({})
+  const [estadoFilter, setEstadoFilter] = useState<'todas' | 'pendiente' | 'respondida' | 'ignorada'>('pendiente')
+  const [updatingEstado, setUpdatingEstado] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     async function init() {
@@ -104,9 +108,7 @@ export default function DashboardPage() {
       try {
         // Parallelizar usuario + negocio para reducir tiempo de carga
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
-        // Admin y Sales tienen su propio panel, no necesitan negocio
         if (u.isAdmin || u.rol === 'admin') { router.replace('/admin'); return }
-        if (u.rol === 'sales') { router.replace('/sales'); return }
         setUserPlan(u.plan ?? 'basic')
         setUserId(u.id)
         setIsAdmin(u.isAdmin)
@@ -212,6 +214,18 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleSetEstado(reviewId: string, estado: 'pendiente' | 'respondida' | 'ignorada') {
+    setUpdatingEstado(prev => new Set(prev).add(reviewId))
+    try {
+      await setReviewEstado(reviewId, estado)
+      setPendingReviews(prev => prev.map(r => r.id === reviewId ? { ...r, estado } : r))
+    } catch {
+      // silently fail
+    } finally {
+      setUpdatingEstado(prev => { const s = new Set(prev); s.delete(reviewId); return s })
+    }
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut()
     router.replace('/')
@@ -253,7 +267,7 @@ export default function DashboardPage() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center justify-between h-12">
             <div className="flex items-center gap-2">
-              <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
+              <Link href="/inicio" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
               {negocio && <span className="hidden sm:inline text-sm text-slate-500 dark:text-slate-400 font-normal">· {negocio.nombre}</span>}
             </div>
             <button
@@ -264,19 +278,9 @@ export default function DashboardPage() {
               <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
           </div>
-          <nav className="flex gap-1 overflow-x-auto pb-2">
-            <span className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white whitespace-nowrap">Reseñas</span>
-            <Link href="/dashboard/salud" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Salud</Link>
-            <Link href="/settings" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Configuración</Link>
-            {isAdmin && (
-              <Link href="/admin" className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 whitespace-nowrap">
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                Admin
-              </Link>
-            )}
-          </nav>
         </div>
       </header>
+      <SectionNav />
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         {/* Pending reviews section */}
@@ -331,14 +335,31 @@ export default function DashboardPage() {
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{syncMessage}</p>
           )}
 
-          <p className="text-base text-slate-500 dark:text-slate-400 mb-5 mt-3">
-            Estas reseñas están esperando tu respuesta. Genera una con IA y cópiala en Google.
+          <p className="text-base text-slate-500 dark:text-slate-400 mb-3 mt-3">
+            Gestiona tus reseñas de Google. Genera respuestas con IA y márcalas como respondidas.
             {negocio && (
               <span className="ml-1 font-medium text-indigo-600 dark:text-indigo-400">
                 ({negocio.tonopredefinido})
               </span>
             )}
           </p>
+
+          {/* Estado filter tabs */}
+          <div className="flex gap-1 mb-4 overflow-x-auto">
+            {(['todas', 'pendiente', 'respondida', 'ignorada'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setEstadoFilter(f)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                  estadoFilter === f
+                    ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                {f === 'todas' ? 'Todas' : f === 'pendiente' ? 'Pendientes' : f === 'respondida' ? 'Respondidas' : 'Ignoradas'}
+              </button>
+            ))}
+          </div>
 
           {loadingPending ? (
             <div className="space-y-3">
@@ -359,15 +380,20 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-          ) : pendingReviews.length === 0 ? (
-            <div className="text-center py-8 text-slate-400 dark:text-slate-500">
-              <p className="text-base font-medium text-slate-600 dark:text-slate-300">Todo al día 👍</p>
-              <p className="text-sm mt-1">No tienes reseñas pendientes. Cuando lleguen nuevas, aparecerán aquí.</p>
-            </div>
-          ) : (
+          ) : (() => {
+            const filtered = estadoFilter === 'todas'
+              ? pendingReviews
+              : pendingReviews.filter(r => (r.estado ?? 'pendiente') === estadoFilter)
+            return filtered.length === 0 ? (
+              <div className="text-center py-8 text-slate-400 dark:text-slate-500">
+                <p className="text-base font-medium text-slate-600 dark:text-slate-300">No hay reseñas en esta categoría</p>
+                <p className="text-sm mt-1">Cambia el filtro o sincroniza para importar nuevas reseñas.</p>
+              </div>
+            ) : (
             <div className="space-y-3">
-              {pendingReviews.map(review => {
+              {filtered.map(review => {
                 const isNegative = (review.starRating ?? 5) <= 2
+                const estadoActual = review.estado ?? 'pendiente'
                 return (
                   <div
                     key={review.id}
@@ -460,11 +486,43 @@ export default function DashboardPage() {
                         )}
                       </button>
                     )}
+
+                    {/* Estado action buttons */}
+                    <div className="flex items-center gap-2 flex-wrap mt-2">
+                      {estadoActual !== 'respondida' && (
+                        <button
+                          onClick={() => handleSetEstado(review.id, 'respondida')}
+                          disabled={updatingEstado.has(review.id)}
+                          className="text-xs px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50"
+                        >
+                          Marcar respondida
+                        </button>
+                      )}
+                      {estadoActual !== 'ignorada' && (
+                        <button
+                          onClick={() => handleSetEstado(review.id, 'ignorada')}
+                          disabled={updatingEstado.has(review.id)}
+                          className="text-xs px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                        >
+                          Ignorar
+                        </button>
+                      )}
+                      {estadoActual !== 'pendiente' && (
+                        <button
+                          onClick={() => handleSetEstado(review.id, 'pendiente')}
+                          disabled={updatingEstado.has(review.id)}
+                          className="text-xs px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                        >
+                          Marcar pendiente
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )
               })}
             </div>
-          )}
+            )
+          })()}
         </div>
 
         {/* Manual review section (collapsible) */}

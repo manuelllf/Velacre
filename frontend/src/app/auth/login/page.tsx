@@ -61,8 +61,7 @@ export default function LoginPage() {
     try {
       const u = await getMyUsuario()
       if (u.isAdmin || u.rol === 'admin') router.replace('/admin')
-      else if (u.rol === 'sales') router.replace('/sales')
-      else router.replace('/dashboard')
+      else router.replace('/inicio')
     } catch {
       router.replace('/dashboard')
     }
