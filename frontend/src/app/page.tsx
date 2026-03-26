@@ -367,7 +367,7 @@ export default function LandingPage() {
       {/* ── FOOTER ── */}
       <footer className="border-t border-slate-800 py-8">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-slate-500 text-sm">© 2025 Velacre. Todos los derechos reservados.</span>
+          <span className="text-slate-500 text-sm">© 2026 Velacre. Todos los derechos reservados.</span>
           <div className="flex items-center gap-6 text-sm text-slate-500">
             <Link href="/privacidad" className="hover:text-slate-300 transition-colors">Privacidad</Link>
             <Link href="/terminos" className="hover:text-slate-300 transition-colors">Términos</Link>
