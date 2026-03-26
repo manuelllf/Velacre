@@ -255,33 +255,18 @@ public class ReviewController : ControllerBase
 
         try
         {
-            string generated;
-            string? contextoCliente   = null;
-            string? contextoRespuesta = null;
-
-            var isSpanish = string.IsNullOrEmpty(review.ReviewLanguage) || review.ReviewLanguage == "es";
-
-            if (!isSpanish && !string.IsNullOrWhiteSpace(review.ClienteReview))
-            {
-                // Una sola llamada devuelve respuesta + contexto en español
-                var result = await _aiService.GenerateSingleResponseWithContextAsync(
-                    reviewContext,
-                    negocio.Descripcion ?? negocio.Nombre,
-                    tone,
-                    review.ReviewLanguage!
-                );
-                generated         = result.Response;
-                contextoCliente   = result.ContextoCliente;
-                contextoRespuesta = result.ContextoRespuesta;
-            }
-            else
-            {
-                generated = await _aiService.GenerateSingleResponseAsync(
-                    reviewContext,
-                    negocio.Descripcion ?? negocio.Nombre,
-                    tone
-                );
-            }
+            // Siempre usar el método con contexto: genera respuesta en el idioma de la reseña
+            // + contexto en español para el propietario
+            var lang = string.IsNullOrEmpty(review.ReviewLanguage) ? "es" : review.ReviewLanguage;
+            var result = await _aiService.GenerateSingleResponseWithContextAsync(
+                reviewContext,
+                negocio.Descripcion ?? negocio.Nombre,
+                tone,
+                lang
+            );
+            var generated         = result.Response;
+            var contextoCliente   = result.ContextoCliente;
+            var contextoRespuesta = result.ContextoRespuesta;
 
             switch (toneLower)
             {

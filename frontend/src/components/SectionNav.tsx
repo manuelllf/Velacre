@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 const TABS = [
   { href: '/dashboard',       label: 'Reseñas' },
   { href: '/dashboard/salud', label: 'Salud'   },
-  { href: '/settings',        label: 'Config'  },
+  { href: '/settings',        label: 'Configuración' },
 ]
 
 export default function SectionNav() {

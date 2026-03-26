@@ -90,9 +90,12 @@ public class ClaudeService : IReviewAiService
         var systemPrompt =
             $"Eres un experto en reputación online para hostelería en Ferrol, Galicia. " +
             $"Negocio: {businessDesc}. Tono: {tone}. {instructions} " +
-            $"La reseña está en idioma '{reviewLanguage}'. " +
+            $"IMPORTANTE: La reseña está escrita en '{reviewLanguage}'. " +
+            $"La respuesta DEBE estar escrita en ese mismo idioma ('{reviewLanguage}'). " +
+            $"Si la reseña es en español ('es'), responde en español. Si es en inglés ('en'), responde en inglés. Si es en gallego ('gl'), responde en gallego. Etc. " +
+            $"Si la reseña no tiene texto escrito, genera igualmente una respuesta agradeciendo la valoración y basándote en la puntuación de estrellas. " +
             $"Devuelve ÚNICAMENTE este JSON (sin markdown, sin texto extra):\n" +
-            "{\"respuesta\":\"<respuesta en el mismo idioma que la reseña, máx 150 palabras>\"," +
+            "{\"respuesta\":\"<respuesta en el idioma de la reseña, máx 150 palabras>\"," +
             "\"contextoCliente\":\"<una frase en español resumiendo qué dijo el cliente>\"," +
             "\"contextoRespuesta\":\"<una frase en español resumiendo qué responde el negocio>\"}";
 
