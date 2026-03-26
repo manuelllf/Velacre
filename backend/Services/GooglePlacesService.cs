@@ -28,19 +28,7 @@ public class GooglePlacesService : IGooglePlacesService
             return [];
         }
 
-        var requestBody = JsonSerializer.Serialize(new
-        {
-            textQuery = query,
-            languageCode = "es",
-            locationBias = new
-            {
-                circle = new
-                {
-                    center = new { latitude = 42.88, longitude = -8.54 }, // Centro de Galicia
-                    radius = 300000.0 // 300 km — cubre toda Galicia y alrededores
-                }
-            }
-        });
+        var requestBody = JsonSerializer.Serialize(new { textQuery = query, languageCode = "es" });
         var request = new HttpRequestMessage(HttpMethod.Post, "https://places.googleapis.com/v1/places:searchText")
         {
             Content = new StringContent(requestBody, Encoding.UTF8, "application/json")

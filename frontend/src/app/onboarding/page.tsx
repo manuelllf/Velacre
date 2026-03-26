@@ -66,7 +66,7 @@ export default function OnboardingPage() {
     // Siempre cancelar el timer anterior antes de nada
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
-    if (!value.trim() || value.trim().length < 3) {
+    if (!value.trim() || value.trim().length < 2) {
       setPlaceResults([])
       setDropdownOpen(false)
       return
@@ -84,7 +84,7 @@ export default function OnboardingPage() {
       } finally {
         setSearchingPlaces(false)
       }
-    }, 500)
+    }, 300)
   }
 
   function handleSelectPlace(place: PlaceResult) {
