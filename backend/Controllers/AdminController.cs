@@ -286,19 +286,9 @@ public class AdminController : ControllerBase
             negocio.PlaceId = request.PlaceId;
             negocio.ActualizadoFecha = DateTimeOffset.UtcNow;
 
-            var updateResult = await _supabase.From<NegocioEntity>()
-                .Where(n => n.Id == negocioId)
-                .Update(negocio);
+            await _supabase.From<NegocioEntity>().Update(negocio);
 
-            _logger.LogInformation("[AdminController] SetPlaceId: update ejecutado, modelos devueltos={Count}",
-                updateResult.Models.Count);
-
-            // Verificar que el cambio se aplicó leyendo de nuevo
-            var verify = await _supabase.From<NegocioEntity>().Where(n => n.Id == negocioId).Limit(1).Get();
-            var updated = verify.Models.FirstOrDefault();
-            _logger.LogInformation("[AdminController] SetPlaceId: verificación placeId={PlaceId}", updated?.PlaceId);
-
-            return Ok(new { negocioId, old, placeId = updated?.PlaceId });
+            return Ok(new { negocioId, old, placeId = request.PlaceId });
         }
         catch (Exception ex)
         {

@@ -271,13 +271,13 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
   return (
     <Modal title={`Override Pro · ${usuario.nombre ?? usuario.email}`} onClose={onClose}>
       <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-200 dark:border-violet-800">
-          <div>
+        <div className="flex items-center justify-between gap-4 p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-200 dark:border-violet-800">
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-900 dark:text-white">Activar funciones Pro</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sin cambiar el plan ni facturar</p>
           </div>
-          <button onClick={() => setActivo(!activo)} className={`relative w-12 h-6 rounded-full transition-colors cursor-pointer ${activo ? 'bg-violet-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${activo ? 'translate-x-7' : 'translate-x-1'}`} />
+          <button onClick={() => setActivo(!activo)} className={`relative shrink-0 w-11 h-6 rounded-full overflow-hidden transition-colors cursor-pointer ${activo ? 'bg-violet-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${activo ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
         </div>
 
