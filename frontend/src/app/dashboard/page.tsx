@@ -155,7 +155,7 @@ export default function DashboardPage() {
       setSyncStep(3)
       await loadPendingReviews()
       if (result.newReviews > 0) {
-        setSyncMessage(d.syncDone(result.newReviews))
+        setSyncMessage(d.syncDone.replace('{n}', String(result.newReviews)))
       } else {
         setSyncMessage(d.syncNone)
       }

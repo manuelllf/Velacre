@@ -120,7 +120,7 @@ export interface LandingLocale {
       title: string
       syncBtn: string
       syncLoading: string
-      syncDone: (n: number) => string
+      syncDone: string
       syncNone: string
       pendingEmpty: string
       pendingEmptyDesc: string
@@ -203,7 +203,7 @@ export interface LandingLocale {
         Cercano: { label: string; desc: string }
         Directo: { label: string; desc: string }
       }
-      planCurrent: (plan: string) => string
+      planCurrent: string
       planThanks: string
       planChoose: string
       planCore: string[]
