@@ -8,7 +8,7 @@ import {
   generateResponses,
   getMyNegocio,
   getMyUsuario,
-  getPendingReviews,
+  getAllReviews,
   generateForReview,
   syncReviews,
   setReviewEstado,
@@ -135,7 +135,7 @@ export default function DashboardPage() {
   async function loadPendingReviews() {
     setLoadingPending(true)
     try {
-      const reviews = await getPendingReviews()
+      const reviews = await getAllReviews()
       setPendingReviews(reviews)
     } catch {
       // silently fail — no pending reviews to show
@@ -204,6 +204,11 @@ export default function DashboardPage() {
           [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! }
         }))
       }
+      // Auto-marcar como respondida al generar respuesta con IA
+      try {
+        await setReviewEstado(reviewId, 'respondida')
+        setPendingReviews(prev => prev.map(r => r.id === reviewId ? { ...r, estado: 'respondida' } : r))
+      } catch { /* silently fail */ }
     } catch (err) {
       setGeneratedResponses(prev => ({
         ...prev,
