@@ -30,8 +30,8 @@ export default function PrivacidadPage() {
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">1. Responsable del tratamiento</h2>
             <p>
-              El responsable del tratamiento de tus datos personales es <strong>Manuel Llao Freire</strong> (NIF: 32735627A),
-              titular del servicio <strong>Velacre</strong>, con domicilio en Calle Luis de Requesens, 4, 15402 Ferrol, A Coruña, España.
+              El responsable del tratamiento de tus datos personales es <strong>Manuel Llao Freire</strong>,
+              titular del servicio <strong>Velacre</strong>, con domicilio en A Coruña, Galicia, España.
             </p>
             <p className="mt-2">
               Para cualquier consulta relacionada con la privacidad puedes contactarnos en{' '}
@@ -47,7 +47,7 @@ export default function PrivacidadPage() {
             <p>En función del uso que hagas de Velacre, recogemos los siguientes datos:</p>
             <ul className="mt-3 space-y-2 list-disc list-inside">
               <li><strong>Datos de cuenta:</strong> nombre, dirección de correo electrónico y contraseña (almacenada de forma cifrada).</li>
-              <li><strong>Datos del negocio:</strong> nombre comercial, CIF/NIF, teléfono, correo del negocio, descripción y el identificador de Google Place asociado.</li>
+              <li><strong>Datos del negocio:</strong> nombre comercial, teléfono, correo del negocio, descripción y el identificador de Google Place asociado.</li>
               <li><strong>Reseñas de clientes:</strong> texto de las reseñas importadas desde Google Maps y el texto que introduces manualmente. Estos datos pertenecen a terceros y los tratamos únicamente para generar respuestas.</li>
               <li><strong>Datos de uso:</strong> registros de acceso y actividad dentro de la plataforma (logs técnicos).</li>
             </ul>
