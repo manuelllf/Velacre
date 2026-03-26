@@ -83,7 +83,7 @@ public class UsuarioController : ControllerBase
             Email = email,
             Activo = true,
             ActivoDesde = DateTimeOffset.UtcNow,
-            Plan = "pro",
+            Plan = "basic",
             CreadoPor = userId,
             CreadoFecha = DateTimeOffset.UtcNow
         };
