@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario } from '@/lib/api'
+import { useLanguage } from '@/lib/i18n'
 
 function GoogleIcon() {
   return (
@@ -19,13 +20,15 @@ function GoogleIcon() {
 
 export default function LoginPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const l = t.app.auth.login
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
 
-  // Estado para recuperar contraseña (inline)
   const [showReset, setShowReset] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const [resetLoading, setResetLoading] = useState(false)
@@ -39,10 +42,9 @@ export default function LoginPage() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
-      setError('No se pudo conectar con Google. Inténtalo de nuevo.')
+      setError(l.error)
       setGoogleLoading(false)
     }
-    // Si no hay error, la página navegará a Google — no hace falta setGoogleLoading(false)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -53,7 +55,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError('El correo o la contraseña no son correctos.')
+      setError(l.error)
       setLoading(false)
       return
     }
@@ -76,7 +78,7 @@ export default function LoginPage() {
     })
     setResetLoading(false)
     if (error) {
-      setError('No se pudo enviar el correo. Comprueba la dirección e inténtalo de nuevo.')
+      setError(l.error)
     } else {
       setResetSent(true)
     }
@@ -89,8 +91,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Bienvenido de nuevo</h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Gestiona las reseñas de tu negocio</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{l.title}</h1>
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">{l.subtitle}</p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 space-y-6">
@@ -103,17 +105,17 @@ export default function LoginPage() {
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-slate-300 dark:hover:border-slate-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <GoogleIcon />
-            {googleLoading ? 'Conectando...' : 'Continuar con Google'}
+            {googleLoading ? l.googleLoading : l.googleBtn}
           </button>
 
-          {/* Divisor */}
+          {/* Divider */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-            <span className="text-sm text-slate-400 dark:text-slate-500">o</span>
+            <span className="text-sm text-slate-400 dark:text-slate-500">{l.orDivider}</span>
             <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
           </div>
 
-          {/* Formulario de recuperación / login */}
+          {/* Reset / login form */}
           {showReset ? (
             resetSent ? (
               <div className="text-center space-y-3 py-2">
@@ -122,28 +124,28 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="font-semibold text-slate-900 dark:text-white">Correo enviado</p>
+                <p className="font-semibold text-slate-900 dark:text-white">{l.resetSent}</p>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Revisa tu bandeja de entrada y sigue el enlace para restablecer tu contraseña.
+                  {l.resetSentDesc}
                 </p>
                 <button
                   onClick={() => { setShowReset(false); setResetSent(false); setResetEmail('') }}
                   className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
-                  Volver al inicio de sesión
+                  {l.resetBack}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleReset} className="space-y-4">
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Escribe tu correo y te enviaremos un enlace para restablecer tu contraseña.
+                  {l.resetIntro}
                 </p>
                 <input
                   type="email"
                   required
                   value={resetEmail}
                   onChange={e => setResetEmail(e.target.value)}
-                  placeholder="tu@negocio.com"
+                  placeholder={l.resetEmail}
                   className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
                 {error && (
@@ -154,14 +156,14 @@ export default function LoginPage() {
                   disabled={resetLoading}
                   className="w-full bg-indigo-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
                 >
-                  {resetLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
+                  {resetLoading ? l.resetLoading : l.resetBtn}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowReset(false); setError('') }}
                   className="w-full text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 py-1"
                 >
-                  Cancelar
+                  {t.app.common.cancel}
                 </button>
               </form>
             )
@@ -169,7 +171,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  Correo electrónico
+                  {l.email}
                 </label>
                 <input
                   type="email"
@@ -185,14 +187,14 @@ export default function LoginPage() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                    Contraseña
+                    {l.password}
                   </label>
                   <button
                     type="button"
                     onClick={() => { setShowReset(true); setResetEmail(email); setError('') }}
                     className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
-                    ¿Olvidaste tu contraseña?
+                    {l.forgotPassword}
                   </button>
                 </div>
                 <input
@@ -215,21 +217,21 @@ export default function LoginPage() {
                 disabled={disabled}
                 className="w-full bg-indigo-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Entrando...' : 'Entrar'}
+                {loading ? l.loginLoading : l.loginBtn}
               </button>
             </form>
           )}
         </div>
 
         <p className="text-center text-base text-slate-500 dark:text-slate-400 mt-6">
-          ¿Aún no tienes cuenta?{' '}
+          {l.noAccount}{' '}
           <Link href="/auth/register" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
-            Regístrate
+            {l.register}
           </Link>
         </p>
 
         <p className="text-center text-sm text-slate-400 dark:text-slate-600 mt-4">
-          <Link href="/privacidad" className="hover:underline">Política de privacidad</Link>
+          <Link href="/privacidad" className="hover:underline">{l.privacyNote}</Link>
         </p>
       </div>
     </div>

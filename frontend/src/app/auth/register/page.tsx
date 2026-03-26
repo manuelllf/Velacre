@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { createUsuario } from '@/lib/api'
+import { useLanguage } from '@/lib/i18n'
 
 function GoogleIcon() {
   return (
@@ -19,6 +20,9 @@ function GoogleIcon() {
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const l = t.app.auth.register
+
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -34,7 +38,7 @@ export default function RegisterPage() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
-      setError('No se pudo conectar con Google. Inténtalo de nuevo.')
+      setError(l.error)
       setGoogleLoading(false)
     }
   }
@@ -59,7 +63,7 @@ export default function RegisterPage() {
     try {
       await createUsuario({ nombre }, signUpData.session?.access_token)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear el perfil. Inténtalo de nuevo.')
+      setError(err instanceof Error ? err.message : l.error)
       setLoading(false)
       return
     }
@@ -74,8 +78,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Crea tu cuenta</h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Empieza a responder reseñas en minutos</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{l.title}</h1>
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">{l.subtitle}</p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 space-y-6">
@@ -88,20 +92,20 @@ export default function RegisterPage() {
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-slate-300 dark:hover:border-slate-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <GoogleIcon />
-            {googleLoading ? 'Conectando...' : 'Continuar con Google'}
+            {googleLoading ? l.googleLoading : l.googleBtn}
           </button>
 
-          {/* Divisor */}
+          {/* Divider */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-            <span className="text-sm text-slate-400 dark:text-slate-500">o regístrate con correo</span>
+            <span className="text-sm text-slate-400 dark:text-slate-500">{l.orDivider}</span>
             <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                Tu nombre
+                {l.name}
               </label>
               <input
                 type="text"
@@ -116,7 +120,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                Correo electrónico
+                {l.email}
               </label>
               <input
                 type="email"
@@ -131,7 +135,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                Contraseña
+                {l.password}
               </label>
               <input
                 type="password"
@@ -143,7 +147,7 @@ export default function RegisterPage() {
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
                 placeholder="••••••••"
               />
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">Mínimo 6 caracteres</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">{l.passwordHint}</p>
             </div>
 
             {error && (
@@ -155,22 +159,22 @@ export default function RegisterPage() {
               disabled={disabled}
               className="w-full bg-indigo-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+              {loading ? l.registerLoading : l.registerBtn}
             </button>
 
             <p className="text-center text-sm text-slate-400 dark:text-slate-500">
-              Al crear tu cuenta aceptas nuestra{' '}
+              {l.privacyNote}{' '}
               <Link href="/privacidad" className="text-indigo-600 dark:text-indigo-400 hover:underline">
-                Política de privacidad
+                {l.privacyLink}
               </Link>
             </p>
           </form>
         </div>
 
         <p className="text-center text-base text-slate-500 dark:text-slate-400 mt-6">
-          ¿Ya tienes cuenta?{' '}
+          {l.hasAccount}{' '}
           <Link href="/auth/login" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
-            Inicia sesión
+            {l.login}
           </Link>
         </p>
       </div>

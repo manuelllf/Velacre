@@ -6,20 +6,23 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, getLemonCheckoutUrl, type Negocio } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
-
-const TONOS = [
-  { value: 'Profesional', label: 'Profesional', desc: 'Formal y cercano a la excelencia' },
-  { value: 'Cercano', label: 'Cercano', desc: 'Cálido y humano, como un amigo' },
-  { value: 'Directo', label: 'Directo', desc: 'Claro, breve y sin rodeos' },
-]
+import { useLanguage } from '@/lib/i18n'
 
 export default function SettingsPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const s = t.app.settings
+
+  const TONOS = [
+    { value: 'Profesional', label: s.tonos.Profesional.label, desc: s.tonos.Profesional.desc },
+    { value: 'Cercano', label: s.tonos.Cercano.label, desc: s.tonos.Cercano.desc },
+    { value: 'Directo', label: s.tonos.Directo.label, desc: s.tonos.Directo.desc },
+  ]
+
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
-  const [isAdmin, setIsAdmin] = useState(false)
   const [plan, setPlan] = useState<string>('basic')
   const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
@@ -41,7 +44,6 @@ export default function SettingsPage() {
       try {
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
         setNombre(u.nombre ?? '')
-        setIsAdmin(u.isAdmin)
         setPlan(u.plan ?? 'basic')
         if (n) {
           setNegocio(n)
@@ -120,7 +122,7 @@ export default function SettingsPage() {
               onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
               className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <span className="hidden sm:inline">Cerrar sesión</span>
+              <span className="hidden sm:inline">{t.app.common.logout}</span>
               <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
           </div>
@@ -130,17 +132,17 @@ export default function SettingsPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
-        {/* Plan actual */}
+        {/* Plan */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">Tu plan</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">{s.planSection}</h2>
 
           {plan === 'basic' ? (
             <>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Elige un plan para activar Velacre.
+                {s.planChoose}
               </p>
 
-              {/* Toggle mensual / anual */}
+              {/* Toggle monthly / yearly */}
               <div className="flex items-center justify-center mb-5">
                 <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
                   <button
@@ -148,14 +150,14 @@ export default function SettingsPage() {
                     onClick={() => setBilling('monthly')}
                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${billing === 'monthly' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                   >
-                    Mensual
+                    {s.monthly}
                   </button>
                   <button
                     type="button"
                     onClick={() => setBilling('yearly')}
                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${billing === 'yearly' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                   >
-                    Anual
+                    {s.yearly}
                     <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">−17%</span>
                   </button>
                 </div>
@@ -176,7 +178,7 @@ export default function SettingsPage() {
                     )}
                   </div>
                   <ul className="space-y-1 text-sm text-slate-600 dark:text-slate-300 flex-1">
-                    {['Respuestas ilimitadas', 'Panel de reputación', 'Sincronización Google'].map(f => (
+                    {s.planCore.map(f => (
                       <li key={f} className="flex items-center gap-1.5">
                         <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                         {f}
@@ -189,13 +191,13 @@ export default function SettingsPage() {
                     className="w-full py-2 rounded-xl border-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-2"
                   >
                     {checkoutLoading === 'core' && <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />}
-                    {checkoutLoading === 'core' ? 'Redirigiendo...' : 'Elegir Core'}
+                    {checkoutLoading === 'core' ? s.planRedirecting : s.planChooseCore}
                   </button>
                 </div>
 
                 {/* Pro */}
                 <div className="rounded-xl border-2 border-indigo-500 dark:border-indigo-400 p-5 flex flex-col gap-3 relative">
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-0.5 rounded-full bg-indigo-600 text-white">Recomendado</span>
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-0.5 rounded-full bg-indigo-600 text-white">{s.planRecommended}</span>
                   <div>
                     <p className="text-base font-bold text-slate-900 dark:text-white">Pro</p>
                     {billing === 'yearly' ? (
@@ -208,7 +210,7 @@ export default function SettingsPage() {
                     )}
                   </div>
                   <ul className="space-y-1 text-sm text-slate-600 dark:text-slate-300 flex-1">
-                    {['Todo lo de Core', 'Análisis IA mensual', 'Soporte prioritario'].map(f => (
+                    {s.planPro.map(f => (
                       <li key={f} className="flex items-center gap-1.5">
                         <svg className="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                         {f}
@@ -221,7 +223,7 @@ export default function SettingsPage() {
                     className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-2"
                   >
                     {checkoutLoading === 'pro' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                    {checkoutLoading === 'pro' ? 'Redirigiendo...' : 'Elegir Pro'}
+                    {checkoutLoading === 'pro' ? s.planRedirecting : s.planChoosePro}
                   </button>
                 </div>
               </div>
@@ -232,8 +234,8 @@ export default function SettingsPage() {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <div>
-                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300 capitalize">Plan {plan} activo</p>
-                <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-0.5">Tienes acceso completo. Gracias por confiar en Velacre.</p>
+                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300 capitalize">{s.planCurrent(plan)}</p>
+                <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-0.5">{s.planThanks}</p>
               </div>
             </div>
           )}
@@ -241,9 +243,9 @@ export default function SettingsPage() {
 
         {/* Google Business */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">Negocio en Google</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">{s.googleSection}</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
-            Tu negocio queda vinculado durante el registro y no puede cambiarse desde aquí. Si necesitas corregirlo, contacta con soporte.
+            {s.googleDesc}
           </p>
           {negocio?.placeId ? (
             <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
@@ -252,7 +254,7 @@ export default function SettingsPage() {
               </svg>
               <div>
                 <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">{negocio.nombre}</p>
-                <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">Conectado con Google</p>
+                <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">{s.googleConnected}</p>
               </div>
             </div>
           ) : (
@@ -260,17 +262,17 @@ export default function SettingsPage() {
               <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm text-amber-700 dark:text-amber-300 font-medium">Sin negocio vinculado · Contacta con soporte</span>
+              <span className="text-sm text-amber-700 dark:text-amber-300 font-medium">{s.googleNotConnected}</span>
             </div>
           )}
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">
-          {/* Tu cuenta */}
+          {/* Personal data */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-5">Tus datos personales</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-5">{s.profileSection}</h2>
             <div>
-              <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">Tu nombre</label>
+              <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">{s.nameLabel}</label>
               <input
                 type="text"
                 value={nombre}
@@ -281,12 +283,12 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Tu negocio */}
+          {/* Business data */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-5">Datos de tu negocio</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-5">{s.businessSection}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">Nombre del negocio</label>
+                <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">{s.businessNameLabel}</label>
                 <input
                   type="text"
                   value={form.nombre}
@@ -296,7 +298,7 @@ export default function SettingsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">Email</label>
+                  <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">{s.emailLabel}</label>
                   <input
                     type="email"
                     value={form.email}
@@ -306,7 +308,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">Teléfono</label>
+                  <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">{s.phoneLabel}</label>
                   <input
                     type="tel"
                     value={form.telefono}
@@ -318,19 +320,19 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
-                  Descripción de tu negocio
+                  {s.descLabel}
                 </label>
                 <textarea
                   rows={3}
                   value={form.descripcion}
                   onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
                   className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                  placeholder="Describe brevemente tu negocio: qué ofreces, dónde estás, qué te hace especial..."
+                  placeholder={s.descPlaceholder}
                 />
               </div>
               <div>
-                <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-1">Tono de las respuestas</label>
-                <p className="text-sm text-slate-400 dark:text-slate-500 mb-3">El tono se usará para generar las respuestas automáticas. Puedes cambiarlo cuando quieras.</p>
+                <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-1">{s.toneSection}</label>
+                <p className="text-sm text-slate-400 dark:text-slate-500 mb-3">{s.toneSubtitle}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {TONOS.map(tono => (
                     <button
@@ -362,11 +364,11 @@ export default function SettingsPage() {
             className="w-full py-3 bg-indigo-600 text-white rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {saving ? (
-              <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Guardando...</>
+              <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.app.common.saving}</>
             ) : saved ? (
-              <>✓ Cambios guardados</>
+              <>{s.savedMsg}</>
             ) : (
-              'Guardar cambios'
+              s.saveBtn
             )}
           </button>
         </form>
@@ -374,11 +376,11 @@ export default function SettingsPage() {
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-5">
         <div className="max-w-2xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
-          <span>© {new Date().getFullYear()} Velacre · Todos los derechos reservados</span>
+          <span>© {new Date().getFullYear()} Velacre · {t.footer.rights.replace('© 2026 Velacre. ', '')}</span>
           <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Privacidad</Link>
-            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Términos</Link>
-            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Contacto</Link>
+            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.privacy}</Link>
+            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.terms}</Link>
+            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.contact}</Link>
           </div>
         </div>
       </footer>

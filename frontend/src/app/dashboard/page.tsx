@@ -19,6 +19,7 @@ import {
 } from '@/lib/api'
 import ResponseCard from '@/components/ResponseCard'
 import SectionNav from '@/components/SectionNav'
+import { useLanguage } from '@/lib/i18n'
 
 function StarRating({ rating }: { rating?: number }) {
   if (!rating) return null
@@ -48,19 +49,18 @@ function formatDate(dateStr?: string) {
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const d = t.app.dashboard
+
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [reviewText, setReviewText] = useState('')
   const [responses, setResponses] = useState<ReviewResponses | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [loadingInit, setLoadingInit] = useState(true)
-  const [userStatus, setUserStatus] = useState<'activo' | 'pendiente' | 'suspendido'>('activo')
   const [userPlan, setUserPlan] = useState<string>('basic')
-  const [userId, setUserId] = useState<string>('')
-  const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [manualUsed, setManualUsed] = useState<number>(0)
 
-  // Pending reviews state
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([])
   const [loadingPending, setLoadingPending] = useState(false)
   const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set())
@@ -73,27 +73,9 @@ export default function DashboardPage() {
   const [syncStep, setSyncStep] = useState(0)
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const SYNC_STEPS = [
-    'Conectando con Google Maps...',
-    'Extrayendo resenas y metadatos...',
-    'Analizando sentimientos con IA...',
-    'Finalizando panel de salud...',
-  ]
-
-  const SYNC_TIPS = [
-    'Responder resenas aumenta la confianza de nuevos clientes un 30%.',
-    'Un tono cercano genera mas engagement que uno formal.',
-    'Las resenas de 3 estrellas son las mas valiosas para mejorar.',
-    'Responder en menos de 48h mejora tu posicionamiento en Maps.',
-    'Los clientes leen las respuestas tanto como la resena original.',
-    'Mencionar el nombre del negocio en la respuesta refuerza la marca.',
-    'Una disculpa sincera convierte una mala resena en una oportunidad.',
-    'El 88% de los usuarios confian en resenas tanto como en recomendaciones personales.',
-  ]
   const [syncTip, setSyncTip] = useState(0)
   const tipIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [manualOpen, setManualOpen] = useState(false)
-  // contexto[reviewId] = { cliente, respuesta } — resumen en español para reseñas en otro idioma
   const [contextos, setContextos] = useState<Record<string, { cliente: string; respuesta: string }>>({})
   const [estadoFilter, setEstadoFilter] = useState<'todas' | 'pendiente' | 'respondida' | 'ignorada'>('pendiente')
   const [updatingEstado, setUpdatingEstado] = useState<Set<string>>(new Set())
@@ -106,12 +88,9 @@ export default function DashboardPage() {
         return
       }
       try {
-        // Parallelizar usuario + negocio para reducir tiempo de carga
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
         if (u.isAdmin || u.rol === 'admin') { router.replace('/admin'); return }
         setUserPlan(u.plan ?? 'basic')
-        setUserId(u.id)
-        setIsAdmin(u.isAdmin)
         if (!n) {
           router.replace('/onboarding')
           return
@@ -119,17 +98,17 @@ export default function DashboardPage() {
         setNegocio(n)
         loadPendingReviews()
       } catch (err) {
-        // Solo redirigir al login en errores de sesión (401), no en errores de red
         if (err instanceof ApiError && err.status === 401) {
           router.replace('/auth/login')
         } else {
-          setError('Error al conectar con el servidor. Recarga la página.')
+          setError(t.app.common.error)
         }
       } finally {
         setLoadingInit(false)
       }
     }
     init()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   async function loadPendingReviews() {
@@ -138,7 +117,7 @@ export default function DashboardPage() {
       const reviews = await getAllReviews()
       setPendingReviews(reviews)
     } catch {
-      // silently fail — no pending reviews to show
+      // silently fail
     } finally {
       setLoadingPending(false)
     }
@@ -150,17 +129,14 @@ export default function DashboardPage() {
     setSyncProgress(0)
     setSyncStep(0)
 
-    // Tips rotativos cada 3.5s
-    setSyncTip(Math.floor(Math.random() * SYNC_TIPS.length))
+    setSyncTip(Math.floor(Math.random() * d.syncTips.length))
     tipIntervalRef.current = setInterval(() => {
-      setSyncTip(t => (t + 1) % SYNC_TIPS.length)
+      setSyncTip(t => (t + 1) % d.syncTips.length)
     }, 3500)
 
-    // Avanza el progreso en ~15s distribuido en 4 etapas
     const TOTAL_MS = 14000
     const TICK_MS = 200
     const ticks = TOTAL_MS / TICK_MS
-    // Umbral de % donde cambia cada paso: 0→22, 22→55, 55→82, 82→98
     const stepBreaks = [0, 22, 55, 82, 98]
     let tick = 0
     syncIntervalRef.current = setInterval(() => {
@@ -179,14 +155,14 @@ export default function DashboardPage() {
       setSyncStep(3)
       await loadPendingReviews()
       if (result.newReviews > 0) {
-        setSyncMessage(`Se importaron ${result.newReviews} reseña${result.newReviews !== 1 ? 's' : ''} nueva${result.newReviews !== 1 ? 's' : ''}`)
+        setSyncMessage(d.syncDone(result.newReviews))
       } else {
-        setSyncMessage('Todo al día, no hay reseñas nuevas')
+        setSyncMessage(d.syncNone)
       }
     } catch (err) {
       clearInterval(syncIntervalRef.current!)
       clearInterval(tipIntervalRef.current!)
-      setSyncMessage(err instanceof Error ? err.message : 'Error al sincronizar')
+      setSyncMessage(err instanceof Error ? err.message : t.app.common.error)
     } finally {
       setSyncLoading(false)
       setTimeout(() => { setSyncProgress(0); setSyncMessage('') }, 4000)
@@ -204,7 +180,6 @@ export default function DashboardPage() {
           [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! }
         }))
       }
-      // Auto-marcar como respondida al generar respuesta con IA
       try {
         await setReviewEstado(reviewId, 'respondida')
         setPendingReviews(prev => prev.map(r => r.id === reviewId ? { ...r, estado: 'respondida' } : r))
@@ -212,7 +187,7 @@ export default function DashboardPage() {
     } catch (err) {
       setGeneratedResponses(prev => ({
         ...prev,
-        [reviewId + '_error']: err instanceof Error ? err.message : 'Error al generar'
+        [reviewId + '_error']: err instanceof Error ? err.message : t.app.common.error
       }))
     } finally {
       setGeneratingIds(prev => { const s = new Set(prev); s.delete(reviewId); return s })
@@ -246,12 +221,12 @@ export default function DashboardPage() {
     try {
       const result = await generateResponses(reviewText)
       setResponses(result)
-      setReviewText('') // vaciar textarea tras generar — evita regenerar lo mismo
+      setReviewText('')
       if (userPlan === 'basic') {
         setManualUsed(prev => prev + 1)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al generar las respuestas.')
+      setError(err instanceof Error ? err.message : t.app.common.error)
     } finally {
       setLoading(false)
     }
@@ -279,7 +254,7 @@ export default function DashboardPage() {
               onClick={handleLogout}
               className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <span className="hidden sm:inline">Cerrar sesión</span>
+              <span className="hidden sm:inline">{t.app.common.logout}</span>
               <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
           </div>
@@ -292,7 +267,7 @@ export default function DashboardPage() {
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              Reseñas pendientes
+              {d.title}
             </h2>
             <div className="flex items-center gap-1.5">
               <button
@@ -313,16 +288,16 @@ export default function DashboardPage() {
                 <svg className={`w-4 h-4 ${syncLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                {syncLoading ? 'Sincronizando...' : 'Sincronizar'}
+                {syncLoading ? d.syncLoading : d.syncBtn}
               </button>
             </div>
           </div>
 
-          {/* Barra de progreso de sync */}
+          {/* Sync progress bar */}
           {syncLoading && (
             <div className="mt-3 mb-2">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-slate-500 dark:text-slate-400">{SYNC_STEPS[syncStep]}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{d.syncSteps[syncStep]}</span>
                 <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{syncProgress}%</span>
               </div>
               <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -332,7 +307,7 @@ export default function DashboardPage() {
                 />
               </div>
               <p key={syncTip} className="text-xs text-slate-400 dark:text-slate-500 italic mt-2 animate-pulse">
-                {SYNC_TIPS[syncTip]}
+                {d.syncTips[syncTip]}
               </p>
             </div>
           )}
@@ -341,7 +316,7 @@ export default function DashboardPage() {
           )}
 
           <p className="text-base text-slate-500 dark:text-slate-400 mb-3 mt-3">
-            Gestiona tus reseñas de Google. Genera respuestas con IA y márcalas como respondidas.
+            {d.desc}
             {negocio && (
               <span className="ml-1 font-medium text-indigo-600 dark:text-indigo-400">
                 ({negocio.tonopredefinido})
@@ -361,7 +336,7 @@ export default function DashboardPage() {
                     : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
-                {f === 'todas' ? 'Todas' : f === 'pendiente' ? 'Pendientes' : f === 'respondida' ? 'Respondidas' : 'Ignoradas'}
+                {f === 'todas' ? d.allTab : f === 'pendiente' ? d.pendingTab : f === 'respondida' ? d.answeredTab : d.ignoredTab}
               </button>
             ))}
           </div>
@@ -391,8 +366,8 @@ export default function DashboardPage() {
               : pendingReviews.filter(r => (r.estado ?? 'pendiente') === estadoFilter)
             return filtered.length === 0 ? (
               <div className="text-center py-8 text-slate-400 dark:text-slate-500">
-                <p className="text-base font-medium text-slate-600 dark:text-slate-300">No hay reseñas en esta categoría</p>
-                <p className="text-sm mt-1">Cambia el filtro o sincroniza para importar nuevas reseñas.</p>
+                <p className="text-base font-medium text-slate-600 dark:text-slate-300">{d.pendingEmpty}</p>
+                <p className="text-sm mt-1">{d.pendingEmptyDesc}</p>
               </div>
             ) : (
             <div className="space-y-3">
@@ -408,29 +383,27 @@ export default function DashboardPage() {
                     <div className="flex items-start justify-between gap-2 mb-1.5">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
                         <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                          {review.authorName ?? 'Cliente anónimo'}
+                          {review.authorName ?? d.anonymous}
                         </span>
                         <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
                           {formatDate(review.reviewDate)}
                         </span>
                         {isNegative && (
                           <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded">
-                            Urgente
+                            {d.urgent}
                           </span>
                         )}
                       </div>
                       <StarRating rating={review.starRating} />
                     </div>
 
-                    {/* Texto reseña + botón traducción */}
                     <p className="text-sm text-slate-700 dark:text-slate-300 mb-1.5 leading-relaxed">
-                      {review.clientereview || <span className="italic text-slate-400">Sin texto</span>}
+                      {review.clientereview || <span className="italic text-slate-400">{d.noText}</span>}
                     </p>
 
-                    {/* Respuesta generada */}
+                    {/* Generated response */}
                     {generatedResponses[review.id] ? (
                       <div className="space-y-2">
-                        {/* Tarjeta contexto — solo para reseñas en idioma extranjero */}
                         {contextos[review.id] && (
                           <div className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2.5 space-y-1.5">
                             <div className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -444,7 +417,6 @@ export default function DashboardPage() {
                           </div>
                         )}
 
-                        {/* Respuesta en el idioma del cliente */}
                         <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3">
                           <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-2.5">
                             {generatedResponses[review.id]}
@@ -458,7 +430,7 @@ export default function DashboardPage() {
                               }}
                               className="text-xs font-medium px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
                             >
-                              {copiedId === review.id ? '✓ Copiado' : 'Copiar respuesta'}
+                              {copiedId === review.id ? d.copiedBtn : d.copyBtn}
                             </button>
                             <a
                               href="https://business.google.com/reviews"
@@ -466,7 +438,7 @@ export default function DashboardPage() {
                               rel="noopener noreferrer"
                               className="text-xs font-medium px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                             >
-                              Pegar en Google
+                              {d.goToGoogle}
                             </a>
                           </div>
                         </div>
@@ -484,10 +456,10 @@ export default function DashboardPage() {
                         {generatingIds.has(review.id) ? (
                           <>
                             <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            Generando...
+                            {d.generating}
                           </>
                         ) : (
-                          'Generar respuesta con IA'
+                          d.generateBtn
                         )}
                       </button>
                     )}
@@ -500,7 +472,7 @@ export default function DashboardPage() {
                           disabled={updatingEstado.has(review.id)}
                           className="text-xs px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50"
                         >
-                          Marcar respondida
+                          {d.markAnswered}
                         </button>
                       )}
                       {estadoActual !== 'ignorada' && (
@@ -509,7 +481,7 @@ export default function DashboardPage() {
                           disabled={updatingEstado.has(review.id)}
                           className="text-xs px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
                         >
-                          Ignorar
+                          {d.ignore}
                         </button>
                       )}
                       {estadoActual !== 'pendiente' && (
@@ -518,7 +490,7 @@ export default function DashboardPage() {
                           disabled={updatingEstado.has(review.id)}
                           className="text-xs px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
                         >
-                          Marcar pendiente
+                          {d.markPending}
                         </button>
                       )}
                     </div>
@@ -539,10 +511,10 @@ export default function DashboardPage() {
           >
             <div>
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                Responder una reseña manualmente
+                {d.manualTitle}
               </h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                ¿Recibes reseñas en otras plataformas? Pégala aquí y te generamos 3 respuestas para elegir.
+                {d.manualDesc}
               </p>
             </div>
             <svg
@@ -560,7 +532,7 @@ export default function DashboardPage() {
               <form onSubmit={handleGenerateManual} className="space-y-4 pt-5">
                 <div>
                   <label className="block text-base font-medium text-slate-700 dark:text-slate-200 mb-2">
-                    Reseña del cliente
+                    {d.manualLabel}
                   </label>
                   <textarea
                     rows={6}
@@ -568,7 +540,7 @@ export default function DashboardPage() {
                     onChange={e => setReviewText(e.target.value)}
                     disabled={userPlan === 'basic' && manualUsed >= 30}
                     className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="Pega aquí el texto de la reseña..."
+                    placeholder={d.manualPlaceholder}
                   />
                 </div>
 
@@ -581,10 +553,10 @@ export default function DashboardPage() {
                     {loading ? (
                       <>
                         <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Generando... (unos segundos)
+                        {d.manualBtnLoading}
                       </>
                     ) : (
-                      'Generar respuestas con IA'
+                      d.manualBtn
                     )}
                   </button>
                 </div>
@@ -597,7 +569,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Respuestas generadas manually */}
+        {/* Manually generated responses */}
         {responses && (
           <div>
             <div className="mb-4">
@@ -615,11 +587,11 @@ export default function DashboardPage() {
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-5">
         <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
-          <span>© {new Date().getFullYear()} Velacre · Todos los derechos reservados</span>
+          <span>© {new Date().getFullYear()} Velacre · {t.footer.rights.replace('© 2026 Velacre. ', '')}</span>
           <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Privacidad</Link>
-            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Términos</Link>
-            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Contacto</Link>
+            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.privacy}</Link>
+            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.terms}</Link>
+            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.contact}</Link>
           </div>
         </div>
       </footer>

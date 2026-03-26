@@ -3,24 +3,19 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createNegocio, updateNegocio, searchPlaces, syncReviews, getMyNegocio, type PlaceResult } from '@/lib/api'
-
-const TONOS = [
-  { value: 'Profesional', label: 'Profesional', desc: 'Formal y cercano a la excelencia' },
-  { value: 'Cercano', label: 'Cercano', desc: 'Cálido y humano, como un amigo' },
-  { value: 'Directo', label: 'Directo', desc: 'Claro, breve y sin rodeos' },
-]
-
-const STEPS = [
-  { key: 'negocio',  label: 'Creando tu negocio en Velacre' },
-  { key: 'google',   label: 'Conectando con Google Maps' },
-  { key: 'resenas',  label: 'Importando tus reseñas' },
-]
-
+import { useLanguage } from '@/lib/i18n'
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const ob = t.app.onboarding
 
-  // Si el usuario ya tiene negocio, ir al dashboard directamente
+  const TONOS = [
+    { value: 'Profesional', label: t.app.settings.tonos.Profesional.label, desc: t.app.settings.tonos.Profesional.desc },
+    { value: 'Cercano', label: t.app.settings.tonos.Cercano.label, desc: t.app.settings.tonos.Cercano.desc },
+    { value: 'Directo', label: t.app.settings.tonos.Directo.label, desc: t.app.settings.tonos.Directo.desc },
+  ]
+
   useEffect(() => {
     getMyNegocio().then(n => { if (n) router.replace('/inicio') }).catch(() => {})
   }, [router])
@@ -40,11 +35,9 @@ export default function OnboardingPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchContainerRef = useRef<HTMLDivElement>(null)
 
-  // Progress bar
   const [progress, setProgress] = useState(0)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
@@ -58,12 +51,10 @@ export default function OnboardingPage() {
   function handleQueryChange(value: string) {
     setPlaceQuery(value)
 
-    // Si el usuario borra o cambia lo que había seleccionado, limpiar selección
     if (selectedPlace && value !== selectedPlace.name) {
       setSelectedPlace(null)
     }
 
-    // Siempre cancelar el timer anterior antes de nada
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
     if (!value.trim() || value.trim().length < 2) {
@@ -88,7 +79,6 @@ export default function OnboardingPage() {
   }
 
   function handleSelectPlace(place: PlaceResult) {
-    // Cancelar cualquier búsqueda pendiente antes de seleccionar
     if (debounceRef.current) clearTimeout(debounceRef.current)
     setSearchingPlaces(false)
     setSelectedPlace(place)
@@ -98,7 +88,6 @@ export default function OnboardingPage() {
   }
 
   function startLoadingUI() {
-    // Progreso fake: paso 0+1 rápidos (0→15%), paso 2 lento (15→98%)
     let pct = 0
     progressIntervalRef.current = setInterval(() => {
       pct = Math.min(98, pct + (pct < 15 ? 3 : 0.4))
@@ -136,31 +125,28 @@ export default function OnboardingPage() {
       router.replace('/onboarding/plan')
     } catch (err) {
       stopLoadingUI()
-      setError(err instanceof Error ? err.message : 'No se pudieron guardar los datos. Inténtalo de nuevo.')
+      setError(err instanceof Error ? err.message : t.app.common.error)
       setLoading(false)
       setCurrentStep(-1)
       setDoneSteps([])
     }
   }
 
-  // ── Loading screen ──────────────────────────────────────────────────────────
+  // ── Loading screen ──
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 px-4 py-12">
-        {/* Logo */}
         <div className="mb-12 text-center">
-          <h1 className="text-3xl font-bold text-white">Velacre</h1>
-          <p className="text-slate-400 text-sm mt-1">Configurando tu panel de reputación</p>
+          <h1 className="text-3xl font-bold text-white">{ob.title}</h1>
+          <p className="text-slate-400 text-sm mt-1">{ob.setupLabel}</p>
         </div>
 
-        {/* Steps */}
         <div className="w-full max-w-sm space-y-4 mb-10">
-          {STEPS.map((step, i) => {
+          {ob.steps.map((stepLabel, i) => {
             const done = doneSteps.includes(i)
             const active = currentStep === i
             return (
-              <div key={step.key} className="flex items-center gap-4">
-                {/* Indicator */}
+              <div key={i} className="flex items-center gap-4">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${
                   done
                     ? 'bg-emerald-500'
@@ -178,21 +164,19 @@ export default function OnboardingPage() {
                     <span className="w-2 h-2 rounded-full bg-slate-600 block" />
                   )}
                 </div>
-                {/* Label */}
                 <span className={`text-sm font-medium transition-colors duration-300 ${
                   done ? 'text-emerald-400' : active ? 'text-white' : 'text-slate-500'
                 }`}>
-                  {step.label}
+                  {stepLabel}
                 </span>
               </div>
             )
           })}
         </div>
 
-        {/* Progress bar */}
         <div className="w-full max-w-sm mb-6">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs text-slate-500">Progreso</span>
+            <span className="text-xs text-slate-500">{ob.progress}</span>
             <span className="text-xs font-medium text-indigo-400">{progress}%</span>
           </div>
           <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
@@ -204,30 +188,29 @@ export default function OnboardingPage() {
             />
           </div>
         </div>
-
       </div>
     )
   }
 
-  // ── Form ────────────────────────────────────────────────────────────────────
+  // ── Form ──
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Velacre</h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Un último paso: conecta tu negocio de Google.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{ob.title}</h1>
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">{ob.subtitle}</p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Buscador de negocio */}
+            {/* Place search */}
             <div ref={searchContainerRef}>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                Busca tu negocio en Google <span className="text-red-500">*</span>
+                {ob.placeLabel} <span className="text-red-500">*</span>
               </label>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                Importaremos tu nombre, dirección y reseñas automáticamente.
+                {ob.placeSubtitle}
               </p>
 
               <div className="relative">
@@ -242,7 +225,7 @@ export default function OnboardingPage() {
                       ? 'border-green-400 dark:border-green-600'
                       : 'border-slate-300 dark:border-slate-600'
                   }`}
-                  placeholder="Bar El Rincón, Hotel Costa, Peluquería Marta..."
+                  placeholder={ob.placePlaceholder}
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   {searchingPlaces ? (
@@ -294,7 +277,6 @@ export default function OnboardingPage() {
                     type="button"
                     onClick={() => { setSelectedPlace(null); setPlaceQuery(''); setPlaceResults([]); setDropdownOpen(false) }}
                     className="ml-auto text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 shrink-0 text-lg leading-none"
-                    title="Cambiar negocio"
                   >
                     ×
                   </button>
@@ -302,43 +284,43 @@ export default function OnboardingPage() {
               )}
             </div>
 
-            {/* Tono */}
+            {/* Tone */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
-                ¿Cómo quieres que suenen tus respuestas?
+                {ob.toneLabel}
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {TONOS.map(t => (
+                {TONOS.map(tItem => (
                   <button
-                    key={t.value}
+                    key={tItem.value}
                     type="button"
-                    onClick={() => setTono(t.value)}
+                    onClick={() => setTono(tItem.value)}
                     className={`p-3 rounded-xl border-2 text-left transition-colors cursor-pointer ${
-                      tono === t.value
+                      tono === tItem.value
                         ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30'
                         : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
                     }`}
                   >
-                    <div className="text-sm font-medium text-slate-900 dark:text-white">{t.label}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t.desc}</div>
+                    <div className="text-sm font-medium text-slate-900 dark:text-white">{tItem.label}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tItem.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Descripción */}
+            {/* Description */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                Describe tu negocio <span className="text-slate-400 font-normal">(opcional)</span>
+                {ob.descLabel} <span className="text-slate-400 font-normal">{ob.descOptional}</span>
               </label>
               <textarea
                 rows={2}
                 value={descripcion}
                 onChange={e => setDescripcion(e.target.value)}
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                placeholder="Restaurante familiar con cocina gallega tradicional, taller mecánico con 20 años de experiencia..."
+                placeholder={ob.descPlaceholder}
               />
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">La IA usará esto para personalizar mejor las respuestas</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">{ob.descHint}</p>
             </div>
 
             {error && (
@@ -350,12 +332,12 @@ export default function OnboardingPage() {
               disabled={!selectedPlace}
               className="w-full bg-indigo-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Empezar a usar Velacre →
+              {ob.submitBtn}
             </button>
 
             {!selectedPlace && (
               <p className="text-center text-sm text-slate-400 dark:text-slate-500">
-                Busca y selecciona tu negocio para continuar
+                {ob.placeSkip}
               </p>
             )}
           </form>

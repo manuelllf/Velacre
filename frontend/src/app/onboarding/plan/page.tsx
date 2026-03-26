@@ -3,23 +3,16 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getLemonCheckoutUrl, getMyNegocio, getMyUsuario } from '@/lib/api'
-
-const FEATURES_CORE = [
-  'Respuestas ilimitadas a reseñas',
-  'Panel de reputación',
-  'Sincronización automática con Google',
-  'Soporte por email',
-]
-
-const FEATURES_PRO = [
-  'Todo lo de Core',
-  'Análisis IA de reputación mensual',
-  'Informes de tendencias',
-  'Soporte prioritario',
-]
+import { useLanguage } from '@/lib/i18n'
 
 export default function OnboardingPlanPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const ob = t.app.onboarding
+
+  const FEATURES_CORE = t.app.settings.planCore
+  const FEATURES_PRO = t.app.settings.planPro
+
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
   const [loading, setLoading] = useState<'core' | 'pro' | null>(null)
   const [error, setError] = useState('')
@@ -47,7 +40,7 @@ export default function OnboardingPlanPage() {
       const url = await getLemonCheckoutUrl(plan, billing)
       window.location.href = url
     } catch {
-      setError('No se pudo iniciar el proceso de pago. Inténtalo de nuevo.')
+      setError(t.app.common.error)
       setLoading(null)
     }
   }
@@ -62,11 +55,11 @@ export default function OnboardingPlanPage() {
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-white">Velacre</h1>
-        <p className="text-slate-400 text-base mt-2">Elige tu plan para empezar</p>
+        <h1 className="text-3xl font-bold text-white">{ob.planTitle}</h1>
+        <p className="text-slate-400 text-base mt-2">{ob.planSubtitle}</p>
       </div>
 
-      {/* Toggle mensual / anual */}
+      {/* Toggle monthly / yearly */}
       <div className="flex items-center gap-1 bg-slate-800 rounded-xl p-1 mb-8">
         <button
           type="button"
@@ -77,7 +70,7 @@ export default function OnboardingPlanPage() {
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Mensual
+          {ob.planMonthly}
         </button>
         <button
           type="button"
@@ -88,12 +81,12 @@ export default function OnboardingPlanPage() {
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Anual
+          {ob.planYearly}
           <span className="text-xs font-bold text-emerald-500">−17%</span>
         </button>
       </div>
 
-      {/* Tarjetas */}
+      {/* Plan cards */}
       <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
 
         {/* Core */}
@@ -125,14 +118,14 @@ export default function OnboardingPlanPage() {
             className="w-full py-3 rounded-xl border-2 border-indigo-500 text-indigo-400 font-semibold text-sm hover:bg-indigo-500/10 disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             {loading === 'core' && <span className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />}
-            {loading === 'core' ? 'Redirigiendo...' : 'Elegir Core'}
+            {loading === 'core' ? ob.planRedirecting : ob.planChooseCore}
           </button>
         </div>
 
         {/* Pro */}
         <div className="bg-slate-800 border-2 border-indigo-500 rounded-2xl p-6 flex flex-col gap-4 relative">
           <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full bg-indigo-600 text-white">
-            Recomendado
+            {ob.planRecommended}
           </span>
           <div>
             <p className="text-lg font-bold text-white">Pro</p>
@@ -161,7 +154,7 @@ export default function OnboardingPlanPage() {
             className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             {loading === 'pro' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-            {loading === 'pro' ? 'Redirigiendo...' : 'Elegir Pro'}
+            {loading === 'pro' ? ob.planRedirecting : ob.planChoosePro}
           </button>
         </div>
       </div>
@@ -178,9 +171,9 @@ export default function OnboardingPlanPage() {
         disabled={loading !== null}
         className="text-sm text-slate-500 hover:text-slate-400 transition-colors cursor-pointer disabled:opacity-50"
       >
-        Continuar sin plan de pago →
+        {ob.planSkip}
       </button>
-      <p className="text-xs text-slate-600 mt-2">Podrás suscribirte en cualquier momento desde Configuración</p>
+      <p className="text-xs text-slate-600 mt-2">{ob.planSkipNote}</p>
     </div>
   )
 }

@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio } from '@/lib/api'
+import { useLanguage } from '@/lib/i18n'
 
 export default function InicioPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [nombre, setNombre] = useState('')
   const [negocioNombre, setNegocioNombre] = useState('')
   const [plan, setPlan] = useState('basic')
@@ -56,6 +58,10 @@ export default function InicioPage() {
     ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300'
     : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
 
+  const greeting = nombre
+    ? t.app.inicio.greeting.replace('{name}', nombre.split(' ')[0])
+    : 'Bienvenido'
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
@@ -70,7 +76,7 @@ export default function InicioPage() {
               onClick={handleLogout}
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
-              Salir
+              {t.app.common.logout}
             </button>
           </div>
         </div>
@@ -79,9 +85,9 @@ export default function InicioPage() {
       <main className="max-w-4xl mx-auto px-4 py-12">
         <div className="mb-10">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            {nombre ? `Hola, ${nombre.split(' ')[0]}` : 'Bienvenido'}
+            {greeting}
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">¿Qué quieres hacer hoy?</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">{t.app.inicio.subtitle}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -91,8 +97,8 @@ export default function InicioPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <h2 className="font-semibold text-slate-900 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Reseñas</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Genera y gestiona respuestas a tus reseñas de Google</p>
+            <h2 className="font-semibold text-slate-900 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{t.app.inicio.cards.reviews.title}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t.app.inicio.cards.reviews.desc}</p>
           </Link>
 
           <Link href="/dashboard/salud" className="group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-md transition-all relative">
@@ -104,8 +110,8 @@ export default function InicioPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h2 className="font-semibold text-slate-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Salud</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Analítica de reputación, tendencias y resumen IA</p>
+            <h2 className="font-semibold text-slate-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">{t.app.inicio.cards.health.title}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t.app.inicio.cards.health.desc}</p>
           </Link>
 
           <Link href="/settings" className="group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all">
@@ -115,19 +121,19 @@ export default function InicioPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h2 className="font-semibold text-slate-900 dark:text-white mb-1 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">Configuración</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Tu perfil, negocio, plan y ajustes de la cuenta</p>
+            <h2 className="font-semibold text-slate-900 dark:text-white mb-1 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">{t.app.inicio.cards.config.title}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t.app.inicio.cards.config.desc}</p>
           </Link>
         </div>
       </main>
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-5">
         <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
-          <span>© {new Date().getFullYear()} Velacre · Todos los derechos reservados</span>
+          <span>© {new Date().getFullYear()} Velacre · {t.footer.rights.replace('© 2026 Velacre. ', '')}</span>
           <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Privacidad</Link>
-            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Términos</Link>
-            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">Contacto</Link>
+            <Link href="/privacidad" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.privacy}</Link>
+            <Link href="/terminos" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.terms}</Link>
+            <Link href="/contacto" className="hover:text-slate-300 dark:hover:text-slate-400 transition-colors">{t.footer.contact}</Link>
           </div>
         </div>
       </footer>

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, type MonthMetrics } from '@/lib/report-pdf'
+import { useLanguage } from '@/lib/i18n'
 
 const STOPWORDS = new Set([
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'al', 'en', 'y', 'a', 'que',
@@ -54,6 +55,8 @@ function computeKeywords(reviews: PendingReview[]): KeywordInfo[] {
 
 export default function SaludPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const sl = t.app.salud
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [reviews, setReviews] = useState<PendingReview[]>([])
   const [loading, setLoading] = useState(true)
@@ -139,7 +142,7 @@ export default function SaludPage() {
             onClick={() => window.location.reload()}
             className="px-5 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
           >
-            Recargar
+            {t.app.common.back}
           </button>
         </div>
       </div>
@@ -251,7 +254,7 @@ export default function SaludPage() {
               onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
               className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <span className="hidden sm:inline">Cerrar sesión</span>
+              <span className="hidden sm:inline">{t.app.common.logout}</span>
               <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
           </div>
@@ -282,13 +285,13 @@ export default function SaludPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Panel de Salud Pro</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Este panel está disponible con el plan Pro. Accede a analítica de reputación, tendencias y resumen IA.</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{sl.upgradeTitle}</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{sl.upgradeDesc}</p>
               <Link
                 href="/onboarding/plan"
                 className="block w-full py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-sm transition-colors text-center"
               >
-                Ver planes
+                {sl.upgradeBtn}
               </Link>
             </div>
           </div>
@@ -300,7 +303,7 @@ export default function SaludPage() {
         {/* ── CABECERA DE PÁGINA ── */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">Reputación online</h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">{sl.title}</h1>
             {negocio && <p className="text-sm text-slate-400 mt-0.5">{negocio.nombre} <span className="text-slate-600">·</span> <span className="capitalize">{monthName}</span></p>}
           </div>
           {reviews.length > 0 && (
@@ -324,9 +327,9 @@ export default function SaludPage() {
 
         {reviews.length === 0 ? (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-            <p className="text-slate-400 mb-4">Aún no hay reseñas. Sincroniza desde el panel principal.</p>
+            <p className="text-slate-400 mb-4">{sl.noAnalysis}</p>
             <Link href="/dashboard" className="inline-block px-5 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm">
-              Ir al panel
+              {t.app.common.back}
             </Link>
           </div>
         ) : (
@@ -346,7 +349,7 @@ export default function SaludPage() {
                       <span key={s} className={`text-lg ${s <= Math.round(avgRating) ? 'text-amber-400' : 'text-slate-700'}`}>★</span>
                     ))}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Basado en {reviews.length} reseñas totales</p>
+                  <p className="text-xs text-slate-500 mt-1">Basado en {reviews.length} {sl.totalReviews}</p>
                 </div>
 
                 {/* Divider vertical */}
@@ -400,12 +403,12 @@ export default function SaludPage() {
             <div className="grid md:grid-cols-2 gap-5">
               {/* Distribución global */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Distribución global</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">{sl.sentiment}</p>
                 <div className="space-y-3">
                   {[
-                    { label: 'Positivas', count: positive, total: sentimentTotal, color: 'bg-emerald-500', textColor: 'text-emerald-400', range: '4–5 ★' },
-                    { label: 'Neutras',   count: neutral,  total: sentimentTotal, color: 'bg-amber-400',  textColor: 'text-amber-400',   range: '3 ★' },
-                    { label: 'Negativas', count: negative, total: sentimentTotal, color: 'bg-red-500',    textColor: 'text-red-400',     range: '1–2 ★' },
+                    { label: sl.positive, count: positive, total: sentimentTotal, color: 'bg-emerald-500', textColor: 'text-emerald-400', range: '4–5 ★' },
+                    { label: sl.neutral,  count: neutral,  total: sentimentTotal, color: 'bg-amber-400',  textColor: 'text-amber-400',   range: '3 ★' },
+                    { label: sl.negative, count: negative, total: sentimentTotal, color: 'bg-red-500',    textColor: 'text-red-400',     range: '1–2 ★' },
                   ].map(row => {
                     const pct = Math.round((row.count / row.total) * 100)
                     return (
@@ -542,7 +545,7 @@ export default function SaludPage() {
             {/* ── PALABRAS CLAVE ── */}
             {keywords.length > 0 && (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Palabras más mencionadas</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">{t.health.keywords}</p>
                 <div className="flex flex-wrap gap-2">
                   {keywords.map(kw => {
                     const size = 11 + Math.round((kw.count / maxKeywordCount) * 7)
@@ -564,7 +567,7 @@ export default function SaludPage() {
             {/* ── ANÁLISIS IA ── */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Diagnóstico IA</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">{sl.analysisTitle}</p>
                 {analysisData?.analysis?.createdAt && !loadingSummary && (
                   <span className="text-[11px] text-slate-600">
                     {(() => {
@@ -577,16 +580,16 @@ export default function SaludPage() {
               {loadingSummary ? (
                 <div className="flex items-center gap-3 text-slate-400">
                   <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm">Analizando reseñas...</span>
+                  <span className="text-sm">{sl.generatingAnalysis}</span>
                 </div>
               ) : aiLimitReached ? (
                 <div className="flex flex-col gap-3">
                   <p className="text-sm text-slate-400">Límite diario alcanzado (3 análisis/día). Se restablece mañana.</p>
                   {summary && (
                     <div className="grid md:grid-cols-3 gap-3 opacity-60">
-                      <div className="border-l-2 border-emerald-500 pl-4 py-1"><p className="text-xs font-semibold text-emerald-400 mb-1 uppercase tracking-wide">Lo que brilla</p><p className="text-sm text-slate-300 leading-relaxed">{summary.brilla}</p></div>
-                      <div className="border-l-2 border-red-500 pl-4 py-1"><p className="text-xs font-semibold text-red-400 mb-1 uppercase tracking-wide">Lo que preocupa</p><p className="text-sm text-slate-300 leading-relaxed">{summary.quema}</p></div>
-                      <div className="border-l-2 border-indigo-500 pl-4 py-1"><p className="text-xs font-semibold text-indigo-400 mb-1 uppercase tracking-wide">Acción recomendada</p><p className="text-sm text-slate-300 leading-relaxed">{summary.accion}</p></div>
+                      <div className="border-l-2 border-emerald-500 pl-4 py-1"><p className="text-xs font-semibold text-emerald-400 mb-1 uppercase tracking-wide">{sl.analysisBrilla}</p><p className="text-sm text-slate-300 leading-relaxed">{summary.brilla}</p></div>
+                      <div className="border-l-2 border-red-500 pl-4 py-1"><p className="text-xs font-semibold text-red-400 mb-1 uppercase tracking-wide">{sl.analysisQuema}</p><p className="text-sm text-slate-300 leading-relaxed">{summary.quema}</p></div>
+                      <div className="border-l-2 border-indigo-500 pl-4 py-1"><p className="text-xs font-semibold text-indigo-400 mb-1 uppercase tracking-wide">{sl.analysisAccion}</p><p className="text-sm text-slate-300 leading-relaxed">{summary.accion}</p></div>
                     </div>
                   )}
                 </div>
@@ -594,15 +597,15 @@ export default function SaludPage() {
                 <>
                   <div className="grid md:grid-cols-3 gap-3">
                     <div className="border-l-2 border-emerald-500 pl-4 py-1">
-                      <p className="text-xs font-semibold text-emerald-400 mb-1.5 uppercase tracking-wide">Lo que brilla</p>
+                      <p className="text-xs font-semibold text-emerald-400 mb-1.5 uppercase tracking-wide">{sl.analysisBrilla}</p>
                       <p className="text-sm text-slate-300 leading-relaxed">{summary.brilla}</p>
                     </div>
                     <div className="border-l-2 border-red-500 pl-4 py-1">
-                      <p className="text-xs font-semibold text-red-400 mb-1.5 uppercase tracking-wide">Lo que preocupa</p>
+                      <p className="text-xs font-semibold text-red-400 mb-1.5 uppercase tracking-wide">{sl.analysisQuema}</p>
                       <p className="text-sm text-slate-300 leading-relaxed">{summary.quema}</p>
                     </div>
                     <div className="border-l-2 border-indigo-500 pl-4 py-1">
-                      <p className="text-xs font-semibold text-indigo-400 mb-1.5 uppercase tracking-wide">Acción recomendada</p>
+                      <p className="text-xs font-semibold text-indigo-400 mb-1.5 uppercase tracking-wide">{sl.analysisAccion}</p>
                       <p className="text-sm text-slate-300 leading-relaxed">{summary.accion}</p>
                     </div>
                   </div>
@@ -612,14 +615,14 @@ export default function SaludPage() {
                       disabled={loadingSummary}
                       className="text-xs px-3 py-1.5 border border-slate-700 text-slate-400 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      Actualizar análisis
+                      {sl.generateAnalysis}
                     </button>
                   </div>
                 </>
               ) : (
                 <div className="flex flex-col items-start gap-3">
                   <p className="text-sm text-slate-400">
-                    Genera un diagnóstico automático: qué aspectos destacan, qué preocupa y qué acción tomar.
+                    {sl.noAnalysis}
                   </p>
                   <button
                     onClick={handleRunAnalysis}
@@ -629,7 +632,7 @@ export default function SaludPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
-                    Generar diagnóstico IA
+                    {sl.generateAnalysis}
                   </button>
                 </div>
               )}
@@ -640,11 +643,11 @@ export default function SaludPage() {
 
       <footer className="mt-8 border-t border-slate-800 py-5">
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
-          <span>© {new Date().getFullYear()} Velacre · Todos los derechos reservados</span>
+          <span>© {new Date().getFullYear()} Velacre · {t.footer.rights.replace('© 2026 Velacre. ', '')}</span>
           <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-400 transition-colors">Privacidad</Link>
-            <Link href="/terminos" className="hover:text-slate-400 transition-colors">Términos</Link>
-            <Link href="/contacto" className="hover:text-slate-400 transition-colors">Contacto</Link>
+            <Link href="/privacidad" className="hover:text-slate-400 transition-colors">{t.footer.privacy}</Link>
+            <Link href="/terminos" className="hover:text-slate-400 transition-colors">{t.footer.terms}</Link>
+            <Link href="/contacto" className="hover:text-slate-400 transition-colors">{t.footer.contact}</Link>
           </div>
         </div>
       </footer>

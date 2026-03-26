@@ -95,22 +95,21 @@ public class AdminController : ControllerBase
         if (usuario == null) return NotFound();
 
         var now = DateTimeOffset.UtcNow;
-        usuario.Estado = request.Estado;
-        usuario.Activo = request.Estado == "activo";
+        var activo = request.Estado == "activo";
+        var activoDesde = (usuario.ActivoDesde == null && (request.Estado == "activo" || request.Estado == "prueba"))
+            ? now : usuario.ActivoDesde;
+        var pruebaHasta = request.Estado == "prueba"
+            ? now.AddDays(request.DiasPrueba ?? 14) : usuario.PruebaHasta;
 
-        if (request.Estado == "activo" && usuario.ActivoDesde == null)
-            usuario.ActivoDesde = now;
-
-        if (request.Estado == "prueba")
-        {
-            var dias = request.DiasPrueba ?? 14;
-            usuario.PruebaHasta = now.AddDays(dias);
-            if (usuario.ActivoDesde == null) usuario.ActivoDesde = now;
-        }
-
-        await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Update(usuario);
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == id)
+            .Set(u => u.Estado, request.Estado)
+            .Set(u => u.Activo, activo)
+            .Set(u => u.ActivoDesde, activoDesde)
+            .Set(u => u.PruebaHasta, pruebaHasta)
+            .Update();
         _logger.LogInformation("[AdminController] Usuario {UserId} estado → {Estado}", id, request.Estado);
-        return Ok(new { estado = usuario.Estado, pruebaHasta = usuario.PruebaHasta });
+        return Ok(new { estado = request.Estado, pruebaHasta });
     }
 
     // ─── Pro Override ─────────────────────────────────────────────────────────
@@ -124,14 +123,17 @@ public class AdminController : ControllerBase
         var usuario = result.Models.FirstOrDefault();
         if (usuario == null) return NotFound();
 
-        usuario.ProOverride = request.Activo;
-        usuario.ProOverrideHasta = request.Activo && request.DiasExpira.HasValue
+        var proOverrideHasta = request.Activo && request.DiasExpira.HasValue
             ? DateTimeOffset.UtcNow.AddDays(request.DiasExpira.Value)
             : (DateTimeOffset?)null;
 
-        await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Update(usuario);
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == id)
+            .Set(u => u.ProOverride, request.Activo)
+            .Set(u => u.ProOverrideHasta, proOverrideHasta)
+            .Update();
         _logger.LogInformation("[AdminController] Usuario {UserId} ProOverride={Override}", id, request.Activo);
-        return Ok(new { proOverride = usuario.ProOverride, proOverrideHasta = usuario.ProOverrideHasta });
+        return Ok(new { proOverride = request.Activo, proOverrideHasta });
     }
 
     // ─── Notas admin ──────────────────────────────────────────────────────────
@@ -145,8 +147,10 @@ public class AdminController : ControllerBase
         var usuario = result.Models.FirstOrDefault();
         if (usuario == null) return NotFound();
 
-        usuario.NotasAdmin = request.Notas;
-        await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Update(usuario);
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == id)
+            .Set(u => u.NotasAdmin, request.Notas)
+            .Update();
         return Ok();
     }
 
@@ -160,11 +164,12 @@ public class AdminController : ControllerBase
             return BadRequest("Plan inválido. Valores: basic, core, pro");
 
         var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
-        var usuario = result.Models.FirstOrDefault();
-        if (usuario == null) return NotFound();
+        if (result.Models.FirstOrDefault() == null) return NotFound();
 
-        usuario.Plan = request.Plan;
-        await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Update(usuario);
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == id)
+            .Set(u => u.Plan, request.Plan)
+            .Update();
         _logger.LogInformation("[AdminController] Usuario {UserId} plan → {Plan}", id, request.Plan);
         return Ok();
     }
@@ -227,8 +232,10 @@ public class AdminController : ControllerBase
         var usuario = result.Models.FirstOrDefault();
         if (usuario == null) return NotFound();
 
-        usuario.Rol = request.Rol;
-        await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Update(usuario);
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == id)
+            .Set(u => u.Rol, request.Rol)
+            .Update();
         _logger.LogInformation("[AdminController] Usuario {UserId} rol → {Rol}", id, request.Rol);
         return Ok(new { rol = request.Rol });
     }
