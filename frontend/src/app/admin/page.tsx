@@ -379,26 +379,26 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const skipRef = useRef(false)
 
   // Negocio actual del usuario
   const negocioActual = usuario.negocio
 
-  useEffect(() => {
-    if (skipRef.current) { skipRef.current = false; return }
+  function handleQueryChange(value: string) {
+    setQuery(value)
+    setSelected(null)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!query.trim() || query.trim().length < 3) { setResults([]); return }
+    if (!value.trim() || value.trim().length < 2) { setResults([]); return }
     debounceRef.current = setTimeout(async () => {
       setSearching(true)
-      try { setResults(await searchPlaces(query.trim())) }
+      try { setResults(await searchPlaces(value.trim())) }
       catch { setResults([]) }
       finally { setSearching(false) }
-    }, 500)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [query])
+    }, 300)
+  }
 
   function handleSelect(place: PlaceResult) {
-    skipRef.current = true
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSearching(false)
     setSelected(place)
     setQuery(place.name)
     setResults([])
@@ -449,7 +449,7 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
             <input
               type="text"
               value={query}
-              onChange={e => { setQuery(e.target.value); setSelected(null) }}
+              onChange={e => handleQueryChange(e.target.value)}
               placeholder="Nombre del negocio, dirección..."
               className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 pr-8"
             />
