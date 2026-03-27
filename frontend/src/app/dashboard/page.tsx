@@ -456,7 +456,7 @@ export default function DashboardPage() {
       {manualModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => { if (!manualLoading) { setManualModalOpen(false); setManualResponses(null); setManualError(''); setReviewText('') } }} />
-          <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -546,20 +546,19 @@ export default function DashboardPage() {
 function ManualResponseRow({ tone, text, accent }: { tone: string; text: string; accent: string }) {
   const [copied, setCopied] = useState(false)
   return (
-    <div className="flex flex-col sm:flex-row gap-4 px-5 py-4">
-      <div className="sm:w-28 shrink-0 flex sm:flex-col items-center sm:items-start gap-2">
-        <span className={`inline-block w-2 h-2 rounded-full ${accent} shrink-0 mt-1`} />
-        <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{tone}</span>
-      </div>
-      <p className="flex-1 text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{text}</p>
-      <div className="sm:w-32 shrink-0 flex items-start">
+    <div className="px-5 py-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${accent}`} />
+          <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{tone}</span>
+        </div>
         <button
           onClick={async () => {
             await navigator.clipboard.writeText(text)
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
           }}
-          className={`w-full px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+          className={`shrink-0 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             copied
               ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
               : 'bg-indigo-600 hover:bg-indigo-700 text-white'
@@ -568,6 +567,7 @@ function ManualResponseRow({ tone, text, accent }: { tone: string; text: string;
           {copied ? '¡Copiado!' : 'Copiar'}
         </button>
       </div>
+      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3">{text}</p>
     </div>
   )
 }
