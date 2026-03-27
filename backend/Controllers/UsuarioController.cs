@@ -37,8 +37,13 @@ public class UsuarioController : ControllerBase
         var usuario = result.Models.FirstOrDefault();
         if (usuario == null) return NotFound();
         var isAdmin = userId == _adminUserId || usuario.Rol == "admin";
-        // El rol efectivo es "admin" si coincide con ADMIN_USER_ID, si no, el del registro
         var rolEfectivo = isAdmin ? "admin" : usuario.Rol;
+
+        // Pro override: si está activo y no ha caducado, el plan efectivo es "pro"
+        var overrideActivo = usuario.ProOverride &&
+            (usuario.ProOverrideHasta == null || usuario.ProOverrideHasta > DateTimeOffset.UtcNow);
+        var planEfectivo = overrideActivo ? "pro" : usuario.Plan;
+
         return Ok(new
         {
             id = usuario.Id,
@@ -48,7 +53,7 @@ public class UsuarioController : ControllerBase
             activoDesde = usuario.ActivoDesde,
             isAdmin,
             rol = rolEfectivo,
-            plan = usuario.Plan,
+            plan = planEfectivo,
             lsCustomerPortal = usuario.LsCustomerPortal
         });
     }
@@ -110,8 +115,6 @@ public class UsuarioController : ControllerBase
             .Set(u => u.Telefono, (string?)null)
             .Set(u => u.Activo, false)
             .Set(u => u.Plan, "basic")
-            .Set(u => u.LsSubscriptionId, (string?)null)
-            .Set(u => u.LsCustomerPortal, (string?)null)
             .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
             .Update();
 

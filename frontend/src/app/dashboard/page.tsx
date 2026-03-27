@@ -399,50 +399,6 @@ export default function DashboardPage() {
 
             </div>{/* end scrollable list */}
 
-            {/* Manual section — reseña de otra plataforma */}
-            <div className="shrink-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <div className="px-4 pt-3.5 pb-1 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Otra plataforma</span>
-                  <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500">TripAdvisor, Booking…</span>
-                </div>
-                {manualResponses && (
-                  <button
-                    type="button"
-                    onClick={() => { setManualResponses(null); setManualError('') }}
-                    className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                  >
-                    × limpiar
-                  </button>
-                )}
-              </div>
-              <form onSubmit={handleGenerateManual} className="px-4 pb-4 pt-2 space-y-2">
-                <textarea
-                  rows={3}
-                  value={reviewText}
-                  onChange={e => setReviewText(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none scroll-thin"
-                  placeholder="Pega aquí el texto de la reseña..."
-                />
-                {manualError && (
-                  <p className="text-xs text-red-600 dark:text-red-400">{manualError}</p>
-                )}
-                <div className="flex items-center justify-between gap-2">
-                  {manualResponses && !manualLoading ? (
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">✓ Respuestas generadas →</span>
-                  ) : <span />}
-                  <button
-                    type="submit"
-                    disabled={manualLoading || !reviewText.trim()}
-                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
-                  >
-                    {manualLoading ? (
-                      <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>
-                    ) : 'Generar respuesta'}
-                  </button>
-                </div>
-              </form>
-            </div>
           </div>
 
           {/* ── RIGHT: detail panel — scrollable en desktop ── */}
@@ -480,21 +436,64 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Manual responses */}
-            {manualResponses && (
-              <div className={selectedReview ? 'mt-4' : ''}>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Respuestas generadas — copia la que más te guste</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <ResponseCard tone="Profesional" text={manualResponses.profesional} color="indigo" />
-                  <ResponseCard tone="Cercano" text={manualResponses.cercano} color="emerald" />
-                  <ResponseCard tone="Directo" text={manualResponses.directo} color="amber" />
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* ── Otra plataforma — full width ── */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Otra plataforma</span>
+              <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">TripAdvisor, Booking, Tripadvisor…</span>
+            </div>
+            {manualResponses && (
+              <button
+                type="button"
+                onClick={() => { setManualResponses(null); setManualError(''); setReviewText('') }}
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              >
+                × nueva búsqueda
+              </button>
+            )}
+          </div>
+
+          {!manualResponses ? (
+            <form onSubmit={handleGenerateManual} className="p-5">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <textarea
+                  rows={3}
+                  value={reviewText}
+                  onChange={e => setReviewText(e.target.value)}
+                  className="flex-1 px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none scroll-thin"
+                  placeholder="Pega aquí el texto de la reseña de cualquier plataforma…"
+                />
+                <div className="sm:w-40 flex flex-col gap-2 justify-end">
+                  {manualError && <p className="text-xs text-red-600 dark:text-red-400">{manualError}</p>}
+                  <button
+                    type="submit"
+                    disabled={manualLoading || !reviewText.trim()}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  >
+                    {manualLoading
+                      ? <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>
+                      : 'Generar respuesta'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {[
+                { tone: 'Profesional', text: manualResponses.profesional, accent: 'bg-indigo-600' },
+                { tone: 'Cercano',     text: manualResponses.cercano,     accent: 'bg-emerald-600' },
+                { tone: 'Directo',     text: manualResponses.directo,     accent: 'bg-amber-500' },
+              ].map(({ tone, text, accent }) => (
+                <ManualResponseRow key={tone} tone={tone} text={text} accent={accent} />
+              ))}
+            </div>
+          )}
+        </div>
+
       </main>
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-4">
@@ -507,6 +506,37 @@ export default function DashboardPage() {
           </div>
         </div>
       </footer>
+    </div>
+  )
+}
+
+// ── Manual response row (full-width) ────────────────────────────────────────
+
+function ManualResponseRow({ tone, text, accent }: { tone: string; text: string; accent: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <div className="flex flex-col sm:flex-row gap-4 px-5 py-4">
+      <div className="sm:w-28 shrink-0 flex sm:flex-col items-center sm:items-start gap-2">
+        <span className={`inline-block w-2 h-2 rounded-full ${accent} shrink-0 mt-1`} />
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{tone}</span>
+      </div>
+      <p className="flex-1 text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{text}</p>
+      <div className="sm:w-32 shrink-0 flex items-start">
+        <button
+          onClick={async () => {
+            await navigator.clipboard.writeText(text)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          }}
+          className={`w-full px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+            copied
+              ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+          }`}
+        >
+          {copied ? '¡Copiado!' : 'Copiar'}
+        </button>
+      </div>
     </div>
   )
 }
