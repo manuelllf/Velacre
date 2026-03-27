@@ -171,24 +171,60 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
   return (
     <Modal title={`Override Pro · ${usuario.nombre ?? usuario.email}`} onClose={onClose}>
       <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4 p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-200 dark:border-violet-800">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Activar funciones Pro</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sin cambiar el plan ni facturar</p>
-          </div>
-          <button onClick={() => setActivo(!activo)} className={`relative shrink-0 w-11 h-6 rounded-full overflow-hidden transition-colors cursor-pointer ${activo ? 'bg-violet-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${activo ? 'translate-x-6' : 'translate-x-1'}`} />
+
+        {/* Activar / desactivar */}
+        <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setActivo(true)}
+            className={`py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+              activo
+                ? 'bg-violet-500 text-white shadow-sm'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+            }`}
+          >
+            Activar
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivo(false)}
+            className={`py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+              !activo
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+            }`}
+          >
+            Desactivar
           </button>
         </div>
 
+        {/* Caducidad (solo si activo) */}
         {activo && (
           <div className="space-y-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={conCaducidad} onChange={e => setConCaducidad(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-violet-500 focus:ring-violet-400"
-              />
-              <span className="text-sm text-slate-700 dark:text-slate-300">Poner fecha de caducidad</span>
-            </label>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setConCaducidad(false)}
+                className={`py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                  !conCaducidad
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                Sin límite
+              </button>
+              <button
+                type="button"
+                onClick={() => setConCaducidad(true)}
+                className={`py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                  conCaducidad
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                Con caducidad
+              </button>
+            </div>
 
             {conCaducidad && (
               <div className="space-y-2">
@@ -205,7 +241,9 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">Personalizado:</span>
-                  <input type="number" min={1} value={dias} onChange={e => setDias(Math.max(1, Number(e.target.value)))}
+                  <input
+                    type="number" min={1} value={dias}
+                    onChange={e => setDias(Math.max(1, Number(e.target.value)))}
                     className="w-20 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm text-center bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
                   />
                   <span className="text-xs text-slate-400 dark:text-slate-500">días</span>
@@ -218,6 +256,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
           </div>
         )}
 
+        {/* Estado actual */}
         {usuario.proOverrideHasta && (
           <p className="text-xs text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 rounded-lg px-3 py-2">
             Override activo hasta: {fmtDate(usuario.proOverrideHasta)}
@@ -229,7 +268,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
         <button onClick={handleSave} disabled={loading}
           className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Guardando...' : 'Confirmar override'}
+          {loading ? 'Guardando...' : 'Confirmar'}
         </button>
       </div>
     </Modal>
