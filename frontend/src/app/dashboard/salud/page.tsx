@@ -244,7 +244,7 @@ export default function SaludPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4">
+        <div className="max-w-screen-xl mx-auto px-4">
           <div className="flex items-center justify-between h-12">
             <div className="flex items-center gap-2">
               <Link href="/inicio" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
@@ -265,7 +265,7 @@ export default function SaludPage() {
       {/* Pro lock overlay for non-Pro users */}
       {userPlan !== 'pro' && (
         <div className="relative">
-          <div className="max-w-5xl mx-auto px-4 py-6 space-y-5" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
+          <div className="max-w-screen-xl mx-auto px-4 py-6 space-y-5" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
             {/* Dummy blurred charts */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[['4.2', 'Nota media'], ['87%', 'Respuestas'], ['124', 'Reseñas'], ['+12%', 'Tendencia']].map(([val, label]) => (
@@ -298,7 +298,7 @@ export default function SaludPage() {
         </div>
       )}
 
-      {userPlan === 'pro' && <main className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+      {userPlan === 'pro' && <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-5">
 
         {/* ── CABECERA DE PÁGINA ── */}
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -642,7 +642,7 @@ export default function SaludPage() {
       </main>}
 
       <footer className="mt-8 border-t border-slate-800 py-5">
-        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
+        <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
           <span>© {new Date().getFullYear()} Velacre · {t.footer.rights.replace('© 2026 Velacre. ', '')}</span>
           <div className="flex gap-4">
             <Link href="/privacidad" className="hover:text-slate-400 transition-colors">{t.footer.privacy}</Link>

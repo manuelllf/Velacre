@@ -283,13 +283,13 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Two-column layout: list + detail ── */}
-        <div className="flex flex-col lg:flex-row gap-4 items-start">
+        <div className="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-16rem)]">
 
-          {/* ── LEFT: filter tabs + compact list ── */}
-          <div className="w-full lg:w-80 xl:w-96 shrink-0 space-y-3">
+          {/* ── LEFT: filter tabs + scrollable list + manual ── */}
+          <div className="w-full lg:w-80 xl:w-96 shrink-0 flex flex-col lg:h-full gap-3">
 
-            {/* Filter tabs */}
-            <div className="flex items-center gap-1 overflow-x-auto">
+            {/* Filter tabs — fixed, no scroll */}
+            <div className="flex items-center gap-1 overflow-x-auto shrink-0">
               {FILTER_ORDER.map(f => (
                 <button
                   key={f}
@@ -312,7 +312,8 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            {/* Review list */}
+            {/* Review list — scrollable en desktop */}
+            <div className="flex-1 min-h-0 lg:overflow-y-auto">
             {loadingReviews ? (
               <div className="space-y-2">
                 {[1, 2, 3].map(i => (
@@ -401,8 +402,10 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Manual section */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            </div>{/* end scrollable list */}
+
+            {/* Manual section — fija al fondo */}
+            <div className="shrink-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
               <button
                 type="button"
                 onClick={() => setManualOpen(o => !o)}
@@ -446,8 +449,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ── RIGHT: detail panel ── */}
-          <div className="flex-1 min-w-0">
+          {/* ── RIGHT: detail panel — scrollable en desktop ── */}
+          <div className="flex-1 min-w-0 lg:overflow-y-auto lg:h-full">
             {selectedReview ? (
               <DetailPanel
                 review={selectedReview}
