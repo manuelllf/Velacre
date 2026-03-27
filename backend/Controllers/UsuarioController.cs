@@ -63,8 +63,7 @@ public class UsuarioController : ControllerBase
 
         await _supabase.From<UsuarioEntity>()
             .Where(u => u.Id == userId)
-            .Set(u => u.Nombre,           request.Nombre    ?? usuario.Nombre)
-            .Set(u => u.Telefono,         request.Telefono  ?? usuario.Telefono)
+            .Set(u => u.Nombre,           request.Nombre ?? usuario.Nombre ?? "")
             .Set(u => u.ActualizadoPor,   userId)
             .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
             .Update();
