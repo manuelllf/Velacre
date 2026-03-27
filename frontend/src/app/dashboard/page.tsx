@@ -498,7 +498,7 @@ export default function DashboardPage() {
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-4">
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
-          <span>© {new Date().getFullYear()} Velacre</span>
+          <span>© {new Date().getFullYear()} Velacre </span>
           <div className="flex gap-4">
             <Link href="/privacidad" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Privacidad</Link>
             <Link href="/terminos" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Términos</Link>
