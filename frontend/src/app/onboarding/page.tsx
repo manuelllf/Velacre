@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createNegocio, updateNegocio, searchPlaces, syncReviews, getMyNegocio, type PlaceResult } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -195,6 +196,9 @@ export default function OnboardingPage() {
   // ── Form ──
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12">
+      <div className="fixed top-4 right-4">
+        <LangSwitcher />
+      </div>
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{ob.title}</h1>

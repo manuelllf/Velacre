@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 const TABS = [
   { href: '/dashboard',       labelKey: 'reviews' as const },
@@ -16,15 +17,13 @@ const TAB_LABELS: Record<string, { es: string; en: string; gal: string }> = {
   config:  { es: 'Configuración',  en: 'Settings',  gal: 'Configuración' },
 }
 
-const LANGS = ['es', 'en', 'gal'] as const
-
 export default function SectionNav() {
   const pathname = usePathname()
-  const { locale, setLocale } = useLanguage()
+  const { locale } = useLanguage()
 
   return (
     <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-      <div className="max-w-5xl mx-auto px-4 flex items-center justify-between">
+      <div className="max-w-screen-xl mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-1">
           <Link
             href="/inicio"
@@ -49,21 +48,7 @@ export default function SectionNav() {
             </Link>
           ))}
         </div>
-        <div className="flex items-center gap-0.5">
-          {LANGS.map(lang => (
-            <button
-              key={lang}
-              onClick={() => setLocale(lang)}
-              className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
-                locale === lang
-                  ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
-                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
-              }`}
-            >
-              {lang.toUpperCase()}
-            </button>
-          ))}
-        </div>
+        <LangSwitcher />
       </div>
     </div>
   )

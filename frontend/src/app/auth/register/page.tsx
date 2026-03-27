@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { createUsuario } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 function GoogleIcon() {
   return (
@@ -75,6 +76,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
+      <div className="fixed top-4 right-4">
+        <LangSwitcher />
+      </div>
       <div className="w-full max-w-sm">
 
         <div className="text-center mb-7">
