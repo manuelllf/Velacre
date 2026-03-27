@@ -115,6 +115,8 @@ public class UsuarioController : ControllerBase
             .Set(u => u.Telefono, (string?)null)
             .Set(u => u.Activo, false)
             .Set(u => u.Plan, "basic")
+            .Set(u => u.LsSubscriptionId, (string?)null)
+            .Set(u => u.LsCustomerPortal, (string?)null)
             .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
             .Update();
 
