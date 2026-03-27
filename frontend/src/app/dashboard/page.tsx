@@ -70,6 +70,7 @@ export default function DashboardPage() {
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Manual section
+  const [manualModalOpen, setManualModalOpen] = useState(false)
   const [reviewText, setReviewText] = useState('')
   const [manualResponses, setManualResponses] = useState<ReviewResponses | null>(null)
   const [manualLoading, setManualLoading] = useState(false)
@@ -268,6 +269,16 @@ export default function DashboardPage() {
                 </svg>
               </button>
               <button
+                onClick={() => setManualModalOpen(true)}
+                title="Generar respuesta para reseña de otra plataforma"
+                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="hidden sm:inline">Otra plataforma</span>
+              </button>
+              <button
                 onClick={handleSync}
                 disabled={syncLoading}
                 className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
@@ -439,62 +450,82 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Otra plataforma — full width ── */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Otra plataforma</span>
-              <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">TripAdvisor, Booking, Tripadvisor…</span>
-            </div>
-            {manualResponses && (
+      </main>
+
+      {/* ── Modal: otra plataforma ── */}
+      {manualModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => { if (!manualLoading) { setManualModalOpen(false); setManualResponses(null); setManualError(''); setReviewText('') } }} />
+          <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Otra plataforma</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">TripAdvisor, Booking, Tripadvisor…</p>
+              </div>
               <button
                 type="button"
-                onClick={() => { setManualResponses(null); setManualError(''); setReviewText('') }}
-                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                disabled={manualLoading}
+                onClick={() => { setManualModalOpen(false); setManualResponses(null); setManualError(''); setReviewText('') }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
               >
-                × nueva búsqueda
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-            )}
-          </div>
+            </div>
 
-          {!manualResponses ? (
-            <form onSubmit={handleGenerateManual} className="p-5">
-              <div className="flex flex-col sm:flex-row gap-3">
+            {/* Input */}
+            {!manualResponses && (
+              <form onSubmit={handleGenerateManual} className="p-5 space-y-3">
                 <textarea
-                  rows={3}
+                  rows={5}
                   value={reviewText}
                   onChange={e => setReviewText(e.target.value)}
-                  className="flex-1 px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none scroll-thin"
-                  placeholder="Pega aquí el texto de la reseña de cualquier plataforma…"
+                  autoFocus
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none scroll-thin"
+                  placeholder="Pega aquí el texto de la reseña…"
                 />
-                <div className="sm:w-40 flex flex-col gap-2 justify-end">
-                  {manualError && <p className="text-xs text-red-600 dark:text-red-400">{manualError}</p>}
+                {manualError && <p className="text-xs text-red-600 dark:text-red-400">{manualError}</p>}
+                <button
+                  type="submit"
+                  disabled={manualLoading || !reviewText.trim()}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                >
+                  {manualLoading
+                    ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>
+                    : 'Generar respuesta'}
+                </button>
+              </form>
+            )}
+
+            {/* Responses */}
+            {manualResponses && (
+              <div className="overflow-y-auto max-h-[70vh] scroll-thin">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {[
+                    { tone: 'Profesional', text: manualResponses.profesional, accent: 'bg-indigo-600' },
+                    { tone: 'Cercano',     text: manualResponses.cercano,     accent: 'bg-emerald-600' },
+                    { tone: 'Directo',     text: manualResponses.directo,     accent: 'bg-amber-500' },
+                  ].map(({ tone, text, accent }) => (
+                    <ManualResponseRow key={tone} tone={tone} text={text} accent={accent} />
+                  ))}
+                </div>
+                <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800">
                   <button
-                    type="submit"
-                    disabled={manualLoading || !reviewText.trim()}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                    type="button"
+                    onClick={() => { setManualResponses(null); setManualError(''); setReviewText('') }}
+                    className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                   >
-                    {manualLoading
-                      ? <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>
-                      : 'Generar respuesta'}
+                    ← Probar con otra reseña
                   </button>
                 </div>
               </div>
-            </form>
-          ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {[
-                { tone: 'Profesional', text: manualResponses.profesional, accent: 'bg-indigo-600' },
-                { tone: 'Cercano',     text: manualResponses.cercano,     accent: 'bg-emerald-600' },
-                { tone: 'Directo',     text: manualResponses.directo,     accent: 'bg-amber-500' },
-              ].map(({ tone, text, accent }) => (
-                <ManualResponseRow key={tone} tone={tone} text={text} accent={accent} />
-              ))}
-            </div>
-          )}
+            )}
+          </div>
         </div>
-
-      </main>
+      )}
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-4">
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
