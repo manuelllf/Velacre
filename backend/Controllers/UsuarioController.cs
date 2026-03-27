@@ -115,12 +115,23 @@ public class UsuarioController : ControllerBase
             .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
             .Update();
 
-        // Remove from auth.users so the user cannot log in again
-        // Auth is typed as interface; cast to concrete Gotrue.Client to access Admin API
+        // Remove from auth.users via Supabase Admin REST API (requires service role key)
         try
         {
-            if (_supabase.Auth is Supabase.Gotrue.Client gotrueClient)
-                await gotrueClient.Admin.DeleteUser(userId.ToString());
+            var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL")?.TrimEnd('/');
+            var serviceKey  = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY");
+            if (!string.IsNullOrEmpty(supabaseUrl) && !string.IsNullOrEmpty(serviceKey))
+            {
+                var req = new HttpRequestMessage(HttpMethod.Delete, $"{supabaseUrl}/auth/v1/admin/users/{userId}");
+                req.Headers.Add("Authorization", $"Bearer {serviceKey}");
+                req.Headers.Add("apikey", serviceKey);
+                var resp = await _http.SendAsync(req);
+                _logger.LogInformation("[UsuarioController] Delete auth.users HTTP {Status} para userId={UserId}", (int)resp.StatusCode, userId);
+            }
+            else
+            {
+                _logger.LogWarning("[UsuarioController] SUPABASE_SERVICE_KEY no configurado — auth.users no eliminado para userId={UserId}", userId);
+            }
         }
         catch (Exception ex)
         {
