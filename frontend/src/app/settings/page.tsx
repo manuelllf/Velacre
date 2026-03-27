@@ -24,6 +24,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const [plan, setPlan] = useState<string>('basic')
+  const [lsPortal, setLsPortal] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -45,6 +46,7 @@ export default function SettingsPage() {
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
         setNombre(u.nombre ?? '')
         setPlan(u.plan ?? 'basic')
+        setLsPortal(u.lsCustomerPortal ?? null)
         if (n) {
           setNegocio(n)
           setForm({
@@ -373,12 +375,23 @@ export default function SettingsPage() {
                   <p className="text-sm font-medium text-slate-900 dark:text-white">{s.dangerZone.cancelSub}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.dangerZone.cancelSubDesc}</p>
                 </div>
-                <a
-                  href="mailto:hola@velacre.com"
-                  className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  {s.dangerZone.cancelSub}
-                </a>
+                {lsPortal ? (
+                  <a
+                    href={lsPortal}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    {s.dangerZone.cancelSub}
+                  </a>
+                ) : (
+                  <a
+                    href="mailto:info@velacre.com"
+                    className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    {s.dangerZone.cancelSubContact}
+                  </a>
+                )}
               </div>
             )}
 

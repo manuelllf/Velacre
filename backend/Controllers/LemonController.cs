@@ -165,11 +165,13 @@ public class LemonController : ControllerBase
 
         var dataEl = root.GetProperty("data");
 
+        var portalUrl = ExtractPortalUrl(dataEl);
+
         switch (eventName)
         {
             case "subscription_created":
             case "subscription_resumed":
-                await SetPlan(userGuid, DetectPlan(dataEl));
+                await SetPlan(userGuid, DetectPlan(dataEl), portalUrl);
                 break;
 
             case "subscription_updated":
@@ -180,13 +182,15 @@ public class LemonController : ControllerBase
                 // "cancelled" = user cancelled but period not ended → keep plan
                 // Only update plan for active/past_due states
                 if (status is "active" or "past_due")
-                    await SetPlan(userGuid, DetectPlan(dataEl));
+                    await SetPlan(userGuid, DetectPlan(dataEl), portalUrl);
+                else
+                    await SetPlan(userGuid, "basic", null);
                 break;
 
             case "subscription_cancelled":
             case "subscription_expired":
             case "subscription_paused":
-                await SetPlan(userGuid, "basic");
+                await SetPlan(userGuid, "basic", null);
                 break;
 
             default:
@@ -199,7 +203,7 @@ public class LemonController : ControllerBase
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-    private async Task SetPlan(Guid userId, string plan)
+    private async Task SetPlan(Guid userId, string plan, string? portalUrl)
     {
         var result  = await _supabase.From<UsuarioEntity>()
             .Where(u => u.Id == userId).Limit(1).Get();
@@ -209,11 +213,31 @@ public class LemonController : ControllerBase
             _logger.LogWarning("SetPlan: user {UserId} not found", userId);
             return;
         }
-        await _supabase.From<UsuarioEntity>()
+
+        var query = _supabase.From<UsuarioEntity>()
             .Where(u => u.Id == userId)
-            .Set(u => u.Plan, plan)
-            .Update();
-        _logger.LogInformation("SetPlan: user {UserId} → {Plan}", userId, plan);
+            .Set(u => u.Plan, plan);
+
+        if (portalUrl != null)
+            query = query.Set(u => u.LsCustomerPortal, portalUrl);
+
+        await query.Update();
+        _logger.LogInformation("SetPlan: user {UserId} → {Plan} (portal={Portal})", userId, plan, portalUrl ?? "—");
+    }
+
+    private static string? ExtractPortalUrl(JsonElement data)
+    {
+        try
+        {
+            if (data.TryGetProperty("attributes", out var attrs) &&
+                attrs.TryGetProperty("urls", out var urls) &&
+                urls.TryGetProperty("customer_portal", out var portal))
+            {
+                return portal.GetString();
+            }
+        }
+        catch { /* ignore */ }
+        return null;
     }
 
     private static string DetectPlan(JsonElement data)

@@ -262,7 +262,8 @@ const en: LandingLocale = {
       dangerZone: {
         title: 'Danger zone',
         cancelSub: 'Cancel subscription',
-        cancelSubDesc: 'To cancel your subscription, email us at hola@velacre.com and we\'ll handle it within 24 hours.',
+        cancelSubDesc: 'You can cancel at any time from the billing portal. If you have any issues, email us at info@velacre.com.',
+        cancelSubContact: 'Contact support',
         deleteAccount: 'Delete account',
         deleteAccountDesc: 'Your account will be anonymised (we keep billing history for legal reasons) and you won\'t be able to log in again with this email.',
         deleteConfirmTitle: 'Confirm account deletion',

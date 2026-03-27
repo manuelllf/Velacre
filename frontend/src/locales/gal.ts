@@ -262,7 +262,8 @@ const gal: LandingLocale = {
       dangerZone: {
         title: 'Zona de perigo',
         cancelSub: 'Cancelar subscrición',
-        cancelSubDesc: 'Para cancelar a túa subscrición escríbenos a hola@velacre.com e xestionámolo en menos de 24 horas.',
+        cancelSubDesc: 'Podes cancelar en calquera momento desde o portal de facturación. Se tes problemas, escríbenos a info@velacre.com.',
+        cancelSubContact: 'Contactar soporte',
         deleteAccount: 'Eliminar conta',
         deleteAccountDesc: 'A túa conta quedará anonimizada (gardamos o histórico de facturación por obrigación legal) e non poderás volver iniciar sesión con este correo.',
         deleteConfirmTitle: 'Confirmar eliminación de conta',

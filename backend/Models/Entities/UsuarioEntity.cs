@@ -68,4 +68,8 @@ public class UsuarioEntity : BaseModel
     /// <summary>Rol del usuario: "cliente" | "sales" | "admin"</summary>
     [Column("rol")]
     public string Rol { get; set; } = "cliente";
+
+    /// <summary>URL del portal de cliente de Lemon Squeezy para gestionar la suscripción</summary>
+    [Column("ls_customer_portal")]
+    public string? LsCustomerPortal { get; set; }
 }
