@@ -30,9 +30,6 @@ export default function SettingsPage() {
   const [nombre, setNombre] = useState('')
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [form, setForm] = useState({
-    nombre: '',
-    email: '',
-    telefono: '',
     descripcion: '',
     tonopredefinido: 'Profesional',
   })
@@ -48,9 +45,6 @@ export default function SettingsPage() {
         if (n) {
           setNegocio(n)
           setForm({
-            nombre: n.nombre ?? '',
-            email: n.email ?? '',
-            telefono: n.telefono ?? '',
             descripcion: n.descripcion ?? '',
             tonopredefinido: n.tonopredefinido ?? 'Profesional',
           })
@@ -84,14 +78,10 @@ export default function SettingsPage() {
       await Promise.all([
         updateUsuario({ nombre }),
         updateNegocio({
-          nombre: form.nombre,
-          email: form.email,
-          telefono: form.telefono,
           descripcion: form.descripcion,
           tonoPredefinido: form.tonopredefinido,
         }),
       ])
-      setNegocio(prev => prev ? { ...prev, nombre: form.nombre } : prev)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch {
@@ -133,8 +123,8 @@ export default function SettingsPage() {
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-4">
 
         {/* Plan */}
-        <section className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+        <section className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
             <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.planSection}</h2>
           </div>
           <div className="p-5">
@@ -163,7 +153,7 @@ export default function SettingsPage() {
 
               <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
                 {/* Core row */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700">
+                <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">Core</p>
                     <ul className="mt-1 space-y-0.5">
@@ -245,8 +235,8 @@ export default function SettingsPage() {
         </section>
 
         {/* Google Business */}
-        <section className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+        <section className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
             <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.googleSection}</h2>
           </div>
           <div className="p-5">
@@ -274,8 +264,8 @@ export default function SettingsPage() {
 
         <form onSubmit={handleSave} className="space-y-4">
           {/* Personal data */}
-          <section className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+          <section className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.profileSection}</h2>
             </div>
             <div className="p-5">
@@ -284,47 +274,22 @@ export default function SettingsPage() {
                 type="text"
                 value={nombre}
                 onChange={e => setNombre(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="María, Carlos, Ana..."
               />
             </div>
           </section>
 
           {/* Business data */}
-          <section className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+          <section className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.businessSection}</h2>
             </div>
             <div className="p-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.businessNameLabel}</label>
-                <input
-                  type="text"
-                  value={form.nombre}
-                  onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.emailLabel}</label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="contacto@negocio.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.phoneLabel}</label>
-                  <input
-                    type="tel"
-                    value={form.telefono}
-                    onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="981 000 000"
-                  />
+                <div className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50">
+                  {negocio?.nombre ?? '—'}
                 </div>
               </div>
               <div>
@@ -333,7 +298,7 @@ export default function SettingsPage() {
                   rows={3}
                   value={form.descripcion}
                   onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
                   placeholder={s.descPlaceholder}
                 />
               </div>
