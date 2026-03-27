@@ -313,7 +313,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Review list — scrollable en desktop */}
-            <div className="flex-1 min-h-0 lg:overflow-y-auto">
+            <div className="flex-1 min-h-0 lg:overflow-y-auto scroll-thin">
             {loadingReviews ? (
               <div className="space-y-2">
                 {[1, 2, 3].map(i => (
@@ -450,7 +450,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ── RIGHT: detail panel — scrollable en desktop ── */}
-          <div className="flex-1 min-w-0 lg:overflow-y-auto lg:h-full">
+          <div className="flex-1 min-w-0 lg:overflow-y-auto lg:h-full scroll-thin">
             {selectedReview ? (
               <DetailPanel
                 review={selectedReview}
