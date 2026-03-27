@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Velacre · Gestor de reseñas",
+  title: "Velacre",
   description: "Gestiona y responde las reseñas de tu negocio con IA",
 };
 
