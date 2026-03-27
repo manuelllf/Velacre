@@ -75,21 +75,22 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-sm">
 
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{l.title}</h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">{l.subtitle}</p>
+        <div className="text-center mb-7">
+          <Link href="/" className="inline-block font-bold text-2xl text-slate-900 dark:text-white mb-5">Velacre</Link>
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">{l.title}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{l.subtitle}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 space-y-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5">
 
           {/* Google */}
           <button
             type="button"
             onClick={handleGoogleRegister}
             disabled={disabled}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-slate-300 dark:hover:border-slate-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <GoogleIcon />
             {googleLoading ? l.googleLoading : l.googleBtn}
@@ -97,14 +98,14 @@ export default function RegisterPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-            <span className="text-sm text-slate-400 dark:text-slate-500">{l.orDivider}</span>
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+            <span className="text-xs text-slate-400 dark:text-slate-500">{l.orDivider}</span>
+            <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 {l.name}
               </label>
               <input
@@ -113,13 +114,13 @@ export default function RegisterPage() {
                 value={nombre}
                 onChange={e => setNombre(e.target.value)}
                 disabled={disabled}
-                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
                 placeholder="María, Carlos, Ana..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 {l.email}
               </label>
               <input
@@ -128,13 +129,13 @@ export default function RegisterPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 disabled={disabled}
-                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
                 placeholder="tu@negocio.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 {l.password}
               </label>
               <input
@@ -144,25 +145,25 @@ export default function RegisterPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 disabled={disabled}
-                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
                 placeholder="••••••••"
               />
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">{l.passwordHint}</p>
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-xl">{error}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2.5 rounded-xl">{error}</p>
             )}
 
             <button
               type="submit"
               disabled={disabled}
-              className="w-full bg-indigo-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? l.registerLoading : l.registerBtn}
             </button>
 
-            <p className="text-center text-sm text-slate-400 dark:text-slate-500">
+            <p className="text-center text-xs text-slate-400 dark:text-slate-500">
               {l.privacyNote}{' '}
               <Link href="/privacidad" className="text-indigo-600 dark:text-indigo-400 hover:underline">
                 {l.privacyLink}
@@ -171,7 +172,7 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <p className="text-center text-base text-slate-500 dark:text-slate-400 mt-6">
+        <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
           {l.hasAccount}{' '}
           <Link href="/auth/login" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
             {l.login}
