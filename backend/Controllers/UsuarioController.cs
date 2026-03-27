@@ -116,9 +116,11 @@ public class UsuarioController : ControllerBase
             .Update();
 
         // Remove from auth.users so the user cannot log in again
+        // Auth is typed as interface; cast to concrete Gotrue.Client to access Admin API
         try
         {
-            await _supabase.Auth.Admin.DeleteUser(userId.ToString());
+            if (_supabase.Auth is Supabase.Gotrue.Client gotrueClient)
+                await gotrueClient.Admin.DeleteUser(userId.ToString());
         }
         catch (Exception ex)
         {
