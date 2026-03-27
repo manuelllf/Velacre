@@ -191,20 +191,28 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
             </label>
 
             {conCaducidad && (
-              <div>
-                <div className="flex gap-2">
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
                   {[7, 30, 90].map(d => (
-                    <button key={d} onClick={() => setDias(d)}
-                      className={`flex-1 py-1.5 rounded-lg text-sm font-medium border cursor-pointer transition-all ${
-                        dias === d ? 'bg-violet-500 border-violet-500 text-white' : 'border-slate-200 dark:border-slate-600 text-slate-500 hover:border-violet-400'
+                    <button key={d} type="button" onClick={() => setDias(d)}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                        dias === d
+                          ? 'bg-white dark:bg-slate-700 text-violet-600 dark:text-violet-300 shadow-sm'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                       }`}
-                    >{d}d</button>
+                    >{d} días</button>
                   ))}
-                  <input type="number" min={1} value={dias} onChange={e => setDias(Number(e.target.value))}
-                    className="w-16 border border-slate-200 dark:border-slate-600 rounded-lg px-2 text-sm text-center dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
-                  />
                 </div>
-                <p className="text-xs text-slate-400 mt-1.5">Expira: {new Date(Date.now() + dias * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">Personalizado:</span>
+                  <input type="number" min={1} value={dias} onChange={e => setDias(Math.max(1, Number(e.target.value)))}
+                    className="w-20 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm text-center bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
+                  />
+                  <span className="text-xs text-slate-400 dark:text-slate-500">días</span>
+                </div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  Expira: {new Date(Date.now() + dias * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
               </div>
             )}
           </div>
