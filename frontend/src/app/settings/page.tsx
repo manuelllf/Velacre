@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, getLemonCheckoutUrl, type Negocio } from '@/lib/api'
+import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, getLemonCheckoutUrl, eliminarCuenta, type Negocio } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import { useLanguage } from '@/lib/i18n'
 
@@ -26,6 +26,9 @@ export default function SettingsPage() {
   const [plan, setPlan] = useState<string>('basic')
   const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   const [nombre, setNombre] = useState('')
   const [negocio, setNegocio] = useState<Negocio | null>(null)
@@ -88,6 +91,19 @@ export default function SettingsPage() {
       setError('No se pudieron guardar los cambios.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleting) return
+    setDeleting(true)
+    try {
+      await eliminarCuenta()
+      await supabase.auth.signOut()
+      router.replace('/')
+    } catch {
+      setError(s.dangerZone.deletingMsg)
+      setDeleting(false)
     }
   }
 
@@ -343,7 +359,89 @@ export default function SettingsPage() {
             </div>
           </div>
         </form>
+
+        {/* Danger Zone */}
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/60">
+          <div className="px-5 py-4 border-b border-red-100 dark:border-red-900/40">
+            <h2 className="text-sm font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide">{s.dangerZone.title}</h2>
+          </div>
+          <div className="p-5 space-y-4">
+
+            {plan !== 'basic' && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{s.dangerZone.cancelSub}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.dangerZone.cancelSubDesc}</p>
+                </div>
+                <a
+                  href="mailto:hola@velacre.com"
+                  className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  {s.dangerZone.cancelSub}
+                </a>
+              </div>
+            )}
+
+            <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${plan !== 'basic' ? 'pt-4 border-t border-slate-100 dark:border-slate-800' : ''}`}>
+              <div>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{s.dangerZone.deleteAccount}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.dangerZone.deleteAccountDesc}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                className="shrink-0 px-4 py-2 text-xs font-semibold border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                {s.dangerZone.deleteAccount}
+              </button>
+            </div>
+          </div>
+        </section>
+
       </main>
+
+      {/* Delete account modal */}
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => { if (!deleting) setShowDeleteModal(false) }} />
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">{s.dangerZone.deleteConfirmTitle}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{s.dangerZone.deleteConfirmWarning}</p>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                {s.dangerZone.deleteConfirmLabel}
+              </label>
+              <input
+                type="text"
+                value={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.value)}
+                placeholder={s.dangerZone.deleteConfirmPlaceholder}
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono tracking-widest placeholder-slate-300 dark:placeholder-slate-600"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirm('') }}
+                disabled={deleting}
+                className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+              >
+                {s.dangerZone.cancelBtn}
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirm !== s.dangerZone.deleteConfirmKeyword || deleting}
+                className="flex-1 py-2.5 text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {deleting && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {deleting ? s.dangerZone.deletingMsg : s.dangerZone.deleteBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-5">
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">

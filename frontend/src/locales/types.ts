@@ -212,6 +212,21 @@ export interface LandingLocale {
       planRedirecting: string
       planChooseCore: string
       planChoosePro: string
+      dangerZone: {
+        title: string
+        cancelSub: string
+        cancelSubDesc: string
+        deleteAccount: string
+        deleteAccountDesc: string
+        deleteConfirmTitle: string
+        deleteConfirmWarning: string
+        deleteConfirmLabel: string
+        deleteConfirmPlaceholder: string
+        deleteConfirmKeyword: string
+        deleteBtn: string
+        deletingMsg: string
+        cancelBtn: string
+      }
     }
 
     auth: {

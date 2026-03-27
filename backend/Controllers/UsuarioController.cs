@@ -71,6 +71,36 @@ public class UsuarioController : ControllerBase
         return Ok(new { id = usuario.Id, nombre = usuario.Nombre, telefono = usuario.Telefono });
     }
 
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteMe()
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+
+        // Anonymize personal data — keep the row for billing history
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == userId)
+            .Set(u => u.Nombre, "[eliminado]")
+            .Set(u => u.Email, (string?)null)
+            .Set(u => u.Telefono, (string?)null)
+            .Set(u => u.Activo, false)
+            .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
+            .Update();
+
+        // Remove from auth.users so the user cannot log in again
+        try
+        {
+            await _supabase.Auth.Admin.DeleteUser(userId.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[UsuarioController] No se pudo eliminar auth.users para userId={UserId}", userId);
+            // Still return OK — data is already anonymized
+        }
+
+        _logger.LogInformation("[UsuarioController] Cuenta anonimizada + auth eliminada para userId={UserId}", userId);
+        return Ok();
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateProfile([FromBody] CreateUsuarioRequest request)
     {

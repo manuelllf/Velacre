@@ -420,6 +420,14 @@ export async function getLemonCheckoutUrl(
   return data.url as string
 }
 
+export async function eliminarCuenta(): Promise<void> {
+  const res = await fetch(`${API_URL}/api/usuario/me`, {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
 export async function createUsuario(data: {
   nombre?: string
   telefono?: string

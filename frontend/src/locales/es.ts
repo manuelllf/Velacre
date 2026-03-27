@@ -259,6 +259,21 @@ const es: LandingLocale = {
       planRedirecting: 'Redirigiendo...',
       planChooseCore: 'Elegir Core',
       planChoosePro: 'Elegir Pro',
+      dangerZone: {
+        title: 'Zona de peligro',
+        cancelSub: 'Cancelar suscripción',
+        cancelSubDesc: 'Para cancelar tu suscripción escríbenos a hola@velacre.com y lo gestionamos en menos de 24 horas.',
+        deleteAccount: 'Eliminar cuenta',
+        deleteAccountDesc: 'Tu cuenta quedará anonimizada (guardamos el histórico de facturación por obligación legal) y no podrás volver a iniciar sesión con este correo.',
+        deleteConfirmTitle: 'Confirmar eliminación de cuenta',
+        deleteConfirmWarning: 'Esta acción es irreversible. Perderás el acceso a Velacre de forma permanente.',
+        deleteConfirmLabel: 'Escribe ELIMINAR para confirmar',
+        deleteConfirmPlaceholder: 'ELIMINAR',
+        deleteConfirmKeyword: 'ELIMINAR',
+        deleteBtn: 'Eliminar mi cuenta',
+        deletingMsg: 'Eliminando...',
+        cancelBtn: 'Cancelar',
+      },
     },
 
     auth: {
