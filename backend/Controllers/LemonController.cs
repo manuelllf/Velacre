@@ -165,13 +165,14 @@ public class LemonController : ControllerBase
 
         var dataEl = root.GetProperty("data");
 
-        var portalUrl = ExtractPortalUrl(dataEl);
+        var portalUrl    = ExtractPortalUrl(dataEl);
+        var subscriptionId = dataEl.TryGetProperty("id", out var idEl) ? idEl.GetString() : null;
 
         switch (eventName)
         {
             case "subscription_created":
             case "subscription_resumed":
-                await SetPlan(userGuid, DetectPlan(dataEl), portalUrl);
+                await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId);
                 break;
 
             case "subscription_updated":
@@ -182,15 +183,15 @@ public class LemonController : ControllerBase
                 // "cancelled" = user cancelled but period not ended → keep plan
                 // Only update plan for active/past_due states
                 if (status is "active" or "past_due")
-                    await SetPlan(userGuid, DetectPlan(dataEl), portalUrl);
+                    await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId);
                 else
-                    await SetPlan(userGuid, "basic", null);
+                    await SetPlan(userGuid, "basic", null, null);
                 break;
 
             case "subscription_cancelled":
             case "subscription_expired":
             case "subscription_paused":
-                await SetPlan(userGuid, "basic", null);
+                await SetPlan(userGuid, "basic", null, null);
                 break;
 
             default:
@@ -203,7 +204,7 @@ public class LemonController : ControllerBase
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-    private async Task SetPlan(Guid userId, string plan, string? portalUrl)
+    private async Task SetPlan(Guid userId, string plan, string? portalUrl, string? subscriptionId)
     {
         var result  = await _supabase.From<UsuarioEntity>()
             .Where(u => u.Id == userId).Limit(1).Get();
@@ -221,8 +222,13 @@ public class LemonController : ControllerBase
         if (portalUrl != null)
             query = query.Set(u => u.LsCustomerPortal, portalUrl);
 
+        if (subscriptionId != null)
+            query = query.Set(u => u.LsSubscriptionId, subscriptionId);
+        else if (plan == "basic")
+            query = query.Set(u => u.LsSubscriptionId, (string?)null);
+
         await query.Update();
-        _logger.LogInformation("SetPlan: user {UserId} → {Plan} (portal={Portal})", userId, plan, portalUrl ?? "—");
+        _logger.LogInformation("SetPlan: user {UserId} → {Plan} (portal={Portal}, sub={Sub})", userId, plan, portalUrl ?? "—", subscriptionId ?? "—");
     }
 
     private static string? ExtractPortalUrl(JsonElement data)

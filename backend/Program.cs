@@ -11,6 +11,7 @@ Env.Load();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
 
 // Auth JWT — Supabase usa ES256 (asimétrico), validamos via JWKS discovery
 var supabaseUrl = (Environment.GetEnvironmentVariable("SUPABASE_URL")

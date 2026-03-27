@@ -339,26 +339,28 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="px-5 pb-5 space-y-3">
-                  {error && (
-                    <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2.5 rounded-xl border border-red-200 dark:border-red-800">{error}</p>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {saving ? (
-                      <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.app.common.saving}</>
-                    ) : saved ? (
-                      <>{s.savedMsg}</>
-                    ) : (
-                      s.saveBtn
-                    )}
-                  </button>
-                </div>
               </section>
             </div>
+          </div>
+
+          {/* Save button — full width, independent */}
+          <div className="mt-4 space-y-3">
+            {error && (
+              <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-800">{error}</p>
+            )}
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {saving ? (
+                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.app.common.saving}</>
+              ) : saved ? (
+                <>{s.savedMsg}</>
+              ) : (
+                s.saveBtn
+              )}
+            </button>
           </div>
         </form>
 
@@ -367,35 +369,8 @@ export default function SettingsPage() {
           <div className="px-5 py-4 border-b border-red-100 dark:border-red-900/40">
             <h2 className="text-sm font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide">{s.dangerZone.title}</h2>
           </div>
-          <div className="p-5 space-y-4">
-
-            {plan !== 'basic' && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{s.dangerZone.cancelSub}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.dangerZone.cancelSubDesc}</p>
-                </div>
-                {lsPortal ? (
-                  <a
-                    href={lsPortal}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    {s.dangerZone.cancelSub}
-                  </a>
-                ) : (
-                  <a
-                    href="mailto:info@velacre.com"
-                    className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    {s.dangerZone.cancelSubContact}
-                  </a>
-                )}
-              </div>
-            )}
-
-            <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${plan !== 'basic' ? 'pt-4 border-t border-slate-100 dark:border-slate-800' : ''}`}>
+          <div className="p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{s.dangerZone.deleteAccount}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.dangerZone.deleteAccountDesc}</p>

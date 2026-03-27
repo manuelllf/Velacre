@@ -15,13 +15,15 @@ public class UsuarioController : ControllerBase
     private readonly ILogger<UsuarioController> _logger;
     private readonly Guid _adminUserId;
     private readonly EmailService _email;
+    private readonly HttpClient _http;
 
-    public UsuarioController(Supabase.Client supabase, ILogger<UsuarioController> logger, EmailService email)
+    public UsuarioController(Supabase.Client supabase, ILogger<UsuarioController> logger, EmailService email, IHttpClientFactory httpClientFactory)
     {
         _supabase = supabase;
         _logger = logger;
         _adminUserId = Guid.Parse(Environment.GetEnvironmentVariable("ADMIN_USER_ID") ?? "00000000-0000-0000-0000-000000000000");
         _email = email;
+        _http = httpClientFactory.CreateClient();
     }
 
     [HttpGet("me")]
@@ -77,6 +79,29 @@ public class UsuarioController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
 
+        // Fetch the user to get the LS subscription ID (if any)
+        var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
+        var usuario = result.Models.FirstOrDefault();
+
+        // Cancel Lemon Squeezy subscription if active
+        if (!string.IsNullOrEmpty(usuario?.LsSubscriptionId))
+        {
+            try
+            {
+                var lsKey = Environment.GetEnvironmentVariable("LEMONSQUEEZY_API_KEY");
+                var req = new HttpRequestMessage(HttpMethod.Delete, $"https://api.lemonsqueezy.com/v1/subscriptions/{usuario.LsSubscriptionId}");
+                req.Headers.Add("Authorization", $"Bearer {lsKey}");
+                req.Headers.Add("Accept", "application/vnd.api+json");
+                var resp = await _http.SendAsync(req);
+                _logger.LogInformation("[UsuarioController] Cancelada sub LS {SubId}: HTTP {Status}", usuario.LsSubscriptionId, (int)resp.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[UsuarioController] Error cancelando sub LS para userId={UserId}", userId);
+                // Continue with account deletion even if LS cancel fails
+            }
+        }
+
         // Anonymize personal data — keep the row for billing history
         await _supabase.From<UsuarioEntity>()
             .Where(u => u.Id == userId)
@@ -84,6 +109,9 @@ public class UsuarioController : ControllerBase
             .Set(u => u.Email, (string?)null)
             .Set(u => u.Telefono, (string?)null)
             .Set(u => u.Activo, false)
+            .Set(u => u.Plan, "basic")
+            .Set(u => u.LsSubscriptionId, (string?)null)
+            .Set(u => u.LsCustomerPortal, (string?)null)
             .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
             .Update();
 

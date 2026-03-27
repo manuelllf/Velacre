@@ -2,7 +2,7 @@
 
 import { useLanguage } from '@/lib/i18n'
 
-const LANGS = ['es', 'en', 'gal'] as const
+const LANGS = ['es', 'gal', 'en'] as const
 
 export default function LangSwitcher() {
   const { locale, setLocale } = useLanguage()

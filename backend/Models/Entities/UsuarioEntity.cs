@@ -72,4 +72,8 @@ public class UsuarioEntity : BaseModel
     /// <summary>URL del portal de cliente de Lemon Squeezy para gestionar la suscripción</summary>
     [Column("ls_customer_portal")]
     public string? LsCustomerPortal { get; set; }
+
+    /// <summary>ID de la suscripción activa en Lemon Squeezy, necesario para cancelarla via API</summary>
+    [Column("ls_subscription_id")]
+    public string? LsSubscriptionId { get; set; }
 }
