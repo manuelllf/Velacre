@@ -76,4 +76,16 @@ public class UsuarioEntity : BaseModel
     /// <summary>ID de la suscripción activa en Lemon Squeezy, necesario para cancelarla via API</summary>
     [Column("ls_subscription_id")]
     public string? LsSubscriptionId { get; set; }
+
+    /// <summary>Estado LS: active | cancelled | paused | past_due | expired</summary>
+    [Column("ls_status")]
+    public string? LsStatus { get; set; }
+
+    /// <summary>Próxima fecha de renovación/cobro</summary>
+    [Column("ls_renews_at")]
+    public DateTimeOffset? LsRenewsAt { get; set; }
+
+    /// <summary>Fecha en que expira el acceso (se rellena cuando se cancela)</summary>
+    [Column("ls_ends_at")]
+    public DateTimeOffset? LsEndsAt { get; set; }
 }

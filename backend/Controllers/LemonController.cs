@@ -110,6 +110,57 @@ public class LemonController : ControllerBase
         return Ok(new { url });
     }
 
+    // ─── POST /api/lemonsqueezy/cancelar ────────────────────────────────────────
+    // Cancels the active LS subscription for the authenticated user.
+
+    [HttpPost("cancelar")]
+    public async Task<IActionResult> Cancelar()
+    {
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+
+        var result  = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
+        var usuario = result.Models.FirstOrDefault();
+
+        if (usuario == null) return NotFound();
+        if (string.IsNullOrEmpty(usuario.LsSubscriptionId))
+            return BadRequest(new { error = "No hay suscripción activa" });
+
+        var lsKey = Environment.GetEnvironmentVariable("LEMONSQUEEZY_API_KEY");
+        var http  = _httpFactory.CreateClient();
+        var req   = new HttpRequestMessage(HttpMethod.Delete,
+            $"https://api.lemonsqueezy.com/v1/subscriptions/{usuario.LsSubscriptionId}");
+        req.Headers.Add("Authorization", $"Bearer {lsKey}");
+        req.Headers.Add("Accept", "application/vnd.api+json");
+
+        var resp = await http.SendAsync(req);
+        var body = await resp.Content.ReadAsStringAsync();
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            _logger.LogError("[Cancelar] LS API {Status}: {Body}", (int)resp.StatusCode, body);
+            return StatusCode(502, new { error = "Error al cancelar en Lemon Squeezy" });
+        }
+
+        // Extract ends_at from response so we can show the user when access expires
+        DateTimeOffset? endsAt = null;
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            endsAt = ParseDate(doc.RootElement.GetProperty("data").GetProperty("attributes"), "ends_at");
+        }
+        catch { /* non-critical */ }
+
+        // Mark as cancelled locally — webhook will confirm later
+        await _supabase.From<UsuarioEntity>()
+            .Where(u => u.Id == userId)
+            .Set(u => u.LsStatus, "cancelled")
+            .Set(u => u.LsEndsAt, endsAt)
+            .Update();
+
+        _logger.LogInformation("[Cancelar] Sub {SubId} cancelada para userId={UserId}, ends={Ends}", usuario.LsSubscriptionId, userId, endsAt);
+        return Ok(new { endsAt });
+    }
+
     // ─── POST /api/lemon/webhook ─────────────────────────────────────────────
     // Receives Lemon Squeezy subscription events and updates usuario.plan.
     // No JWT auth — verified via HMAC-SHA256 signature on raw body.
@@ -164,34 +215,36 @@ public class LemonController : ControllerBase
         }
 
         var dataEl = root.GetProperty("data");
+        var attrs  = dataEl.GetProperty("attributes");
 
-        var portalUrl    = ExtractPortalUrl(dataEl);
+        var portalUrl      = ExtractPortalUrl(dataEl);
         var subscriptionId = dataEl.TryGetProperty("id", out var idEl) ? idEl.GetString() : null;
+        var lsStatus       = attrs.TryGetProperty("status",     out var stEl) ? stEl.GetString()  : null;
+        var renewsAt       = ParseDate(attrs, "renews_at");
+        var endsAt         = ParseDate(attrs, "ends_at");
 
         switch (eventName)
         {
             case "subscription_created":
             case "subscription_resumed":
-                await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId);
+                await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
                 break;
 
             case "subscription_updated":
-                var status = dataEl
-                    .GetProperty("attributes")
-                    .GetProperty("status")
-                    .GetString();
-                // "cancelled" = user cancelled but period not ended → keep plan
-                // Only update plan for active/past_due states
-                if (status is "active" or "past_due")
-                    await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId);
+                if (lsStatus is "active" or "past_due")
+                    await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
                 else
-                    await SetPlan(userGuid, "basic", null, null);
+                    await SetPlan(userGuid, "basic", portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
                 break;
 
             case "subscription_cancelled":
+                // Keep access until period ends (endsAt), plan downgrade via subscription_expired
+                await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
+                break;
+
             case "subscription_expired":
             case "subscription_paused":
-                await SetPlan(userGuid, "basic", null, null);
+                await SetPlan(userGuid, "basic", null, null, lsStatus, null, null);
                 break;
 
             default:
@@ -204,12 +257,12 @@ public class LemonController : ControllerBase
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-    private async Task SetPlan(Guid userId, string plan, string? portalUrl, string? subscriptionId)
+    private async Task SetPlan(Guid userId, string plan, string? portalUrl, string? subscriptionId,
+        string? lsStatus, DateTimeOffset? renewsAt, DateTimeOffset? endsAt)
     {
         var result  = await _supabase.From<UsuarioEntity>()
             .Where(u => u.Id == userId).Limit(1).Get();
-        var usuario = result.Models.FirstOrDefault();
-        if (usuario == null)
+        if (result.Models.FirstOrDefault() == null)
         {
             _logger.LogWarning("SetPlan: user {UserId} not found", userId);
             return;
@@ -219,16 +272,26 @@ public class LemonController : ControllerBase
             .Where(u => u.Id == userId)
             .Set(u => u.Plan, plan);
 
-        if (portalUrl != null)
-            query = query.Set(u => u.LsCustomerPortal, portalUrl);
-
-        if (subscriptionId != null)
-            query = query.Set(u => u.LsSubscriptionId, subscriptionId);
-        else if (plan == "basic")
-            query = query.Set(u => u.LsSubscriptionId, (string?)null);
+        if (portalUrl != null)      query = query.Set(u => u.LsCustomerPortal, portalUrl);
+        if (subscriptionId != null) query = query.Set(u => u.LsSubscriptionId, subscriptionId);
+        else if (plan == "basic")   query = query.Set(u => u.LsSubscriptionId, (string?)null);
+        if (lsStatus != null)       query = query.Set(u => u.LsStatus, lsStatus);
+        query = query.Set(u => u.LsRenewsAt, renewsAt);
+        query = query.Set(u => u.LsEndsAt,   endsAt);
 
         await query.Update();
-        _logger.LogInformation("SetPlan: user {UserId} → {Plan} (portal={Portal}, sub={Sub})", userId, plan, portalUrl ?? "—", subscriptionId ?? "—");
+        _logger.LogInformation("SetPlan: {UserId} → {Plan} / {Status} renews={Renews} ends={Ends}", userId, plan, lsStatus, renewsAt, endsAt);
+    }
+
+    private static DateTimeOffset? ParseDate(JsonElement attrs, string key)
+    {
+        try
+        {
+            if (attrs.TryGetProperty(key, out var el) && el.ValueKind != JsonValueKind.Null)
+                if (DateTimeOffset.TryParse(el.GetString(), out var dt)) return dt;
+        }
+        catch { /* ignore */ }
+        return null;
     }
 
     private static string? ExtractPortalUrl(JsonElement data)

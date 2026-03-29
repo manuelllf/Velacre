@@ -53,8 +53,12 @@ public class UsuarioController : ControllerBase
             activoDesde = usuario.ActivoDesde,
             isAdmin,
             rol = rolEfectivo,
-            plan = planEfectivo,
-            lsCustomerPortal = usuario.LsCustomerPortal
+            plan             = planEfectivo,
+            lsCustomerPortal = usuario.LsCustomerPortal,
+            lsSubscriptionId = usuario.LsSubscriptionId,
+            lsStatus         = usuario.LsStatus,
+            lsRenewsAt       = usuario.LsRenewsAt,
+            lsEndsAt         = usuario.LsEndsAt,
         });
     }
 

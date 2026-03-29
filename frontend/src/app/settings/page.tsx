@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, getLemonCheckoutUrl, eliminarCuenta, type Negocio } from '@/lib/api'
+import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, getLemonCheckoutUrl, eliminarCuenta, cancelarSuscripcion, type Negocio } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import { useLanguage } from '@/lib/i18n'
 
@@ -24,12 +24,16 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const [plan, setPlan] = useState<string>('basic')
-  const [lsPortal, setLsPortal] = useState<string | null>(null)
+  const [lsStatus, setLsStatus] = useState<string | null>(null)
+  const [lsRenewsAt, setLsRenewsAt] = useState<string | null>(null)
+  const [lsEndsAt, setLsEndsAt] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
 
   const [nombre, setNombre] = useState('')
   const [negocio, setNegocio] = useState<Negocio | null>(null)
@@ -46,7 +50,9 @@ export default function SettingsPage() {
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
         setNombre(u.nombre ?? '')
         setPlan(u.plan ?? 'basic')
-        setLsPortal(u.lsCustomerPortal ?? null)
+        setLsStatus(u.lsStatus ?? null)
+        setLsRenewsAt(u.lsRenewsAt ?? null)
+        setLsEndsAt(u.lsEndsAt ?? null)
         if (n) {
           setNegocio(n)
           setForm({
@@ -107,6 +113,26 @@ export default function SettingsPage() {
       setError(s.dangerZone.deletingMsg)
       setDeleting(false)
     }
+  }
+
+  async function handleCancelSub() {
+    if (cancelling) return
+    setCancelling(true)
+    try {
+      const res = await cancelarSuscripcion()
+      setLsStatus('cancelled')
+      if (res.endsAt) setLsEndsAt(res.endsAt)
+      setShowCancelModal(false)
+    } catch {
+      setError('No se pudo cancelar la suscripción. Inténtalo de nuevo.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
+  function fmtDate(iso?: string | null) {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
   }
 
   if (loading) {
@@ -227,13 +253,37 @@ export default function SettingsPage() {
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
-              <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <div>
-                <p className="text-sm font-medium text-slate-900 dark:text-white capitalize">{s.planCurrent.replace('{plan}', plan)}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.planThanks}</p>
+            <div className="space-y-3">
+              {/* Plan activo — cabecera */}
+              <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white capitalize">Plan {plan}</p>
+                    {lsStatus === 'cancelled' ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Cancelado · acceso hasta {fmtDate(lsEndsAt)}</p>
+                    ) : lsStatus === 'past_due' ? (
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">Pago pendiente</p>
+                    ) : (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {lsRenewsAt ? `Próxima renovación: ${fmtDate(lsRenewsAt)}` : s.planThanks}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {lsStatus === 'cancelled' ? (
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                    Cancelado
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                    Activo
+                  </span>
+                )}
               </div>
             </div>
           )}
@@ -369,8 +419,27 @@ export default function SettingsPage() {
           <div className="px-5 py-4 border-b border-red-100 dark:border-red-900/40">
             <h2 className="text-sm font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide">{s.dangerZone.title}</h2>
           </div>
-          <div className="p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+
+            {/* Cancelar suscripción — solo si está activa y no cancelada ya */}
+            {plan !== 'basic' && lsStatus !== 'cancelled' && (
+              <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{s.dangerZone.cancelSub}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.dangerZone.cancelSubDesc}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCancelModal(true)}
+                  className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  {s.dangerZone.cancelSub}
+                </button>
+              </div>
+            )}
+
+            {/* Eliminar cuenta */}
+            <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{s.dangerZone.deleteAccount}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.dangerZone.deleteAccountDesc}</p>
@@ -387,6 +456,43 @@ export default function SettingsPage() {
         </section>
 
       </main>
+
+      {/* Cancel subscription modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => { if (!cancelling) setShowCancelModal(false) }} />
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">{s.dangerZone.cancelSub}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{s.dangerZone.cancelSubConfirm}</p>
+            {lsRenewsAt && (
+              <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  Seguirás teniendo acceso hasta el <strong>{fmtDate(lsRenewsAt)}</strong>, cuando finaliza tu período actual.
+                </p>
+              </div>
+            )}
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(false)}
+                disabled={cancelling}
+                className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+              >
+                Mantener suscripción
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelSub}
+                disabled={cancelling}
+                className="flex-1 py-2.5 text-sm font-semibold bg-slate-800 dark:bg-slate-700 text-white rounded-xl hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {cancelling && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {cancelling ? 'Cancelando...' : 'Confirmar cancelación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete account modal */}
 

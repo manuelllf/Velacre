@@ -262,8 +262,9 @@ const en: LandingLocale = {
       dangerZone: {
         title: 'Danger zone',
         cancelSub: 'Cancel subscription',
-        cancelSubDesc: '',
-        cancelSubContact: '',
+        cancelSubDesc: 'Stop renewing your plan. You\'ll keep access until the end of the paid period.',
+        cancelSubContact: 'Contact support',
+        cancelSubConfirm: 'If you cancel, your subscription won\'t renew. You\'ll keep access until the end of the period you\'ve already paid for.',
         deleteAccount: 'Close account',
         deleteAccountDesc: 'Cancels your active subscription and permanently deletes your account. You won\'t be able to log in again with this email.',
         deleteConfirmTitle: 'Confirm account closure',

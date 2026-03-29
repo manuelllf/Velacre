@@ -262,8 +262,9 @@ const es: LandingLocale = {
       dangerZone: {
         title: 'Zona de peligro',
         cancelSub: 'Cancelar suscripción',
-        cancelSubDesc: '',
-        cancelSubContact: '',
+        cancelSubDesc: 'Deja de renovar tu plan. Seguirás teniendo acceso hasta el final del período pagado.',
+        cancelSubContact: 'Contactar soporte',
+        cancelSubConfirm: 'Si cancelas, tu suscripción no se renovará. Mantendrás el acceso hasta el final del período ya pagado.',
         deleteAccount: 'Dar de baja la cuenta',
         deleteAccountDesc: 'Cancela tu suscripción activa y elimina tu cuenta de forma permanente. No podrás volver a iniciar sesión con este correo.',
         deleteConfirmTitle: 'Confirmar baja de cuenta',

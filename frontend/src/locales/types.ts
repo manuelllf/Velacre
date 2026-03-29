@@ -217,6 +217,7 @@ export interface LandingLocale {
         cancelSub: string
         cancelSubDesc: string
         cancelSubContact: string
+        cancelSubConfirm: string
         deleteAccount: string
         deleteAccountDesc: string
         deleteConfirmTitle: string
