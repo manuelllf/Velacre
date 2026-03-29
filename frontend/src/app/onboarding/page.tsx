@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createNegocio, updateNegocio, searchPlaces, syncReviews, getMyNegocio, type PlaceResult } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -139,7 +139,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12">
         <div className="w-full max-w-sm">
           <div className="mb-8 text-center">
-            <p className="text-base font-bold text-slate-900 dark:text-white mb-1">Velacre</p>
+            <Link href="/" className="inline-block text-base font-bold text-slate-900 dark:text-white mb-1">Velacre</Link>
             <p className="text-sm text-slate-500 dark:text-slate-400">{ob.setupLabel}</p>
           </div>
 
@@ -198,12 +198,9 @@ export default function OnboardingPage() {
   // ── Form ──
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12">
-      <div className="fixed top-4 right-4">
-        <LangSwitcher />
-      </div>
       <div className="w-full max-w-lg">
         <div className="text-center mb-6">
-          <p className="text-base font-bold text-slate-900 dark:text-white mb-3">Velacre</p>
+          <Link href="/" className="inline-block text-base font-bold text-slate-900 dark:text-white mb-3">Velacre</Link>
           <h1 className="text-xl font-semibold text-slate-900 dark:text-white">{ob.title}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{ob.subtitle}</p>
         </div>

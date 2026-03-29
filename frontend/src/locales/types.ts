@@ -36,10 +36,13 @@ export interface LandingLocale {
     }
     response: {
       title: string
-      toneBadge: string
       cta: string
       hint: string
-      text: string
+      tones: {
+        profesional: { label: string; text: string }
+        cercano: { label: string; text: string }
+        directo: { label: string; text: string }
+      }
     }
   }
 

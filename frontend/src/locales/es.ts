@@ -38,10 +38,13 @@ const es: LandingLocale = {
     },
     response: {
       title: 'Respuesta generada',
-      toneBadge: 'Tono Profesional',
-      cta: 'Ver respuesta IA',
-      hint: 'Pulsa para ver la magia',
-      text: 'Estimado Carlos, lamentamos profundamente que su experiencia no haya estado a la altura de nuestros estándares. Los tiempos de espera que describes y el servicio recibido no reflejan los valores que nos guían. Hemos trasladado tu comentario al equipo y tomaremos las medidas necesarias para que no se repita. Te invitamos a darnos una nueva oportunidad — con mucho gusto nos pondremos en contacto contigo directamente para compensarte.',
+      cta: 'Generar respuesta',
+      hint: 'Elige un tono y genera',
+      tones: {
+        profesional: { label: 'Profesional', text: 'Estimado Carlos, lamentamos profundamente que su experiencia no haya estado a la altura de nuestros estándares. Los tiempos de espera que describe y la atención recibida no reflejan los valores que nos guían. Hemos trasladado su comentario al equipo para tomar las medidas necesarias. Le invitamos a darnos una nueva oportunidad y nos pondremos en contacto con usted personalmente para compensarle.' },
+        cercano: { label: 'Cercano', text: 'Carlos, lo sentimos mucho, de verdad. 45 minutos es demasiado tiempo y encima fría — eso no está bien. Te entendemos perfectamente y tienes razón en estar molesto. Ya hemos hablado con el equipo para que no vuelva a pasar. Si le das otra oportunidad al local, te aseguramos que vas a notar la diferencia. ¡Gracias por decirnos!' },
+        directo: { label: 'Directo', text: 'Carlos, tienes razón. El servicio ese día no estuvo a la altura. Lo hemos corregido. Si vuelves, será diferente.' },
+      },
     },
   },
 

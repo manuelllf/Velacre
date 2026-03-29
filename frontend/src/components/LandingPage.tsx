@@ -30,23 +30,24 @@ interface Props {
 
 export default function LandingPage({ locale: l }: Props) {
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [selectedTone, setSelectedTone] = useState<'profesional' | 'cercano' | 'directo' | null>(null)
   const [typedText, setTypedText] = useState('')
-  const [showResponse, setShowResponse] = useState(false)
   const [billingYearly, setBillingYearly] = useState(false)
 
-  const demoResponse = l.demo.response.text
+  const toneKeys: Array<'profesional' | 'cercano' | 'directo'> = ['profesional', 'cercano', 'directo']
+  const currentToneText = selectedTone ? l.demo.response.tones[selectedTone].text : ''
 
   useEffect(() => {
-    if (!showResponse) return
+    if (!selectedTone) return
     let i = 0
     setTypedText('')
     const interval = setInterval(() => {
       i++
-      setTypedText(demoResponse.slice(0, i))
-      if (i >= demoResponse.length) clearInterval(interval)
-    }, 18)
+      setTypedText(currentToneText.slice(0, i))
+      if (i >= currentToneText.length) clearInterval(interval)
+    }, 14)
     return () => clearInterval(interval)
-  }, [showResponse, demoResponse])
+  }, [selectedTone]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleGoogleSignup() {
     setGoogleLoading(true)
@@ -70,20 +71,6 @@ export default function LandingPage({ locale: l }: Props) {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-xl font-bold tracking-tight text-white">Velacre</button>
           <div className="flex items-center gap-3">
-            {/* Language switcher */}
-            <div className="hidden sm:flex items-center gap-1 text-xs text-slate-500">
-              {langLinks.map((ll, i) => (
-                <span key={ll.code} className="flex items-center gap-1">
-                  {i > 0 && <span className="text-slate-700">|</span>}
-                  <Link
-                    href={ll.href}
-                    className={`hover:text-slate-300 transition-colors px-1 py-0.5 rounded ${l.lang === ll.code ? 'text-white font-semibold' : ''}`}
-                  >
-                    {ll.label}
-                  </Link>
-                </span>
-              ))}
-            </div>
             <a href="#precios" className="hidden sm:block text-sm font-medium text-slate-400 hover:text-white transition-colors px-3 py-2">
               {l.pricing.h2}
             </a>
@@ -187,38 +174,64 @@ export default function LandingPage({ locale: l }: Props) {
           </div>
 
           {/* Generated response */}
-          <div className="bg-slate-900 border border-indigo-900 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center">
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <span className="text-sm font-semibold text-indigo-300">{l.demo.response.title}</span>
+          <div className="bg-slate-900 border border-indigo-900 rounded-2xl p-6 flex flex-col gap-4">
+            {/* Header */}
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center shrink-0">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
               </div>
-              <span className="text-xs bg-indigo-950 text-indigo-400 border border-indigo-900 px-2 py-1 rounded-full">{l.demo.response.toneBadge}</span>
+              <span className="text-sm font-semibold text-indigo-300">{l.demo.response.title}</span>
             </div>
-            {!showResponse ? (
-              <div className="flex flex-col items-center justify-center py-8 gap-4">
+
+            {/* Tone selector */}
+            <div className="flex gap-2">
+              {toneKeys.map(key => (
                 <button
-                  onClick={() => setShowResponse(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-colors"
+                  key={key}
+                  onClick={() => setSelectedTone(key)}
+                  className={`flex-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${
+                    selectedTone === key
+                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/50'
+                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
+                  }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  {l.demo.response.cta}
+                  {l.demo.response.tones[key].label}
                 </button>
-                <p className="text-xs text-slate-600">{l.demo.response.hint}</p>
+              ))}
+            </div>
+
+            {/* Response body */}
+            <div className="min-h-[140px] flex items-start">
+              {!selectedTone ? (
+                <div className="w-full flex flex-col items-center justify-center py-6 gap-2 text-center">
+                  <svg className="w-8 h-8 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5" />
+                  </svg>
+                  <p className="text-xs text-slate-600">{l.demo.response.hint}</p>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  {typedText}
+                  {typedText.length < currentToneText.length && (
+                    <span className="inline-block w-0.5 h-4 bg-indigo-400 ml-0.5 animate-pulse align-middle" />
+                  )}
+                </p>
+              )}
+            </div>
+
+            {/* Copy hint once done */}
+            {selectedTone && typedText.length >= currentToneText.length && (
+              <div className="flex items-center justify-between pt-1 border-t border-slate-800">
+                <span className="text-xs text-slate-600">{l.demo.response.cta}</span>
+                <Link
+                  href="/auth/register"
+                  className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  {l.nav.start} →
+                </Link>
               </div>
-            ) : (
-              <p className="text-sm text-slate-300 leading-relaxed min-h-[120px]">
-                {typedText}
-                {typedText.length < demoResponse.length && (
-                  <span className="inline-block w-0.5 h-4 bg-indigo-400 ml-0.5 animate-pulse align-middle" />
-                )}
-              </p>
             )}
           </div>
         </div>

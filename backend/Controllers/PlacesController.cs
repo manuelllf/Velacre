@@ -115,13 +115,37 @@ public class PlacesController : ControllerBase
         }
 
         int newCount = 0;
+        int updatedCount = 0;
+
+        // Build a map of existing DB reviews by GoogleReviewId for update checks
+        var existingByGoogleId = allExistingResult.Models
+            .Where(r => r.GoogleReviewId != null)
+            .ToDictionary(r => r.GoogleReviewId!, r => r);
 
         foreach (var review in reviews)
         {
-            // Deduplicación: saltar si ya existe por google_review_id
+            // If already exists: check if Google has added an owner reply since last sync
             if (existingGoogleIds.Contains(review.ReviewId))
             {
-                _logger.LogDebug("[PlacesController] Ya existe: {ReviewId}", review.ReviewId);
+                if (!string.IsNullOrWhiteSpace(review.OwnerAnswer) &&
+                    existingByGoogleId.TryGetValue(review.ReviewId, out var existing) &&
+                    existing.TonoGenerado != "google")
+                {
+                    existing.RespuestaProfesional = review.OwnerAnswer;
+                    existing.RespuestaCercano     = review.OwnerAnswer;
+                    existing.RespuestaDirecto     = review.OwnerAnswer;
+                    existing.TonoGenerado         = "google";
+                    existing.Estado               = "respondida";
+                    existing.ActualizadoPor        = userId;
+                    existing.ActualizadoFecha      = DateTimeOffset.UtcNow;
+                    await _supabase.From<ReviewEntity>().Where(r => r.Id == existing.Id).Update(existing);
+                    updatedCount++;
+                    _logger.LogDebug("[PlacesController] Reseña actualizada con respuesta Google: {ReviewId}", review.ReviewId);
+                }
+                else
+                {
+                    _logger.LogDebug("[PlacesController] Ya existe: {ReviewId}", review.ReviewId);
+                }
                 continue;
             }
 
@@ -140,6 +164,7 @@ public class PlacesController : ControllerBase
                 RespuestaCercano     = yaRespondida ? review.OwnerAnswer : null,
                 RespuestaDirecto     = yaRespondida ? review.OwnerAnswer : null,
                 TonoGenerado         = yaRespondida ? "google" : null,
+                Estado               = yaRespondida ? "respondida" : "pendiente",
                 CreadoPor            = userId,
                 CreadoFecha          = DateTimeOffset.UtcNow
             };
@@ -149,8 +174,8 @@ public class PlacesController : ControllerBase
             _logger.LogDebug("[PlacesController] Reseña insertada: {Codigo} ({ReviewId})", entity.Codigo, review.ReviewId);
         }
 
-        _logger.LogInformation("[PlacesController] Sync completado — {NewCount} nuevas, {StaleCount} obsoletas, modo={Mode}, negocioId={NegocioId}",
-            newCount, staleCount, isInitialLoad ? "inicial" : "incremental", negocio.Id);
-        return Ok(new { newReviews = newCount });
+        _logger.LogInformation("[PlacesController] Sync completado — {NewCount} nuevas, {UpdatedCount} actualizadas, {StaleCount} obsoletas, modo={Mode}, negocioId={NegocioId}",
+            newCount, updatedCount, staleCount, isInitialLoad ? "inicial" : "incremental", negocio.Id);
+        return Ok(new { newReviews = newCount, updatedReviews = updatedCount });
     }
 }

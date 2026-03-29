@@ -38,10 +38,13 @@ const en: LandingLocale = {
     },
     response: {
       title: 'Generated response',
-      toneBadge: 'Professional tone',
-      cta: 'See AI response',
-      hint: 'Click to see the magic',
-      text: 'Dear Carlos, we sincerely apologise that your experience did not meet our standards. The waiting times you describe and the service you received do not reflect the values we uphold. We have passed your feedback to our team and will take the necessary steps to prevent a recurrence. We warmly invite you to give us another chance — we will be happy to contact you directly to make it up to you.',
+      cta: 'Generate response',
+      hint: 'Choose a tone and generate',
+      tones: {
+        profesional: { label: 'Professional', text: 'Dear Carlos, we sincerely apologise that your experience did not meet our standards. The waiting times you describe and the service received do not reflect the values we uphold. We have passed your feedback to the team and will take the necessary steps to prevent a recurrence. We invite you to give us another chance and will be happy to contact you directly to make it up to you.' },
+        cercano: { label: 'Friendly', text: 'Carlos, we\'re really sorry about this. 45 minutes is too long and cold on top of that — that\'s just not on. You\'re completely right to be unhappy. We\'ve already spoken to the team to make sure it doesn\'t happen again. If you give us another shot, we promise you\'ll notice the difference. Thanks for letting us know!' },
+        directo: { label: 'Direct', text: 'Carlos, you\'re right. The service that day wasn\'t good enough. We\'ve fixed it. Come back and it\'ll be different.' },
+      },
     },
   },
 

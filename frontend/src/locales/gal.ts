@@ -38,10 +38,13 @@ const gal: LandingLocale = {
     },
     response: {
       title: 'Resposta xerada',
-      toneBadge: 'Tono Profesional',
-      cta: 'Ver resposta IA',
-      hint: 'Preme para ver a maxia',
-      text: 'Estimado Carlos, lamentamos profundamente que a súa experiencia non estivese á altura dos nosos estándares. Os tempos de espera que describes e o servizo recibido non reflicten os valores que nos guían. Trasladamos o teu comentario ao equipo e tomaremos as medidas necesarias para que non se repita. Convidámoste a darnos unha nova oportunidade — con moito gusto poñerémonos en contacto contigo directamente para compensarte.',
+      cta: 'Xerar resposta',
+      hint: 'Escolle un ton e xera',
+      tones: {
+        profesional: { label: 'Profesional', text: 'Estimado Carlos, lamentamos profundamente que a súa experiencia non estivese á altura dos nosos estándares. Os tempos de espera que describe e o servizo recibido non reflicten os valores que nos guían. Trasladamos o seu comentario ao equipo e tomaremos as medidas necesarias para que non se repita. Convidámoslle a darnos unha nova oportunidade e con moito gusto poñerémonos en contacto con vostede directamente para compensarlle.' },
+        cercano: { label: 'Achegado', text: 'Carlos, sentímolo moito, de verdade. 45 minutos é demasiado tempo e enriba fría — iso non está ben. Entendemoste perfectamente e tes razón en estar molesto. Xa falamos co equipo para que non volva pasar. Se lle das outra oportunidade ao local, asegurámosche que vas notar a diferenza. Grazas por dicírnolo!' },
+        directo: { label: 'Directo', text: 'Carlos, tes razón. O servizo ese día non estivo á altura. Corrixímolo. Se volves, será diferente.' },
+      },
     },
   },
 
