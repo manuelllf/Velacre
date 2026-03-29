@@ -112,15 +112,17 @@ public class UsuarioController : ControllerBase
         }
 
         // Anonymize personal data — keep the row for billing history
+        // Note: Postgrest SDK does not support .Set() with null for string columns;
+        // set to empty string instead so the field is visibly cleared.
         await _supabase.From<UsuarioEntity>()
             .Where(u => u.Id == userId)
             .Set(u => u.Nombre, "[eliminado]")
-            .Set(u => u.Email, (string?)null)
-            .Set(u => u.Telefono, (string?)null)
+            .Set(u => u.Email, "")
+            .Set(u => u.Telefono, "")
             .Set(u => u.Activo, false)
             .Set(u => u.Plan, "basic")
-            .Set(u => u.LsSubscriptionId, (string?)null)
-            .Set(u => u.LsCustomerPortal, (string?)null)
+            .Set(u => u.LsSubscriptionId, "")
+            .Set(u => u.LsCustomerPortal, "")
             .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
             .Update();
 
