@@ -232,7 +232,9 @@ public class LemonController : ControllerBase
                 break;
 
             case "subscription_updated":
-                if (lsStatus is "active" or "past_due")
+                // "cancelled" = usuario canceló pero sigue en período pagado → mantener plan
+                // Solo bajar a basic si está paused o en otro estado no válido
+                if (lsStatus is "active" or "past_due" or "cancelled")
                     await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
                 else
                     await SetPlan(userGuid, "basic", portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
