@@ -97,7 +97,6 @@ export default function OnboardingPlanPage() {
             <p className="text-xs text-slate-500 mt-1">Sin tarjeta</p>
           </div>
           <ul className="space-y-2 flex-1">
-            {ob.planCore.slice(0, 1).map(() => null)}
             {['3 respuestas manuales/mes', 'Otras plataformas', 'Sin conexión Google'].map(f => (
               <li key={f} className="flex items-start gap-2 text-sm text-slate-400">
                 <svg className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
