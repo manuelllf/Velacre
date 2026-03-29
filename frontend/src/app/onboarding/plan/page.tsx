@@ -111,7 +111,7 @@ export default function OnboardingPlanPage() {
             disabled={loading !== null}
             className="w-full py-3 rounded-xl border border-slate-600 text-slate-400 font-semibold text-sm hover:bg-slate-700 disabled:opacity-50 transition-colors cursor-pointer"
           >
-            {ob.planChoose ?? 'Continuar gratis'}
+            Continuar gratis
           </button>
         </div>
 
