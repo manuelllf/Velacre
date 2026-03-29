@@ -149,7 +149,9 @@ export async function updateNegocio(data: {
 export type UserRol = 'admin' | 'cliente'
 
 export async function cancelarSuscripcion(): Promise<{ endsAt?: string }> {
-  return apiFetch('/api/lemonsqueezy/cancelar', { method: 'POST' })
+  const res = await fetch(`${API_URL}/api/lemonsqueezy/cancelar`, { method: 'POST', headers: await authHeaders() })
+  if (!res.ok) throw new ApiError(res.status, await res.text())
+  return res.json()
 }
 
 export async function getMyUsuario(): Promise<{
