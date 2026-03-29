@@ -87,7 +87,34 @@ export default function OnboardingPlanPage() {
       </div>
 
       {/* Plan cards */}
-      <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+
+        {/* Basic */}
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col gap-4">
+          <div>
+            <p className="text-lg font-bold text-white">Basic</p>
+            <p className="text-3xl font-extrabold text-white mt-2">Gratis</p>
+            <p className="text-xs text-slate-500 mt-1">Sin tarjeta</p>
+          </div>
+          <ul className="space-y-2 flex-1">
+            {ob.planCore.slice(0, 1).map(() => null)}
+            {['3 respuestas manuales/mes', 'Otras plataformas', 'Sin conexión Google'].map(f => (
+              <li key={f} className="flex items-start gap-2 text-sm text-slate-400">
+                <svg className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={() => router.replace('/inicio')}
+            disabled={loading !== null}
+            className="w-full py-3 rounded-xl border border-slate-600 text-slate-400 font-semibold text-sm hover:bg-slate-700 disabled:opacity-50 transition-colors cursor-pointer"
+          >
+            {ob.planChoose ?? 'Continuar gratis'}
+          </button>
+        </div>
 
         {/* Core */}
         <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col gap-4">
@@ -95,11 +122,11 @@ export default function OnboardingPlanPage() {
             <p className="text-lg font-bold text-white">Core</p>
             {billing === 'yearly' ? (
               <div className="mt-2">
-                <p className="text-3xl font-extrabold text-white">190 €<span className="text-base font-normal text-slate-400">/año</span></p>
-                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 15,83 €/mes · 2 meses gratis</p>
+                <p className="text-3xl font-extrabold text-white">199 €<span className="text-base font-normal text-slate-400">/año</span></p>
+                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 16,58 €/mes · 2 meses gratis</p>
               </div>
             ) : (
-              <p className="text-3xl font-extrabold text-white mt-2">19 €<span className="text-base font-normal text-slate-400">/mes</span></p>
+              <p className="text-3xl font-extrabold text-white mt-2">19,90 €<span className="text-base font-normal text-slate-400">/mes</span></p>
             )}
           </div>
           <ul className="space-y-2 flex-1">
@@ -131,11 +158,11 @@ export default function OnboardingPlanPage() {
             <p className="text-lg font-bold text-white">Pro</p>
             {billing === 'yearly' ? (
               <div className="mt-2">
-                <p className="text-3xl font-extrabold text-white">290 €<span className="text-base font-normal text-slate-400">/año</span></p>
-                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 24,17 €/mes · 2 meses gratis</p>
+                <p className="text-3xl font-extrabold text-white">299 €<span className="text-base font-normal text-slate-400">/año</span></p>
+                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 24,92 €/mes · 2 meses gratis</p>
               </div>
             ) : (
-              <p className="text-3xl font-extrabold text-white mt-2">29 €<span className="text-base font-normal text-slate-400">/mes</span></p>
+              <p className="text-3xl font-extrabold text-white mt-2">29,90 €<span className="text-base font-normal text-slate-400">/mes</span></p>
             )}
           </div>
           <ul className="space-y-2 flex-1">
@@ -160,20 +187,10 @@ export default function OnboardingPlanPage() {
       </div>
 
       {error && (
-        <p className="text-sm text-red-400 bg-red-900/20 border border-red-800 px-4 py-3 rounded-xl mb-4 max-w-2xl w-full text-center">
+        <p className="text-sm text-red-400 bg-red-900/20 border border-red-800 px-4 py-3 rounded-xl mb-4 max-w-4xl w-full text-center">
           {error}
         </p>
       )}
-
-      {/* Skip */}
-      <button
-        onClick={() => router.replace('/inicio')}
-        disabled={loading !== null}
-        className="text-sm text-slate-500 hover:text-slate-400 transition-colors cursor-pointer disabled:opacity-50"
-      >
-        {ob.planSkip}
-      </button>
-      <p className="text-xs text-slate-600 mt-2">{ob.planSkipNote}</p>
     </div>
   )
 }
