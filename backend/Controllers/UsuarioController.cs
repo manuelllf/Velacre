@@ -111,6 +111,16 @@ public class UsuarioController : ControllerBase
             }
         }
 
+        // Delete reviews and negocio (personal/business data — no legal reason to keep)
+        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Get();
+        foreach (var negocio in negocioResult.Models)
+        {
+            await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Delete();
+            _logger.LogInformation("[UsuarioController] Reviews eliminadas para negocioId={NegocioId}", negocio.Id);
+        }
+        await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Delete();
+        _logger.LogInformation("[UsuarioController] Negocio(s) eliminado(s) para userId={UserId}", userId);
+
         // Anonymize personal data — keep the row for billing history
         // Note: Postgrest SDK does not support .Set() with null for string columns;
         // set to empty string instead so the field is visibly cleared.
