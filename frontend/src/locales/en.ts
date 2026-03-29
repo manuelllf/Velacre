@@ -100,6 +100,45 @@ const en: LandingLocale = {
     sectors: ['Restaurants', 'Hotels', 'Cafés', 'Hairdressers', 'Garages', 'Clinics', 'Shops', 'Bars'],
   },
 
+  pricing: {
+    h2: 'Pricing',
+    p: 'No surprises. Cancel anytime.',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    yearlySave: '2 months free',
+    plans: {
+      basic: {
+        name: 'Basic',
+        price: 'Free',
+        desc: 'Try how the AI works without connecting your business.',
+        features: ['3 manual responses per month', 'Other platforms form', 'No Google connection'],
+        cta: 'Start for free',
+      },
+      core: {
+        name: 'Core',
+        priceMonthly: '€19.90',
+        priceYearly: '€199',
+        priceYearlyMonthly: '€16.58',
+        desc: 'For businesses with moderate traffic who want to automate their responses.',
+        features: ['10 AI responses per month', 'Google sync', 'Pre-generated responses', 'Review management'],
+        cta: 'Choose Core',
+      },
+      pro: {
+        name: 'Pro',
+        priceMonthly: '€29.90',
+        priceYearly: '€299',
+        priceYearlyMonthly: '€24.92',
+        desc: 'For active businesses that want maximum control over their reputation.',
+        features: ['Unlimited AI responses', 'Health & reputation panel', 'Sentiment analysis', 'Priority support'],
+        cta: 'Choose Pro',
+        badge: 'Recommended',
+      },
+    },
+    perMonth: '/mo',
+    perYear: '/yr',
+    vatNote: 'Prices exclude VAT · Cancel anytime',
+  },
+
   cta: {
     h2line1: 'Start today.',
     h2line2: 'Respond tomorrow.',

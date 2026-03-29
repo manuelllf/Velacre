@@ -72,9 +72,9 @@ public class ReviewController : ControllerBase
                     await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
                 }
 
-                if (usuario.RespuestasManualesMes >= 30)
+                if (usuario.RespuestasManualesMes >= 3)
                 {
-                    _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite de 30 respuestas manuales en plan basic", userId);
+                    _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite de 3 respuestas manuales en plan basic", userId);
                     return StatusCode(403, "Has alcanzado el límite de 30 respuestas manuales este mes. Actualiza a Pro para respuestas ilimitadas.");
                 }
             }
@@ -227,6 +227,38 @@ public class ReviewController : ControllerBase
             return NotFound("Reseña no encontrada.");
         }
 
+        // ── Plan limit check ──────────────────────────────────────────────────
+        var usuarioRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
+        var usuario    = usuarioRes.Models.FirstOrDefault();
+        if (usuario != null)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var esProEfectivo = usuario.Plan == "pro" ||
+                (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > now));
+
+            if (!esProEfectivo && usuario.Plan == "core")
+            {
+                // Reset contador si es nuevo mes
+                if (usuario.RespuestasIaMesReset == null ||
+                    usuario.RespuestasIaMesReset.Value.Year  < now.Year ||
+                    (usuario.RespuestasIaMesReset.Value.Year == now.Year && usuario.RespuestasIaMesReset.Value.Month < now.Month))
+                {
+                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
+                        .Set(u => u.RespuestasIaMes, 0)
+                        .Set(u => u.RespuestasIaMesReset, now)
+                        .Update();
+                    usuario.RespuestasIaMes = 0;
+                }
+
+                if (usuario.RespuestasIaMes >= 10)
+                {
+                    _logger.LogWarning("[ReviewController] Core limit alcanzado para userId={UserId} ({Count}/10)", userId, usuario.RespuestasIaMes);
+                    return StatusCode(429, new { error = "limit_reached", plan = "core", limit = 10, used = usuario.RespuestasIaMes });
+                }
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         var tone = negocio.TonoPredefinido;
         var toneLower = tone.ToLower();
 
@@ -289,6 +321,16 @@ public class ReviewController : ControllerBase
                 .Update(review);
 
             _logger.LogInformation("[ReviewController] Respuesta generada y guardada para reviewId={ReviewId}", id);
+
+            // Increment IA counter for Core plan
+            if (usuario != null && usuario.Plan == "core")
+            {
+                var now2 = DateTimeOffset.UtcNow;
+                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
+                    .Set(u => u.RespuestasIaMes, usuario.RespuestasIaMes + 1)
+                    .Set(u => u.RespuestasIaMesReset, usuario.RespuestasIaMesReset ?? now2)
+                    .Update();
+            }
 
             return Ok(new
             {

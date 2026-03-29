@@ -68,6 +68,7 @@ export default function DashboardPage() {
   const [syncMessage, setSyncMessage] = useState('')
   const [syncProgress, setSyncProgress] = useState(0)
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [showUpsell, setShowUpsell] = useState(false)
 
   // Manual section
   const [manualModalOpen, setManualModalOpen] = useState(false)
@@ -147,10 +148,14 @@ export default function DashboardPage() {
         setContextos(prev => ({ ...prev, [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! } }))
       }
     } catch (err) {
-      setGeneratedResponses(prev => ({
-        ...prev,
-        [reviewId + '_error']: err instanceof Error ? err.message : t.app.common.error,
-      }))
+      if (err instanceof ApiError && err.status === 429) {
+        setShowUpsell(true)
+      } else {
+        setGeneratedResponses(prev => ({
+          ...prev,
+          [reviewId + '_error']: err instanceof Error ? err.message : t.app.common.error,
+        }))
+      }
     } finally {
       setGeneratingIds(prev => { const s = new Set(prev); s.delete(reviewId); return s })
     }
@@ -523,6 +528,38 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Upsell modal — límite Core alcanzado */}
+      {showUpsell && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowUpsell(false)} />
+          <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">Has alcanzado el límite del plan Core</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Has usado tus 10 respuestas IA de este mes. Pasa a Pro para respuestas ilimitadas.</p>
+            </div>
+            <div className="space-y-2">
+              <a
+                href="/settings"
+                className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors"
+              >
+                Ver planes →
+              </a>
+              <button
+                onClick={() => setShowUpsell(false)}
+                className="block w-full py-2.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

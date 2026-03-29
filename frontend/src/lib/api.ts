@@ -345,6 +345,7 @@ export async function generateForReview(reviewId: string): Promise<GenerateForRe
   if (!res.ok) {
     const body = await res.text()
     console.error('[api] generateForReview ERROR', res.status, body)
+    if (res.status === 429) throw new ApiError(429, body)
     throw new Error(body)
   }
   const data = await res.json()

@@ -100,6 +100,45 @@ const es: LandingLocale = {
     sectors: ['Restaurantes', 'Hoteles', 'Cafeterías', 'Peluquerías', 'Talleres', 'Clínicas', 'Comercios', 'Bares'],
   },
 
+  pricing: {
+    h2: 'Precios',
+    p: 'Sin sorpresas. Cancela cuando quieras.',
+    monthly: 'Mensual',
+    yearly: 'Anual',
+    yearlySave: '2 meses gratis',
+    plans: {
+      basic: {
+        name: 'Basic',
+        price: 'Gratis',
+        desc: 'Para probar cómo funciona la IA sin conectar tu local.',
+        features: ['3 respuestas manuales al mes', 'Formulario de otras plataformas', 'Sin conexión con Google'],
+        cta: 'Empezar gratis',
+      },
+      core: {
+        name: 'Core',
+        priceMonthly: '19,90 €',
+        priceYearly: '199 €',
+        priceYearlyMonthly: '16,58 €',
+        desc: 'Para negocios con tráfico moderado que quieren automatizar sus respuestas.',
+        features: ['10 respuestas IA al mes', 'Sincronización con Google', 'Respuestas pre-generadas', 'Gestión de reseñas'],
+        cta: 'Elegir Core',
+      },
+      pro: {
+        name: 'Pro',
+        priceMonthly: '29,90 €',
+        priceYearly: '299 €',
+        priceYearlyMonthly: '24,92 €',
+        desc: 'Para negocios activos que quieren el máximo control sobre su reputación.',
+        features: ['Respuestas IA ilimitadas', 'Panel de salud y reputación', 'Análisis de sentimiento', 'Soporte prioritario'],
+        cta: 'Elegir Pro',
+        badge: 'Recomendado',
+      },
+    },
+    perMonth: '/mes',
+    perYear: '/año',
+    vatNote: 'Precios sin IVA · Cancela cuando quieras',
+  },
+
   cta: {
     h2line1: 'Empieza hoy.',
     h2line2: 'Responde mañana.',

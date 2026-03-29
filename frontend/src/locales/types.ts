@@ -76,6 +76,45 @@ export interface LandingLocale {
     sectors: string[]
   }
 
+  pricing: {
+    h2: string
+    p: string
+    monthly: string
+    yearly: string
+    yearlySave: string
+    plans: {
+      basic: {
+        name: string
+        price: string
+        desc: string
+        features: string[]
+        cta: string
+      }
+      core: {
+        name: string
+        priceMonthly: string
+        priceYearly: string
+        priceYearlyMonthly: string
+        desc: string
+        features: string[]
+        cta: string
+      }
+      pro: {
+        name: string
+        priceMonthly: string
+        priceYearly: string
+        priceYearlyMonthly: string
+        desc: string
+        features: string[]
+        cta: string
+        badge: string
+      }
+    }
+    perMonth: string
+    perYear: string
+    vatNote: string
+  }
+
   cta: {
     h2line1: string
     h2line2: string

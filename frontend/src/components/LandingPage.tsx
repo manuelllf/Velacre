@@ -5,6 +5,14 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { LandingLocale } from '@/locales/types'
 
+function CheckIcon() {
+  return (
+    <svg className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+    </svg>
+  )
+}
+
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0">
@@ -24,6 +32,7 @@ export default function LandingPage({ locale: l }: Props) {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [typedText, setTypedText] = useState('')
   const [showResponse, setShowResponse] = useState(false)
+  const [billingYearly, setBillingYearly] = useState(false)
 
   const demoResponse = l.demo.response.text
 
@@ -75,6 +84,9 @@ export default function LandingPage({ locale: l }: Props) {
                 </span>
               ))}
             </div>
+            <a href="#precios" className="hidden sm:block text-sm font-medium text-slate-400 hover:text-white transition-colors px-3 py-2">
+              {l.pricing.h2}
+            </a>
             <Link href="/auth/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2">
               {l.nav.login}
             </Link>
@@ -328,6 +340,118 @@ export default function LandingPage({ locale: l }: Props) {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section id="precios" className="max-w-5xl mx-auto px-6 py-24">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-white mb-3">{l.pricing.h2}</h2>
+          <p className="text-slate-400">{l.pricing.p}</p>
+        </div>
+
+        {/* Toggle mensual / anual */}
+        <div className="flex items-center justify-center gap-3 mb-12">
+          <span className={`text-sm font-medium transition-colors ${!billingYearly ? 'text-white' : 'text-slate-500'}`}>{l.pricing.monthly}</span>
+          <button
+            type="button"
+            onClick={() => setBillingYearly(v => !v)}
+            className={`relative w-12 h-6 rounded-full transition-colors ${billingYearly ? 'bg-indigo-600' : 'bg-slate-700'}`}
+          >
+            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${billingYearly ? 'left-7' : 'left-1'}`} />
+          </button>
+          <span className={`text-sm font-medium transition-colors ${billingYearly ? 'text-white' : 'text-slate-500'}`}>{l.pricing.yearly}</span>
+          {billingYearly && (
+            <span className="text-xs font-semibold bg-emerald-900/60 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full">
+              {l.pricing.yearlySave}
+            </span>
+          )}
+        </div>
+
+        {/* Cards */}
+        <div className="grid md:grid-cols-3 gap-6 items-start">
+
+          {/* Basic */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col">
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-2">{l.pricing.plans.basic.name}</p>
+              <p className="text-4xl font-bold text-white mb-1">{l.pricing.plans.basic.price}</p>
+              <p className="text-xs text-slate-500">&nbsp;</p>
+            </div>
+            <p className="text-sm text-slate-400 mb-6 leading-relaxed">{l.pricing.plans.basic.desc}</p>
+            <ul className="space-y-2.5 mb-8 flex-1">
+              {l.pricing.plans.basic.features.map(f => (
+                <li key={f} className="flex items-start gap-2 text-sm text-slate-300"><CheckIcon />{f}</li>
+              ))}
+            </ul>
+            <Link
+              href="/auth/register"
+              className="block text-center py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-semibold transition-colors"
+            >
+              {l.pricing.plans.basic.cta}
+            </Link>
+          </div>
+
+          {/* Core */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col">
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-2">{l.pricing.plans.core.name}</p>
+              <div className="flex items-end gap-1.5">
+                <p className="text-4xl font-bold text-white">
+                  {billingYearly ? l.pricing.plans.core.priceYearlyMonthly : l.pricing.plans.core.priceMonthly}
+                </p>
+                <p className="text-slate-500 text-sm mb-1.5">{l.pricing.perMonth}</p>
+              </div>
+              {billingYearly && (
+                <p className="text-xs text-slate-500">{l.pricing.plans.core.priceYearly}{l.pricing.perYear}</p>
+              )}
+            </div>
+            <p className="text-sm text-slate-400 mb-6 leading-relaxed">{l.pricing.plans.core.desc}</p>
+            <ul className="space-y-2.5 mb-8 flex-1">
+              {l.pricing.plans.core.features.map(f => (
+                <li key={f} className="flex items-start gap-2 text-sm text-slate-300"><CheckIcon />{f}</li>
+              ))}
+            </ul>
+            <Link
+              href="/auth/register"
+              className="block text-center py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-semibold transition-colors"
+            >
+              {l.pricing.plans.core.cta}
+            </Link>
+          </div>
+
+          {/* Pro */}
+          <div className="bg-indigo-950/60 border border-indigo-800 rounded-2xl p-6 flex flex-col relative">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold bg-indigo-600 text-white px-3 py-1 rounded-full">
+              {l.pricing.plans.pro.badge}
+            </span>
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-2">{l.pricing.plans.pro.name}</p>
+              <div className="flex items-end gap-1.5">
+                <p className="text-4xl font-bold text-white">
+                  {billingYearly ? l.pricing.plans.pro.priceYearlyMonthly : l.pricing.plans.pro.priceMonthly}
+                </p>
+                <p className="text-slate-400 text-sm mb-1.5">{l.pricing.perMonth}</p>
+              </div>
+              {billingYearly && (
+                <p className="text-xs text-slate-400">{l.pricing.plans.pro.priceYearly}{l.pricing.perYear}</p>
+              )}
+            </div>
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">{l.pricing.plans.pro.desc}</p>
+            <ul className="space-y-2.5 mb-8 flex-1">
+              {l.pricing.plans.pro.features.map(f => (
+                <li key={f} className="flex items-start gap-2 text-sm text-slate-200"><CheckIcon />{f}</li>
+              ))}
+            </ul>
+            <Link
+              href="/auth/register"
+              className="block text-center py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors"
+            >
+              {l.pricing.plans.pro.cta}
+            </Link>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-slate-600 mt-6">{l.pricing.vatNote}</p>
       </section>
 
       {/* ── FINAL CTA ── */}

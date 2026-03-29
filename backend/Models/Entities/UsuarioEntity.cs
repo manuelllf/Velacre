@@ -77,6 +77,13 @@ public class UsuarioEntity : BaseModel
     [Column("ls_subscription_id")]
     public string? LsSubscriptionId { get; set; }
 
+    /// <summary>Respuestas IA generadas este mes (Core: límite 10, Pro: ilimitado)</summary>
+    [Column("respuestas_ia_mes")]
+    public int RespuestasIaMes { get; set; } = 0;
+
+    [Column("respuestas_ia_mes_reset")]
+    public DateTimeOffset? RespuestasIaMesReset { get; set; }
+
     /// <summary>Estado LS: active | cancelled | paused | past_due | expired</summary>
     [Column("ls_status")]
     public string? LsStatus { get; set; }
