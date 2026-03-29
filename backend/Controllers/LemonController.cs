@@ -122,8 +122,9 @@ public class LemonController : ControllerBase
         var usuario = result.Models.FirstOrDefault();
 
         if (usuario == null) return NotFound();
+        _logger.LogInformation("[Cancelar] userId={UserId} plan={Plan} lsSubId={SubId}", userId, usuario.Plan, usuario.LsSubscriptionId ?? "NULL");
         if (string.IsNullOrEmpty(usuario.LsSubscriptionId))
-            return BadRequest(new { error = "No hay suscripción activa" });
+            return BadRequest(new { error = "No hay suscripción activa", plan = usuario.Plan, lsSubId = usuario.LsSubscriptionId });
 
         var lsKey = Environment.GetEnvironmentVariable("LEMONSQUEEZY_API_KEY");
         var http  = _httpFactory.CreateClient();
