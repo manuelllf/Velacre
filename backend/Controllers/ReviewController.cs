@@ -71,6 +71,7 @@ public class ReviewController : ControllerBase
                     (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
                 {
                     usuario.RespuestasManualesMes = 0;
+                    usuario.RespuestasMesReset = now; // sincronizar local antes del update
                     await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
                 }
 
@@ -252,6 +253,7 @@ public class ReviewController : ControllerBase
                         .Set(u => u.RespuestasIaMesReset, now)
                         .Update();
                     usuario.RespuestasIaMes = 0;
+                    usuario.RespuestasIaMesReset = now; // sincronizar local para que el incremento final no sobreescriba con la fecha antigua
                 }
 
                 if (usuario.RespuestasIaMes >= iaLimit)
