@@ -264,8 +264,8 @@ export default function SaludPage() {
       </header>
       <SectionNav />
 
-      {/* Basic teaser — nota media real + resto blurred con datos dummy */}
-      {userPlan === 'basic' && (
+      {/* Non-pro teaser — nota media real + resto blurred con datos dummy */}
+      {userPlan !== 'pro' && (
         <div className="relative">
           {/* Nota media real — visible y por encima del blur */}
           <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-3 relative z-10">
@@ -326,21 +326,23 @@ export default function SaludPage() {
               </div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Panel de salud completo</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                Análisis de sentimiento, tendencias mensuales, keywords más mencionadas y reportes PDF. Disponible en Core y Pro.
+                {userPlan === 'core'
+                  ? 'Análisis de sentimiento, tendencias, keywords y PDFs descargables. Disponible en el plan Pro.'
+                  : 'Análisis de sentimiento, tendencias mensuales, keywords más mencionadas y reportes PDF. Solo disponible en Pro.'}
               </p>
               <button
                 type="button"
                 onClick={() => setBasicUpsellPlan('pro')}
                 className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm transition-colors text-center cursor-pointer"
               >
-                Quiero el panel completo →
+                {userPlan === 'core' ? 'Pasarme a Pro →' : 'Quiero el panel completo →'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {(userPlan === 'core' || userPlan === 'pro') && <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-5">
+      {userPlan === 'pro' && <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-5">
 
         {/* ── CABECERA DE PÁGINA ── */}
         <div className="flex flex-wrap items-start justify-between gap-4">
