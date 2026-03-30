@@ -97,8 +97,7 @@ export default function OnboardingPlanPage() {
           </ul>
           <button
             onClick={() => router.replace('/inicio')}
-            disabled={loading !== null}
-            className="w-full py-3 rounded-xl border border-slate-600 text-slate-400 font-semibold text-sm hover:bg-slate-700 disabled:opacity-50 transition-colors cursor-pointer"
+            className="w-full py-3 rounded-xl border border-slate-600 text-slate-400 font-semibold text-sm hover:bg-slate-700 transition-colors cursor-pointer"
           >
             Continuar gratis
           </button>
