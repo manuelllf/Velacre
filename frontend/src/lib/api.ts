@@ -4,7 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5146'
 
 /** Error de API con código HTTP. Distingue errores de sesión (401) de errores de red. */
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  constructor(public readonly status: number, message: string, public readonly data?: Record<string, unknown>) {
     super(message)
     this.name = 'ApiError'
   }
@@ -352,9 +352,13 @@ export async function generateForReview(reviewId: string): Promise<GenerateForRe
     headers: await authHeaders(),
   })
   if (!res.ok) {
+    if (res.status === 429) {
+      const data = await res.json().catch(() => ({}))
+      console.error('[api] generateForReview 429', data)
+      throw new ApiError(429, 'limit_reached', data as Record<string, unknown>)
+    }
     const body = await res.text()
     console.error('[api] generateForReview ERROR', res.status, body)
-    if (res.status === 429) throw new ApiError(429, body)
     throw new Error(body)
   }
   const data = await res.json()

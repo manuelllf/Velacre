@@ -291,6 +291,18 @@ public class ReviewController : ControllerBase
                 ? $"[Reseña sin texto] {review.StarRating} estrella{(review.StarRating != 1 ? "s" : "")} de {review.AuthorName ?? "un cliente"}. No dejó comentario escrito."
                 : $"[Reseña sin texto] de {review.AuthorName ?? "un cliente"}. No dejó comentario escrito.";
 
+        // Reserve IA slot BEFORE calling AI — prevents concurrent requests from bypassing the counter
+        var incrementedCounter = false;
+        if (usuario != null && (usuario.Plan == "core" || usuario.Plan == "basic"))
+        {
+            var now2 = DateTimeOffset.UtcNow;
+            await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
+                .Set(u => u.RespuestasIaMes, usuario.RespuestasIaMes + 1)
+                .Set(u => u.RespuestasIaMesReset, usuario.RespuestasIaMesReset ?? now2)
+                .Update();
+            incrementedCounter = true;
+        }
+
         try
         {
             // Siempre usar el método con contexto: genera respuesta en el idioma de la reseña
@@ -328,16 +340,6 @@ public class ReviewController : ControllerBase
 
             _logger.LogInformation("[ReviewController] Respuesta generada y guardada para reviewId={ReviewId}", id);
 
-            // Increment IA counter for Basic and Core plan
-            if (usuario != null && (usuario.Plan == "core" || usuario.Plan == "basic"))
-            {
-                var now2 = DateTimeOffset.UtcNow;
-                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
-                    .Set(u => u.RespuestasIaMes, usuario.RespuestasIaMes + 1)
-                    .Set(u => u.RespuestasIaMesReset, usuario.RespuestasIaMesReset ?? now2)
-                    .Update();
-            }
-
             return Ok(new
             {
                 response          = generated,
@@ -349,6 +351,22 @@ public class ReviewController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "[ReviewController] Error generando respuesta para reviewId={ReviewId}", id);
+
+            // Rollback the reserved slot on AI failure
+            if (incrementedCounter && usuario != null)
+            {
+                try
+                {
+                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
+                        .Set(u => u.RespuestasIaMes, Math.Max(0, usuario.RespuestasIaMes))
+                        .Update();
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogError(rollbackEx, "[ReviewController] Error al revertir contador IA para userId={UserId}", userId);
+                }
+            }
+
             return StatusCode(500, ex.Message);
         }
     }

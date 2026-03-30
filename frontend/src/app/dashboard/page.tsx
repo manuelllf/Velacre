@@ -69,6 +69,7 @@ export default function DashboardPage() {
   const [syncProgress, setSyncProgress] = useState(0)
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [showUpsell, setShowUpsell] = useState(false)
+  const [upsellInfo, setUpsellInfo] = useState<{ plan: string; limit: number; used: number } | null>(null)
 
   // Manual section
   const [manualModalOpen, setManualModalOpen] = useState(false)
@@ -151,6 +152,8 @@ export default function DashboardPage() {
       }
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
+        const d = err.data as { plan?: string; limit?: number; used?: number } | undefined
+        setUpsellInfo(d?.plan ? { plan: d.plan, limit: d.limit ?? 3, used: d.used ?? 0 } : null)
         setShowUpsell(true)
       } else {
         setGeneratedResponses(prev => ({
@@ -427,7 +430,7 @@ export default function DashboardPage() {
                 generated={generatedResponses[selectedReview.id]}
                 generatedError={generatedResponses[selectedReview.id + '_error']}
                 contexto={contextos[selectedReview.id]}
-                isGenerating={generatingIds.has(selectedReview.id)}
+                isGenerating={generatingIds.size > 0}
                 isUpdating={updatingEstado.has(selectedReview.id)}
                 copiedId={copiedId}
                 onGenerate={() => handleGenerate(selectedReview.id)}
@@ -469,7 +472,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <p className="text-sm font-semibold text-slate-900 dark:text-white">Otra plataforma</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">TripAdvisor, Booking, Tripadvisor…</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Tripadvisor, Booking, Yelp…</p>
               </div>
               <button
                 type="button"
@@ -534,32 +537,47 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Upsell modal — límite Core alcanzado */}
+      {/* Upsell modal — límite IA alcanzado */}
       {showUpsell && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => setShowUpsell(false)} />
           <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">Has alcanzado el límite del plan Core</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Has usado tus 10 respuestas IA de este mes. Pasa a Pro para respuestas ilimitadas.</p>
+              {upsellInfo?.plan === 'core' ? (
+                <>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">Límite del mes alcanzado</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Has usado tus <span className="font-semibold text-slate-700 dark:text-slate-300">10 respuestas IA</span> de este mes.
+                    Pásate a Pro y genera respuestas ilimitadas — sin contar, sin esperar.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">Límite del plan Basic alcanzado</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Has usado tus <span className="font-semibold text-slate-700 dark:text-slate-300">3 respuestas IA</span> de este mes.
+                    Pásate a Core (10/mes) o Pro (ilimitadas) y no pierdas ni una reseña sin responder.
+                  </p>
+                </>
+              )}
             </div>
             <div className="space-y-2">
               <a
                 href="/settings"
                 className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors"
               >
-                Ver planes →
+                {upsellInfo?.plan === 'core' ? 'Quiero Pro →' : 'Ver planes →'}
               </a>
               <button
                 onClick={() => setShowUpsell(false)}
                 className="block w-full py-2.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
               >
-                Cerrar
+                Ahora no
               </button>
             </div>
           </div>
