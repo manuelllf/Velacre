@@ -63,6 +63,8 @@ public class ReviewController : ControllerBase
             // Límite de respuestas manuales solo para no-Pro
             if (!esProEfectivo)
             {
+                int manualLimit = usuario.Plan == "core" ? 10 : 3;
+
                 // Reset counter if it's a new month
                 if (usuario.RespuestasMesReset == null ||
                     usuario.RespuestasMesReset.Value.Year < now.Year ||
@@ -72,10 +74,10 @@ public class ReviewController : ControllerBase
                     await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
                 }
 
-                if (usuario.RespuestasManualesMes >= 3)
+                if (usuario.RespuestasManualesMes >= manualLimit)
                 {
-                    _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite de 3 respuestas manuales en plan basic", userId);
-                    return StatusCode(403, "Has alcanzado el límite de 30 respuestas manuales este mes. Actualiza a Pro para respuestas ilimitadas.");
+                    _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite de {Limit} respuestas manuales en plan {Plan}", userId, manualLimit, usuario.Plan);
+                    return StatusCode(403, $"Has alcanzado el límite de {manualLimit} respuestas manuales este mes.");
                 }
             }
         }
