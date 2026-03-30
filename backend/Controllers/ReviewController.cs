@@ -236,8 +236,10 @@ public class ReviewController : ControllerBase
             var esProEfectivo = usuario.Plan == "pro" ||
                 (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > now));
 
-            if (!esProEfectivo && usuario.Plan == "core")
+            if (!esProEfectivo && (usuario.Plan == "core" || usuario.Plan == "basic"))
             {
+                int iaLimit = usuario.Plan == "core" ? 10 : 3;
+
                 // Reset contador si es nuevo mes
                 if (usuario.RespuestasIaMesReset == null ||
                     usuario.RespuestasIaMesReset.Value.Year  < now.Year ||
@@ -250,10 +252,10 @@ public class ReviewController : ControllerBase
                     usuario.RespuestasIaMes = 0;
                 }
 
-                if (usuario.RespuestasIaMes >= 10)
+                if (usuario.RespuestasIaMes >= iaLimit)
                 {
-                    _logger.LogWarning("[ReviewController] Core limit alcanzado para userId={UserId} ({Count}/10)", userId, usuario.RespuestasIaMes);
-                    return StatusCode(429, new { error = "limit_reached", plan = "core", limit = 10, used = usuario.RespuestasIaMes });
+                    _logger.LogWarning("[ReviewController] IA limit alcanzado para userId={UserId} ({Count}/{Limit}) plan={Plan}", userId, usuario.RespuestasIaMes, iaLimit, usuario.Plan);
+                    return StatusCode(429, new { error = "limit_reached", plan = usuario.Plan, limit = iaLimit, used = usuario.RespuestasIaMes });
                 }
             }
         }
@@ -322,8 +324,8 @@ public class ReviewController : ControllerBase
 
             _logger.LogInformation("[ReviewController] Respuesta generada y guardada para reviewId={ReviewId}", id);
 
-            // Increment IA counter for Core plan
-            if (usuario != null && usuario.Plan == "core")
+            // Increment IA counter for Basic and Core plan
+            if (usuario != null && (usuario.Plan == "core" || usuario.Plan == "basic"))
             {
                 var now2 = DateTimeOffset.UtcNow;
                 await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
