@@ -60,7 +60,7 @@ export default function WaitlistModal({ plan, onClose }: Props) {
                 }`}>{info.name}</span>
                 <span className="text-sm font-semibold text-slate-900 dark:text-white">{info.price}</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Únete a la lista de espera</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Reserva tu acceso anticipado</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{info.desc}</p>
             </div>
             <button
@@ -85,9 +85,9 @@ export default function WaitlistModal({ plan, onClose }: Props) {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">¡Anotado!</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Plaza reservada</p>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  Te avisaremos en cuanto el plan {info.name} esté disponible.
+                  Eres de los primeros. Te avisamos en cuanto activemos el plan {info.name}.
                 </p>
               </div>
               <button
@@ -100,9 +100,9 @@ export default function WaitlistModal({ plan, onClose }: Props) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-                <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-                  Los planes de pago están en desarrollo. Cuando tengamos suficientes usuarios interesados, los activaremos y te avisaremos por email.
+              <div className="px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
+                <p className="text-xs text-indigo-800 dark:text-indigo-300 leading-relaxed">
+                  Estamos activando el plan {info.name} para los primeros usuarios. Reserva tu plaza ahora y accede con precio de lanzamiento.
                 </p>
               </div>
 
