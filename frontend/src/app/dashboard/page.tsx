@@ -266,7 +266,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={loadReviews}
+                onClick={() => loadReviews()}
                 disabled={loadingReviews || syncLoading}
                 title="Actualizar"
                 className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
