@@ -17,6 +17,69 @@ public class EmailService
         _from   = Environment.GetEnvironmentVariable("RESEND_FROM")    ?? "Velacre <hola@velacre.com>";
     }
 
+    public async Task SendWaitlistNotificationAsync(string userEmail, string userName, string plan, string notas)
+    {
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            _logger.LogWarning("[EmailService] RESEND_API_KEY no configurada, omitiendo email de waitlist");
+            return;
+        }
+
+        var html = $"""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;margin:0;padding:0;">
+              <div style="max-width:520px;margin:40px auto;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+                <div style="background:#4f46e5;padding:28px 32px;">
+                  <h1 style="color:#fff;margin:0;font-size:20px;font-weight:600;">Velacre · Lista de espera</h1>
+                </div>
+                <div style="padding:32px;">
+                  <h2 style="color:#0f172a;font-size:18px;font-weight:600;margin:0 0 16px;">Nuevo interesado en plan <strong>{plan.ToUpper()}</strong></h2>
+                  <table style="width:100%;border-collapse:collapse;font-size:14px;color:#475569;">
+                    <tr><td style="padding:6px 0;font-weight:600;width:120px;">Email:</td><td style="padding:6px 0;">{userEmail}</td></tr>
+                    <tr><td style="padding:6px 0;font-weight:600;">Nombre:</td><td style="padding:6px 0;">{(string.IsNullOrEmpty(userName) ? "—" : userName)}</td></tr>
+                    <tr><td style="padding:6px 0;font-weight:600;">Plan:</td><td style="padding:6px 0;">{plan}</td></tr>
+                    <tr><td style="padding:6px 0;font-weight:600;vertical-align:top;">Notas:</td><td style="padding:6px 0;">{(string.IsNullOrEmpty(notas) ? "—" : notas)}</td></tr>
+                  </table>
+                </div>
+                <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+                  <p style="color:#94a3b8;font-size:11px;margin:0;">Velacre · Notificación automática de lista de espera</p>
+                </div>
+              </div>
+            </body>
+            </html>
+            """;
+
+        var payload = new
+        {
+            from    = _from,
+            to      = new[] { "info@velacre.com" },
+            subject = $"[Waitlist] {userName ?? userEmail} quiere el plan {plan.ToUpper()}",
+            html,
+        };
+
+        try
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
+            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+            req.Content = System.Net.Http.Json.JsonContent.Create(payload);
+
+            var res = await _http.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+                _logger.LogInformation("[EmailService] Waitlist email enviado — {Email} quiere plan {Plan}", userEmail, plan);
+            else
+            {
+                var body = await res.Content.ReadAsStringAsync();
+                _logger.LogWarning("[EmailService] Resend respondió {Status}: {Body}", res.StatusCode, body);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[EmailService] Error enviando waitlist email");
+        }
+    }
+
     public async Task SendWelcomeAsync(string toEmail, string nombre)
     {
         if (string.IsNullOrEmpty(_apiKey))

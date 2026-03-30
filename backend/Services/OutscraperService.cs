@@ -33,7 +33,7 @@ public class OutscraperService : IOutscraperService
         }
 
         bool isInitial = sinceDate == null;
-        int limit = isInitial ? 100 : 500;
+        int limit = isInitial ? 60 : 500;
         string mode = isInitial ? "inicial" : "incremental";
 
         _logger.LogInformation("[OutscraperService] Sync {Mode} — placeId={PlaceId}, limit={Limit}, sinceDate={Since}",

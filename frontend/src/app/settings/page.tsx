@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, getLemonCheckoutUrl, eliminarCuenta, cancelarSuscripcion, type Negocio } from '@/lib/api'
+import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, cancelarSuscripcion, type Negocio } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
+import WaitlistModal from '@/components/WaitlistModal'
 import { useLanguage } from '@/lib/i18n'
 
 export default function SettingsPage() {
@@ -27,7 +28,7 @@ export default function SettingsPage() {
   const [lsStatus, setLsStatus] = useState<string | null>(null)
   const [lsRenewsAt, setLsRenewsAt] = useState<string | null>(null)
   const [lsEndsAt, setLsEndsAt] = useState<string | null>(null)
-  const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
+  const [waitlistPlan, setWaitlistPlan] = useState<'core' | 'pro' | null>(null)
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
@@ -69,16 +70,6 @@ export default function SettingsPage() {
     load()
   }, [router])
 
-  async function handleUpgrade(selectedPlan: 'core' | 'pro') {
-    setCheckoutLoading(selectedPlan)
-    try {
-      const url = await getLemonCheckoutUrl(selectedPlan, billing)
-      window.location.href = url
-    } catch {
-      setError('No se pudo iniciar el proceso de pago. Inténtalo de nuevo.')
-      setCheckoutLoading(null)
-    }
-  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -208,11 +199,13 @@ export default function SettingsPage() {
                       )}
                     </div>
                   </div>
-                  <button onClick={() => handleUpgrade('core')} disabled={checkoutLoading !== null}
-                    className="w-full py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                  <button
+                    type="button"
+                    onClick={() => setWaitlistPlan('core')}
+                    className="w-full py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    {checkoutLoading === 'core' && <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />}
-                    {checkoutLoading === 'core' ? s.planRedirecting : s.planChooseCore}
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    Únete a la lista de espera
                   </button>
                 </div>
 
@@ -243,11 +236,13 @@ export default function SettingsPage() {
                       )}
                     </div>
                   </div>
-                  <button onClick={() => handleUpgrade('pro')} disabled={checkoutLoading !== null}
-                    className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                  <button
+                    type="button"
+                    onClick={() => setWaitlistPlan('pro')}
+                    className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    {checkoutLoading === 'pro' && <span className="w-3 h-3 border border-white/60 border-t-transparent rounded-full animate-spin" />}
-                    {checkoutLoading === 'pro' ? s.planRedirecting : s.planChoosePro}
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    Únete a la lista de espera
                   </button>
                 </div>
               </div>
@@ -456,6 +451,11 @@ export default function SettingsPage() {
         </section>
 
       </main>
+
+      {/* Waitlist modal */}
+      {waitlistPlan && (
+        <WaitlistModal plan={waitlistPlan} onClose={() => setWaitlistPlan(null)} />
+      )}
 
       {/* Cancel subscription modal */}
       {showCancelModal && (

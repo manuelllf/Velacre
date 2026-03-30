@@ -84,10 +84,11 @@ export default function DashboardPage() {
       try {
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
         if (u.isAdmin || u.rol === 'admin') { router.replace('/admin'); return }
-        setUserPlan(u.plan ?? 'basic')
+        const plan = u.plan ?? 'basic'
+        setUserPlan(plan)
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
-        loadReviews()
+        loadReviews(plan)
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) router.replace('/auth/login')
       } finally {
@@ -98,11 +99,12 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
-  async function loadReviews() {
+  async function loadReviews(plan?: string) {
     setLoadingReviews(true)
     try {
       const data = await getAllReviews()
-      setReviews(data)
+      const effectivePlan = plan ?? userPlan
+      setReviews(effectivePlan === 'basic' ? data.slice(0, 10) : data)
     }
     catch { /* silent */ }
     finally { setLoadingReviews(false) }

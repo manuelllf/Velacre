@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
+import WaitlistModal from '@/components/WaitlistModal'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, type MonthMetrics } from '@/lib/report-pdf'
 import { useLanguage } from '@/lib/i18n'
 
@@ -68,6 +69,7 @@ export default function SaludPage() {
   const [downloadingPdf, setDownloadingPdf] = useState<'month' | 'year' | null>(null)
   const [aiLimitReached, setAiLimitReached] = useState(false)
   const [metrics, setMetrics] = useState<VelacreMetrics | null>(null)
+  const [basicUpsellPlan, setBasicUpsellPlan] = useState<'core' | 'pro' | null>(null)
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null)
 
   useEffect(() => {
@@ -262,43 +264,83 @@ export default function SaludPage() {
       </header>
       <SectionNav />
 
-      {/* Pro lock overlay for non-Pro users */}
-      {userPlan !== 'pro' && (
+      {/* Basic teaser — nota media real + resto blurred con datos dummy */}
+      {userPlan === 'basic' && (
         <div className="relative">
-          <div className="max-w-screen-xl mx-auto px-4 py-6 space-y-5" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
-            {/* Dummy blurred charts */}
+          {/* Nota media real — visible y por encima del blur */}
+          <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-3 relative z-10">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 inline-flex items-center gap-6 shadow-sm">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Tu nota media</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-black text-slate-900 dark:text-white tabular-nums">
+                    {avgRating > 0 ? avgRating.toFixed(1) : '—'}
+                  </span>
+                  {avgRating > 0 && <span className="text-slate-400 text-xl font-light">/5</span>}
+                </div>
+                {avgRating > 0 && (
+                  <div className="flex gap-1 mt-1">
+                    {[1,2,3,4,5].map(s => (
+                      <span key={s} className={`text-base ${s <= Math.round(avgRating) ? 'text-amber-400' : 'text-slate-700'}`}>★</span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-slate-500 mt-1">Basado en {reviews.length} reseñas</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Dummy blurred content */}
+          <div className="max-w-screen-xl mx-auto px-4 pb-6 space-y-4" style={{ filter: 'blur(7px)', pointerEvents: 'none', userSelect: 'none' }}>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[['4.2', 'Nota media'], ['87%', 'Respuestas'], ['124', 'Reseñas'], ['+12%', 'Tendencia']].map(([val, label]) => (
+              {[['87%', 'Respondidas'], ['31', 'Reseñas este mes'], ['+0,3', 'Tendencia mensual'], ['4 min', 'Tiempo ahorrado']].map(([val, label]) => (
                 <div key={label} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
                   <p className="text-2xl font-bold text-slate-900 dark:text-white">{val}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{label}</p>
                 </div>
               ))}
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 h-48" />
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-3 w-1/3" />
+              <div className="flex rounded-full overflow-hidden h-4">
+                <div className="bg-emerald-500" style={{ width: '64%' }} />
+                <div className="bg-amber-400" style={{ width: '19%' }} />
+                <div className="bg-red-500" style={{ width: '17%' }} />
+              </div>
+              <div className="flex flex-wrap gap-2 mt-4">
+                {['excelente', 'servicio', 'comida', 'precio', 'ubicación', 'trato', 'ambiente'].map(w => (
+                  <span key={w} className="px-3 py-1 rounded-full text-xs bg-slate-200 dark:bg-slate-700 text-slate-500">{w}</span>
+                ))}
+              </div>
+            </div>
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 h-32" />
           </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-8 text-center max-w-sm mx-4">
-              <div className="w-12 h-12 bg-violet-100 dark:bg-violet-900/40 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+
+          {/* Upsell overlay */}
+          <div className="absolute inset-x-0 bottom-0 top-32 flex items-center justify-center pointer-events-auto">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-8 text-center max-w-sm mx-4">
+              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{sl.upgradeTitle}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{sl.upgradeDesc}</p>
-              <Link
-                href="/onboarding/plan"
-                className="block w-full py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-sm transition-colors text-center"
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Panel de salud completo</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                Análisis de sentimiento, tendencias mensuales, keywords más mencionadas y reportes PDF. Disponible en Core y Pro.
+              </p>
+              <button
+                type="button"
+                onClick={() => setBasicUpsellPlan('pro')}
+                className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm transition-colors text-center cursor-pointer"
               >
-                {sl.upgradeBtn}
-              </Link>
+                Quiero el panel completo →
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {userPlan === 'pro' && <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-5">
+      {(userPlan === 'core' || userPlan === 'pro') && <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-5">
 
         {/* ── CABECERA DE PÁGINA ── */}
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -640,6 +682,10 @@ export default function SaludPage() {
           </>
         )}
       </main>}
+
+      {basicUpsellPlan && (
+        <WaitlistModal plan={basicUpsellPlan} onClose={() => setBasicUpsellPlan(null)} />
+      )}
 
       <footer className="mt-8 border-t border-slate-800 py-5">
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">

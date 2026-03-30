@@ -59,6 +59,15 @@ export interface PendingReview {
   estado?: string
 }
 
+export async function notifyWaitlist(plan: 'core' | 'pro', notas?: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/notify/waitlist`, {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ plan, notas: notas ?? '' }),
+  })
+  if (!res.ok) throw new Error(await res.text())
+}
+
 export async function generateResponses(
   reviewText: string,
   plataforma?: string

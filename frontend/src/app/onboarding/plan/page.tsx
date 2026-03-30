@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getLemonCheckoutUrl, getMyNegocio, getMyUsuario } from '@/lib/api'
+import { getMyNegocio, getMyUsuario } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import WaitlistModal from '@/components/WaitlistModal'
 
 export default function OnboardingPlanPage() {
   const router = useRouter()
@@ -14,8 +15,7 @@ export default function OnboardingPlanPage() {
   const FEATURES_PRO = t.app.settings.planPro
 
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
-  const [loading, setLoading] = useState<'core' | 'pro' | null>(null)
-  const [error, setError] = useState('')
+  const [waitlistPlan, setWaitlistPlan] = useState<'core' | 'pro' | null>(null)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -33,17 +33,6 @@ export default function OnboardingPlanPage() {
     guard()
   }, [router])
 
-  async function handlePlan(plan: 'core' | 'pro') {
-    setLoading(plan)
-    setError('')
-    try {
-      const url = await getLemonCheckoutUrl(plan, billing)
-      window.location.href = url
-    } catch {
-      setError(t.app.common.error)
-      setLoading(null)
-    }
-  }
 
   if (!ready) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950">
@@ -139,12 +128,11 @@ export default function OnboardingPlanPage() {
             ))}
           </ul>
           <button
-            onClick={() => handlePlan('core')}
-            disabled={loading !== null}
-            className="w-full py-3 rounded-xl border-2 border-indigo-500 text-indigo-400 font-semibold text-sm hover:bg-indigo-500/10 disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-2"
+            onClick={() => setWaitlistPlan('core')}
+            className="w-full py-3 rounded-xl border-2 border-indigo-500 text-indigo-400 font-semibold text-sm hover:bg-indigo-500/10 transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
-            {loading === 'core' && <span className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />}
-            {loading === 'core' ? ob.planRedirecting : ob.planChooseCore}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            Únete a la lista de espera
           </button>
         </div>
 
@@ -175,20 +163,17 @@ export default function OnboardingPlanPage() {
             ))}
           </ul>
           <button
-            onClick={() => handlePlan('pro')}
-            disabled={loading !== null}
-            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-2"
+            onClick={() => setWaitlistPlan('pro')}
+            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
-            {loading === 'pro' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-            {loading === 'pro' ? ob.planRedirecting : ob.planChoosePro}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            Únete a la lista de espera
           </button>
         </div>
       </div>
 
-      {error && (
-        <p className="text-sm text-red-400 bg-red-900/20 border border-red-800 px-4 py-3 rounded-xl mb-4 max-w-4xl w-full text-center">
-          {error}
-        </p>
+      {waitlistPlan && (
+        <WaitlistModal plan={waitlistPlan} onClose={() => setWaitlistPlan(null)} />
       )}
     </div>
   )
