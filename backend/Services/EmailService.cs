@@ -54,7 +54,7 @@ public class EmailService
         var payload = new
         {
             from    = _from,
-            to      = new[] { "info@velacre.com" },
+            to      = new[] { "infovelacre@gmail.com" },
             subject = $"[Waitlist] {userName ?? userEmail} quiere el plan {plan.ToUpper()}",
             html,
         };
