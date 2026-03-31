@@ -380,6 +380,29 @@ frontend/src/
 
 ## Pendiente / Próximos pasos
 
-- **Google OAuth + Places API nativo:** cuando el usuario inicia sesión con Google, usar el token OAuth para llamar a Google My Business API directamente (sin Outscraper). Requiere: configurar scopes de Google OAuth en Supabase, guardar el refresh token, añadir endpoint en backend que use el token para leer reseñas. Outscraper seguiría siendo el fallback para usuarios que no usan Google OAuth.
-- **Activar pagos:** dar de alta como autónomo → activar variantes Lemon Squeezy → cambiar botones de "lista de espera" a checkout real
-- **Verificar generación de keywords_usadas** en producción (comparación case-insensitive de palabras clave del negocio vs texto de respuesta generada)
+### Bugs / mejoras pequeñas
+- **Persistir contexto de reseña en BD** — añadir `contexto_cliente text` y `contexto_respuesta text` a la tabla `review`. Guardar al generar (junto con la respuesta). Recuperar al hacer `onLoad` en reseñas respondidas. Actualmente solo vive en React state y se pierde al recargar/volver otro día.
+- **Auto-cargar respuesta y contexto al seleccionar reseña respondida** — actualmente el usuario tiene que hacer clic en "Cargar respuesta". Debería cargarse sola al montar el DetailPanel si la reseña ya tiene respuesta guardada.
+- **Verificar generación de `keywords_usadas`** en producción (comparación case-insensitive de palabras clave del negocio vs texto de respuesta generada)
+
+### Integración Google Business Profile (iteración grande)
+Rediseño del onboarding step 2 con dos caminos **excluyentes** (nunca los dos, nunca ninguno):
+
+```
+Onboarding Step 2 — Conecta tu local
+  ┌─────────────────────────────────────────┐
+  │  [G] Conectar con Google Business       │  → OAuth + scope business.manage
+  │      Acceso nativo, sin Outscraper      │    → muestra los locales del usuario
+  │                                         │
+  │  [🔍] Buscar manualmente                │  → text search Places API como ahora
+  │       Introduce el nombre de tu local   │    → Outscraper para sync
+  └─────────────────────────────────────────┘
+```
+
+- Si elige Google Business: encadena el consent de `business.manage` al login OAuth ya hecho, guarda `provider_token` + `provider_refresh_token` en BD, sync nativo sin Outscraper
+- Si elige manual: flujo actual (búsqueda texto + Outscraper)
+- Settings permite reconectar / cambiar de manual a nativo después
+- Requiere: configurar scopes en Supabase Google provider, guardar tokens en tabla `negocio` o `usuario`, nuevo endpoint backend que use Google My Business API
+
+### Activar pagos
+- Dar de alta como autónomo → activar variantes Lemon Squeezy → cambiar botones de "lista de espera" a checkout real
