@@ -104,7 +104,7 @@ const gal: LandingLocale = {
   },
 
   pricing: {
-    h2: 'Prezos',
+    h2: 'Plans',
     p: 'Sen sorpresas. Cancela cando queiras.',
     monthly: 'Mensual',
     yearly: 'Anual',

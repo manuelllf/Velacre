@@ -104,7 +104,7 @@ const es: LandingLocale = {
   },
 
   pricing: {
-    h2: 'Precios',
+    h2: 'Planes',
     p: 'Sin sorpresas. Cancela cuando quieras.',
     monthly: 'Mensual',
     yearly: 'Anual',

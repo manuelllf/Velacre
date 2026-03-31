@@ -104,7 +104,7 @@ const en: LandingLocale = {
   },
 
   pricing: {
-    h2: 'Pricing',
+    h2: 'Plans',
     p: 'No surprises. Cancel anytime.',
     monthly: 'Monthly',
     yearly: 'Yearly',
