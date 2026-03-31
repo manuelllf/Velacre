@@ -306,7 +306,7 @@ export default function DashboardPage() {
         <div className="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-16rem)]">
 
           {/* ── LEFT: filter tabs + scrollable list + manual ── */}
-          <div className="w-full lg:w-80 xl:w-96 shrink-0 flex flex-col lg:h-full gap-3">
+          <div className={`w-full lg:w-80 xl:w-96 shrink-0 flex-col lg:h-full gap-3 ${selectedId ? 'hidden lg:flex' : 'flex'}`}>
 
             {/* Filter tabs — 4 columnas iguales, sin scroll */}
             <div className="grid grid-cols-4 gap-1 shrink-0">
@@ -423,8 +423,17 @@ export default function DashboardPage() {
           </div>
 
           {/* ── RIGHT: detail panel — scrollable en desktop ── */}
-          <div className="flex-1 min-w-0 lg:overflow-y-auto lg:h-full scroll-thin">
+          <div className={`min-w-0 lg:overflow-y-auto lg:h-full scroll-thin ${selectedId ? 'flex-1' : 'hidden lg:flex lg:flex-1'}`}>
             {selectedReview ? (
+              <>
+                {/* Botón volver — solo mobile */}
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="lg:hidden flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 mb-3 font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  Volver a reseñas
+                </button>
               <DetailPanel
                 review={selectedReview}
                 generated={generatedResponses[selectedReview.id]}
@@ -450,6 +459,7 @@ export default function DashboardPage() {
                 onRetry={() => setGeneratedResponses(prev => { const s = { ...prev }; delete s[selectedReview.id + '_error']; return s })}
                 commonError={t.app.common.error}
               />
+              </>
             ) : (
               <div className="hidden lg:flex bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 h-80 items-center justify-center">
                 <div className="text-center">
@@ -771,7 +781,15 @@ function DetailPanel({
       <div className="px-6 pb-5 flex items-center justify-between gap-3 flex-wrap">
         <div>
           {!hasGenerated && !hasError && estado === 'respondida' && (
-            review.tonoGenerado && review.tonoGenerado !== 'google' ? (
+            review.tonoGenerado === 'google' ? (
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                Respondida directamente en Google.{' '}
+                <button onClick={() => onSetEstado('pendiente')} className="underline hover:text-slate-600 dark:hover:text-slate-300">
+                  Reabre
+                </button>{' '}
+                para generar una con Velacre.
+              </p>
+            ) : review.tonoGenerado ? (
               <button
                 onClick={onLoad}
                 className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-sm font-semibold transition-colors"
