@@ -232,7 +232,7 @@ export default function DashboardPage() {
 
       <SectionNav />
 
-      <main className="max-w-screen-xl mx-auto px-4 pt-[7.5rem] pb-4 space-y-4">
+      <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-4">
 
         {/* ── Sync bar ── */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 px-5 py-4">
