@@ -423,7 +423,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ── RIGHT: detail panel — scrollable en desktop ── */}
-          <div className={`min-w-0 lg:overflow-y-auto lg:h-full scroll-thin ${selectedId ? 'flex-1' : 'hidden lg:flex lg:flex-1'}`}>
+          <div className={`min-w-0 lg:overflow-y-auto lg:h-full scroll-thin flex-1 ${selectedId ? 'block' : 'hidden lg:block'}`}>
             {selectedReview ? (
               <>
                 {/* Botón volver — solo mobile */}
