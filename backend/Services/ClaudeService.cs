@@ -114,38 +114,49 @@ public class ClaudeService : IReviewAiService
             System = [new SystemMessage(systemPrompt)]
         };
 
-        try
+        const int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            var apiResponse = await _client.Messages.GetClaudeMessageAsync(parameters);
-            var raw = apiResponse.Content.FirstOrDefault()?.ToString() ?? "";
-
-            var jsonStart = raw.IndexOf('{');
-            var jsonEnd   = raw.LastIndexOf('}');
-            if (jsonStart >= 0 && jsonEnd > jsonStart)
+            try
             {
-                var doc = System.Text.Json.JsonDocument.Parse(raw[jsonStart..(jsonEnd + 1)]);
-                var respuesta        = doc.RootElement.GetProperty("respuesta").GetString() ?? "";
-                var contextoCliente  = doc.RootElement.GetProperty("contextoCliente").GetString() ?? "";
-                var contextoResp     = doc.RootElement.GetProperty("contextoRespuesta").GetString() ?? "";
-                string[] kwUsadas    = [];
-                if (doc.RootElement.TryGetProperty("keywordsUsadas", out var kwElement) && kwElement.ValueKind == System.Text.Json.JsonValueKind.Array)
-                {
-                    kwUsadas = kwElement.EnumerateArray()
-                        .Select(e => e.GetString() ?? "")
-                        .Where(s => !string.IsNullOrWhiteSpace(s))
-                        .ToArray();
-                }
-                return (respuesta, contextoCliente, contextoResp, kwUsadas);
-            }
+                var apiResponse = await _client.Messages.GetClaudeMessageAsync(parameters);
+                var raw = apiResponse.Content.FirstOrDefault()?.ToString() ?? "";
 
-            _logger.LogWarning("[ClaudeService] GenerateSingleResponseWithContextAsync: JSON no encontrado en respuesta");
-            return (raw.Trim(), "", "", []);
+                var jsonStart = raw.IndexOf('{');
+                var jsonEnd   = raw.LastIndexOf('}');
+                if (jsonStart >= 0 && jsonEnd > jsonStart)
+                {
+                    var doc = System.Text.Json.JsonDocument.Parse(raw[jsonStart..(jsonEnd + 1)]);
+                    var respuesta        = doc.RootElement.GetProperty("respuesta").GetString() ?? "";
+                    var contextoCliente  = doc.RootElement.GetProperty("contextoCliente").GetString() ?? "";
+                    var contextoResp     = doc.RootElement.GetProperty("contextoRespuesta").GetString() ?? "";
+                    string[] kwUsadas    = [];
+                    if (doc.RootElement.TryGetProperty("keywordsUsadas", out var kwElement) && kwElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        kwUsadas = kwElement.EnumerateArray()
+                            .Select(e => e.GetString() ?? "")
+                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                            .ToArray();
+                    }
+                    return (respuesta, contextoCliente, contextoResp, kwUsadas);
+                }
+
+                _logger.LogWarning("[ClaudeService] GenerateSingleResponseWithContextAsync: JSON no encontrado en respuesta");
+                return (raw.Trim(), "", "", []);
+            }
+            catch (Exception ex) when (attempt < maxRetries && ex.Message.Contains("overloaded_error"))
+            {
+                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt)); // 2s, 4s
+                _logger.LogWarning("[ClaudeService] Overloaded (intento {Attempt}/{Max}), reintentando en {Delay}s...", attempt, maxRetries, delay.TotalSeconds);
+                await Task.Delay(delay);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[ClaudeService] Error en GenerateSingleResponseWithContextAsync tono={Tone}", tone);
+                throw;
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[ClaudeService] Error en GenerateSingleResponseWithContextAsync tono={Tone}", tone);
-            throw;
-        }
+        throw new InvalidOperationException("Claude API overloaded tras 3 intentos");
     }
 
     private async Task<string> GenerateSingleAsync(
