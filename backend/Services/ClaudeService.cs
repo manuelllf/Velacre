@@ -93,23 +93,21 @@ public class ClaudeService : IReviewAiService
 
         var systemPrompt =
             $"Eres un experto en reputación online para hostelería en Ferrol, Galicia. " +
-            $"Negocio: {businessDesc}. Tono: {tone}. {instructions} " +
-            $"IMPORTANTE: La reseña está escrita en '{reviewLanguage}'. " +
-            $"La respuesta DEBE estar escrita en ese mismo idioma ('{reviewLanguage}'). " +
-            $"Si la reseña es en español ('es'), responde en español. Si es en inglés ('en'), responde en inglés. Si es en gallego ('gl'), responde en gallego. Etc. " +
-            $"Si la reseña no tiene texto escrito, genera igualmente una respuesta agradeciendo la valoración y basándote en la puntuación de estrellas. " +
+            $"Negocio: {businessDesc}. {instructions} " +
+            $"Responde SIEMPRE en el mismo idioma que la reseña (código '{reviewLanguage}'). " +
+            $"Si la reseña no tiene texto, agradece la valoración basándote en las estrellas. " +
             keywordsBlock +
-            $"Devuelve ÚNICAMENTE este JSON (sin markdown, sin texto extra):\n" +
-            "{\"respuesta\":\"<respuesta en el idioma de la reseña, máx 150 palabras>\"," +
-            "\"contextoCliente\":\"<una frase en español resumiendo qué dijo el cliente>\"," +
-            "\"contextoRespuesta\":\"<una frase en español resumiendo qué responde el negocio>\"," +
-            "\"keywordsUsadas\":[\"<solo las keywords del negocio que hayas incluido en la respuesta, array vacío si ninguna>\"]}";
+            "Devuelve ÚNICAMENTE este JSON (sin markdown):\n" +
+            "{\"respuesta\":\"<máx 150 palabras, mismo idioma que la reseña>\"," +
+            "\"contextoCliente\":\"<1 frase en español>\"," +
+            "\"contextoRespuesta\":\"<1 frase en español>\"," +
+            "\"keywordsUsadas\":[\"<keywords usadas, array vacío si ninguna>\"]}";
 
         var parameters = new MessageParameters
         {
-            Messages = [new Message(RoleType.User, $"Genera una respuesta para esta reseña: '{reviewText}'")],
+            Messages = [new Message(RoleType.User, $"Reseña: '{reviewText}'")],
             Model = _model,
-            MaxTokens = 700,
+            MaxTokens = 450,
             Temperature = 0.7m,
             System = [new SystemMessage(systemPrompt)]
         };

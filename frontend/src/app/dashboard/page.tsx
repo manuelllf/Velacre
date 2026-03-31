@@ -430,7 +430,7 @@ export default function DashboardPage() {
                 generated={generatedResponses[selectedReview.id]}
                 generatedError={generatedResponses[selectedReview.id + '_error']}
                 contexto={contextos[selectedReview.id]}
-                isGenerating={generatingIds.size > 0}
+                isGenerating={generatingIds.has(selectedReview.id)}
                 isUpdating={updatingEstado.has(selectedReview.id)}
                 copiedId={copiedId}
                 onGenerate={() => handleGenerate(selectedReview.id)}
