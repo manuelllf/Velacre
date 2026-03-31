@@ -404,5 +404,20 @@ Onboarding Step 2 — Conecta tu local
 - Settings permite reconectar / cambiar de manual a nativo después
 - Requiere: configurar scopes en Supabase Google provider, guardar tokens en tabla `negocio` o `usuario`, nuevo endpoint backend que use Google My Business API
 
+**Notas técnicas importantes para la implementación:**
+
+- `business.manage` es un scope sensible (no restringido) — los usuarios ven aviso "app no verificada" pero pueden aceptarlo ellos solos haciendo clic en "Configuración avanzada → Continuar". No hay que añadirlos manualmente como testers. Límite: 100 usuarios sin verificación; suficiente para el MVP. Verificar la app con Google cuando se escale.
+- El login básico con Google (email + perfil) no se ve afectado en absoluto por la verificación del scope `business.manage`.
+- **Problema del refresh token:** Google solo manda el `refresh_token` la primera vez que el usuario da consentimiento. En logins posteriores (aunque pidas el mismo scope) solo manda `access_token` (caduca en ~1h). Si el usuario ya había hecho login con Google sin el scope de business, el segundo OAuth no traerá `refresh_token` → la integración se rompe en menos de 1 hora. **Solución:** forzar siempre `prompt: consent` + `access_type: offline` en el OAuth de business.manage para que Google regenere el refresh token en cada consent:
+  ```ts
+  supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      scopes: 'email profile https://www.googleapis.com/auth/business.manage',
+      queryParams: { access_type: 'offline', prompt: 'consent' }
+    }
+  })
+  ```
+
 ### Activar pagos
 - Dar de alta como autónomo → activar variantes Lemon Squeezy → cambiar botones de "lista de espera" a checkout real
