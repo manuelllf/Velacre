@@ -1,5 +1,5 @@
 # Velacre — Contexto del proyecto
-**Fecha:** 30 de marzo de 2026
+**Fecha:** 1 de abril de 2026
 
 ---
 
@@ -58,6 +58,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | tonopredefinido | string | `Profesional` / `Cercano` / `Directo` |
 | place_id | string | Google Place ID, bloqueado tras setup |
 | idusuario | UUID | FK → usuario |
+| palabras_clave | text[] | hasta 5 keywords SEO para incluir en respuestas |
 
 ### `review`
 | Campo | Tipo | Notas |
@@ -66,7 +67,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | codigo | string | BFK + 7 chars |
 | idnegocio | UUID | FK → negocio |
 | clientereview | string | texto reseña del cliente |
-| respuestaprofesional, respuestacolegueo, respuestaorgullosa | string | 3 tonos generados |
+| respuestaprofesional, respuestacercano, respuestadirecta | string | 3 tonos generados |
 | tono_generado | string | tono usado / `google` si respuesta original Google |
 | google_review_id | string | ID único de Google |
 | author_name | string | |
@@ -75,6 +76,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | review_language | string | código ISO: es, en, gl... |
 | estado | string | `pendiente` / `respondida` / `ignorada` |
 | plataforma | string | `Google`, etc. |
+| keywords_usadas | text[] | palabras clave del negocio que la IA incluyó en la respuesta |
 
 ### `analisis_ia`
 | Campo | Tipo |
@@ -85,6 +87,29 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | accion | string |
 | review_count | int |
 | created_at | timestamptz |
+
+> **Migraciones ejecutadas (2026-04-01):**
+> ```sql
+> ALTER TABLE negocio ADD COLUMN IF NOT EXISTS palabras_clave text[] DEFAULT '{}';
+> ALTER TABLE review   ADD COLUMN IF NOT EXISTS keywords_usadas text[] DEFAULT '{}';
+> ```
+> **RPC atómica para contador IA (ejecutada manualmente en Supabase):**
+> ```sql
+> CREATE OR REPLACE FUNCTION try_increment_ia_counter(p_user_id uuid, p_limit int)
+> RETURNS boolean LANGUAGE plpgsql AS $$
+> DECLARE v_count int; v_reset timestamptz;
+> BEGIN
+>   SELECT respuestas_ia_mes, respuestas_ia_mes_reset INTO v_count, v_reset
+>   FROM usuario WHERE id = p_user_id FOR UPDATE;
+>   IF v_reset IS NULL OR NOW() > v_reset + INTERVAL '1 month' THEN
+>     UPDATE usuario SET respuestas_ia_mes = 1, respuestas_ia_mes_reset = NOW() WHERE id = p_user_id;
+>     RETURN TRUE;
+>   END IF;
+>   IF p_limit >= 0 AND v_count >= p_limit THEN RETURN FALSE; END IF;
+>   UPDATE usuario SET respuestas_ia_mes = v_count + 1 WHERE id = p_user_id;
+>   RETURN TRUE;
+> END; $$;
+> ```
 
 ---
 
@@ -98,15 +123,18 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 
 ### `/api/negocio`
 - `GET /me`, `POST /`, `PUT /me`
+- Acepta campo `palabrasClave: string[]` en POST y PUT
 
 ### `/api/review`
 - `POST /generate` — manual: 3 tonos, límite 3/mes basic
 - `GET /all` — todas las reseñas (ordenadas por fecha desc)
 - `GET /pending` — reseñas sin respuesta
-- `POST /{id}/generate` — IA: límite 10/mes core
+- `POST /{id}/generate` — IA: límite atómico por plan (RPC `try_increment_ia_counter`)
+  - Guarda `keywords_usadas` en `review` (palabras del negocio que aparecen en la respuesta)
 - `PUT /{id}/estado` — pendiente/respondida/ignorada
 - `POST /{id}/translate`, `POST /{id}/translate-response`
-- `GET /metrics`, `GET /analysis`, `POST /analysis`
+- `GET /metrics` — incluye `topKeywordsUsadas` (top 6 keywords de todas las respuestas) y `responseRate`
+- `GET /analysis`, `POST /analysis`
 
 ### `/api/places`
 - `GET /search?q=` — buscar en Google Places
@@ -120,7 +148,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 - `POST /webhook` (sin auth, firma HMAC-SHA256)
 
 ### `/api/notify`
-- `POST /waitlist` — envía email a info@velacre.com cuando usuario quiere Core/Pro
+- `POST /waitlist` — envía email a `infovelacre@gmail.com` (directo, sin relay Namecheap)
 
 ### `/api/admin` (solo admin)
 - CRUD estado, plan, rol, pro-override, notas, place_id
@@ -135,7 +163,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | Core | 19,90€/mes · 190€/año | 3 | 10 | Completo | 60 |
 | Pro | 29,90€/mes · 290€/año | Ilimitadas | Ilimitadas | Completo | 60 |
 
-> **Estado pagos (2026-03-30):** Core y Pro muestran botón "Únete a la lista de espera" — envía email a info@velacre.com. No se procesa ningún pago hasta alta como autónomo. Se activan cuando haya 10-15 usuarios interesados.
+> **Estado pagos (2026-04-01):** Core y Pro muestran botón "Reservar acceso" — envía email a `infovelacre@gmail.com`. No se procesa ningún pago hasta alta como autónomo.
 
 ---
 
@@ -145,19 +173,22 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 Registro (Google OAuth o email)
   ↓ auth/callback → crea usuario en BD → email bienvenida
   ↓ /onboarding
-    Step 1: datos negocio + tono
+    Step 1: datos negocio + tono + hasta 5 palabras clave SEO
     Step 2: buscar Google Place
     Step 3: sync inicial (60 reseñas)
   ↓ /dashboard
     - Ver reseñas (últimas 10 si basic, 60 si core/pro)
-    - Generar respuesta IA por reseña
+    - Generar respuesta IA por reseña (contador atómico, sin race condition)
     - Generador manual (para otras plataformas)
     - Sync incremental
+    - Mobile: master-detail (lista oculta al seleccionar, botón "← Volver")
   ↓ /dashboard/salud (core/pro)
     - Métricas, keywords, análisis IA
+    - Tarjeta Impacto Velacre: % respondidas, tiempo ahorrado, optimización SEO
     - PDFs descargables (mes/ejercicio)
   ↓ /settings
     - Perfil, tono, Google conectado
+    - Palabras clave SEO (hasta 5)
     - Plan (basic: lista espera; core/pro: gestión LS)
     - Danger zone (cancelar, eliminar cuenta)
 ```
@@ -171,6 +202,59 @@ Registro (Google OAuth o email)
 - **Directo** — conciso, al grano
 
 El idioma de respuesta es el mismo que el de la reseña (Claude detecta y responde en inglés si la reseña es en inglés, etc.).
+
+Las palabras clave SEO se incluyen con naturalidad en las respuestas (no todas, no forzadas — la IA decide cuáles encajan según contexto).
+
+---
+
+## Comportamiento reseñas respondidas en dashboard
+
+- `tono_generado === 'google'` → "Respondida directamente en Google. Reabre para generar una con Velacre."
+- `tono_generado` (valor no-google) → botón **"Cargar respuesta"** (carga la respuesta guardada sin llamar a la API)
+- sin `tono_generado` → "Sin respuesta generada. Reabre para generarla."
+- reseña no respondida → botón **"Generar respuesta IA"** normal
+
+---
+
+## ClaudeService — optimizaciones (2026-04-01)
+
+- Prompt simplificado (~5 líneas, sin repeticiones de idioma)
+- `MaxTokens` reducido de 700 a 450
+- Mensaje usuario acortado: `"Reseña: '{reviewText}'"` (antes más largo)
+- Retry automático (3 intentos) con backoff exponencial para `overloaded_error` (1s → 2s → 4s)
+
+---
+
+## SectionNav
+
+- `sticky top-14 z-40` — en flujo del documento, debajo del header, sin superposición
+- Fondo: `bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md border-b`
+- 3 tabs con iconos SVG + labels (labels ocultos en mobile): **Reseñas**, **Salud**, **Configuración**
+- Tab activo: `bg-white dark:bg-slate-800 shadow-sm border`
+- Sin logo
+
+---
+
+## Modo oscuro
+
+- **Siempre dark**, independiente del sistema del usuario
+- `layout.tsx` tiene `<html className="dark">` hardcodeado
+- `globals.css` usa variante clase: `@variant dark (&:where(.dark, .dark *))` (Tailwind v4)
+- Fondo: `#0f172a`, texto: `#f1f5f9`
+
+---
+
+## Panel Admin
+
+- Header: "Velacre · Admin" (sin enlace a dashboard)
+- Botón actualizar: protegido con try/catch/finally (no se queda girando si `load()` falla)
+- Errores en modales: visibles con fondo rojo, hint de sesión caducada si error 401/403
+
+---
+
+## Landing page
+
+- Sección de precios renombrada a **"Planes"** (era "Precios") en los 3 idiomas (es/en/gal)
 
 ---
 
@@ -240,39 +324,41 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 backend/
   Controllers/
-    ReviewController.cs    — generación IA, límites por plan
+    ReviewController.cs    — generación IA, límites atómicos por plan, keywords_usadas
     PlacesController.cs    — sync Google (Outscraper)
-    NegocioController.cs   — CRUD negocio
+    NegocioController.cs   — CRUD negocio (incluye palabras_clave)
     UsuarioController.cs   — perfil, eliminación cuenta
     LemonController.cs     — pagos, webhooks
     AdminController.cs     — panel administración
-    NotifyController.cs    — lista de espera waitlist
+    NotifyController.cs    — lista de espera waitlist (→ infovelacre@gmail.com)
   Services/
-    ClaudeService.cs       — llamadas a Claude API
+    ClaudeService.cs       — llamadas Claude API (prompt optimizado, retry backoff)
     OutscraperService.cs   — scraping reseñas Google
     GooglePlacesService.cs — búsqueda de lugares
-    EmailService.cs        — Resend (bienvenida, waitlist)
+    EmailService.cs        — Resend (bienvenida, waitlist directo a Gmail)
   Models/Entities/         — entidades Supabase/Postgrest
 
 frontend/src/
   app/
-    dashboard/page.tsx     — panel principal reseñas
-    dashboard/salud/       — analytics y health
-    settings/page.tsx      — configuración y planes
-    onboarding/            — flujo setup inicial
-    admin/page.tsx         — panel admin
+    dashboard/page.tsx     — panel reseñas (mobile master-detail, per-review generatingIds)
+    dashboard/salud/       — analytics: Impacto Velacre (respondidas, tiempo, SEO keywords)
+    settings/page.tsx      — configuración, planes, palabras clave SEO
+    onboarding/            — flujo setup inicial (incluye palabras clave)
+    admin/page.tsx         — panel admin (try/catch/finally, errores visibles)
   components/
-    LandingPage.tsx        — landing pública
-    SectionNav.tsx         — nav entre secciones app
+    LandingPage.tsx        — landing pública ("Planes" en lugar de "Precios")
+    SectionNav.tsx         — sticky top-14, sin logo, 3 tabs con iconos
     WaitlistModal.tsx      — modal lista espera Core/Pro
   lib/
-    api.ts                 — cliente REST al backend
+    api.ts                 — cliente REST (Negocio.palabrasClave, PendingReview.keywordsUsadas,
+                             VelacreMetrics.topKeywordsUsadas + responseRate)
     supabase.ts            — cliente Supabase Auth
     i18n.tsx               — contexto multiidioma
     report-pdf.ts          — generación PDFs (jsPDF)
   locales/
-    es.ts, en.ts, gal.ts   — traducciones
+    es.ts, en.ts, gal.ts   — traducciones ("Planes"/"Plans")
     types.ts               — tipos TypeScript locales
+  app/globals.css          — @variant dark class-based (siempre dark)
 ```
 
 ---
@@ -282,7 +368,18 @@ frontend/src/
 - **No usar `null` con Postgrest `.Set()`** — usar string vacía `""` en su lugar
 - **Eliminar cuenta:** anonimiza `usuario` (historial de facturación), borra `review`/`negocio`, llama `DELETE /auth/v1/admin/users/{id}` con service role key
 - **LangSwitcher:** lógica intacta pero oculto en toda la UI (rutas por idioma siguen funcionando)
-- **Plan effectivo:** `GetMe` computa `effectivePlan = pro_override && !expired ? "pro" : usuario.plan`
+- **Plan efectivo:** `GetMe` computa `effectivePlan = pro_override && !expired ? "pro" : usuario.plan`
 - **Sync incremental:** detecta reseñas que el propietario respondió en Google desde el último sync y las actualiza en BD
 - **Panel salud:** solo visible para core y pro. Basic ve teaser con nota media real + blur con datos dummy + upsell waitlist
-- **Pagos desactivados:** Core/Pro muestran "Únete a la lista de espera" → email a info@velacre.com
+- **Pagos desactivados:** Core/Pro muestran "Únete a la lista de espera" → email directo a `infovelacre@gmail.com`
+- **Contador IA atómico:** RPC PostgreSQL `try_increment_ia_counter` — check + increment en una sola operación SQL para evitar race conditions con usuarios que generan respuestas rápido
+- **Keywords SEO:** la IA incluye palabras clave con naturalidad (no todas, no forzadas). Se guardan en `review.keywords_usadas` para métricas del panel de salud
+- **Modo oscuro forzado:** siempre dark, independiente del sistema. `<html class="dark">` en layout + variante clase en globals.css
+
+---
+
+## Pendiente / Próximos pasos
+
+- **Google OAuth + Places API nativo:** cuando el usuario inicia sesión con Google, usar el token OAuth para llamar a Google My Business API directamente (sin Outscraper). Requiere: configurar scopes de Google OAuth en Supabase, guardar el refresh token, añadir endpoint en backend que use el token para leer reseñas. Outscraper seguiría siendo el fallback para usuarios que no usan Google OAuth.
+- **Activar pagos:** dar de alta como autónomo → activar variantes Lemon Squeezy → cambiar botones de "lista de espera" a checkout real
+- **Verificar generación de keywords_usadas** en producción (comparación case-insensitive de palabras clave del negocio vs texto de respuesta generada)
