@@ -46,7 +46,7 @@ export default function SectionNav() {
   const { locale } = useLanguage()
 
   return (
-    <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+    <nav className="fixed top-[4.5rem] left-1/2 -translate-x-1/2 z-40 pointer-events-none">
       <div className="pointer-events-auto flex items-center gap-1 px-1.5 py-1.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/50 rounded-2xl shadow-xl shadow-black/[0.06] dark:shadow-black/40">
         {TABS.map(tab => {
           const active = pathname === tab.href
