@@ -308,15 +308,18 @@ public class ReviewController : ControllerBase
             // Siempre usar el método con contexto: genera respuesta en el idioma de la reseña
             // + contexto en español para el propietario
             var lang = string.IsNullOrEmpty(review.ReviewLanguage) ? "es" : review.ReviewLanguage;
+            var keywords = negocio.PalabrasClave;
             var result = await _aiService.GenerateSingleResponseWithContextAsync(
                 reviewContext,
                 negocio.Descripcion ?? negocio.Nombre,
                 tone,
-                lang
+                lang,
+                keywords
             );
             var generated         = result.Response;
             var contextoCliente   = result.ContextoCliente;
             var contextoRespuesta = result.ContextoRespuesta;
+            var keywordsUsadas    = result.KeywordsUsadas;
 
             switch (toneLower)
             {
@@ -333,6 +336,7 @@ public class ReviewController : ControllerBase
             review.TonoGenerado = tone;
             review.ActualizadoPor = userId;
             review.ActualizadoFecha = DateTimeOffset.UtcNow;
+            review.KeywordsUsadas = keywordsUsadas;
 
             await _supabase.From<ReviewEntity>()
                 .Where(r => r.Id == review.Id)
@@ -345,7 +349,8 @@ public class ReviewController : ControllerBase
                 response          = generated,
                 tono              = tone,
                 contextoCliente   = contextoCliente,
-                contextoRespuesta = contextoRespuesta
+                contextoRespuesta = contextoRespuesta,
+                keywordsUsadas    = keywordsUsadas
             });
         }
         catch (Exception ex)
@@ -399,6 +404,8 @@ public class ReviewController : ControllerBase
                 respuestaCercano = r.RespuestaCercano,
                 respuestaDirecto = r.RespuestaDirecto,
                 tonoGenerado = r.TonoGenerado,
+                keywordsUsadas = r.KeywordsUsadas ?? Array.Empty<string>(),
+                actualizadoFecha = r.ActualizadoFecha,
             })
             .ToList();
 
@@ -500,7 +507,8 @@ public class ReviewController : ControllerBase
 
         var total = reviews.Count;
         var velacreCount = reviews.Count(r => r.TonoGenerado != null && r.TonoGenerado != "google");
-        var timeSavedMinutes = velacreCount * 4;
+        // Ahorro real: 4 min manual − 15 seg IA = 3,75 min por reseña
+        var timeSavedMinutes = (int)Math.Round(velacreCount * 3.75);
 
         // Tasa de respuesta: histórico (antes de los últimos 3 meses) vs reciente
         var cutoff = DateTimeOffset.UtcNow.AddMonths(-3);
@@ -512,14 +520,28 @@ public class ReviewController : ControllerBase
         double historicRate = historic.Count > 0
             ? (double)historic.Count(r => r.TonoGenerado != null) / historic.Count * 100 : 0;
 
+        // Top keywords usadas por la IA en las respuestas generadas
+        var keywordFreq = reviews
+            .Where(r => r.KeywordsUsadas != null)
+            .SelectMany(r => r.KeywordsUsadas!)
+            .GroupBy(k => k, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(g => g.Count())
+            .Take(6)
+            .Select(g => new { word = g.Key, count = g.Count() })
+            .ToList();
+
+        var responseRate = total > 0 ? Math.Round((double)reviews.Count(r => r.TonoGenerado != null) / total * 100, 1) : 0;
+
         return Ok(new
         {
             total,
             velacreCount,
             timeSavedMinutes,
+            responseRate,
             currentResponseRate = Math.Round(currentRate, 1),
             historicResponseRate = Math.Round(historicRate, 1),
-            improvement = Math.Round(currentRate - historicRate, 1)
+            improvement = Math.Round(currentRate - historicRate, 1),
+            topKeywordsUsadas = keywordFreq
         });
     }
 

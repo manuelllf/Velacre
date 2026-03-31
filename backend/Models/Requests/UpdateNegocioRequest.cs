@@ -8,4 +8,5 @@ public record UpdateNegocioRequest
     public string? Descripcion { get; init; }
     public string? TonoPredefinido { get; init; }
     public string? PlaceId { get; init; }
+    public string[]? PalabrasClave { get; init; }
 }

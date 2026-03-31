@@ -44,4 +44,7 @@ public class NegocioEntity : BaseModel
 
     [Column("actualizadofecha")]
     public DateTimeOffset? ActualizadoFecha { get; set; }
+
+    [Column("palabras_clave")]
+    public string[]? PalabrasClave { get; set; }
 }

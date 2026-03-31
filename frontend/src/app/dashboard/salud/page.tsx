@@ -477,12 +477,14 @@ export default function SaludPage() {
               {metrics && (
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                   <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Impacto Velacre</p>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    {/* Dimensión 1: % respondidas */}
                     <div>
-                      <p className="text-xs text-slate-500 mb-1">Gestionadas con IA</p>
-                      <p className="text-3xl font-black text-white tabular-nums">{metrics.velacreCount}</p>
-                      <p className="text-xs text-slate-600 mt-1">de {metrics.total} totales</p>
+                      <p className="text-xs text-slate-500 mb-1">Reseñas respondidas</p>
+                      <p className="text-3xl font-black text-white tabular-nums">{metrics.responseRate}%</p>
+                      <p className="text-xs text-slate-600 mt-1">{metrics.velacreCount} de {metrics.total} con IA</p>
                     </div>
+                    {/* Dimensión 2: Horas ahorradas (4 min manual − 15 seg IA) */}
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Tiempo ahorrado</p>
                       <p className="text-3xl font-black text-indigo-400 tabular-nums">
@@ -490,17 +492,31 @@ export default function SaludPage() {
                           ? `${Math.floor(metrics.timeSavedMinutes / 60)}h ${metrics.timeSavedMinutes % 60}m`
                           : `${metrics.timeSavedMinutes}m`}
                       </p>
-                      <p className="text-xs text-slate-600 mt-1">~4 min por reseña</p>
+                      <p className="text-xs text-slate-600 mt-1">vs gestión manual</p>
                     </div>
-                    {/* Cobertura: % de tus reseñas que Velacre ha gestionado */}
+                    {/* Dimensión 3: SEO — keywords usadas */}
                     <div>
-                      <p className="text-xs text-slate-500 mb-1">Cobertura Velacre</p>
+                      <p className="text-xs text-slate-500 mb-1">Optimización SEO</p>
                       <p className="text-3xl font-black text-emerald-400 tabular-nums">
-                        {metrics.total > 0 ? Math.round((metrics.velacreCount / metrics.total) * 100) : 0}%
+                        {metrics.topKeywordsUsadas.length > 0 ? metrics.topKeywordsUsadas.reduce((s, k) => s + k.count, 0) : 0}
                       </p>
-                      <p className="text-xs text-slate-600 mt-1">de tus reseñas con IA</p>
+                      <p className="text-xs text-slate-600 mt-1">usos de keywords en respuestas</p>
                     </div>
                   </div>
+                  {/* Keywords usadas — pills */}
+                  {metrics.topKeywordsUsadas.length > 0 && (
+                    <div className="pt-3 border-t border-slate-800">
+                      <p className="text-xs text-slate-600 mb-2">Keywords más usadas en respuestas IA</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {metrics.topKeywordsUsadas.map(k => (
+                          <span key={k.word} className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-900/30 text-emerald-400 text-xs rounded-full border border-emerald-800/50">
+                            {k.word}
+                            <span className="text-emerald-600 text-[10px]">×{k.count}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

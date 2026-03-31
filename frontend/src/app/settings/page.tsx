@@ -42,6 +42,8 @@ export default function SettingsPage() {
     descripcion: '',
     tonopredefinido: 'Profesional',
   })
+  const [palabrasClave, setPalabrasClave] = useState<string[]>([])
+  const [kwInput, setKwInput] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -60,6 +62,7 @@ export default function SettingsPage() {
             descripcion: n.descripcion ?? '',
             tonopredefinido: n.tonopredefinido ?? 'Profesional',
           })
+          setPalabrasClave(n.palabrasClave ?? [])
         }
       } catch {
         setError('No se pudieron cargar los datos.')
@@ -82,6 +85,7 @@ export default function SettingsPage() {
         updateNegocio({
           descripcion: form.descripcion,
           tonoPredefinido: form.tonopredefinido,
+          palabrasClave,
         }),
       ])
       setSaved(true)
@@ -361,6 +365,53 @@ export default function SettingsPage() {
                       placeholder={s.descPlaceholder}
                     />
                   </div>
+                  {/* Palabras clave SEO */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Palabras clave SEO</label>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">Hasta 5. La IA las incluirá con naturalidad en las respuestas para mejorar tu posicionamiento.</p>
+                    {palabrasClave.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {palabrasClave.map(kw => (
+                          <span key={kw} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium rounded-full border border-indigo-200 dark:border-indigo-700">
+                            {kw}
+                            <button type="button" onClick={() => setPalabrasClave(p => p.filter(k => k !== kw))} className="text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-100 leading-none">×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {palabrasClave.length < 5 && (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={kwInput}
+                          onChange={e => setKwInput(e.target.value)}
+                          onKeyDown={e => {
+                            if ((e.key === 'Enter' || e.key === ',') && kwInput.trim()) {
+                              e.preventDefault()
+                              const kw = kwInput.trim().replace(/,$/, '')
+                              if (kw && !palabrasClave.includes(kw)) setPalabrasClave(p => [...p, kw])
+                              setKwInput('')
+                            }
+                          }}
+                          placeholder="cocina gallega, marisquería..."
+                          className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const kw = kwInput.trim()
+                            if (kw && !palabrasClave.includes(kw)) setPalabrasClave(p => [...p, kw])
+                            setKwInput('')
+                          }}
+                          disabled={!kwInput.trim()}
+                          className="px-3 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{s.toneSection}</label>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{s.toneSubtitle}</p>

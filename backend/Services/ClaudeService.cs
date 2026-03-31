@@ -77,8 +77,8 @@ public class ClaudeService : IReviewAiService
         }
     }
 
-    public async Task<(string Response, string ContextoCliente, string ContextoRespuesta)> GenerateSingleResponseWithContextAsync(
-        string reviewText, string businessDesc, string tone, string reviewLanguage)
+    public async Task<(string Response, string ContextoCliente, string ContextoRespuesta, string[] KeywordsUsadas)> GenerateSingleResponseWithContextAsync(
+        string reviewText, string businessDesc, string tone, string reviewLanguage, string[]? keywords = null)
     {
         var instructions = tone.ToLower() switch
         {
@@ -87,6 +87,10 @@ public class ClaudeService : IReviewAiService
             _ => "Responde de forma profesional y formal, transmitiendo excelencia y confianza. Tono serio, pulido y cercano a la calidad."
         };
 
+        var keywordsBlock = keywords != null && keywords.Length > 0
+            ? $"Palabras clave del negocio (inclúyelas con naturalidad en la respuesta si encajan, máximo 2 o 3, nunca forzadas): {string.Join(", ", keywords)}. "
+            : "";
+
         var systemPrompt =
             $"Eres un experto en reputación online para hostelería en Ferrol, Galicia. " +
             $"Negocio: {businessDesc}. Tono: {tone}. {instructions} " +
@@ -94,10 +98,12 @@ public class ClaudeService : IReviewAiService
             $"La respuesta DEBE estar escrita en ese mismo idioma ('{reviewLanguage}'). " +
             $"Si la reseña es en español ('es'), responde en español. Si es en inglés ('en'), responde en inglés. Si es en gallego ('gl'), responde en gallego. Etc. " +
             $"Si la reseña no tiene texto escrito, genera igualmente una respuesta agradeciendo la valoración y basándote en la puntuación de estrellas. " +
+            keywordsBlock +
             $"Devuelve ÚNICAMENTE este JSON (sin markdown, sin texto extra):\n" +
             "{\"respuesta\":\"<respuesta en el idioma de la reseña, máx 150 palabras>\"," +
             "\"contextoCliente\":\"<una frase en español resumiendo qué dijo el cliente>\"," +
-            "\"contextoRespuesta\":\"<una frase en español resumiendo qué responde el negocio>\"}";
+            "\"contextoRespuesta\":\"<una frase en español resumiendo qué responde el negocio>\"," +
+            "\"keywordsUsadas\":[\"<solo las keywords del negocio que hayas incluido en la respuesta, array vacío si ninguna>\"]}";
 
         var parameters = new MessageParameters
         {
@@ -121,12 +127,19 @@ public class ClaudeService : IReviewAiService
                 var respuesta        = doc.RootElement.GetProperty("respuesta").GetString() ?? "";
                 var contextoCliente  = doc.RootElement.GetProperty("contextoCliente").GetString() ?? "";
                 var contextoResp     = doc.RootElement.GetProperty("contextoRespuesta").GetString() ?? "";
-                return (respuesta, contextoCliente, contextoResp);
+                string[] kwUsadas    = [];
+                if (doc.RootElement.TryGetProperty("keywordsUsadas", out var kwElement) && kwElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                {
+                    kwUsadas = kwElement.EnumerateArray()
+                        .Select(e => e.GetString() ?? "")
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .ToArray();
+                }
+                return (respuesta, contextoCliente, contextoResp, kwUsadas);
             }
 
-            // Fallback: si Claude no devolvió JSON válido, tratar todo como respuesta
             _logger.LogWarning("[ClaudeService] GenerateSingleResponseWithContextAsync: JSON no encontrado en respuesta");
-            return (raw.Trim(), "", "");
+            return (raw.Trim(), "", "", []);
         }
         catch (Exception ex)
         {

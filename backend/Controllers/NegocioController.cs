@@ -61,6 +61,7 @@ public class NegocioController : ControllerBase
             Telefono = request.Telefono,
             Descripcion = request.Descripcion,
             TonoPredefinido = request.TonoPredefinido ?? "Profesional",
+            PalabrasClave = request.PalabrasClave,
             IdUsuario = userId,
             CreadoPor = userId,
             CreadoFecha = DateTimeOffset.UtcNow
@@ -117,6 +118,7 @@ public class NegocioController : ControllerBase
         negocio.Telefono = request.Telefono ?? negocio.Telefono;
         negocio.Descripcion = request.Descripcion ?? negocio.Descripcion;
         negocio.TonoPredefinido = request.TonoPredefinido ?? negocio.TonoPredefinido;
+        if (request.PalabrasClave != null) negocio.PalabrasClave = request.PalabrasClave;
 
         // place_id queda bloqueado tras el registro inicial.
         // Solo se puede cambiar si aún no está establecido (onboarding) o si el usuario es admin.
@@ -150,6 +152,7 @@ public class NegocioController : ControllerBase
         telefono = n.Telefono,
         descripcion = n.Descripcion,
         tonopredefinido = n.TonoPredefinido,
-        placeId = n.PlaceId
+        placeId = n.PlaceId,
+        palabrasClave = n.PalabrasClave ?? Array.Empty<string>()
     };
 }

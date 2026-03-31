@@ -11,8 +11,8 @@ public interface IReviewAiService
     /// Genera la respuesta en el idioma de la reseña e incluye contexto en español en una sola llamada.
     /// Devuelve (respuesta, contextoCliente, contextoRespuesta).
     /// </summary>
-    Task<(string Response, string ContextoCliente, string ContextoRespuesta)> GenerateSingleResponseWithContextAsync(
-        string reviewText, string businessDesc, string tone, string reviewLanguage);
+    Task<(string Response, string ContextoCliente, string ContextoRespuesta, string[] KeywordsUsadas)> GenerateSingleResponseWithContextAsync(
+        string reviewText, string businessDesc, string tone, string reviewLanguage, string[]? keywords = null);
 
     Task<string> GetClaudeMessageAsync(string userPrompt, string systemPrompt);
 }

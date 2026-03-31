@@ -35,6 +35,7 @@ export interface Negocio {
   descripcion?: string
   tonopredefinido: string
   placeId?: string
+  palabrasClave?: string[]
 }
 
 export interface PlaceResult {
@@ -57,6 +58,7 @@ export interface PendingReview {
   tonoGenerado?: string
   reviewLanguage?: string
   estado?: string
+  keywordsUsadas?: string[]
 }
 
 export async function notifyWaitlist(plan: 'core' | 'pro', notas?: string): Promise<void> {
@@ -114,6 +116,7 @@ export async function createNegocio(data: {
   telefono?: string
   descripcion?: string
   tonoPredefinido?: string
+  palabrasClave?: string[]
 }): Promise<Negocio> {
   console.log('[api] createNegocio →', data.nombre)
   const res = await fetch(`${API_URL}/api/negocio`, {
@@ -138,6 +141,7 @@ export async function updateNegocio(data: {
   descripcion?: string
   tonoPredefinido?: string
   placeId?: string
+  palabrasClave?: string[]
 }): Promise<Negocio> {
   console.log('[api] updateNegocio →', data)
   const res = await fetch(`${API_URL}/api/negocio/me`, {
@@ -370,9 +374,11 @@ export interface VelacreMetrics {
   total: number
   velacreCount: number
   timeSavedMinutes: number
+  responseRate: number
   currentResponseRate: number
   historicResponseRate: number
   improvement: number
+  topKeywordsUsadas: { word: string; count: number }[]
 }
 
 export async function getMetrics(): Promise<VelacreMetrics> {

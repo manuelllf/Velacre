@@ -66,4 +66,7 @@ public class ReviewEntity : BaseModel
     /// <summary>Estado de la reseña: "pendiente" | "respondida" | "ignorada"</summary>
     [Column("estado")]
     public string Estado { get; set; } = "pendiente";
+
+    [Column("keywords_usadas")]
+    public string[]? KeywordsUsadas { get; set; }
 }
