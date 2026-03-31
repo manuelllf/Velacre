@@ -434,6 +434,13 @@ export default function DashboardPage() {
                 isUpdating={updatingEstado.has(selectedReview.id)}
                 copiedId={copiedId}
                 onGenerate={() => handleGenerate(selectedReview.id)}
+                onLoad={() => {
+                  const tono = selectedReview.tonoGenerado?.toLowerCase()
+                  const resp = tono === 'cercano' ? selectedReview.respuestaCercano
+                             : tono === 'directo' ? selectedReview.respuestaDirecto
+                             : selectedReview.respuestaProfesional
+                  if (resp) setGeneratedResponses(prev => ({ ...prev, [selectedReview.id]: resp }))
+                }}
                 onSetEstado={(e) => handleSetEstado(selectedReview.id, e)}
                 onCopy={(text) => {
                   navigator.clipboard.writeText(text)
@@ -640,6 +647,7 @@ interface DetailPanelProps {
   isUpdating: boolean
   copiedId: string | null
   onGenerate: () => void
+  onLoad: () => void
   onSetEstado: (e: 'pendiente' | 'respondida' | 'ignorada') => void
   onCopy: (text: string) => void
   onRetry: () => void
@@ -649,7 +657,7 @@ interface DetailPanelProps {
 function DetailPanel({
   review, generated, generatedError, contexto,
   isGenerating, isUpdating, copiedId,
-  onGenerate, onSetEstado, onCopy, onRetry,
+  onGenerate, onLoad, onSetEstado, onCopy, onRetry,
 }: DetailPanelProps) {
   const estado = review.estado ?? 'pendiente'
   const isNegative = (review.starRating ?? 5) <= 2
@@ -762,7 +770,26 @@ function DetailPanel({
       {/* Actions footer */}
       <div className="px-6 pb-5 flex items-center justify-between gap-3 flex-wrap">
         <div>
-          {!hasGenerated && !hasError && (
+          {!hasGenerated && !hasError && estado === 'respondida' && (
+            review.tonoGenerado && review.tonoGenerado !== 'google' ? (
+              <button
+                onClick={onLoad}
+                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-sm font-semibold transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                Cargar respuesta
+              </button>
+            ) : (
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                Sin respuesta generada.{' '}
+                <button onClick={() => onSetEstado('pendiente')} className="underline hover:text-slate-600 dark:hover:text-slate-300">
+                  Reabre
+                </button>{' '}
+                para generarla.
+              </p>
+            )
+          )}
+          {!hasGenerated && !hasError && estado !== 'respondida' && (
             <button
               onClick={onGenerate}
               disabled={isGenerating}
