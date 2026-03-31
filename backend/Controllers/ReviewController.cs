@@ -230,9 +230,10 @@ public class ReviewController : ControllerBase
             return NotFound("Reseña no encontrada.");
         }
 
-        // ── Plan limit check ──────────────────────────────────────────────────
+        // ── Plan limit check + reserva atómica ───────────────────────────────
         var usuarioRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
         var usuario    = usuarioRes.Models.FirstOrDefault();
+        var incrementedCounter = false;
         if (usuario != null)
         {
             var now = DateTimeOffset.UtcNow;
@@ -243,24 +244,17 @@ public class ReviewController : ControllerBase
             {
                 int iaLimit = usuario.Plan == "core" ? 10 : 3;
 
-                // Reset contador si es nuevo mes
-                if (usuario.RespuestasIaMesReset == null ||
-                    usuario.RespuestasIaMesReset.Value.Year  < now.Year ||
-                    (usuario.RespuestasIaMesReset.Value.Year == now.Year && usuario.RespuestasIaMesReset.Value.Month < now.Month))
-                {
-                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
-                        .Set(u => u.RespuestasIaMes, 0)
-                        .Set(u => u.RespuestasIaMesReset, now)
-                        .Update();
-                    usuario.RespuestasIaMes = 0;
-                    usuario.RespuestasIaMesReset = now; // sincronizar local para que el incremento final no sobreescriba con la fecha antigua
-                }
+                // Incremento atómico: comprueba el límite e incrementa en una sola operación SQL
+                var rpcResult = await _supabase.Rpc("try_increment_ia_counter",
+                    new Dictionary<string, object> { { "p_user_id", userId }, { "p_limit", iaLimit } });
+                var allowed = rpcResult?.Content?.Trim() == "true";
 
-                if (usuario.RespuestasIaMes >= iaLimit)
+                if (!allowed)
                 {
-                    _logger.LogWarning("[ReviewController] IA limit alcanzado para userId={UserId} ({Count}/{Limit}) plan={Plan}", userId, usuario.RespuestasIaMes, iaLimit, usuario.Plan);
-                    return StatusCode(429, new { error = "limit_reached", plan = usuario.Plan, limit = iaLimit, used = usuario.RespuestasIaMes });
+                    _logger.LogWarning("[ReviewController] IA limit alcanzado para userId={UserId} plan={Plan}", userId, usuario.Plan);
+                    return StatusCode(429, new { error = "limit_reached", plan = usuario.Plan, limit = iaLimit, used = iaLimit });
                 }
+                incrementedCounter = true;
             }
         }
         // ─────────────────────────────────────────────────────────────────────
@@ -279,6 +273,11 @@ public class ReviewController : ControllerBase
         if (!string.IsNullOrEmpty(alreadyGenerated))
         {
             _logger.LogInformation("[ReviewController] Tono {Tone} ya generado para reviewId={ReviewId}", tone, id);
+            // Revertir incremento si la respuesta ya existía
+            if (incrementedCounter)
+                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
+                    .Set(u => u.RespuestasIaMes, Math.Max(0, (usuario!.RespuestasIaMes)))
+                    .Update();
             return Ok(new { response = alreadyGenerated, tono = tone });
         }
 
@@ -290,18 +289,6 @@ public class ReviewController : ControllerBase
             : review.StarRating.HasValue
                 ? $"[Reseña sin texto] {review.StarRating} estrella{(review.StarRating != 1 ? "s" : "")} de {review.AuthorName ?? "un cliente"}. No dejó comentario escrito."
                 : $"[Reseña sin texto] de {review.AuthorName ?? "un cliente"}. No dejó comentario escrito.";
-
-        // Reserve IA slot BEFORE calling AI — prevents concurrent requests from bypassing the counter
-        var incrementedCounter = false;
-        if (usuario != null && (usuario.Plan == "core" || usuario.Plan == "basic"))
-        {
-            var now2 = DateTimeOffset.UtcNow;
-            await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
-                .Set(u => u.RespuestasIaMes, usuario.RespuestasIaMes + 1)
-                .Set(u => u.RespuestasIaMesReset, usuario.RespuestasIaMesReset ?? now2)
-                .Update();
-            incrementedCounter = true;
-        }
 
         try
         {
