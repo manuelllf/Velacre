@@ -388,6 +388,7 @@ frontend/src/
 - Revisar PDFs maximizando KPIs de salud y seo para el propietario. Decidir si poner la metrica de benchmark de velocidad de respuesta tomando un dato estatico nacional de average y calculando el suyo si es posible.
 - Revisión de precios pre integración GBP y post integración GBP (con y sin verificación, no voy a esperar a tenerla para integrarla).
 - Auditoría FOMO.
+- Posibilidad de varios locales en modo PRO (hasta 3-5, pensando en cadenas) 
 ### Integración Google Business Profile (iteración grande).
 Rediseño del onboarding step 2 con dos caminos **excluyentes** (nunca los dos, nunca ninguno):
 
