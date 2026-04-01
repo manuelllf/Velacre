@@ -381,11 +381,14 @@ frontend/src/
 ## Pendiente / Próximos pasos
 
 ### Bugs / mejoras pequeñas
-- **Persistir contexto de reseña en BD** — añadir `contexto_cliente text` y `contexto_respuesta text` a la tabla `review`. Guardar al generar (junto con la respuesta). Recuperar al hacer `onLoad` en reseñas respondidas. Actualmente solo vive en React state y se pierde al recargar/volver otro día.
-- **Auto-cargar respuesta y contexto al seleccionar reseña respondida** — actualmente el usuario tiene que hacer clic en "Cargar respuesta". Debería cargarse sola al montar el DetailPanel si la reseña ya tiene respuesta guardada.
-- **Verificar generación de `keywords_usadas`** en producción (comparación case-insensitive de palabras clave del negocio vs texto de respuesta generada)
-
-### Integración Google Business Profile (iteración grande)
+- Volver a Rediseñar y ReRedactar Privacidad, Términos y Contacto, mejorando la redacción, eliminando mis datos sensibles (Solo Manuel Llao Freire, A Coruña, Galicia, España) y normalizando el estilo para que siga el resto de la webapp.
+- Posibilidad de hacerlo pwa para mejorar usabilidad portable en movil.
+- **Verificar generación de `keywords_usadas`** en producción (comparación case-insensitive de palabras clave del negocio vs texto de respuesta generada).
+- Al marcar como respondida o reabrir o cualquier movimiento de reseñas desde movil provoca que al hacerlo, la pantalla mueva la reseña al panel correspondiente y el usuario se quede en una ventana vacía y sin poder salir de ella porque el botón de volver desaparece.
+- Revisar PDFs maximizando KPIs de salud y seo para el propietario. Decidir si poner la metrica de benchmark de velocidad de respuesta tomando un dato estatico nacional de average y calculando el suyo si es posible.
+- Revisión de precios pre integración GBP y post integración GBP (con y sin verificación, no voy a esperar a tenerla para integrarla).
+- Auditoría FOMO.
+### Integración Google Business Profile (iteración grande).
 Rediseño del onboarding step 2 con dos caminos **excluyentes** (nunca los dos, nunca ninguno):
 
 ```
