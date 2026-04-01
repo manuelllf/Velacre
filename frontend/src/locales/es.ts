@@ -5,18 +5,18 @@ const es: LandingLocale = {
 
   nav: {
     login: 'Iniciar sesión',
-    start: 'Empezar',
+    start: 'Empezar gratis',
   },
 
   hero: {
-    badge: 'IA generativa aplicada a la reputación online',
-    h1: 'Responde a tus reseñas',
-    h1highlight: 'con inteligencia artificial',
-    p: 'Velacre analiza cada reseña de Google y genera respuestas personalizadas al tono de tu negocio. En segundos, sin esfuerzo.',
+    badge: 'Acceso anticipado · Plazas limitadas',
+    h1: 'Reseñas respondidas.',
+    h1highlight: 'Reputación entendida.',
+    p: 'Velacre aprende el contexto y las palabras clave de tu negocio para generar respuestas que suenan de verdad. El panel de salud te dice qué está fallando antes de que lo note el cliente.',
     ctaGoogle: 'Empezar con Google',
     ctaGoogleLoading: 'Conectando...',
     ctaEmail: 'Crear cuenta con email',
-    setup: 'Configuración en 2 minutos',
+    setup: 'Sin tarjeta · Listo en 2 minutos',
   },
 
   stats: {
@@ -24,13 +24,13 @@ const es: LandingLocale = {
     s1label: 'más reseñas respondidas',
     s2val: '< 30 seg',
     s2label: 'por respuesta generada',
-    s3val: '3 tonos',
-    s3label: 'Profesional · Cercano · Directo',
+    s3val: '48 h',
+    s3label: 'límite para no perder posicionamiento',
   },
 
   demo: {
-    h2: 'La IA que trabaja por ti',
-    p: 'Pegas la reseña, seleccionas el tono y en segundos tienes una respuesta lista para copiar en Google.',
+    h2: 'La IA que conoce tu negocio',
+    p: 'No usa plantillas. Aprende las palabras clave y el contexto de tu local. Cada respuesta suena como tú, no como un robot.',
     review: {
       date: 'hace 3 días',
       text: 'La comida tardó 45 minutos y cuando llegó estaba fría. El camarero no se disculpó en ningún momento. Muy decepcionante para el precio que cobran.',
@@ -49,8 +49,8 @@ const es: LandingLocale = {
   },
 
   health: {
-    h2: 'Panel de salud de tu reputación',
-    p: 'Visualiza la evolución de tu nota media, el sentimiento de los clientes y las palabras que más se repiten.',
+    h2: 'Conoce tu negocio mejor que tus clientes',
+    p: 'El panel de salud analiza todas tus reseñas con IA: nota media, sentimiento, palabras que repiten y la acción concreta a tomar. Exclusivo Pro.',
     kpi1: 'Nota media',
     kpi2: 'Índice de respuesta',
     kpi3: 'Reseñas este mes',
@@ -78,34 +78,34 @@ const es: LandingLocale = {
   },
 
   howto: {
-    h2: 'Tres pasos para empezar',
-    p: 'Sin instalaciones, sin configuraciones complejas.',
+    h2: 'En marcha en 2 minutos',
+    p: 'Sin instalaciones. Sin configuraciones técnicas. Conectas, configuras el tono y listo.',
     stepLabel: 'PASO',
     steps: [
       {
         title: 'Conecta tu negocio',
-        desc: 'Busca tu local en Google Maps y lo vinculamos automáticamente. Importamos tu nombre, dirección y reseñas.',
+        desc: 'Busca tu local en Google Maps y lo vinculamos al instante. Importamos tus reseñas automáticamente.',
       },
       {
-        title: 'Revisa tus reseñas',
-        desc: 'Sincronizamos tus reseñas de Google automáticamente. Ve de un vistazo cuáles necesitan respuesta.',
+        title: 'La IA aprende de ti',
+        desc: 'Configuras el tono y describes tu local brevemente. Velacre extrae tus palabras clave para que cada respuesta suene auténtica.',
       },
       {
-        title: 'Genera y publica',
-        desc: 'La IA redacta la respuesta perfecta en el tono de tu negocio. Cópiala y pégala en Google en segundos.',
+        title: 'Genera, copia y publica',
+        desc: 'Un clic para generar. Copias la respuesta y la pegas en Google en segundos, sin salir de la app.',
       },
     ],
   },
 
   forWho: {
-    h2: 'Pensado para negocios locales',
-    p: 'Cualquier negocio con presencia en Google puede aprovechar Velacre.',
+    h2: 'Para quien cuida su reputación',
+    p: 'Cada reseña sin respuesta es una oportunidad perdida. Velacre funciona para cualquier negocio con presencia en Google.',
     sectors: ['Restaurantes', 'Hoteles', 'Cafeterías', 'Peluquerías', 'Talleres', 'Clínicas', 'Comercios', 'Bares'],
   },
 
   pricing: {
     h2: 'Planes',
-    p: 'Sin sorpresas. Cancela cuando quieras.',
+    p: 'Sin permanencia. Cancela cuando quieras.',
     monthly: 'Mensual',
     yearly: 'Anual',
     yearlySave: '2 meses gratis',
@@ -113,7 +113,7 @@ const es: LandingLocale = {
       basic: {
         name: 'Basic',
         price: 'Gratis',
-        desc: 'Para probar cómo funciona la IA sin conectar tu local.',
+        desc: 'Prueba la IA sin conectar tu negocio. Sin tarjeta.',
         features: ['3 respuestas manuales al mes', 'Formulario de otras plataformas', 'Sin conexión con Google'],
         cta: 'Empezar gratis',
       },
@@ -122,8 +122,8 @@ const es: LandingLocale = {
         priceMonthly: '19,90 €',
         priceYearly: '199 €',
         priceYearlyMonthly: '16,58 €',
-        desc: 'Para negocios con tráfico moderado que quieren automatizar sus respuestas.',
-        features: ['10 respuestas IA al mes', 'Sincronización con Google', 'Respuestas pre-generadas', 'Gestión de reseñas'],
+        desc: 'Automatiza tus respuestas y mantén tu reputación al día.',
+        features: ['10 respuestas IA al mes', 'Sincronización con Google', 'Contexto y tono personalizados', 'Gestión de reseñas'],
         cta: 'Elegir Core',
       },
       pro: {
@@ -131,10 +131,10 @@ const es: LandingLocale = {
         priceMonthly: '29,90 €',
         priceYearly: '299 €',
         priceYearlyMonthly: '24,92 €',
-        desc: 'Para negocios activos que quieren el máximo control sobre su reputación.',
-        features: ['Respuestas IA ilimitadas', 'Panel de salud y reputación', 'Análisis de sentimiento', 'Soporte prioritario'],
+        desc: 'La diferencia entre responder reseñas y entender tu reputación.',
+        features: ['Panel de salud y análisis IA', 'Respuestas IA ilimitadas', 'Contexto, tono y palabras clave', 'Soporte prioritario'],
         cta: 'Elegir Pro',
-        badge: 'Recomendado',
+        badge: 'El más elegido',
       },
     },
     perMonth: '/mes',
@@ -143,12 +143,12 @@ const es: LandingLocale = {
   },
 
   cta: {
-    h2line1: 'Empieza hoy.',
-    h2line2: 'Responde mañana.',
-    p: 'Configúrate en 2 minutos y empieza a responder reseñas con IA desde el primer día.',
+    h2line1: 'Tu reputación,',
+    h2line2: 'bajo control.',
+    p: 'Dos minutos de configuración. La IA aprende tu negocio y el panel de salud te dice exactamente qué mejorar.',
     ctaGoogle: 'Empezar con Google',
     ctaGoogleLoading: 'Conectando...',
-    setup: 'Configuración en 2 minutos',
+    setup: 'Sin tarjeta · Listo en 2 minutos',
   },
 
   footer: {
