@@ -69,4 +69,10 @@ public class ReviewEntity : BaseModel
 
     [Column("keywords_usadas")]
     public string[]? KeywordsUsadas { get; set; }
+
+    [Column("contexto_cliente")]
+    public string? ContextoCliente { get; set; }
+
+    [Column("contexto_respuesta")]
+    public string? ContextoRespuesta { get; set; }
 }

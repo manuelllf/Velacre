@@ -105,7 +105,26 @@ export default function DashboardPage() {
     try {
       const data = await getAllReviews()
       const effectivePlan = plan ?? userPlan
-      setReviews(effectivePlan === 'basic' ? data.slice(0, 10) : data)
+      const visible = effectivePlan === 'basic' ? data.slice(0, 10) : data
+      setReviews(visible)
+
+      // Pre-popular contextos y respuestas desde BD para reseñas ya generadas
+      const newContextos: Record<string, { cliente: string; respuesta: string }> = {}
+      const newGenerated: Record<string, string> = {}
+      for (const r of visible) {
+        if (r.contextoCliente && r.contextoRespuesta) {
+          newContextos[r.id] = { cliente: r.contextoCliente, respuesta: r.contextoRespuesta }
+        }
+        if (r.tonoGenerado && r.tonoGenerado !== 'google') {
+          const toneLower = r.tonoGenerado.toLowerCase()
+          const text = toneLower === 'cercano' ? r.respuestaCercano
+            : toneLower === 'directo' ? r.respuestaDirecto
+            : r.respuestaProfesional
+          if (text) newGenerated[r.id] = text
+        }
+      }
+      setContextos(newContextos)
+      setGeneratedResponses(prev => ({ ...prev, ...newGenerated }))
     }
     catch { /* silent */ }
     finally { setLoadingReviews(false) }

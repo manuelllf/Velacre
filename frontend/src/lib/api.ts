@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+﻿import { supabase } from './supabase'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5146'
 
@@ -59,6 +59,8 @@ export interface PendingReview {
   reviewLanguage?: string
   estado?: string
   keywordsUsadas?: string[]
+  contextoCliente?: string
+  contextoRespuesta?: string
 }
 
 export async function notifyWaitlist(plan: 'core' | 'pro', notas?: string): Promise<void> {

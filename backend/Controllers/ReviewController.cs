@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Interfaces;
 using backend.Models.Entities;
@@ -321,6 +321,8 @@ public class ReviewController : ControllerBase
                     break;
             }
             review.TonoGenerado = tone;
+            review.ContextoCliente = contextoCliente;
+            review.ContextoRespuesta = contextoRespuesta;
             review.ActualizadoPor = userId;
             review.ActualizadoFecha = DateTimeOffset.UtcNow;
             review.KeywordsUsadas = keywordsUsadas;
@@ -393,6 +395,8 @@ public class ReviewController : ControllerBase
                 tonoGenerado = r.TonoGenerado,
                 keywordsUsadas = r.KeywordsUsadas ?? Array.Empty<string>(),
                 actualizadoFecha = r.ActualizadoFecha,
+                contextoCliente = r.ContextoCliente,
+                contextoRespuesta = r.ContextoRespuesta,
             })
             .ToList();
 
