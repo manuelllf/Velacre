@@ -46,28 +46,26 @@ export default function SectionNav() {
   const { locale } = useLanguage()
 
   return (
-    <div className="sticky top-14 z-40 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-      <div className="max-w-screen-xl mx-auto px-4 h-11 flex items-center justify-center">
-        <div className="flex items-center gap-0.5">
-          {TABS.map(tab => {
-            const active = pathname === tab.href
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className={`flex items-center gap-2 px-4 h-8 rounded-lg text-sm font-medium transition-all duration-150 ${
-                  active
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60'
-                }`}
-              >
-                {tab.icon}
-                <span className="hidden sm:inline">{TAB_LABELS[tab.labelKey][locale]}</span>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
+    <div className="sticky top-14 z-40 flex justify-center py-3 pointer-events-none">
+      <nav className="pointer-events-auto flex items-center gap-1 bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-full px-2 py-1.5 shadow-lg shadow-black/40">
+        {TABS.map(tab => {
+          const active = pathname === tab.href
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`flex items-center gap-2 px-4 h-8 rounded-full text-sm font-medium transition-all duration-150 ${
+                active
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/70'
+              }`}
+            >
+              {tab.icon}
+              <span className="hidden sm:inline">{TAB_LABELS[tab.labelKey][locale]}</span>
+            </Link>
+          )
+        })}
+      </nav>
     </div>
   )
 }

@@ -114,7 +114,7 @@ export default function HealthPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -135,8 +135,8 @@ export default function HealthPage() {
           </div>
         </header>
         <main className="max-w-4xl mx-auto px-4 py-20 flex flex-col items-center text-center">
-          <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mb-6">
-            <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-6">
+            <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
@@ -144,10 +144,10 @@ export default function HealthPage() {
           <p className="text-slate-500 dark:text-slate-400 mb-2 max-w-md">
             Visualiza el sentimiento de tus reseñas, las palabras clave que repiten tus clientes y obtén un análisis IA de tu reputación.
           </p>
-          <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-8">Disponible en el Plan Pro · 29€/mes</p>
+          <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-8">Disponible en el Plan Pro · 29€/mes</p>
           <Link
             href="/settings"
-            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
           >
             Actualizar a Pro
           </Link>
@@ -381,7 +381,7 @@ export default function HealthPage() {
                   <button
                     onClick={handleAnalysis}
                     disabled={analysisLoading || reviews.length === 0}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {analysisLoading ? (
                       <>
@@ -414,10 +414,10 @@ export default function HealthPage() {
                       <p className="text-sm text-slate-700 dark:text-slate-300">{analysis.preocupa}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
-                    <span className="text-indigo-600 dark:text-indigo-400 text-lg shrink-0">→</span>
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                    <span className="text-blue-600 dark:text-blue-400 text-lg shrink-0">→</span>
                     <div>
-                      <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-300 mb-0.5">Acción recomendada</p>
+                      <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-0.5">Acción recomendada</p>
                       <p className="text-sm text-slate-700 dark:text-slate-300">{analysis.accion}</p>
                     </div>
                   </div>

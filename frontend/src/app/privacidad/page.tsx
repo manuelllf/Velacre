@@ -13,7 +13,7 @@ export default function PrivacidadPage() {
           <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
           <Link
             href="/auth/login"
-            className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
           >
             Iniciar sesión
           </Link>
@@ -35,7 +35,7 @@ export default function PrivacidadPage() {
             </p>
             <p className="mt-2">
               Para cualquier consulta relacionada con la privacidad puedes contactarnos en{' '}
-              <a href="mailto:privacidad@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+              <a href="mailto:privacidad@velacre.com" className="text-blue-600 dark:text-blue-400 hover:underline">
                 privacidad@velacre.com
               </a>.
             </p>
@@ -102,24 +102,24 @@ export default function PrivacidadPage() {
               <li>
                 <strong>Supabase Inc.</strong> (base de datos y autenticación) — los datos se almacenan en servidores dentro de la UE.
                 Consulta su política en{' '}
-                <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">supabase.com/privacy</a>.
+                <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">supabase.com/privacy</a>.
               </li>
               <li>
                 <strong>Google LLC</strong> (Google Places API) — accedemos a las reseñas públicas de tu negocio en Google Maps.
                 Consulta su política en{' '}
-                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">policies.google.com/privacy</a>.
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">policies.google.com/privacy</a>.
               </li>
               <li>
                 <strong>Anthropic, PBC</strong> (modelo de IA Claude) — el texto de las reseñas se envía a la API de Anthropic para generar respuestas.
                 Anthropic no usa estos datos para entrenar sus modelos por defecto.
                 Consulta su política en{' '}
-                <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">anthropic.com/privacy</a>.
+                <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">anthropic.com/privacy</a>.
               </li>
               <li>
                 <strong>Outscraper Inc.</strong> (extracción de reseñas de Google Maps) — utilizamos este servicio para obtener las reseñas públicas de tu negocio.
                 Los datos enviados se limitan al identificador público de Google Maps de tu local.
                 Consulta su política en{' '}
-                <a href="https://outscraper.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">outscraper.com/privacy-policy</a>.
+                <a href="https://outscraper.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">outscraper.com/privacy-policy</a>.
               </li>
               <li>
                 <strong>Railway / Vercel</strong> (infraestructura de alojamiento) — el código y los logs de la aplicación se ejecutan en servidores europeos o con adecuadas garantías de transferencia internacional.
@@ -156,7 +156,7 @@ export default function PrivacidadPage() {
             </ul>
             <p className="mt-3">
               Para ejercer cualquiera de estos derechos escríbenos a{' '}
-              <a href="mailto:privacidad@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+              <a href="mailto:privacidad@velacre.com" className="text-blue-600 dark:text-blue-400 hover:underline">
                 privacidad@velacre.com
               </a>{' '}
               indicando tu nombre y la solicitud concreta. Responderemos en un plazo máximo de un mes.
@@ -164,7 +164,7 @@ export default function PrivacidadPage() {
             <p className="mt-3">
               Si consideras que el tratamiento de tus datos no es conforme a la normativa, puedes presentar una reclamación
               ante la{' '}
-              <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+              <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
                 Agencia Española de Protección de Datos (AEPD)
               </a>.
             </p>
@@ -203,7 +203,7 @@ export default function PrivacidadPage() {
         <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700 text-center">
           <Link
             href="/auth/register"
-            className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors"
+            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors"
           >
             Volver al registro
           </Link>

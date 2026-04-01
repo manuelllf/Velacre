@@ -213,7 +213,7 @@ export default function DashboardPage() {
   if (loadingInit) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -261,11 +261,11 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs text-slate-500 dark:text-slate-400">Sincronizando con Google...</span>
-                    <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{syncProgress}%</span>
+                    <span className="text-xs font-medium text-blue-600 dark:text-blue-400">{syncProgress}%</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-indigo-500 rounded-full transition-all duration-200"
+                      className="h-full bg-blue-500 rounded-full transition-all duration-200"
                       style={{ width: `${syncProgress}%` }}
                     />
                   </div>
@@ -340,7 +340,7 @@ export default function DashboardPage() {
                   }`}
                 >
                   <span className={`text-sm font-bold mb-0.5 ${
-                    estadoFilter === f ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-300'
+                    estadoFilter === f ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300'
                   }`}>{counts[f]}</span>
                   <span className="leading-none truncate w-full text-center">{FILTER_LABELS[f]}</span>
                 </button>
@@ -386,7 +386,7 @@ export default function DashboardPage() {
                       onClick={() => setSelectedId(isSelected ? null : review.id)}
                       className={`w-full text-left rounded-xl border transition-all p-4 ${
                         isSelected
-                          ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700 ring-1 ring-indigo-300 dark:ring-indigo-700'
+                          ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700 ring-1 ring-blue-300 dark:ring-blue-700'
                           : isNegative
                           ? 'bg-white dark:bg-slate-900 border-l-4 border-red-200 dark:border-red-900/50 border-l-red-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                           : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -424,7 +424,7 @@ export default function DashboardPage() {
                               </span>
                             )}
                             {hasGenerated && (
-                              <span className="text-[10px] font-semibold uppercase tracking-wide bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">
+                              <span className="text-[10px] font-semibold uppercase tracking-wide bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-full">
                                 IA lista
                               </span>
                             )}
@@ -445,12 +445,12 @@ export default function DashboardPage() {
           <div className={`min-w-0 lg:overflow-y-auto lg:h-full scroll-thin flex-1 ${selectedId ? 'block' : 'hidden lg:block'}`}>
             {selectedReview ? (
               <>
-                {/* Botón volver — solo mobile */}
+                {/* Botón volver — solo mobile, sticky bajo el header */}
                 <button
                   onClick={() => setSelectedId(null)}
-                  className="lg:hidden flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 mb-3 font-medium"
+                  className="lg:hidden sticky top-14 z-30 flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-white bg-slate-950/95 backdrop-blur-md -mx-4 px-4 py-2.5 mb-4 border-b border-slate-800/60 w-[calc(100%+2rem)]"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   Volver a reseñas
                 </button>
               <DetailPanel
@@ -530,14 +530,14 @@ export default function DashboardPage() {
                   value={reviewText}
                   onChange={e => setReviewText(e.target.value)}
                   autoFocus
-                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none scroll-thin"
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none scroll-thin"
                   placeholder="Pega aquí el texto de la reseña…"
                 />
                 {manualError && <p className="text-xs text-red-600 dark:text-red-400">{manualError}</p>}
                 <button
                   type="submit"
                   disabled={manualLoading || !reviewText.trim()}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
                   {manualLoading
                     ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>
@@ -551,7 +551,7 @@ export default function DashboardPage() {
               <div className="overflow-y-auto max-h-[70vh] scroll-thin">
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {[
-                    { tone: 'Profesional', text: manualResponses.profesional, accent: 'bg-indigo-600' },
+                    { tone: 'Profesional', text: manualResponses.profesional, accent: 'bg-blue-600' },
                     { tone: 'Cercano',     text: manualResponses.cercano,     accent: 'bg-emerald-600' },
                     { tone: 'Directo',     text: manualResponses.directo,     accent: 'bg-amber-500' },
                   ].map(({ tone, text, accent }) => (
@@ -605,7 +605,7 @@ export default function DashboardPage() {
             <div className="space-y-2">
               <a
                 href="/settings"
-                className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                className="block w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"
               >
                 {upsellInfo?.plan === 'core' ? 'Quiero Pro →' : 'Ver planes →'}
               </a>
@@ -654,7 +654,7 @@ function ManualResponseRow({ tone, text, accent }: { tone: string; text: string;
           className={`shrink-0 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             copied
               ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
           }`}
         >
           {copied ? '¡Copiado!' : 'Copiar'}
@@ -760,14 +760,14 @@ function DetailPanel({
 
       {/* Generated response */}
       {hasGenerated && (
-        <div className="mx-6 mb-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-5">
+        <div className="mx-6 mb-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-5">
           <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-4 whitespace-pre-wrap">
             {generated}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => onCopy(generated!)}
-              className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors"
+              className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
             >
               {copiedId === review.id ? (
                 <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg> Copiado</>
@@ -830,7 +830,7 @@ function DetailPanel({
             <button
               onClick={onGenerate}
               disabled={isGenerating}
-              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
             >
               {isGenerating ? (
                 <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</>
@@ -840,7 +840,7 @@ function DetailPanel({
             </button>
           )}
           {hasError && (
-            <button onClick={onRetry} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+            <button onClick={onRetry} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
               Reintentar
             </button>
           )}

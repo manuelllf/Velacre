@@ -11,7 +11,7 @@ export default function TerminosPage() {
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
-          <Link href="/auth/login" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+          <Link href="/auth/login" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
             Iniciar sesión
           </Link>
         </div>
@@ -65,7 +65,7 @@ export default function TerminosPage() {
             <p className="mt-3">
               El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso y de todas las
               actividades realizadas desde su cuenta. Debe notificarnos inmediatamente cualquier uso no autorizado en{' '}
-              <a href="mailto:info@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">info@velacre.com</a>.
+              <a href="mailto:info@velacre.com" className="text-blue-600 dark:text-blue-400 hover:underline">info@velacre.com</a>.
             </p>
             <p className="mt-3">
               El Servicio está dirigido exclusivamente a profesionales y empresas. No está permitido el uso por
@@ -158,7 +158,7 @@ export default function TerminosPage() {
             </p>
             <p className="mt-3">
               El usuario puede solicitar la baja de su cuenta en cualquier momento escribiendo a{' '}
-              <a href="mailto:info@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">info@velacre.com</a>.
+              <a href="mailto:info@velacre.com" className="text-blue-600 dark:text-blue-400 hover:underline">info@velacre.com</a>.
               Tras la baja, los datos se eliminarán conforme a lo indicado en la Política de Privacidad.
             </p>
           </section>
@@ -189,7 +189,7 @@ export default function TerminosPage() {
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">12. Contacto</h2>
             <p>
               Para cualquier consulta sobre estos Términos puedes contactarnos en:{' '}
-              <a href="mailto:info@velacre.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+              <a href="mailto:info@velacre.com" className="text-blue-600 dark:text-blue-400 hover:underline">
                 info@velacre.com
               </a>
             </p>
@@ -198,8 +198,8 @@ export default function TerminosPage() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-4 justify-center text-sm">
-          <Link href="/privacidad" className="text-indigo-600 dark:text-indigo-400 hover:underline">Política de Privacidad</Link>
-          <Link href="/contacto" className="text-indigo-600 dark:text-indigo-400 hover:underline">Contacto</Link>
+          <Link href="/privacidad" className="text-blue-600 dark:text-blue-400 hover:underline">Política de Privacidad</Link>
+          <Link href="/contacto" className="text-blue-600 dark:text-blue-400 hover:underline">Contacto</Link>
           <Link href="/" className="text-slate-500 dark:text-slate-400 hover:underline">Volver al inicio</Link>
         </div>
       </main>

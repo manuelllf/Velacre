@@ -133,7 +133,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -214,17 +214,17 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Pro */}
-                <div className="border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50/40 dark:bg-indigo-950/20 rounded-xl p-4 flex flex-col gap-3">
+                <div className="border-2 border-blue-200 dark:border-blue-800 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2 mb-1.5">
                         <p className="text-sm font-semibold text-slate-900 dark:text-white">Pro</p>
-                        <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-1.5 py-0.5 rounded">{s.planRecommended}</span>
+                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-1.5 py-0.5 rounded">{s.planRecommended}</span>
                       </div>
                       <ul className="space-y-1">
                         {s.planPro.map(f => (
                           <li key={f} className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                            <span className="w-1 h-1 rounded-full bg-indigo-400 shrink-0" />{f}
+                            <span className="w-1 h-1 rounded-full bg-blue-400 shrink-0" />{f}
                           </li>
                         ))}
                       </ul>
@@ -243,7 +243,7 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setWaitlistPlan('pro')}
-                    className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                     Reservar acceso anticipado
@@ -256,8 +256,8 @@ export default function SettingsPage() {
               {/* Plan activo — cabecera */}
               <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-                    <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
@@ -335,7 +335,7 @@ export default function SettingsPage() {
                     type="text"
                     value={nombre}
                     onChange={e => setNombre(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="María, Carlos, Ana..."
                   />
                 </div>
@@ -361,7 +361,7 @@ export default function SettingsPage() {
                       rows={4}
                       value={form.descripcion}
                       onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
-                      className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                      className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                       placeholder={s.descPlaceholder}
                     />
                   </div>
@@ -372,9 +372,9 @@ export default function SettingsPage() {
                     {palabrasClave.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-2">
                         {palabrasClave.map(kw => (
-                          <span key={kw} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium rounded-full border border-indigo-200 dark:border-indigo-700">
+                          <span key={kw} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full border border-blue-200 dark:border-blue-700">
                             {kw}
-                            <button type="button" onClick={() => setPalabrasClave(p => p.filter(k => k !== kw))} className="text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-100 leading-none">×</button>
+                            <button type="button" onClick={() => setPalabrasClave(p => p.filter(k => k !== kw))} className="text-blue-400 hover:text-blue-700 dark:hover:text-blue-100 leading-none">×</button>
                           </span>
                         ))}
                       </div>
@@ -394,7 +394,7 @@ export default function SettingsPage() {
                             }
                           }}
                           placeholder="cocina gallega, marisquería..."
-                          className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         <button
                           type="button"
@@ -404,7 +404,7 @@ export default function SettingsPage() {
                             setKwInput('')
                           }}
                           disabled={!kwInput.trim()}
-                          className="px-3 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          className="px-3 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
                           +
                         </button>
@@ -423,7 +423,7 @@ export default function SettingsPage() {
                           onClick={() => setForm(f => ({ ...f, tonopredefinido: tono.value }))}
                           className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
                             form.tonopredefinido === tono.value
-                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                              ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
                               : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                           }`}
                         >
@@ -447,7 +447,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {saving ? (
                 <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.app.common.saving}</>

@@ -36,7 +36,7 @@ export default function OnboardingPlanPage() {
 
   if (!ready) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950">
-      <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
@@ -128,7 +128,7 @@ export default function OnboardingPlanPage() {
           </ul>
           <button
             onClick={() => setWaitlistPlan('core')}
-            className="w-full py-3 rounded-xl border-2 border-indigo-500 text-indigo-400 font-semibold text-sm hover:bg-indigo-500/10 transition-colors cursor-pointer flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl border-2 border-blue-500 text-blue-400 font-semibold text-sm hover:bg-blue-500/10 transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             Reservar acceso anticipado
@@ -136,8 +136,8 @@ export default function OnboardingPlanPage() {
         </div>
 
         {/* Pro */}
-        <div className="bg-slate-800 border-2 border-indigo-500 rounded-2xl p-6 flex flex-col gap-4 relative">
-          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full bg-indigo-600 text-white">
+        <div className="bg-slate-800 border-2 border-blue-500 rounded-2xl p-6 flex flex-col gap-4 relative">
+          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full bg-blue-600 text-white">
             {ob.planRecommended}
           </span>
           <div>
@@ -154,7 +154,7 @@ export default function OnboardingPlanPage() {
           <ul className="space-y-2 flex-1">
             {FEATURES_PRO.map(f => (
               <li key={f} className="flex items-start gap-2 text-sm text-slate-300">
-                <svg className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 {f}
@@ -163,7 +163,7 @@ export default function OnboardingPlanPage() {
           </ul>
           <button
             onClick={() => setWaitlistPlan('pro')}
-            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             Reservar acceso anticipado

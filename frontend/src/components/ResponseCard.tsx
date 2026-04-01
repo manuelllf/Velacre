@@ -10,9 +10,9 @@ interface ResponseCardProps {
 
 const colorMap = {
   indigo: {
-    header: 'bg-indigo-600',
-    button: 'bg-indigo-600 hover:bg-indigo-700',
-    copied: 'bg-indigo-100 text-indigo-700',
+    header: 'bg-blue-600',
+    button: 'bg-blue-600 hover:bg-blue-700',
+    copied: 'bg-blue-100 text-blue-700',
   },
   emerald: {
     header: 'bg-emerald-600',

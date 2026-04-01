@@ -155,7 +155,7 @@ export default function OnboardingPage() {
                     done
                       ? 'bg-emerald-100 dark:bg-emerald-900/40'
                       : active
-                      ? 'bg-indigo-100 dark:bg-indigo-900/40'
+                      ? 'bg-blue-100 dark:bg-blue-900/40'
                       : 'bg-slate-100 dark:bg-slate-800'
                   }`}>
                     {done ? (
@@ -163,7 +163,7 @@ export default function OnboardingPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
                     ) : active ? (
-                      <span className="w-3 h-3 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin block" />
+                      <span className="w-3 h-3 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin block" />
                     ) : (
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 block" />
                     )}
@@ -181,12 +181,12 @@ export default function OnboardingPage() {
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <span className="text-xs text-slate-400 dark:text-slate-500">{ob.progress}</span>
-              <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{progress}%</span>
+              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">{progress}%</span>
             </div>
             <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-200 ease-linear ${
-                  progress >= 98 ? 'bg-indigo-500 animate-pulse' : 'bg-indigo-500'
+                  progress >= 98 ? 'bg-blue-500 animate-pulse' : 'bg-blue-500'
                 }`}
                 style={{ width: `${progress}%` }}
               />
@@ -226,7 +226,7 @@ export default function OnboardingPage() {
                   onChange={e => handleQueryChange(e.target.value)}
                   onFocus={() => { if (placeResults.length > 0 && !selectedPlace) setDropdownOpen(true) }}
                   autoComplete="off"
-                  className={`w-full px-3 py-2.5 border rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                  className={`w-full px-3 py-2.5 border rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     selectedPlace
                       ? 'border-emerald-400 dark:border-emerald-700'
                       : 'border-slate-200 dark:border-slate-700'
@@ -235,7 +235,7 @@ export default function OnboardingPage() {
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   {searchingPlaces ? (
-                    <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                   ) : selectedPlace ? (
                     <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -305,7 +305,7 @@ export default function OnboardingPage() {
                     onClick={() => setTono(tItem.value)}
                     className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
                       tono === tItem.value
-                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
                         : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                     }`}
                   >
@@ -325,7 +325,7 @@ export default function OnboardingPage() {
                 rows={2}
                 value={descripcion}
                 onChange={e => setDescripcion(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder={ob.descPlaceholder}
               />
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">{ob.descHint}</p>
@@ -340,9 +340,9 @@ export default function OnboardingPage() {
               {palabrasClave.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {palabrasClave.map(kw => (
-                    <span key={kw} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium rounded-full border border-indigo-200 dark:border-indigo-700">
+                    <span key={kw} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full border border-blue-200 dark:border-blue-700">
                       {kw}
-                      <button type="button" onClick={() => setPalabrasClave(p => p.filter(k => k !== kw))} className="text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-100 leading-none">×</button>
+                      <button type="button" onClick={() => setPalabrasClave(p => p.filter(k => k !== kw))} className="text-blue-400 hover:text-blue-700 dark:hover:text-blue-100 leading-none">×</button>
                     </span>
                   ))}
                 </div>
@@ -362,7 +362,7 @@ export default function OnboardingPage() {
                       }
                     }}
                     placeholder="cocina gallega, marisquería..."
-                    className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <button
                     type="button"
@@ -372,7 +372,7 @@ export default function OnboardingPage() {
                       setKwInput('')
                     }}
                     disabled={!kwInput.trim()}
-                    className="px-3 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     +
                   </button>
@@ -387,7 +387,7 @@ export default function OnboardingPage() {
             <button
               type="submit"
               disabled={!selectedPlace}
-              className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {ob.submitBtn}
             </button>

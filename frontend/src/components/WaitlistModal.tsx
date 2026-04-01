@@ -55,7 +55,7 @@ export default function WaitlistModal({ plan, onClose }: Props) {
               <div className="flex items-center gap-2 mb-1">
                 <span className={`text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
                   plan === 'pro'
-                    ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'
+                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}>{info.name}</span>
                 <span className="text-sm font-semibold text-slate-900 dark:text-white">{info.price}</span>
@@ -93,15 +93,15 @@ export default function WaitlistModal({ plan, onClose }: Props) {
               <button
                 type="button"
                 onClick={onClose}
-                className="mt-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                className="mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"
               >
                 Cerrar
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
-                <p className="text-xs text-indigo-800 dark:text-indigo-300 leading-relaxed">
+              <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
                   Estamos activando el plan {info.name} para los primeros usuarios. Reserva tu plaza ahora y accede con precio de lanzamiento.
                 </p>
               </div>
@@ -115,7 +115,7 @@ export default function WaitlistModal({ plan, onClose }: Props) {
                   value={notas}
                   onChange={e => setNotas(e.target.value)}
                   placeholder="¿Qué funcionalidad te interesa más? ¿Tienes alguna pregunta?"
-                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none placeholder-slate-400 dark:placeholder-slate-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
@@ -136,7 +136,7 @@ export default function WaitlistModal({ plan, onClose }: Props) {
                 <button
                   type="submit"
                   disabled={sending}
-                  className="flex-1 py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {sending && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
                   {sending ? 'Enviando...' : 'Apuntarme'}

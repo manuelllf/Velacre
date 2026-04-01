@@ -57,7 +57,7 @@ export default function AuthCallback() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
         <div className="text-center space-y-4">
           <p className="text-red-600 dark:text-red-400">{error}</p>
-          <a href="/auth/login" className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm">
+          <a href="/auth/login" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
             Volver al inicio de sesión
           </a>
         </div>
@@ -68,7 +68,7 @@ export default function AuthCallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
       <div className="text-center space-y-4">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-sm text-slate-500 dark:text-slate-400">Iniciando sesión...</p>
       </div>
     </div>

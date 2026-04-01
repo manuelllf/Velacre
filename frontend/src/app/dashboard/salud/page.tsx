@@ -130,7 +130,7 @@ export default function SaludPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -142,7 +142,7 @@ export default function SaludPage() {
           <p className="text-slate-600 dark:text-slate-400">{initError}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-5 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+            className="px-5 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
           >
             {t.app.common.back}
           </button>
@@ -319,8 +319,8 @@ export default function SaludPage() {
           {/* Upsell overlay */}
           <div className="absolute inset-x-0 bottom-0 top-32 flex items-center justify-center pointer-events-auto">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-8 text-center max-w-sm mx-4">
-              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
@@ -333,7 +333,7 @@ export default function SaludPage() {
               <button
                 type="button"
                 onClick={() => setBasicUpsellPlan('pro')}
-                className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm transition-colors text-center cursor-pointer"
+                className="block w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition-colors text-center cursor-pointer"
               >
                 {userPlan === 'core' ? 'Pasarme a Pro →' : 'Quiero el panel completo →'}
               </button>
@@ -372,7 +372,7 @@ export default function SaludPage() {
         {reviews.length === 0 ? (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
             <p className="text-slate-400 mb-4">{sl.noAnalysis}</p>
-            <Link href="/dashboard" className="inline-block px-5 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm">
+            <Link href="/dashboard" className="inline-block px-5 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors text-sm">
               {t.app.common.back}
             </Link>
           </div>
@@ -437,7 +437,7 @@ export default function SaludPage() {
                   <div>
                     <p className="text-xs text-slate-500 mb-1 uppercase tracking-widest">Sin responder</p>
                     <p className={`text-3xl font-bold tabular-nums ${reviews.length - responded > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>{reviews.length - responded}</p>
-                    <Link href="/dashboard" className="text-xs text-indigo-400 hover:text-indigo-300 mt-0.5 block transition-colors">Ver pendientes →</Link>
+                    <Link href="/dashboard" className="text-xs text-blue-400 hover:text-blue-300 mt-0.5 block transition-colors">Ver pendientes →</Link>
                   </div>
                 </div>
               </div>
@@ -487,7 +487,7 @@ export default function SaludPage() {
                     {/* Dimensión 2: Horas ahorradas (4 min manual − 15 seg IA) */}
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Tiempo ahorrado</p>
-                      <p className="text-3xl font-black text-indigo-400 tabular-nums">
+                      <p className="text-3xl font-black text-blue-400 tabular-nums">
                         {metrics.timeSavedMinutes >= 60
                           ? `${Math.floor(metrics.timeSavedMinutes / 60)}h ${metrics.timeSavedMinutes % 60}m`
                           : `${metrics.timeSavedMinutes}m`}
@@ -567,10 +567,10 @@ export default function SaludPage() {
                       const prev = allMonths[i + 1]
                       const notaDelta = prev && m.avgRating != null && prev.avgRating != null ? m.avgRating - prev.avgRating : null
                       return (
-                        <tr key={`${m.year}-${m.month}`} className={`border-b border-slate-800/50 last:border-0 ${isCurrent ? 'bg-indigo-950/30' : ''}`}>
-                          <td className={`py-2.5 capitalize text-xs ${isCurrent ? 'font-semibold text-indigo-300' : 'text-slate-300'}`}>
+                        <tr key={`${m.year}-${m.month}`} className={`border-b border-slate-800/50 last:border-0 ${isCurrent ? 'bg-blue-950/30' : ''}`}>
+                          <td className={`py-2.5 capitalize text-xs ${isCurrent ? 'font-semibold text-blue-300' : 'text-slate-300'}`}>
                             {m.label}
-                            {isCurrent && <span className="ml-2 text-[10px] bg-indigo-900/60 text-indigo-400 px-1.5 py-0.5 rounded-full font-medium">actual</span>}
+                            {isCurrent && <span className="ml-2 text-[10px] bg-blue-900/60 text-blue-400 px-1.5 py-0.5 rounded-full font-medium">actual</span>}
                           </td>
                           <td className="py-2.5 text-right text-xs text-slate-400">{m.count === 0 ? <span className="text-slate-700">—</span> : m.count}</td>
                           <td className="py-2.5 text-right text-xs font-semibold">
@@ -591,7 +591,7 @@ export default function SaludPage() {
                               ? <span className={m.negativeRatio > 30 ? 'text-red-400' : 'text-slate-400'}>{m.negativeRatio.toFixed(0)}%</span>
                               : <span className="text-slate-700">—</span>}
                           </td>
-                          <td className="py-2.5 text-right text-xs font-medium text-indigo-400">
+                          <td className="py-2.5 text-right text-xs font-medium text-blue-400">
                             {m.responseRate != null ? `${m.responseRate.toFixed(0)}%` : <span className="text-slate-700">—</span>}
                           </td>
                         </tr>
@@ -610,7 +610,7 @@ export default function SaludPage() {
                   {keywords.map(kw => {
                     const size = 11 + Math.round((kw.count / maxKeywordCount) * 7)
                     const cls = kw.sentiment === 'positive'
-                      ? 'bg-emerald-950/60 border-emerald-800/50 text-emerald-300'
+                      ? 'bg-emerald-950/60 border-emerald-800/50 text-emerald-200'
                       : kw.sentiment === 'negative'
                         ? 'bg-red-950/60 border-red-800/50 text-red-300'
                         : 'bg-slate-800 border-slate-700 text-slate-300'
@@ -639,7 +639,7 @@ export default function SaludPage() {
               </div>
               {loadingSummary ? (
                 <div className="flex items-center gap-3 text-slate-400">
-                  <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                   <span className="text-sm">{sl.generatingAnalysis}</span>
                 </div>
               ) : aiLimitReached ? (
@@ -655,8 +655,8 @@ export default function SaludPage() {
                         <div className="flex items-center gap-2 mb-2"><span className="w-2 h-2 rounded-full bg-red-500 shrink-0" /><p className="text-xs font-bold text-red-400 uppercase tracking-wider">{sl.analysisQuema}</p></div>
                         <p className="text-sm text-slate-200 leading-relaxed">{summary.quema}</p>
                       </div>
-                      <div className="bg-indigo-950/40 border border-indigo-900/50 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-2"><span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" /><p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">{sl.analysisAccion}</p></div>
+                      <div className="bg-blue-950/40 border border-blue-900/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2"><span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" /><p className="text-xs font-bold text-blue-400 uppercase tracking-wider">{sl.analysisAccion}</p></div>
                         <p className="text-sm text-slate-200 leading-relaxed">{summary.accion}</p>
                       </div>
                     </div>
@@ -679,10 +679,10 @@ export default function SaludPage() {
                       </div>
                       <p className="text-sm text-slate-200 leading-relaxed">{summary.quema}</p>
                     </div>
-                    <div className="bg-indigo-950/40 border border-indigo-900/50 rounded-xl p-4">
+                    <div className="bg-blue-950/40 border border-blue-900/50 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                        <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">{sl.analysisAccion}</p>
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                        <p className="text-xs font-bold text-blue-400 uppercase tracking-wider">{sl.analysisAccion}</p>
                       </div>
                       <p className="text-sm text-slate-200 leading-relaxed">{summary.accion}</p>
                     </div>
@@ -705,7 +705,7 @@ export default function SaludPage() {
                   <button
                     onClick={handleRunAnalysis}
                     disabled={loadingSummary}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />

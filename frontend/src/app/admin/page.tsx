@@ -52,7 +52,7 @@ function PlanBadge({ plan, proEfectivo, proOverride }: { plan?: string; proEfect
       </span>
     )
   }
-  if (plan === 'pro') return <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-medium">Pro</span>
+  if (plan === 'pro') return <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full font-medium">Pro</span>
   if (plan === 'core') return <span className="text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full font-medium">Core</span>
   return <span className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-medium">Basic</span>
 }
@@ -332,7 +332,7 @@ function NotasModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClo
           onChange={e => setNotas(e.target.value)}
           rows={5}
           placeholder="Incidencias, contexto, acuerdos especiales..."
-          className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+          className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
         />
         <p className="text-xs text-slate-400">Solo visible para admins.</p>
         {err && (
@@ -376,7 +376,7 @@ function PlanModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClos
           {(['basic', 'core', 'pro'] as const).map(p => (
             <button key={p} onClick={() => setPlan(p)}
               className={`py-2.5 rounded-xl text-sm font-medium border-2 transition-all cursor-pointer capitalize ${
-                plan === p ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+                plan === p ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                            : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'
               }`}
             >{p}</button>
@@ -476,10 +476,10 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
               value={query}
               onChange={e => handleQueryChange(e.target.value)}
               placeholder="Nombre del negocio, dirección..."
-              className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 pr-8"
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 pr-8"
             />
             {searching && (
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             )}
           </div>
 
@@ -488,7 +488,7 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
               <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
                 {results.slice(0, 5).map(r => (
                   <button key={r.placeId} onClick={() => handleSelect(r)}
-                    className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
                   >
                     <p className="text-sm font-medium text-slate-900 dark:text-white">{r.name}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{r.address}</p>
@@ -506,11 +506,11 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
         </div>
 
         {selected && (
-          <div className="flex items-start gap-3 px-3 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-700">
-            <svg className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          <div className="flex items-start gap-3 px-3 py-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+            <svg className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">{selected.name}</p>
-              <p className="text-xs text-indigo-600 dark:text-indigo-400 truncate">{selected.address}</p>
+              <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">{selected.name}</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 truncate">{selected.address}</p>
               {selected.rating && <p className="text-xs text-amber-500 mt-0.5">★ {selected.rating}</p>}
             </div>
           </div>
@@ -559,7 +559,7 @@ function UsuarioRow({
               {usuario.nombre ?? <span className="text-slate-400 font-normal italic">Sin nombre</span>}
             </span>
             {isAdmin && (
-              <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-medium">Admin</span>
+              <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">Admin</span>
             )}
           </div>
 
@@ -684,7 +684,7 @@ export default function AdminPage() {
   if (loadingInit) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -722,7 +722,7 @@ export default function AdminPage() {
             { label: 'Activos',     val: kpis.activos,  cls: 'text-emerald-600 dark:text-emerald-400' },
             { label: 'Prueba',      val: kpis.prueba,   cls: 'text-sky-600 dark:text-sky-400' },
             { label: 'Suspendidos', val: kpis.baneados, cls: 'text-red-600 dark:text-red-400' },
-            { label: 'Pro',         val: kpis.pro,      cls: 'text-indigo-600 dark:text-indigo-400' },
+            { label: 'Pro',         val: kpis.pro,      cls: 'text-blue-600 dark:text-blue-400' },
             { label: 'Core',        val: kpis.core,     cls: 'text-violet-600 dark:text-violet-400' },
             { label: 'Total',       val: kpis.total,    cls: 'text-slate-700 dark:text-slate-300' },
           ].map(({ label, val, cls }) => (
@@ -752,7 +752,7 @@ export default function AdminPage() {
                 placeholder="Buscar..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
 

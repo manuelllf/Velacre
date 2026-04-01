@@ -7,7 +7,7 @@ import type { LandingLocale } from '@/locales/types'
 
 function CheckIcon() {
   return (
-    <svg className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
     </svg>
   )
@@ -77,7 +77,7 @@ export default function LandingPage({ locale: l }: Props) {
             <Link href="/auth/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2">
               {l.nav.login}
             </Link>
-            <Link href="/auth/register" className="text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-colors">
+            <Link href="/auth/register" className="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors">
               {l.nav.start}
             </Link>
           </div>
@@ -87,18 +87,18 @@ export default function LandingPage({ locale: l }: Props) {
       {/* ── HERO ── */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[520px] bg-indigo-600/25 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[520px] bg-blue-600/25 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-6 pt-24 pb-20 text-center">
-          <div className="inline-flex items-center gap-2 bg-indigo-950 border border-indigo-800 text-indigo-300 text-sm font-medium px-4 py-1.5 rounded-full mb-8">
-            <span className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" />
+          <div className="inline-flex items-center gap-2 bg-blue-950 border border-blue-800 text-blue-300 text-sm font-medium px-4 py-1.5 rounded-full mb-8">
+            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
             {l.hero.badge}
           </div>
 
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tight mb-6">
             {l.hero.h1}<br />
-            <span className="text-indigo-400">{l.hero.h1highlight}</span>
+            <span className="text-blue-400">{l.hero.h1highlight}</span>
           </h1>
 
           <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -174,15 +174,15 @@ export default function LandingPage({ locale: l }: Props) {
           </div>
 
           {/* Generated response */}
-          <div className="bg-slate-900 border border-indigo-600/50 rounded-2xl p-6 flex flex-col gap-4 shadow-xl shadow-indigo-950/60 ring-1 ring-indigo-700/30">
+          <div className="bg-slate-900 border border-blue-600/50 rounded-2xl p-6 flex flex-col gap-4 shadow-xl shadow-blue-950/60 ring-1 ring-blue-700/30">
             {/* Header */}
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center shrink-0">
+              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
                 <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-indigo-300">{l.demo.response.title}</span>
+              <span className="text-sm font-semibold text-blue-300">{l.demo.response.title}</span>
             </div>
 
             {/* Tone selector */}
@@ -193,7 +193,7 @@ export default function LandingPage({ locale: l }: Props) {
                   onClick={() => setSelectedTone(key)}
                   className={`flex-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${
                     selectedTone === key
-                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/50'
+                      ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/50'
                       : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
                   }`}
                 >
@@ -215,7 +215,7 @@ export default function LandingPage({ locale: l }: Props) {
                 <p className="text-sm text-slate-300 leading-relaxed">
                   {typedText}
                   {typedText.length < currentToneText.length && (
-                    <span className="inline-block w-0.5 h-4 bg-indigo-400 ml-0.5 animate-pulse align-middle" />
+                    <span className="inline-block w-0.5 h-4 bg-blue-400 ml-0.5 animate-pulse align-middle" />
                   )}
                 </p>
               )}
@@ -227,7 +227,7 @@ export default function LandingPage({ locale: l }: Props) {
                 <span className="text-xs text-slate-400">{l.demo.response.cta}</span>
                 <Link
                   href="/auth/register"
-                  className="text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors"
                 >
                   {l.nav.start} →
                 </Link>
@@ -326,10 +326,10 @@ export default function LandingPage({ locale: l }: Props) {
               <div key={num} className="relative">
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 h-full">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-indigo-950 border border-indigo-800 rounded-xl flex items-center justify-center text-indigo-400">
+                    <div className="w-10 h-10 bg-blue-950 border border-blue-800 rounded-xl flex items-center justify-center text-blue-400">
                       {icons[index]}
                     </div>
-                    <span className="text-xs font-bold text-indigo-500 tracking-widest">{l.howto.stepLabel} {num}</span>
+                    <span className="text-xs font-bold text-blue-500 tracking-widest">{l.howto.stepLabel} {num}</span>
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
                   <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
@@ -368,7 +368,7 @@ export default function LandingPage({ locale: l }: Props) {
           <button
             type="button"
             onClick={() => setBillingYearly(v => !v)}
-            className={`relative w-12 h-6 rounded-full transition-colors ${billingYearly ? 'bg-indigo-600' : 'bg-slate-700'}`}
+            className={`relative w-12 h-6 rounded-full transition-colors ${billingYearly ? 'bg-blue-600' : 'bg-slate-700'}`}
           >
             <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${billingYearly ? 'left-7' : 'left-1'}`} />
           </button>
@@ -436,12 +436,12 @@ export default function LandingPage({ locale: l }: Props) {
           </div>
 
           {/* Pro */}
-          <div className="bg-indigo-950/60 border border-indigo-800 rounded-2xl p-6 flex flex-col relative">
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold bg-indigo-600 text-white px-3 py-1 rounded-full">
+          <div className="bg-blue-950/60 border border-blue-800 rounded-2xl p-6 flex flex-col relative">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold bg-blue-600 text-white px-3 py-1 rounded-full">
               {l.pricing.plans.pro.badge}
             </span>
             <div className="mb-5">
-              <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-2">{l.pricing.plans.pro.name}</p>
+              <p className="text-sm font-semibold text-blue-400 uppercase tracking-widest mb-2">{l.pricing.plans.pro.name}</p>
               <div className="flex items-end gap-1.5">
                 <p className="text-4xl font-bold text-white">
                   {billingYearly ? l.pricing.plans.pro.priceYearlyMonthly : l.pricing.plans.pro.priceMonthly}
@@ -460,7 +460,7 @@ export default function LandingPage({ locale: l }: Props) {
             </ul>
             <Link
               href="/auth/register"
-              className="block text-center py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors"
+              className="block text-center py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors"
             >
               {l.pricing.plans.pro.cta}
             </Link>
@@ -473,7 +473,7 @@ export default function LandingPage({ locale: l }: Props) {
       {/* ── FINAL CTA ── */}
       <section className="relative overflow-hidden py-28">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-indigo-700/30 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-blue-700/30 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-2xl mx-auto px-6 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">

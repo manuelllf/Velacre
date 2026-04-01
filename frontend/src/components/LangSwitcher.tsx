@@ -15,7 +15,7 @@ export default function LangSwitcher() {
             onClick={() => setLocale(lang)}
             className={`px-1.5 py-0.5 text-xs font-medium rounded transition-colors cursor-pointer ${
               locale === lang
-                ? 'text-indigo-600 dark:text-indigo-400'
+                ? 'text-blue-600 dark:text-blue-400'
                 : 'text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400'
             }`}
           >
