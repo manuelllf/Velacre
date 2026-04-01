@@ -647,26 +647,44 @@ export default function SaludPage() {
                   <p className="text-sm text-slate-400">Límite diario alcanzado (3 análisis/día). Se restablece mañana.</p>
                   {summary && (
                     <div className="grid md:grid-cols-3 gap-3 opacity-60">
-                      <div className="border-l-2 border-emerald-500 pl-4 py-1"><p className="text-xs font-semibold text-emerald-400 mb-1 uppercase tracking-wide">{sl.analysisBrilla}</p><p className="text-sm text-slate-300 leading-relaxed">{summary.brilla}</p></div>
-                      <div className="border-l-2 border-red-500 pl-4 py-1"><p className="text-xs font-semibold text-red-400 mb-1 uppercase tracking-wide">{sl.analysisQuema}</p><p className="text-sm text-slate-300 leading-relaxed">{summary.quema}</p></div>
-                      <div className="border-l-2 border-indigo-500 pl-4 py-1"><p className="text-xs font-semibold text-indigo-400 mb-1 uppercase tracking-wide">{sl.analysisAccion}</p><p className="text-sm text-slate-300 leading-relaxed">{summary.accion}</p></div>
+                      <div className="bg-emerald-950/40 border border-emerald-900/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" /><p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{sl.analysisBrilla}</p></div>
+                        <p className="text-sm text-slate-200 leading-relaxed">{summary.brilla}</p>
+                      </div>
+                      <div className="bg-red-950/40 border border-red-900/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2"><span className="w-2 h-2 rounded-full bg-red-500 shrink-0" /><p className="text-xs font-bold text-red-400 uppercase tracking-wider">{sl.analysisQuema}</p></div>
+                        <p className="text-sm text-slate-200 leading-relaxed">{summary.quema}</p>
+                      </div>
+                      <div className="bg-indigo-950/40 border border-indigo-900/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2"><span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" /><p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">{sl.analysisAccion}</p></div>
+                        <p className="text-sm text-slate-200 leading-relaxed">{summary.accion}</p>
+                      </div>
                     </div>
                   )}
                 </div>
               ) : summary ? (
                 <>
                   <div className="grid md:grid-cols-3 gap-3">
-                    <div className="border-l-2 border-emerald-500 pl-4 py-1">
-                      <p className="text-xs font-semibold text-emerald-400 mb-1.5 uppercase tracking-wide">{sl.analysisBrilla}</p>
-                      <p className="text-sm text-slate-300 leading-relaxed">{summary.brilla}</p>
+                    <div className="bg-emerald-950/40 border border-emerald-900/50 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                        <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{sl.analysisBrilla}</p>
+                      </div>
+                      <p className="text-sm text-slate-200 leading-relaxed">{summary.brilla}</p>
                     </div>
-                    <div className="border-l-2 border-red-500 pl-4 py-1">
-                      <p className="text-xs font-semibold text-red-400 mb-1.5 uppercase tracking-wide">{sl.analysisQuema}</p>
-                      <p className="text-sm text-slate-300 leading-relaxed">{summary.quema}</p>
+                    <div className="bg-red-950/40 border border-red-900/50 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                        <p className="text-xs font-bold text-red-400 uppercase tracking-wider">{sl.analysisQuema}</p>
+                      </div>
+                      <p className="text-sm text-slate-200 leading-relaxed">{summary.quema}</p>
                     </div>
-                    <div className="border-l-2 border-indigo-500 pl-4 py-1">
-                      <p className="text-xs font-semibold text-indigo-400 mb-1.5 uppercase tracking-wide">{sl.analysisAccion}</p>
-                      <p className="text-sm text-slate-300 leading-relaxed">{summary.accion}</p>
+                    <div className="bg-indigo-950/40 border border-indigo-900/50 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                        <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">{sl.analysisAccion}</p>
+                      </div>
+                      <p className="text-sm text-slate-200 leading-relaxed">{summary.accion}</p>
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-slate-800">

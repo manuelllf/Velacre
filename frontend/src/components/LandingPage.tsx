@@ -87,7 +87,7 @@ export default function LandingPage({ locale: l }: Props) {
       {/* ── HERO ── */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/20 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[520px] bg-indigo-600/25 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-6 pt-24 pb-20 text-center">
@@ -96,12 +96,12 @@ export default function LandingPage({ locale: l }: Props) {
             {l.hero.badge}
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight mb-6">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tight mb-6">
             {l.hero.h1}<br />
             <span className="text-indigo-400">{l.hero.h1highlight}</span>
           </h1>
 
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
             {l.hero.p}
           </p>
 
@@ -127,19 +127,19 @@ export default function LandingPage({ locale: l }: Props) {
       </section>
 
       {/* ── STATS BAR ── */}
-      <section className="border-y border-slate-800 bg-slate-900/50">
-        <div className="max-w-4xl mx-auto px-6 py-6 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+      <section className="border-y border-slate-800 bg-slate-900/60">
+        <div className="max-w-4xl mx-auto px-6 py-8 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center sm:divide-x sm:divide-slate-800">
           <div>
-            <div className="text-2xl font-bold text-white">{l.stats.s1val}</div>
-            <div className="text-sm text-slate-500 mt-0.5">{l.stats.s1label}</div>
+            <div className="text-4xl md:text-5xl font-black text-white tabular-nums">{l.stats.s1val}</div>
+            <div className="text-sm text-slate-400 mt-1.5 font-medium">{l.stats.s1label}</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-white">{l.stats.s2val}</div>
-            <div className="text-sm text-slate-500 mt-0.5">{l.stats.s2label}</div>
+            <div className="text-4xl md:text-5xl font-black text-white tabular-nums">{l.stats.s2val}</div>
+            <div className="text-sm text-slate-400 mt-1.5 font-medium">{l.stats.s2label}</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-white">{l.stats.s3val}</div>
-            <div className="text-sm text-slate-500 mt-0.5">{l.stats.s3label}</div>
+            <div className="text-4xl md:text-5xl font-black text-white tabular-nums">{l.stats.s3val}</div>
+            <div className="text-sm text-slate-400 mt-1.5 font-medium">{l.stats.s3label}</div>
           </div>
         </div>
       </section>
@@ -147,8 +147,8 @@ export default function LandingPage({ locale: l }: Props) {
       {/* ── DEMO IA ── */}
       <section className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-white mb-3">{l.demo.h2}</h2>
-          <p className="text-slate-400 max-w-xl mx-auto">{l.demo.p}</p>
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-3">{l.demo.h2}</h2>
+          <p className="text-slate-300 max-w-xl mx-auto">{l.demo.p}</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 items-start">
@@ -174,7 +174,7 @@ export default function LandingPage({ locale: l }: Props) {
           </div>
 
           {/* Generated response */}
-          <div className="bg-slate-900 border border-indigo-900 rounded-2xl p-6 flex flex-col gap-4">
+          <div className="bg-slate-900 border border-indigo-600/50 rounded-2xl p-6 flex flex-col gap-4 shadow-xl shadow-indigo-950/60 ring-1 ring-indigo-700/30">
             {/* Header */}
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center shrink-0">
@@ -203,7 +203,7 @@ export default function LandingPage({ locale: l }: Props) {
             </div>
 
             {/* Response body */}
-            <div className="min-h-[140px] flex items-start">
+            <div className="min-h-[190px] flex items-start">
               {!selectedTone ? (
                 <div className="w-full flex flex-col items-center justify-center py-6 gap-2 text-center">
                   <svg className="w-8 h-8 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,11 +223,11 @@ export default function LandingPage({ locale: l }: Props) {
 
             {/* Copy hint once done */}
             {selectedTone && typedText.length >= currentToneText.length && (
-              <div className="flex items-center justify-between pt-1 border-t border-slate-800">
-                <span className="text-xs text-slate-600">{l.demo.response.cta}</span>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                <span className="text-xs text-slate-400">{l.demo.response.cta}</span>
                 <Link
                   href="/auth/register"
-                  className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                  className="text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
                 >
                   {l.nav.start} →
                 </Link>
@@ -358,8 +358,8 @@ export default function LandingPage({ locale: l }: Props) {
       {/* ── PRICING ── */}
       <section id="precios" className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-white mb-3">{l.pricing.h2}</h2>
-          <p className="text-slate-400">{l.pricing.p}</p>
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-3">{l.pricing.h2}</h2>
+          <p className="text-slate-300">{l.pricing.p}</p>
         </div>
 
         {/* Toggle mensual / anual */}
@@ -405,9 +405,12 @@ export default function LandingPage({ locale: l }: Props) {
           </div>
 
           {/* Core */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col">
+          <div className="bg-slate-900 border border-slate-600 rounded-2xl p-6 flex flex-col relative">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold bg-slate-600 text-white px-3 py-1 rounded-full whitespace-nowrap">
+              Más popular
+            </span>
             <div className="mb-5">
-              <p className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-2">{l.pricing.plans.core.name}</p>
+              <p className="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-2">{l.pricing.plans.core.name}</p>
               <div className="flex items-end gap-1.5">
                 <p className="text-4xl font-bold text-white">
                   {billingYearly ? l.pricing.plans.core.priceYearlyMonthly : l.pricing.plans.core.priceMonthly}
@@ -426,7 +429,7 @@ export default function LandingPage({ locale: l }: Props) {
             </ul>
             <Link
               href="/auth/register"
-              className="block text-center py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-semibold transition-colors"
+              className="block text-center py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-500 text-white text-sm font-semibold transition-colors"
             >
               {l.pricing.plans.core.cta}
             </Link>
@@ -470,13 +473,13 @@ export default function LandingPage({ locale: l }: Props) {
       {/* ── FINAL CTA ── */}
       <section className="relative overflow-hidden py-28">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-700/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-indigo-700/30 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-2xl mx-auto px-6 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             {l.cta.h2line1}<br />{l.cta.h2line2}
           </h2>
-          <p className="text-slate-400 text-lg mb-10">
+          <p className="text-slate-300 text-lg mb-10">
             {l.cta.p}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
