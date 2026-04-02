@@ -246,20 +246,17 @@ export default function SaludPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
-        <div className="max-w-screen-xl mx-auto px-4">
-          <div className="flex items-center justify-between h-12">
-            <div className="flex items-center gap-2">
-              <Link href="/inicio" className="font-bold text-lg text-slate-900 dark:text-white">Velacre</Link>
-              {negocio && <span className="hidden sm:inline text-sm text-slate-500 dark:text-slate-400 font-normal">· {negocio.nombre}</span>}
-            </div>
-            <button
-              onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              <span className="hidden sm:inline">{t.app.common.logout}</span>
-              <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-            </button>
+        <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link href="/inicio" className="font-bold text-base text-slate-900 dark:text-white">Velacre</Link>
+            {negocio && <span className="hidden sm:inline text-sm text-slate-400 dark:text-slate-500">· {negocio.nombre}</span>}
           </div>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
+            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+          >
+            {t.app.common.logout}
+          </button>
         </div>
       </header>
       <SectionNav />
