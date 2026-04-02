@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import WaitlistModal from '@/components/WaitlistModal'
-import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, type MonthMetrics } from '@/lib/report-pdf'
+import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, computeSpeedBenchmark, type MonthMetrics, type SpeedBenchmark } from '@/lib/report-pdf'
 import { useLanguage } from '@/lib/i18n'
 
 const STOPWORDS = new Set([
@@ -210,6 +210,7 @@ export default function SaludPage() {
   const allYears: MonthMetrics[] = getAllYears(reviews)
   // Meses del año actual en orden ascendente (para PDF mensual y anual)
   const currentYearMonths = allMonths.filter(m => m.year === now.getFullYear()).reverse()
+  const speedBenchmark: SpeedBenchmark | null = computeSpeedBenchmark(reviews)
 
   async function handleDownloadPdf(type: 'month' | 'year') {
     if (!negocio) return
@@ -242,6 +243,7 @@ export default function SaludPage() {
           starCountsCurrent: scCur,
           starCountsPrevious: scPrev,
           pendingCount,
+          speedBenchmark,
         })
       } else {
         await generateYearlyPDF({
@@ -532,6 +534,55 @@ export default function SaludPage() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ── VELOCIDAD DE RESPUESTA ── */}
+              {speedBenchmark && (
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Velocidad de respuesta</p>
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Media de respuesta</p>
+                      <p className={`text-3xl font-black tabular-nums ${speedBenchmark.avgDays < 2 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {speedBenchmark.avgDays < 1
+                          ? `${Math.round(speedBenchmark.avgDays * 24)}h`
+                          : `${speedBenchmark.avgDays.toFixed(1)}d`}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">entre reseña y respuesta</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Respondidas en &lt;48h</p>
+                      <p className={`text-3xl font-black tabular-nums ${speedBenchmark.pct48h >= 80 ? 'text-emerald-400' : speedBenchmark.pct48h >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {speedBenchmark.pct48h.toFixed(0)}%
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">umbral Google Maps</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Respondidas en &lt;24h</p>
+                      <p className={`text-3xl font-black tabular-nums ${speedBenchmark.pct24h >= 60 ? 'text-emerald-400' : speedBenchmark.pct24h >= 30 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {speedBenchmark.pct24h.toFixed(0)}%
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">de {speedBenchmark.totalResponded} respondidas</p>
+                    </div>
+                  </div>
+                  {/* Barra de distribución */}
+                  <div className="flex h-3 rounded-full overflow-hidden gap-px">
+                    {speedBenchmark.pct24h > 0 && (
+                      <div className="bg-emerald-500" style={{ width: `${speedBenchmark.pct24h}%` }} title={`< 24h: ${speedBenchmark.pct24h.toFixed(0)}%`} />
+                    )}
+                    {(speedBenchmark.pct48h - speedBenchmark.pct24h) > 0 && (
+                      <div className="bg-amber-400" style={{ width: `${speedBenchmark.pct48h - speedBenchmark.pct24h}%` }} title={`24–48h: ${(speedBenchmark.pct48h - speedBenchmark.pct24h).toFixed(0)}%`} />
+                    )}
+                    {speedBenchmark.pctOver48h > 0 && (
+                      <div className="bg-red-500" style={{ width: `${speedBenchmark.pctOver48h}%` }} title={`> 48h: ${speedBenchmark.pctOver48h.toFixed(0)}%`} />
+                    )}
+                  </div>
+                  <div className="flex gap-4 mt-2">
+                    <span className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />&lt;24h</span>
+                    <span className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />24–48h</span>
+                    <span className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />&gt;48h</span>
+                  </div>
                 </div>
               )}
             </div>

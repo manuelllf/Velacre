@@ -128,6 +128,34 @@ export function ratingDrift(current: number | null, previous: number | null): { 
 
 type RGB = readonly [number, number, number]
 
+export interface SpeedBenchmark {
+  avgDays: number           // media días reseña → respondida
+  pct24h: number            // % respondidas en <24h
+  pct48h: number            // % respondidas en <48h (acumulado)
+  pctOver48h: number        // % respondidas en >48h
+  totalResponded: number    // reseñas respondidas con fecha
+}
+
+/** Calcula benchmark de velocidad de respuesta a partir de reviews con respondidaFecha */
+export function computeSpeedBenchmark(reviews: PendingReview[]): SpeedBenchmark | null {
+  const responded = reviews.filter(r => r.respondidaFecha && r.reviewDate)
+  if (responded.length === 0) return null
+
+  const days = responded.map(r => {
+    const diff = new Date(r.respondidaFecha!).getTime() - new Date(r.reviewDate).getTime()
+    return diff / (1000 * 60 * 60 * 24)
+  }).filter(d => d >= 0)
+
+  if (days.length === 0) return null
+
+  const avgDays = days.reduce((a, b) => a + b, 0) / days.length
+  const pct24h = (days.filter(d => d < 1).length / days.length) * 100
+  const pct48h = (days.filter(d => d < 2).length / days.length) * 100
+  const pctOver48h = 100 - pct48h
+
+  return { avgDays, pct24h, pct48h, pctOver48h, totalResponded: days.length }
+}
+
 export interface MonthlyPdfData {
   negocioNombre: string
   negocioTelefono?: string
@@ -142,6 +170,7 @@ export interface MonthlyPdfData {
   starCountsCurrent: number[]   // [0, c1, c2, c3, c4, c5]
   starCountsPrevious?: number[] // [0, c1, c2, c3, c4, c5]
   pendingCount: number          // reseñas sin respuesta
+  speedBenchmark: SpeedBenchmark | null
 }
 
 export interface YearlyPdfData {
@@ -297,7 +326,60 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   })
   y += 4
 
-  // SECTION 1b: Distribución de estrellas
+  // SECTION 1b: Benchmark de velocidad de respuesta
+  if (data.speedBenchmark) {
+    const sb = data.speedBenchmark
+    if (y > 230) { doc.addPage(); y = 20 }
+    sectionLabel(doc, 'VELOCIDAD DE RESPUESTA', y, ML)
+    y += 13
+
+    // Fila de 3 mini KPIs
+    const sbW = CW / 3
+    const sbKpis = [
+      { label: 'Media de respuesta', val: sb.avgDays < 1 ? `${Math.round(sb.avgDays * 24)}h` : `${sb.avgDays.toFixed(1)} dias`, col: sb.avgDays < 2 ? GREEN : RED },
+      { label: 'Respondidas en <48h', val: `${sb.pct48h.toFixed(0)}%`, col: sb.pct48h >= 80 ? GREEN : sb.pct48h >= 50 ? AMBER : RED },
+      { label: 'Respondidas en <24h', val: `${sb.pct24h.toFixed(0)}%`, col: sb.pct24h >= 60 ? GREEN : sb.pct24h >= 30 ? AMBER : RED },
+    ]
+    sbKpis.forEach((k, i) => {
+      const x = ML + i * sbW
+      f(S50); d(S200); doc.setLineWidth(0.2)
+      doc.roundedRect(x + 0.5, y, sbW - 1.5, 20, 1.5, 1.5, 'FD')
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(MID)
+      doc.text(k.label, x + 3, y + 5.5)
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); c(k.col)
+      doc.text(k.val, x + 3, y + 14)
+    })
+    y += 23
+
+    // Barra de distribución: <24h | 24–48h | >48h
+    const barTotalW = CW
+    const b24 = (sb.pct24h / 100) * barTotalW
+    const b48 = ((sb.pct48h - sb.pct24h) / 100) * barTotalW
+    const bOver = ((100 - sb.pct48h) / 100) * barTotalW
+    const bh = 6
+    f(GREEN);  doc.rect(ML, y, b24, bh, 'F')
+    f(AMBER);  doc.rect(ML + b24, y, b48, bh, 'F')
+    if (bOver > 0) { f(RED); doc.rect(ML + b24 + b48, y, bOver, bh, 'F') }
+    y += bh + 4
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
+    const legend = [
+      { col: GREEN, txt: `< 24h (${sb.pct24h.toFixed(0)}%)` },
+      { col: AMBER, txt: `24–48h (${(sb.pct48h - sb.pct24h).toFixed(0)}%)` },
+      { col: RED,   txt: `> 48h (${sb.pctOver48h.toFixed(0)}%)` },
+    ]
+    let lx = ML
+    legend.forEach(l => {
+      f(l.col); doc.rect(lx, y, 3.5, 3.5, 'F')
+      c(MID); doc.text(l.txt, lx + 5, y + 3.2)
+      lx += 38
+    })
+    c(LIGHT); doc.setFontSize(6)
+    doc.text(`Benchmark Google: responder en < 48h. Basado en ${sb.totalResponded} resenas respondidas.`, ML, y + 9)
+    y += 14
+  }
+
+  // SECTION 1c: Distribución de estrellas
   const sc = data.starCountsCurrent
   const sp = data.starCountsPrevious
   const totalStars = sc.slice(1).reduce((a, b) => a + b, 0)

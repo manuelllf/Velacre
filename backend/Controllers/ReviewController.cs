@@ -415,6 +415,7 @@ public class ReviewController : ControllerBase
                 tonoGenerado = r.TonoGenerado,
                 keywordsUsadas = r.KeywordsUsadas ?? Array.Empty<string>(),
                 actualizadoFecha = r.ActualizadoFecha,
+                respondidaFecha = r.RespondidaFecha,
                 contextoCliente = r.ContextoCliente,
                 contextoRespuesta = r.ContextoRespuesta,
             })
@@ -679,6 +680,10 @@ public class ReviewController : ControllerBase
         if (review == null) return NotFound("Reseña no encontrada");
 
         review.Estado = request.Estado;
+        if (request.Estado == "respondida" && review.RespondidaFecha == null)
+            review.RespondidaFecha = DateTimeOffset.UtcNow;
+        else if (request.Estado != "respondida")
+            review.RespondidaFecha = null;
         await _supabase.From<ReviewEntity>().Where(r => r.Id == id).Update(review);
         return Ok(new { id, estado = request.Estado });
     }

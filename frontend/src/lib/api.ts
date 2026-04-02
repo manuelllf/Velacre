@@ -61,6 +61,7 @@ export interface PendingReview {
   keywordsUsadas?: string[]
   contextoCliente?: string
   contextoRespuesta?: string
+  respondidaFecha?: string
 }
 
 export async function notifyWaitlist(plan: 'core' | 'pro', notas?: string): Promise<void> {

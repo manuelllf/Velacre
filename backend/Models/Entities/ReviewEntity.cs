@@ -67,6 +67,10 @@ public class ReviewEntity : BaseModel
     [Column("estado")]
     public string Estado { get; set; } = "pendiente";
 
+    /// <summary>Timestamp en que el usuario marcó la reseña como respondida (publicada en Google)</summary>
+    [Column("respondida_fecha")]
+    public DateTimeOffset? RespondidaFecha { get; set; }
+
     [Column("keywords_usadas")]
     public string[]? KeywordsUsadas { get; set; }
 
