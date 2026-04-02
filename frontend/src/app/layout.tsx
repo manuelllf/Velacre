@@ -16,6 +16,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Velacre",
   description: "Gestiona y responde las reseñas de tu negocio con IA",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Velacre",
+    startupImage: "/apple-touch-icon.png",
+  },
+  themeColor: "#0f172a",
 };
 
 export default function RootLayout({
