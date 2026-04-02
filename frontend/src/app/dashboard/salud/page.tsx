@@ -539,7 +539,7 @@ export default function SaludPage() {
 
               {/* ── VELOCIDAD DE RESPUESTA ── */}
               {speedBenchmark && (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <div className="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5">
                   <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Velocidad de respuesta</p>
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
