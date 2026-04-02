@@ -190,6 +190,8 @@ export default function DashboardPage() {
     try {
       await setReviewEstado(reviewId, estado)
       setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, estado } : r))
+      // Si la reseña desaparece del filtro activo, deseleccionar para evitar pantalla vacía en móvil
+      if (estadoFilter !== 'todas' && estadoFilter !== estado) setSelectedId(null)
     } catch { /* silent */ }
     finally { setUpdatingEstado(prev => { const s = new Set(prev); s.delete(reviewId); return s }) }
   }
