@@ -285,7 +285,7 @@ export default function SaludPage() {
       {userPlan !== 'pro' && (
         <div className="relative">
           {/* Nota media real — visible y por encima del blur */}
-          <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-4 relative z-10">
+          <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-4 relative z-[1]">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 inline-flex items-center gap-6 shadow-sm">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Tu nota media</p>
