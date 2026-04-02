@@ -284,6 +284,23 @@ export default function SettingsPage() {
                   </span>
                 )}
               </div>
+
+              {/* Upsell a Pro — solo si está en Core */}
+              {plan === 'core' && lsStatus !== 'cancelled' && (
+                <button
+                  type="button"
+                  onClick={() => setWaitlistPlan('pro')}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-600/30 rounded-xl transition-colors text-left"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-blue-400">Pasarme a Pro</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Respuestas ilimitadas + panel de salud y análisis IA</p>
+                  </div>
+                  <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
             </div>
           )}
           </div>
