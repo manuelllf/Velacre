@@ -5,7 +5,7 @@
 
 ## ¿Qué es Velacre?
 
-SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y responder reseñas de Google de forma automatizada con IA. Objetivo de negocio: 25.000 €/año en 2026.
+SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y responder reseñas de Google de forma automatizada con IA. Objetivo de negocio: empezar a facturar en 2026 para no depender de un empleador.
 
 ---
 
@@ -162,17 +162,33 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 - CRUD estado, plan, rol, pro-override, notas, place_id
 
 ---
-
+ 
 ## Sistema de planes y límites
-
-| Plan | Precio | Respuestas manuales/mes | Respuestas IA/mes | Panel Salud | Reseñas visibles |
-|------|--------|------------------------|-------------------|-------------|-----------------|
-| Basic | Gratis | 3 | 3 | Teaser (solo nota media real) | 10 últimas |
-| Core | 19,90€/mes · 190€/año | 3 | 10 | Completo | 60 |
-| Pro | 29,90€/mes · 290€/año | Ilimitadas | Ilimitadas | Completo | 60 |
+ 
+| Plan | Precio mensual | Precio anual | Respuestas manuales/mes | Respuestas IA/mes | Panel Salud | Reseñas visibles |
+|------|---------------|-------------|------------------------|-------------------|-------------|-----------------|
+| Basic | Gratis | — | 3 | 3 | Teaser (nota media real + blur) | 10 últimas |
+| Core | **€19/mes** | **€190/año** | 3 | 10 | Completo | 60 |
+| Pro | **€45/mes** | **€450/año** | Ilimitadas | Ilimitadas | Completo + análisis IA | 60 |
+ 
+> **Fórmula anual:** 10 meses × precio mensual ("2 meses gratis").
+ 
+> **Estado pagos (2026-04-03):** Core y Pro muestran "Únete a la lista de espera" → email a info@velacre.com. No se procesa ningún pago hasta alta como autónomo.
+ 
+### Estrategia post-integración Google Business Profile
+ 
+Cuando se integre GBP (auto-publicar respuestas):
+ 
+| Plan | GBP importar reseñas | GBP auto-publicar respuestas | Precio mensual | Precio anual |
+|------|---------------------|------------------------------|---------------|-------------|
+| Basic | ✅ Libre (read-only) | ❌ Manual (copy-paste) | Gratis | — |
+| Core | ✅ | ✅ | €29/mes | €290/año |
+| Pro | ✅ | ✅ | €69/mes | €690/año |
+ 
+**Mecánica FOMO post-GBP:** Basic importa reseñas automáticamente (ve el valor), pero al publicar la respuesta ve: *"Respuesta lista. Para publicarla directamente en Google sin salir de aquí, activa Core."* — no es bloqueo, es upsell en momento de valor demostrado.
 
 > **Estado pagos (2026-04-01):** Core y Pro muestran botón "Reservar acceso" — envía email a `infovelacre@gmail.com`. No se procesa ningún pago hasta alta como autónomo.
-
+ 
 ---
 
 ## Flujo de usuario
@@ -440,11 +456,10 @@ frontend/src/
 ## Pendiente / Próximos pasos
 
 ### Bugs / mejoras pequeñas
-- Posibilidad de hacerlo PWA para mejorar usabilidad portable en móvil
-- **Verificar generación de `keywords_usadas`** en producción (comparación case-insensitive de palabras clave del negocio vs texto de respuesta generada)
-- Revisión de precios pre/post integración GBP
-- Auditoría FOMO completa
-- Posibilidad de varios locales en modo PRO (hasta 3-5, pensando en cadenas)
+- Actualizar precios en codigo
+- Auditoría fomo cuando haya usuarios reales (para poner casos de éxito, clientes usándolas o conteo de reserva de plazas)
+- Posibilidad de varios locales en modo PRO (hasta 3-5, pensando en cadenas para plan PRO)
+- Darle una vuelta a que un local con 20/30 reseñas pague PRO y uno con más de 100 pague el mismo precio.
 
 ### Integración Google Business Profile (iteración grande)
 Rediseño del onboarding step 2 con dos caminos **excluyentes** (nunca los dos, nunca ninguno):
