@@ -217,13 +217,31 @@ export default function SaludPage() {
     try {
       const kwData = keywords.map(k => ({ word: k.word, sentiment: k.sentiment }))
       if (type === 'month') {
+        // Distribución de estrellas del mes actual y anterior
+        const buildStarCounts = (year: number, month: number): number[] => {
+          const sc = [0, 0, 0, 0, 0, 0]
+          reviews
+            .filter(r => { const d = new Date(r.reviewDate); return d.getFullYear() === year && d.getMonth() === month })
+            .forEach(r => { if (r.starRating && r.starRating >= 1 && r.starRating <= 5) sc[r.starRating]++ })
+          return sc
+        }
+        const scCur = buildStarCounts(currentM.year, currentM.month)
+        const pmValid = previousM.count > 0 || previousM.avgRating != null
+        const scPrev = pmValid ? buildStarCounts(previousM.year, previousM.month) : undefined
+        const pendingCount = reviews.filter(r => !r.tonoGenerado && r.estado !== 'ignorada').length
         await generateMonthlyPDF({
           negocioNombre: negocio.nombre,
+          negocioTelefono: negocio.telefono,
+          negocioEmail: negocio.email,
+          negocioPalabrasClave: negocio.palabrasClave,
           currentMonth: currentM,
-          previousMonth: previousM.count > 0 || previousM.avgRating != null ? previousM : null,
+          previousMonth: pmValid ? previousM : null,
           yearMonths: currentYearMonths,
           keywords: kwData,
           summary,
+          starCountsCurrent: scCur,
+          starCountsPrevious: scPrev,
+          pendingCount,
         })
       } else {
         await generateYearlyPDF({

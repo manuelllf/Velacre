@@ -295,7 +295,27 @@ public class ReviewController : ControllerBase
             // Siempre usar el método con contexto: genera respuesta en el idioma de la reseña
             // + contexto en español para el propietario
             var lang = string.IsNullOrEmpty(review.ReviewLanguage) ? "es" : review.ReviewLanguage;
+
+            // Fallback de keywords: si el negocio no tiene configuradas, usar las más usadas por la IA
             var keywords = negocio.PalabrasClave;
+            if (keywords == null || keywords.Length == 0)
+            {
+                var allReviewsRes = await _supabase.From<ReviewEntity>()
+                    .Where(r => r.IdNegocio == negocio.Id)
+                    .Get();
+                var topFallback = allReviewsRes.Models
+                    .Where(r => r.KeywordsUsadas != null && r.KeywordsUsadas.Length > 0)
+                    .SelectMany(r => r.KeywordsUsadas!)
+                    .GroupBy(k => k, StringComparer.OrdinalIgnoreCase)
+                    .OrderByDescending(g => g.Count())
+                    .Take(6)
+                    .Select(g => g.Key)
+                    .ToArray();
+                keywords = topFallback.Length > 0
+                    ? topFallback
+                    : new[] { negocio.Nombre };
+            }
+
             var result = await _aiService.GenerateSingleResponseWithContextAsync(
                 reviewContext,
                 negocio.Descripcion ?? negocio.Nombre,

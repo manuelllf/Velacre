@@ -130,11 +130,18 @@ type RGB = readonly [number, number, number]
 
 export interface MonthlyPdfData {
   negocioNombre: string
+  negocioTelefono?: string
+  negocioEmail?: string
+  negocioPalabrasClave?: string[]
   currentMonth: MonthMetrics
   previousMonth: MonthMetrics | null
   yearMonths: MonthMetrics[]   // meses del año actual, orden ascendente
   keywords: { word: string; sentiment: 'positive' | 'neutral' | 'negative' }[]
   summary: SummaryData | null
+  // Distribución de estrellas: índice 1–5
+  starCountsCurrent: number[]   // [0, c1, c2, c3, c4, c5]
+  starCountsPrevious?: number[] // [0, c1, c2, c3, c4, c5]
+  pendingCount: number          // reseñas sin respuesta
 }
 
 export interface YearlyPdfData {
@@ -236,6 +243,16 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revision mensual - ${mLabel}`)
   y = 38
 
+  // SUBHEADER negocio: teléfono y email si disponibles
+  const contactParts: string[] = []
+  if (data.negocioTelefono) contactParts.push(safe(data.negocioTelefono))
+  if (data.negocioEmail) contactParts.push(safe(data.negocioEmail))
+  if (contactParts.length > 0) {
+    c(MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
+    doc.text(contactParts.join('   |   '), ML, y)
+    y += 7
+  }
+
   // TITULO
   c(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(14)
   doc.text(`Revision mensual: ${mLabel}`, ML, y)
@@ -243,32 +260,92 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   doc.text(pLabel ? `Comparativa con ${pLabel} incluida` : 'Analisis del mes en curso', ML, y + 6)
   y += 16
 
-  // SECTION 1: KPIs del mes
+  // SECTION 1: KPIs del mes — 2 filas de 3
   sectionLabel(doc, `INDICADORES DE ${mLabel.toUpperCase()}`, y, ML)
   y += 13
 
-  const kW = CW / 4
-  const kpis = [
-    { label: 'Nota media', val: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cm.avgRating, pm?.avgRating ?? null, 2), up: true, col: AMBER },
-    { label: 'Resenas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
-    { label: 'Positivas (4-5)', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(0)}%` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
-    { label: 'Respondidas', val: cm.responseRate != null ? `${cm.responseRate.toFixed(0)}%` : '—', vt: varText(cm.responseRate, pm?.responseRate ?? null, 1), up: true, col: INDIGO },
+  const pendingCount = data.pendingCount
+  const kW3 = CW / 3
+  const kpis3rows: Array<{ label: string; val: string; vt: ReturnType<typeof varText>; up: boolean; col: RGB }[]> = [
+    [
+      { label: 'Nota media', val: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cm.avgRating, pm?.avgRating ?? null, 2), up: true, col: AMBER },
+      { label: 'Resenas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
+      { label: 'Sin respuesta', val: String(pendingCount), vt: varText(pendingCount, null, 0), up: false, col: pendingCount > 0 ? RED : GREEN },
+    ],
+    [
+      { label: 'Positivas (4-5)', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(0)}%  (${cm.positiveCount})` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
+      { label: 'Negativas (1-2)', val: cm.negativeRatio != null ? `${cm.negativeRatio.toFixed(0)}%  (${cm.negativeCount})` : '—', vt: varText(cm.negativeRatio, pm?.negativeRatio ?? null, 1), up: false, col: cm.negativeCount > 0 ? RED : MID },
+      { label: 'Respondidas', val: cm.responseRate != null ? `${cm.responseRate.toFixed(0)}%  (${cm.respondedCount})` : '—', vt: varText(cm.responseRate, pm?.responseRate ?? null, 1), up: true, col: INDIGO },
+    ],
   ]
-  kpis.forEach((k, i) => {
-    const x = ML + i * kW
-    f(S50); d(S200); doc.setLineWidth(0.2)
-    doc.roundedRect(x + 0.5, y, kW - 1.5, 23, 1.5, 1.5, 'FD')
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(MID)
-    doc.text(k.label, x + 3, y + 6)
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); c(k.col)
-    doc.text(k.val, x + 3, y + 14.5)
-    if (k.vt.significant) {
-      const good = k.up ? k.vt.positive : !k.vt.positive
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(good ? GREEN : RED)
-      doc.text(`${k.vt.text} vs ${pLabel ?? 'anterior'}`, x + 3, y + 20)
-    }
+  kpis3rows.forEach(row => {
+    row.forEach((k, i) => {
+      const x = ML + i * kW3
+      f(S50); d(S200); doc.setLineWidth(0.2)
+      doc.roundedRect(x + 0.5, y, kW3 - 1.5, 23, 1.5, 1.5, 'FD')
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(MID)
+      doc.text(k.label, x + 3, y + 6)
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); c(k.col)
+      doc.text(k.val, x + 3, y + 14.5)
+      if (k.vt.significant) {
+        const good = k.up ? k.vt.positive : !k.vt.positive
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(good ? GREEN : RED)
+        doc.text(`${k.vt.text} vs ${pLabel ?? 'anterior'}`, x + 3, y + 20)
+      }
+    })
+    y += 26
   })
-  y += 28
+  y += 4
+
+  // SECTION 1b: Distribución de estrellas
+  const sc = data.starCountsCurrent
+  const sp = data.starCountsPrevious
+  const totalStars = sc.slice(1).reduce((a, b) => a + b, 0)
+  if (totalStars > 0) {
+    if (y > 230) { doc.addPage(); y = 20 }
+    sectionLabel(doc, 'DISTRIBUCION DE ESTRELLAS', y, ML)
+    y += 13
+
+    const BAR_MAX = 80  // mm máx para la barra
+    const COL_LABEL = 20, COL_BAR = BAR_MAX, COL_NUM = 14, COL_PCT = 16, COL_PREV = 22
+    // cabecera
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); c(MID)
+    doc.text('Estrellas', ML, y + 4); doc.text('Resenas', ML + COL_LABEL + COL_BAR + 2, y + 4)
+    doc.text('%', ML + COL_LABEL + COL_BAR + COL_NUM + 2, y + 4)
+    if (sp) doc.text(safe(pLabel ?? 'Anterior'), ML + COL_LABEL + COL_BAR + COL_NUM + COL_PCT + 2, y + 4)
+    y += 7
+
+    for (let star = 5; star >= 1; star--) {
+      const count = sc[star] ?? 0
+      const pct = totalStars > 0 ? (count / totalStars) * 100 : 0
+      const barW = totalStars > 0 ? (count / totalStars) * BAR_MAX : 0
+      const prevCount = sp ? (sp[star] ?? 0) : null
+      const starColor: RGB = star >= 4 ? GREEN : star === 3 ? AMBER : RED
+
+      // Etiqueta
+      c(starColor); doc.setFont('helvetica', 'bold'); doc.setFontSize(7)
+      doc.text(`${star}*`, ML, y + 4.5)
+      // Barra
+      f([226, 232, 240]); doc.rect(ML + COL_LABEL, y + 1, BAR_MAX, 5.5, 'F')
+      if (barW > 0) { f(starColor); doc.rect(ML + COL_LABEL, y + 1, barW, 5.5, 'F') }
+      // Número
+      c(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
+      doc.text(String(count), ML + COL_LABEL + COL_BAR + 2, y + 4.5)
+      // Porcentaje
+      c(MID); doc.text(`${pct.toFixed(0)}%`, ML + COL_LABEL + COL_BAR + COL_NUM + 2, y + 4.5)
+      // Mes anterior
+      if (sp && prevCount !== null) {
+        const prevPct = (sp.slice(1).reduce((a, b) => a + b, 0)) > 0
+          ? (prevCount / sp.slice(1).reduce((a, b) => a + b, 0)) * 100 : 0
+        const diff = count - prevCount
+        c(diff > 0 ? GREEN : diff < 0 ? RED : LIGHT)
+        doc.text(`${prevCount} (${diff >= 0 ? '+' : ''}${diff})`, ML + COL_LABEL + COL_BAR + COL_NUM + COL_PCT + 2, y + 4.5)
+        void prevPct
+      }
+      y += 8
+    }
+    y += 4
+  }
 
   // SECTION 2: Comparativa directa mes actual vs anterior
   if (pm && pLabel) {
@@ -341,23 +418,41 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
     y += 8
   }
 
-  // SECTION 4: Keywords
-  if (data.keywords.length > 0) {
+  // SECTION 4: Keywords + palabras clave negocio
+  const hasPalabrasClave = data.negocioPalabrasClave && data.negocioPalabrasClave.length > 0
+  if (data.keywords.length > 0 || hasPalabrasClave) {
     if (y > 235) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'PALABRAS MAS MENCIONADAS', y, ML)
+    sectionLabel(doc, 'PALABRAS CLAVE Y MENCIONADAS', y, ML)
     y += 13
+
+    if (hasPalabrasClave) {
+      c(INDIGO); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5)
+      doc.text('Palabras clave SEO del negocio:', ML, y + 3.5)
+      c(DARK); doc.setFont('helvetica', 'normal')
+      const kwLine = data.negocioPalabrasClave!.map(k => safe(k)).join('   /   ')
+      const kwLines = doc.splitTextToSize(kwLine, CW - 48) as string[]
+      doc.text(kwLines, ML + 48, y + 3.5); y += kwLines.length * 4.5 + 4
+    }
+
     const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
     const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
+    const neuKw = data.keywords.filter(k => k.sentiment === 'neutral').map(k => safe(k.word))
     if (posKw.length > 0) {
-      c(GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Aspectos positivos:', ML, y + 3.5)
+      c(GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionado positivo:', ML, y + 3.5)
       c(MID); doc.setFont('helvetica', 'normal')
       const ln = doc.splitTextToSize(posKw.join('  -  '), CW - 42) as string[]
       doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
     }
     if (negKw.length > 0) {
-      c(RED); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Aspectos negativos:', ML, y + 3.5)
+      c(RED); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionado negativo:', ML, y + 3.5)
       c(MID); doc.setFont('helvetica', 'normal')
       const ln = doc.splitTextToSize(negKw.join('  -  '), CW - 42) as string[]
+      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+    }
+    if (neuKw.length > 0) {
+      c(AMBER); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionado neutral:', ML, y + 3.5)
+      c(MID); doc.setFont('helvetica', 'normal')
+      const ln = doc.splitTextToSize(neuKw.join('  -  '), CW - 42) as string[]
       doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
     }
     y += 4
