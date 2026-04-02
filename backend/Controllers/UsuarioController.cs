@@ -59,6 +59,7 @@ public class UsuarioController : ControllerBase
             lsStatus         = usuario.LsStatus,
             lsRenewsAt       = usuario.LsRenewsAt,
             lsEndsAt         = usuario.LsEndsAt,
+            respuestasIaMes  = usuario.RespuestasIaMes,
         });
     }
 

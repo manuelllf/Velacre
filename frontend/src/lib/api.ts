@@ -175,6 +175,7 @@ export async function getMyUsuario(): Promise<{
   isAdmin: boolean; rol: UserRol; plan: string
   lsCustomerPortal?: string; lsSubscriptionId?: string; lsStatus?: string
   lsRenewsAt?: string; lsEndsAt?: string
+  respuestasIaMes?: number
 }> {
   const res = await fetch(`${API_URL}/api/usuario/me`, { headers: await authHeaders() })
   if (!res.ok) throw new ApiError(res.status, await res.text())

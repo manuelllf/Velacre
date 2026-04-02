@@ -70,6 +70,7 @@ export default function DashboardPage() {
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [showUpsell, setShowUpsell] = useState(false)
   const [upsellInfo, setUpsellInfo] = useState<{ plan: string; limit: number; used: number } | null>(null)
+  const [iaUsed, setIaUsed] = useState<number>(0)
 
   // Manual section
   const [manualModalOpen, setManualModalOpen] = useState(false)
@@ -87,6 +88,7 @@ export default function DashboardPage() {
         if (u.isAdmin || u.rol === 'admin') { router.replace('/admin'); return }
         const plan = u.plan ?? 'basic'
         setUserPlan(plan)
+        setIaUsed(u.respuestasIaMes ?? 0)
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         loadReviews(plan)
@@ -166,6 +168,7 @@ export default function DashboardPage() {
     try {
       const result = await generateForReview(reviewId)
       setGeneratedResponses(prev => ({ ...prev, [reviewId]: result.response }))
+      if (userPlan === 'basic' || userPlan === 'core') setIaUsed(prev => prev + 1)
       if (result.contextoCliente && result.contextoRespuesta) {
         setContextos(prev => ({ ...prev, [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! } }))
       }
@@ -322,6 +325,55 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* ── Barra de uso IA — solo Basic y Core ── */}
+        {(userPlan === 'basic' || userPlan === 'core') && (() => {
+          const limit = userPlan === 'core' ? 10 : 3
+          const used = Math.min(iaUsed, limit)
+          const pct = Math.round((used / limit) * 100)
+          const atLimit = used >= limit
+          const nearLimit = used >= limit - 1 && !atLimit
+          return (
+            <div className={`rounded-2xl border px-5 py-3.5 ${
+              atLimit
+                ? 'bg-red-950/40 border-red-800/60'
+                : nearLimit
+                  ? 'bg-amber-950/30 border-amber-800/50'
+                  : 'bg-slate-900 border-slate-800'
+            }`}>
+              <div className="flex items-center justify-between mb-2 gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`text-xs font-semibold ${atLimit ? 'text-red-400' : nearLimit ? 'text-amber-400' : 'text-slate-400'}`}>
+                    Respuestas IA este mes
+                  </span>
+                  {atLimit && (
+                    <span className="text-xs font-bold text-red-400 bg-red-900/40 border border-red-800/50 px-2 py-0.5 rounded-full shrink-0">
+                      Límite alcanzado
+                    </span>
+                  )}
+                </div>
+                <span className={`text-xs font-bold tabular-nums shrink-0 ${atLimit ? 'text-red-400' : nearLimit ? 'text-amber-400' : 'text-slate-300'}`}>
+                  {used} / {limit}
+                </span>
+              </div>
+              <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${atLimit ? 'bg-red-500' : nearLimit ? 'bg-amber-400' : 'bg-blue-500'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              {atLimit && (
+                <p className="text-xs text-red-400/80 mt-2">
+                  {userPlan === 'core'
+                    ? 'Sin respuestas IA hasta el próximo mes. Pásate a Pro y genera sin límite.'
+                    : 'Sin respuestas IA hasta el próximo mes. Pásate a Core o Pro para seguir respondiendo.'}
+                  {' '}
+                  <a href="/settings" className="underline font-semibold hover:text-red-300">Ver planes →</a>
+                </p>
+              )}
+            </div>
+          )
+        })()}
 
         {/* ── Two-column layout: list + detail ── */}
         <div className="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-16rem)]">
@@ -576,51 +628,64 @@ export default function DashboardPage() {
       )}
 
       {/* Upsell modal — límite IA alcanzado */}
-      {showUpsell && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setShowUpsell(false)} />
-          <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div>
-              {upsellInfo?.plan === 'core' ? (
-                <>
-                  <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">Límite del mes alcanzado</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Has usado tus <span className="font-semibold text-slate-700 dark:text-slate-300">10 respuestas IA</span> de este mes.
-                    Pásate a Pro y genera respuestas ilimitadas — sin contar, sin esperar.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">Límite del plan Basic alcanzado</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Has usado tus <span className="font-semibold text-slate-700 dark:text-slate-300">3 respuestas IA</span> de este mes.
-                    Pásate a Core (10/mes) o Pro (ilimitadas) y no pierdas ni una reseña sin responder.
-                  </p>
-                </>
-              )}
-            </div>
-            <div className="space-y-2">
-              <a
-                href="/settings"
-                className="block w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"
-              >
-                {upsellInfo?.plan === 'core' ? 'Quiero Pro →' : 'Ver planes →'}
-              </a>
-              <button
-                onClick={() => setShowUpsell(false)}
-                className="block w-full py-2.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-              >
-                Ahora no
-              </button>
+      {showUpsell && (() => {
+        const pendingCount = reviews.filter(r => !r.tonoGenerado && r.estado !== 'ignorada').length
+        const isCore = upsellInfo?.plan === 'core'
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowUpsell(false)} />
+            <div className="relative w-full max-w-sm bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
+              {/* Franja roja top */}
+              <div className="h-1 w-full bg-gradient-to-r from-red-500 via-amber-500 to-red-500" />
+              <div className="p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-900/50 border border-red-800/60 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">
+                      {isCore ? 'Tus 10 respuestas IA se acabaron' : 'Tus 3 respuestas IA se acabaron'}
+                    </h3>
+                    <p className="text-sm text-slate-400 mt-0.5">
+                      {isCore
+                        ? 'El plan Core tiene límite. El plan Pro no.'
+                        : 'El plan Basic tiene límite. Core y Pro no.'}
+                    </p>
+                  </div>
+                </div>
+
+                {pendingCount > 0 && (
+                  <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl px-4 py-3">
+                    <p className="text-sm text-amber-300 font-medium">
+                      Tienes <span className="font-bold">{pendingCount} reseña{pendingCount !== 1 ? 's' : ''} sin responder</span> ahora mismo.
+                    </p>
+                    <p className="text-xs text-amber-500 mt-0.5">
+                      Cada día sin respuesta es un cliente que duda.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2 pt-1">
+                  <a
+                    href="/settings"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors"
+                  >
+                    {isCore ? 'Pasarme a Pro — respuestas ilimitadas →' : 'Ver planes Core y Pro →'}
+                  </a>
+                  <button
+                    onClick={() => setShowUpsell(false)}
+                    className="block w-full py-2 text-xs text-slate-600 hover:text-slate-400 transition-colors"
+                  >
+                    Seguir con el límite
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-4">
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">

@@ -335,25 +335,43 @@ export default function SaludPage() {
 
           {/* Upsell overlay */}
           <div className="absolute inset-x-0 bottom-0 top-32 flex items-center justify-center pointer-events-auto">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-8 text-center max-w-sm mx-4">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+            <div className="bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl max-w-sm mx-4 overflow-hidden">
+              <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600" />
+              <div className="p-7 text-center space-y-4">
+                {/* Dato real: reseñas sin responder */}
+                {(() => {
+                  const pending = reviews.filter(r => !r.tonoGenerado && r.estado !== 'ignorada').length
+                  return pending > 0 ? (
+                    <div className="bg-amber-950/50 border border-amber-800/50 rounded-xl px-4 py-3 text-left">
+                      <p className="text-sm font-bold text-amber-300">
+                        {pending} reseña{pending !== 1 ? 's' : ''} esperando respuesta
+                      </p>
+                      <p className="text-xs text-amber-600 mt-0.5">
+                        Sin métricas no sabes cuáles son más urgentes.
+                      </p>
+                    </div>
+                  ) : null
+                })()}
+
+                <div>
+                  <h2 className="text-lg font-bold text-white mb-2">
+                    {userPlan === 'core' ? 'Entiende tu reputación' : 'Panel de salud completo'}
+                  </h2>
+                  <p className="text-sm text-slate-400">
+                    {userPlan === 'core'
+                      ? 'Sentimiento de clientes, tendencias, keywords SEO y PDFs para el equipo. Todo en Pro.'
+                      : 'Descubre qué dicen realmente tus clientes. Tendencias, sentimiento, keywords y reportes. Solo en Pro.'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setBasicUpsellPlan('pro')}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                >
+                  {userPlan === 'core' ? 'Pasarme a Pro →' : 'Quiero el panel completo →'}
+                </button>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Panel de salud completo</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                {userPlan === 'core'
-                  ? 'Análisis de sentimiento, tendencias, keywords y PDFs descargables. Disponible en el plan Pro.'
-                  : 'Análisis de sentimiento, tendencias mensuales, keywords más mencionadas y reportes PDF. Solo disponible en Pro.'}
-              </p>
-              <button
-                type="button"
-                onClick={() => setBasicUpsellPlan('pro')}
-                className="block w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition-colors text-center cursor-pointer"
-              >
-                {userPlan === 'core' ? 'Pasarme a Pro →' : 'Quiero el panel completo →'}
-              </button>
             </div>
           </div>
         </div>
