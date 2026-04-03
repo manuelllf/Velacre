@@ -456,7 +456,14 @@ frontend/src/
 ## Pendiente / Próximos pasos
 
 ### Bugs / mejoras pequeñas
-- Actualizar precios en codigo
+- Futuro POST GBP: para agencias: marca blanca (B2B2B): eliminamos rastro de velacre y en el onboarding el cliente sube su logo y elige su paleta de colores corporativos para mandar a sus clientes como si el software fuera suyo. Lo veo extremadamente lejano, pero sería un precio Enterprise+ a cuadrar personalmente no? +100 eur/mes.
+- Futuro POST GBP: ADD-ON: Radar de competencia, le dejamos poner 3 locales competidores y cogemos con Outscraper una vez al mes sus reseñas para generar un analisis IA que le enseñaremos a nuestro cliente. Cron mensual actualizando reseñas y analsis? ADD-ON de 14,90 euros sumado a core/pro?
+- Futuro POST GBP: ADD-ON DE PROPUESTA OFENSIVA: QR generado para los locales que sugieran a sus clientes la reseña, gestionado por nosotros (landing nuestra con un selector de estrellas, si es 4-5 le lleva a google y si es 1-2 crea una nota nuestra y no lo lleva a google, para publicarla tiene que buscarse la vida; si elige 3, decidir en qué bando meterla). Esto aumentaría el valor de la suscripción, hay que decidir cuanto, un 30/40% a la suscripción como add on de core/pro o nuevo plan?
+- Futuro POST GBP: Posibilidad de eliminación de reseñas, si es muy mala le dejamos al usuario decidir eliminarla (Velacre cruza las políticas de spam de google y usa a claude para redactar el texto legal exacto y óptimo para que sea eliminada con mayor probabilidad de éxito). Esto aumenta valor, gemini dice 0% a la suscripción pero 50% al engagement. 
+- Futuro POST GBP: Integración WhatsApp/Gmail que un día de la semana (lunes a las 10 am por ejemplo) mande un mensaje o email al usuario con el recuento semanal y un aviso de que la respuesta ya está preparada en caso de que no esté ya respondida (cron que mande el mail y llame a claude para generar la respuesta y guardarla). Esto aumenta valor, gemini dice 0% a la suscripción pero 50% al engagement.
+- Si la reseña es extremadamente negativa o incluye situaciones reales que la IA desconoce (intoxicación, malos tratos, algo demasiado personal) deberíamos no dejar la republicación y sugerir algo tipo "Retenida por seguridad. Requiere tu revisión manual debido a la gravedad." y un email urgente con el aviso al usuario.
+- Futuro: Ahora la métrica de velocidad de respuesta coge el benchmark, cuando tengamos usuarios reales deberíamos coger una métrica propia anónima (el problema que veo es que si todos tardan menos de dos días, no va a notar mejora ninguna porque va a estar en la media entre nuestros clientes).
+- Actualizar precios en código
 - Auditoría fomo cuando haya usuarios reales (para poner casos de éxito, clientes usándolas o conteo de reserva de plazas)
 - Posibilidad de varios locales en modo PRO (hasta 3-5, pensando en cadenas para plan PRO)
 - Darle una vuelta a que un local con 20/30 reseñas pague PRO y uno con más de 100 pague el mismo precio.
@@ -474,7 +481,7 @@ Onboarding Step 2 — Conecta tu local
   │       Introduce el nombre de tu local   │    → Outscraper para sync
   └─────────────────────────────────────────┘
 ```
-
+- Si elige Google Business, estaríamos pidiendo dos veces permiso google, hay que especificar que necesitamos su permiso explícito para justificar esta doble autentificación.
 - Si elige Google Business: encadena el consent de `business.manage` al login OAuth ya hecho, guarda `provider_token` + `provider_refresh_token` en BD, sync nativo sin Outscraper
 - Si elige manual: flujo actual (búsqueda texto + Outscraper)
 - Settings permite reconectar / cambiar de manual a nativo después
