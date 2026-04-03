@@ -469,6 +469,7 @@ frontend/src/
 - Darle una vuelta a que un local con 20/30 reseñas pague PRO y uno con más de 100 pague el mismo precio.
 
 ### Integración Google Business Profile (iteración grande)
+He podido configurar un perfil de empresa con nuestro Velacre donde poner UNA única reseña de prueba (o dos) para probar la integración sin depender de externos. Prioridad número 1 ahora mismo. 
 Rediseño del onboarding step 2 con dos caminos **excluyentes** (nunca los dos, nunca ninguno):
 
 ```
