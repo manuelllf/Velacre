@@ -67,7 +67,7 @@ public class GoogleBusinessService : IGoogleBusinessService
         if (!TryParseState(state, out var negocioId, out var userId, out var returnTo))
         {
             _logger.LogWarning("[GBP] State inválido o expirado");
-            return Fail("state_invalid", returnTo ?? "onboarding");
+            return Fail("state_invalid", returnTo ?? "onboarding", _frontendUrl);
         }
 
         // 2. Intercambiar code por tokens
@@ -75,7 +75,7 @@ public class GoogleBusinessService : IGoogleBusinessService
         if (tokens == null)
         {
             _logger.LogWarning("[GBP] Fallo al intercambiar code por tokens para negocioId={Id}", negocioId);
-            return Fail("token_exchange_failed", returnTo);
+            return Fail("token_exchange_failed", returnTo, _frontendUrl);
         }
 
         // 3. Guardar conexión preliminar (is_active=false) — upsert por negocio_id
@@ -87,7 +87,7 @@ public class GoogleBusinessService : IGoogleBusinessService
         if (locations.Count == 0)
         {
             _logger.LogWarning("[GBP] No se encontraron locales GBP para negocioId={Id}", negocioId);
-            return Fail("no_locations", returnTo);
+            return Fail("no_locations", returnTo, _frontendUrl);
         }
 
         // 5. Auto-selección si solo hay 1 local
@@ -719,9 +719,9 @@ public class GoogleBusinessService : IGoogleBusinessService
         return "es"; // fallback; Claude detectará el idioma real al generar la respuesta
     }
 
-    private static GbpCallbackResult Fail(string error, string returnTo) =>
+    private static GbpCallbackResult Fail(string error, string returnTo, string frontendUrl) =>
         new(Success: false, Error: error, AutoSelected: false, Locations: [],
-            RedirectUrl: $"/{returnTo}?gbp=error&msg={error}");
+            RedirectUrl: $"{frontendUrl}/{returnTo}?gbp=error&msg={error}");
 
     // ─── DTOs internos ────────────────────────────────────────────────────────
 
