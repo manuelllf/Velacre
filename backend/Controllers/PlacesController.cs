@@ -99,8 +99,8 @@ public class PlacesController : ControllerBase
         if (gbpConnection != null)
         {
             _logger.LogInformation("[PlacesController] Sync via GBP API para negocioId={NegocioId}", negocio.Id);
-            var (newCount, updatedCount) = await _gbp.SyncReviewsAsync(negocio.Id, userId);
-            return Ok(new { newReviews = newCount, updatedReviews = updatedCount, source = "gbp" });
+            var (gbpNew, gbpUpdated) = await _gbp.SyncReviewsAsync(negocio.Id, userId);
+            return Ok(new { newReviews = gbpNew, updatedReviews = gbpUpdated, source = "gbp" });
         }
 
         _logger.LogInformation("[PlacesController] Modo sync Outscraper: {Mode} para negocioId={NegocioId}, sinceDate={Since}",
