@@ -79,4 +79,16 @@ public class ReviewEntity : BaseModel
 
     [Column("contexto_respuesta")]
     public string? ContextoRespuesta { get; set; }
+
+    /// <summary>Versión de la respuesta que se publicó en Google (puede ser editada respecto a la generada por IA)</summary>
+    [Column("respuesta_publicada")]
+    public string? RespuestaPublicada { get; set; }
+
+    /// <summary>True si la respuesta fue publicada directamente en Google desde Velacre</summary>
+    [Column("publicada_en_google")]
+    public bool PublicadaEnGoogle { get; set; }
+
+    /// <summary>Timestamp en que se publicó la respuesta en Google</summary>
+    [Column("publicada_fecha")]
+    public DateTimeOffset? PublicadaFecha { get; set; }
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, cancelarSuscripcion, type Negocio } from '@/lib/api'
+import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, cancelarSuscripcion, getGbpStatus, getGbpAuthUrl, getGbpLocations, finalizeGbpConnection, disconnectGbp, type Negocio, type GbpStatus, type GbpLocation } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import WaitlistModal from '@/components/WaitlistModal'
 import { useLanguage } from '@/lib/i18n'
@@ -36,6 +36,18 @@ export default function SettingsPage() {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [cancelling, setCancelling] = useState(false)
 
+  // GBP state
+  const [gbpStatus,           setGbpStatus]           = useState<GbpStatus | null>(null)
+  const [showDisconnectModal,  setShowDisconnectModal]  = useState(false)
+  const [disconnecting,        setDisconnecting]        = useState(false)
+  const [connectingGbp,        setConnectingGbp]        = useState(false)
+  const [gbpMsg,               setGbpMsg]               = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  // GBP select-location flow (when coming back from OAuth with multiple locations)
+  const [gbpSelectLocations,   setGbpSelectLocations]   = useState<GbpLocation[]>([])
+  const [gbpSelectedLoc,       setGbpSelectedLoc]       = useState<GbpLocation | null>(null)
+  const [showLocationModal,    setShowLocationModal]    = useState(false)
+  const [finalizingLocation,   setFinalizingLocation]   = useState(false)
+
   const [nombre, setNombre] = useState('')
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [form, setForm] = useState({
@@ -50,7 +62,7 @@ export default function SettingsPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.replace('/auth/login'); return }
       try {
-        const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
+        const [u, n, gbp] = await Promise.all([getMyUsuario(), getMyNegocio(), getGbpStatus().catch(() => null)])
         setNombre(u.nombre ?? '')
         setPlan(u.plan ?? 'basic')
         setLsStatus(u.lsStatus ?? null)
@@ -64,6 +76,25 @@ export default function SettingsPage() {
           })
           setPalabrasClave(n.palabrasClave ?? [])
         }
+        if (gbp) setGbpStatus(gbp)
+
+        // Handle GBP OAuth callback params
+        const params = new URLSearchParams(window.location.search)
+        const gbpParam = params.get('gbp')
+        if (gbpParam === 'connected') {
+          const fresh = await getGbpStatus().catch(() => null)
+          if (fresh) setGbpStatus(fresh)
+          setGbpMsg({ type: 'ok', text: '¡Google Business conectado correctamente!' })
+          window.history.replaceState({}, '', '/settings')
+        } else if (gbpParam === 'select') {
+          const locs = await getGbpLocations().catch(() => [])
+          if (locs.length > 0) { setGbpSelectLocations(locs); setShowLocationModal(true) }
+          else setGbpMsg({ type: 'err', text: 'No se pudieron cargar los locales. Intenta de nuevo.' })
+          window.history.replaceState({}, '', '/settings')
+        } else if (gbpParam === 'error') {
+          setGbpMsg({ type: 'err', text: 'No se pudo conectar con Google. Intenta de nuevo.' })
+          window.history.replaceState({}, '', '/settings')
+        }
       } catch {
         setError('No se pudieron cargar los datos.')
       } finally {
@@ -73,6 +104,51 @@ export default function SettingsPage() {
     load()
   }, [router])
 
+
+  // ── GBP handlers ─────────────────────────────────────────────────────────
+  async function handleConnectGbp() {
+    if (!negocio) return
+    setConnectingGbp(true)
+    setGbpMsg(null)
+    try {
+      const url = await getGbpAuthUrl(negocio.id, 'settings')
+      window.location.href = url
+    } catch {
+      setGbpMsg({ type: 'err', text: 'No se pudo iniciar la conexión con Google. Intenta de nuevo.' })
+      setConnectingGbp(false)
+    }
+  }
+
+  async function handleDisconnectGbp() {
+    setDisconnecting(true)
+    try {
+      await disconnectGbp()
+      setGbpStatus({ connected: false })
+      setShowDisconnectModal(false)
+      setGbpMsg({ type: 'ok', text: 'Google Business desconectado. Las reseñas han sido eliminadas.' })
+    } catch {
+      setGbpMsg({ type: 'err', text: 'Error al desconectar. Intenta de nuevo.' })
+    } finally {
+      setDisconnecting(false)
+    }
+  }
+
+  async function handleFinalizeLocation() {
+    if (!gbpSelectedLoc) return
+    setFinalizingLocation(true)
+    try {
+      await finalizeGbpConnection(gbpSelectedLoc.locationName, gbpSelectedLoc.displayName)
+      const fresh = await getGbpStatus().catch(() => null)
+      if (fresh) setGbpStatus(fresh)
+      setShowLocationModal(false)
+      setGbpMsg({ type: 'ok', text: `¡Google Business conectado: ${gbpSelectedLoc.displayName}!` })
+    } catch {
+      setGbpMsg({ type: 'err', text: 'Error al finalizar la conexión. Intenta de nuevo.' })
+    } finally {
+      setFinalizingLocation(false)
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -318,24 +394,60 @@ export default function SettingsPage() {
                 <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
                   <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.googleSection}</h2>
                 </div>
-                <div className="p-5">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{s.googleDesc}</p>
-                  {negocio?.placeId ? (
-                    <div className="flex items-center gap-2.5 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-                      <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <div>
-                        <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">{negocio.nombre}</p>
-                        <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">{s.googleConnected}</p>
+                <div className="p-5 space-y-4">
+                  {gbpMsg && (
+                    <div className={`px-3 py-2.5 rounded-xl text-sm border ${gbpMsg.type === 'ok' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'}`}>
+                      {gbpMsg.text}
+                    </div>
+                  )}
+                  {gbpStatus?.connected ? (
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-2.5 px-3 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                        <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <div className="min-w-0">
+                          <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium truncate">{gbpStatus.displayName ?? 'Local conectado'}</p>
+                          <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">Conectado · Reseñas nativas · Publicación directa</p>
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowDisconnectModal(true)}
+                        className="w-full px-4 py-2 text-xs font-semibold border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        Desconectar Google Business
+                      </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2.5 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-                      <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-sm text-amber-700 dark:text-amber-300">{s.googleNotConnected}</span>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2.5 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                        <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-sm text-amber-700 dark:text-amber-300">No conectado — usas importación vía Outscraper</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleConnectGbp}
+                        disabled={connectingGbp || !negocio}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 text-slate-900 dark:text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {connectingGbp ? (
+                          <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
+                              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                          </div>
+                        )}
+                        {connectingGbp ? 'Conectando...' : 'Conectar Google Business'}
+                      </button>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 text-center">Reemplaza Outscraper. Activa la publicación directa en Google.</p>
                     </div>
                   )}
                 </div>
@@ -523,6 +635,57 @@ export default function SettingsPage() {
       {/* Waitlist modal */}
       {waitlistPlan && (
         <WaitlistModal plan={waitlistPlan} onClose={() => setWaitlistPlan(null)} />
+      )}
+
+      {/* GBP Disconnect modal */}
+      {showDisconnectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => { if (!disconnecting) setShowDisconnectModal(false) }} />
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">Desconectar Google Business</h3>
+            <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+              <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">⚠️ Se borrarán todas tus reseñas importadas</p>
+              <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-1">Si quieres volver a usarlas, tendrás que reconectar Google o hacer un nuevo sync manual con Outscraper.</p>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400">¿Estás seguro de que quieres desconectar tu cuenta de Google Business?</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setShowDisconnectModal(false)} disabled={disconnecting}
+                className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
+                Cancelar
+              </button>
+              <button type="button" onClick={handleDisconnectGbp} disabled={disconnecting}
+                className="flex-1 py-2.5 text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+                {disconnecting && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {disconnecting ? 'Desconectando...' : 'Sí, desconectar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GBP Location selector modal */}
+      {showLocationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">Selecciona tu local</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Encontramos varios locales en tu cuenta de Google</p>
+            <div className="space-y-2">
+              {gbpSelectLocations.map(loc => (
+                <button key={loc.locationName} type="button" onClick={() => setGbpSelectedLoc(loc)}
+                  className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${gbpSelectedLoc?.locationName === loc.locationName ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`}>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{loc.displayName}</p>
+                  <p className="text-xs text-slate-400 mt-0.5 truncate">{loc.locationName}</p>
+                </button>
+              ))}
+            </div>
+            <button type="button" onClick={handleFinalizeLocation} disabled={!gbpSelectedLoc || finalizingLocation}
+              className="w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              {finalizingLocation && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+              {finalizingLocation ? 'Conectando...' : 'Conectar este local'}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Cancel subscription modal */}

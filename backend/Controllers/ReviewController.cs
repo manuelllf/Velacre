@@ -13,14 +13,16 @@ namespace backend.Controllers;
 public class ReviewController : ControllerBase
 {
     private readonly IReviewAiService _aiService;
+    private readonly IGoogleBusinessService _gbp;
     private readonly Supabase.Client _supabase;
     private readonly ILogger<ReviewController> _logger;
 
-    public ReviewController(IReviewAiService aiService, Supabase.Client supabase, ILogger<ReviewController> logger)
+    public ReviewController(IReviewAiService aiService, IGoogleBusinessService gbp, Supabase.Client supabase, ILogger<ReviewController> logger)
     {
         _aiService = aiService;
-        _supabase = supabase;
-        _logger = logger;
+        _gbp       = gbp;
+        _supabase  = supabase;
+        _logger    = logger;
     }
 
     [HttpPost("generate")]
@@ -414,10 +416,13 @@ public class ReviewController : ControllerBase
                 respuestaDirecto = r.RespuestaDirecto,
                 tonoGenerado = r.TonoGenerado,
                 keywordsUsadas = r.KeywordsUsadas ?? Array.Empty<string>(),
-                actualizadoFecha = r.ActualizadoFecha,
-                respondidaFecha = r.RespondidaFecha,
-                contextoCliente = r.ContextoCliente,
-                contextoRespuesta = r.ContextoRespuesta,
+                actualizadoFecha   = r.ActualizadoFecha,
+                respondidaFecha    = r.RespondidaFecha,
+                contextoCliente    = r.ContextoCliente,
+                contextoRespuesta  = r.ContextoRespuesta,
+                respuestaPublicada = r.RespuestaPublicada,
+                publicadaEnGoogle  = r.PublicadaEnGoogle,
+                publicadaFecha     = r.PublicadaFecha,
             })
             .ToList();
 
@@ -658,6 +663,56 @@ public class ReviewController : ControllerBase
         }
     }
 
+    // ─── POST /api/review/{id}/publish-google ────────────────────────────────
+
+    /// <summary>
+    /// Publica la respuesta editada directamente en Google Business Profile.
+    /// Solo Core/Pro. La reseña debe tener google_review_id y el negocio debe tener GBP conectado.
+    /// </summary>
+    [HttpPost("{id}/publish-google")]
+    public async Task<IActionResult> PublishToGoogle(Guid id, [FromBody] PublishGoogleRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.RespuestaEditada))
+            return BadRequest("La respuesta no puede estar vacía.");
+
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        _logger.LogInformation("[ReviewController] POST /{ReviewId}/publish-google — userId={UserId}", id, userId);
+
+        // Verificar plan Core/Pro
+        var usuarioRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
+        var usuario    = usuarioRes.Models.FirstOrDefault();
+        if (usuario == null) return NotFound("Usuario no encontrado");
+
+        var now = DateTimeOffset.UtcNow;
+        var esProEfectivo = usuario.Plan == "pro" ||
+            (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > now));
+        var puedePublicar = esProEfectivo || usuario.Plan == "core";
+
+        if (!puedePublicar)
+        {
+            _logger.LogWarning("[ReviewController] Usuario {UserId} plan={Plan} intentó publicar en Google (requiere Core/Pro)", userId, usuario.Plan);
+            return StatusCode(403, new { error = "plan_required", requiredPlan = "core" });
+        }
+
+        var (ok, error) = await _gbp.PublishReplyAsync(id, userId, request.RespuestaEditada);
+
+        if (!ok)
+        {
+            _logger.LogWarning("[ReviewController] Fallo al publicar en Google reviewId={Id}: {Error}", id, error);
+            return error switch
+            {
+                "review_not_found"    => NotFound("Reseña no encontrada."),
+                "no_google_review_id" => BadRequest("Esta reseña no proviene de Google y no puede publicarse."),
+                "gbp_not_connected"   => StatusCode(400, new { error = "gbp_not_connected" }),
+                "token_refresh_failed"=> StatusCode(502, "No se pudo renovar la conexión con Google. Reconecta tu cuenta en Configuración."),
+                _                     => StatusCode(502, $"Error de Google API: {error}")
+            };
+        }
+
+        _logger.LogInformation("[ReviewController] Respuesta publicada en Google para reviewId={Id}", id);
+        return Ok(new { ok = true, reviewId = id });
+    }
+
     // Mantenemos el endpoint viejo para no romper llamadas existentes
     [HttpPost("summary")]
     public Task<IActionResult> GetSummary() => GenerateAnalysis();
@@ -690,3 +745,4 @@ public class ReviewController : ControllerBase
 }
 
 public record SetEstadoRequest(string Estado);
+public record PublishGoogleRequest(string RespuestaEditada);

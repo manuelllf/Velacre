@@ -62,6 +62,21 @@ export interface PendingReview {
   contextoCliente?: string
   contextoRespuesta?: string
   respondidaFecha?: string
+  respuestaPublicada?: string
+  publicadaEnGoogle?: boolean
+  publicadaFecha?: string
+}
+
+export interface GbpStatus {
+  connected: boolean
+  locationName?: string
+  displayName?: string
+  connectedAt?: string
+}
+
+export interface GbpLocation {
+  locationName: string
+  displayName: string
 }
 
 export async function notifyWaitlist(plan: 'core' | 'pro', notas?: string): Promise<void> {
@@ -461,6 +476,63 @@ export async function eliminarCuenta(): Promise<void> {
     headers: await authHeaders(),
   })
   if (!res.ok) throw new Error(await res.text())
+}
+
+// ─── Google Business Profile ──────────────────────────────────────────────────
+
+export async function getGbpAuthUrl(negocioId: string, returnTo: 'onboarding' | 'settings' = 'onboarding'): Promise<string> {
+  const params = new URLSearchParams({ negocioId, returnTo })
+  const res = await fetch(`${API_URL}/api/google/auth-url?${params}`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new ApiError(res.status, await res.text())
+  const data = await res.json()
+  return data.url as string
+}
+
+export async function getGbpStatus(): Promise<GbpStatus> {
+  const res = await fetch(`${API_URL}/api/google/status`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new ApiError(res.status, await res.text())
+  return res.json()
+}
+
+export async function getGbpLocations(): Promise<GbpLocation[]> {
+  const res = await fetch(`${API_URL}/api/google/locations`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new ApiError(res.status, await res.text())
+  return res.json()
+}
+
+export async function finalizeGbpConnection(locationName: string, displayName: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/google/finalize`, {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ locationName, displayName }),
+  })
+  if (!res.ok) throw new ApiError(res.status, await res.text())
+}
+
+export async function disconnectGbp(): Promise<void> {
+  const res = await fetch(`${API_URL}/api/google/disconnect`, {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new ApiError(res.status, await res.text())
+}
+
+export async function publishToGoogle(reviewId: string, respuestaEditada: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/review/${reviewId}/publish-google`, {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ respuestaEditada }),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new ApiError(res.status, (data as Record<string, unknown>).error as string ?? await res.text(), data as Record<string, unknown>)
+  }
 }
 
 export async function createUsuario(data: {

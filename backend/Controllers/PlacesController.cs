@@ -12,15 +12,22 @@ public class PlacesController : ControllerBase
 {
     private readonly IGooglePlacesService _placesService;
     private readonly IOutscraperService _outscraper;
+    private readonly IGoogleBusinessService _gbp;
     private readonly Supabase.Client _supabase;
     private readonly ILogger<PlacesController> _logger;
 
-    public PlacesController(IGooglePlacesService placesService, IOutscraperService outscraper, Supabase.Client supabase, ILogger<PlacesController> logger)
+    public PlacesController(
+        IGooglePlacesService placesService,
+        IOutscraperService outscraper,
+        IGoogleBusinessService gbp,
+        Supabase.Client supabase,
+        ILogger<PlacesController> logger)
     {
         _placesService = placesService;
-        _outscraper = outscraper;
-        _supabase = supabase;
-        _logger = logger;
+        _outscraper    = outscraper;
+        _gbp           = gbp;
+        _supabase      = supabase;
+        _logger        = logger;
     }
 
     [HttpGet("search")]
@@ -86,7 +93,17 @@ public class PlacesController : ControllerBase
         }
 
         bool isInitialLoad = sinceDate == null;
-        _logger.LogInformation("[PlacesController] Modo sync: {Mode} para negocioId={NegocioId}, sinceDate={Since}",
+
+        // ── Routing: si el negocio tiene GBP activo, usar GBP API; si no, Outscraper ──
+        var gbpConnection = await _gbp.GetConnectionAsync(negocio.Id);
+        if (gbpConnection != null)
+        {
+            _logger.LogInformation("[PlacesController] Sync via GBP API para negocioId={NegocioId}", negocio.Id);
+            var (newCount, updatedCount) = await _gbp.SyncReviewsAsync(negocio.Id, userId);
+            return Ok(new { newReviews = newCount, updatedReviews = updatedCount, source = "gbp" });
+        }
+
+        _logger.LogInformation("[PlacesController] Modo sync Outscraper: {Mode} para negocioId={NegocioId}, sinceDate={Since}",
             isInitialLoad ? "INICIAL" : "INCREMENTAL", negocio.Id, sinceDate?.ToString("yyyy-MM-dd") ?? "—");
 
         var reviews = await _outscraper.GetReviewsAsync(negocio.PlaceId, sinceDate);
