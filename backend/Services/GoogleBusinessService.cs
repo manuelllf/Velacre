@@ -436,40 +436,89 @@ public class GoogleBusinessService : IGoogleBusinessService
         accountsReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         var accountsRes = await _http.SendAsync(accountsReq);
+        var accountsBody = await accountsRes.Content.ReadAsStringAsync();
         if (!accountsRes.IsSuccessStatusCode)
         {
-            _logger.LogError("[GBP] Error listando cuentas HTTP={Status}", (int)accountsRes.StatusCode);
+            _logger.LogError("[GBP] Error listando cuentas HTTP={Status} Body={Body}", (int)accountsRes.StatusCode, accountsBody);
             return locations;
         }
 
-        using var accountsDoc = JsonDocument.Parse(await accountsRes.Content.ReadAsStringAsync());
-        if (!accountsDoc.RootElement.TryGetProperty("accounts", out var accountsArr))
-            return locations;
+        _logger.LogInformation("[GBP] Accounts response: {Body}", accountsBody);
 
-        // 2. Por cada cuenta, listar sus locales
+        using var accountsDoc = JsonDocument.Parse(accountsBody);
+        if (!accountsDoc.RootElement.TryGetProperty("accounts", out var accountsArr))
+        {
+            _logger.LogWarning("[GBP] Respuesta de cuentas sin campo 'accounts': {Body}", accountsBody);
+            return locations;
+        }
+
+        // 2. Por cada cuenta, listar sus locales (Business Information API + fallback legacy v4)
         foreach (var account in accountsArr.EnumerateArray())
         {
             var accountName = account.GetProperty("name").GetString();
             if (string.IsNullOrEmpty(accountName)) continue;
 
-            var locUrl = $"{LocationsBaseUrl}/{accountName}/locations?readMask=name,title";
-            var locReq = new HttpRequestMessage(HttpMethod.Get, locUrl);
-            locReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var accountType = account.TryGetProperty("type", out var tp) ? tp.GetString() : "UNKNOWN";
+            _logger.LogInformation("[GBP] Procesando cuenta {Account} tipo={Type}", accountName, accountType);
 
-            var locRes = await _http.SendAsync(locReq);
-            if (!locRes.IsSuccessStatusCode) continue;
+            // Intentar primero con la Business Information API (v1)
+            var locUrlV1 = $"{LocationsBaseUrl}/{accountName}/locations?readMask=name,title&pageSize=100";
+            var locReqV1 = new HttpRequestMessage(HttpMethod.Get, locUrlV1);
+            locReqV1.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            using var locDoc = JsonDocument.Parse(await locRes.Content.ReadAsStringAsync());
-            if (!locDoc.RootElement.TryGetProperty("locations", out var locsArr)) continue;
+            var locResV1  = await _http.SendAsync(locReqV1);
+            var locBodyV1 = await locResV1.Content.ReadAsStringAsync();
+            _logger.LogInformation("[GBP] Locations v1 HTTP={Status} Body={Body}", (int)locResV1.StatusCode, locBodyV1);
 
-            foreach (var loc in locsArr.EnumerateArray())
+            if (locResV1.IsSuccessStatusCode)
             {
-                var locName    = loc.GetProperty("name").GetString() ?? "";
-                var locTitle   = loc.TryGetProperty("title", out var t) ? t.GetString() ?? locName : locName;
-                locations.Add(new GbpLocation(locName, locTitle, accountName));
+                using var locDoc = JsonDocument.Parse(locBodyV1);
+                if (locDoc.RootElement.TryGetProperty("locations", out var locsArr))
+                {
+                    foreach (var loc in locsArr.EnumerateArray())
+                    {
+                        var locName  = loc.TryGetProperty("name",  out var ln) ? ln.GetString() ?? "" : "";
+                        var locTitle = loc.TryGetProperty("title", out var lt) ? lt.GetString() ?? locName : locName;
+                        if (!string.IsNullOrEmpty(locName))
+                            locations.Add(new GbpLocation(locName, locTitle, accountName));
+                    }
+                    continue; // OK con v1, pasar a la siguiente cuenta
+                }
+            }
+
+            // Fallback: legacy My Business API v4
+            _logger.LogWarning("[GBP] Fallback a legacy v4 para cuenta {Account}", accountName);
+            var locUrlV4 = $"https://mybusiness.googleapis.com/v4/{accountName}/locations?pageSize=100";
+            var locReqV4 = new HttpRequestMessage(HttpMethod.Get, locUrlV4);
+            locReqV4.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var locResV4  = await _http.SendAsync(locReqV4);
+            var locBodyV4 = await locResV4.Content.ReadAsStringAsync();
+            _logger.LogInformation("[GBP] Locations v4 HTTP={Status} Body={Body}", (int)locResV4.StatusCode, locBodyV4);
+
+            if (!locResV4.IsSuccessStatusCode) continue;
+
+            using var locDocV4 = JsonDocument.Parse(locBodyV4);
+            if (!locDocV4.RootElement.TryGetProperty("locations", out var locsArrV4)) continue;
+
+            foreach (var loc in locsArrV4.EnumerateArray())
+            {
+                // v4 usa "name" y "locationName" (objeto anidado)
+                var locName = loc.TryGetProperty("name", out var ln) ? ln.GetString() ?? "" : "";
+                string locTitle;
+                if (loc.TryGetProperty("locationName", out var ltn))
+                    locTitle = ltn.GetString() ?? locName;
+                else if (loc.TryGetProperty("title", out var lt))
+                    locTitle = lt.GetString() ?? locName;
+                else
+                    locTitle = locName;
+
+                if (!string.IsNullOrEmpty(locName))
+                    locations.Add(new GbpLocation(locName, locTitle, accountName));
             }
         }
 
+        _logger.LogInformation("[GBP] Total locales encontrados: {Count}", locations.Count);
         return locations;
     }
 
