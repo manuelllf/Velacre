@@ -58,7 +58,6 @@ export default function DashboardPage() {
   const [reviews, setReviews] = useState<PendingReview[]>([])
   const [loadingReviews, setLoadingReviews] = useState(false)
   const [estadoFilter, setEstadoFilter] = useState<EstadoFilter>('pendiente')
-  const [dateFilter, setDateFilter] = useState<'6m' | '12m' | 'all'>('6m')
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set())
@@ -239,22 +238,15 @@ export default function DashboardPage() {
     )
   }
 
-  const dateCutoff = dateFilter === 'all' ? null
-    : new Date(Date.now() - (dateFilter === '6m' ? 6 : 12) * 30 * 24 * 60 * 60 * 1000)
-
-  const dateFiltered = dateCutoff
-    ? reviews.filter(r => !r.reviewDate || new Date(r.reviewDate) >= dateCutoff)
-    : reviews
-
   const filtered = estadoFilter === 'todas'
-    ? dateFiltered
-    : dateFiltered.filter(r => (r.estado ?? 'pendiente') === estadoFilter)
+    ? reviews
+    : reviews.filter(r => (r.estado ?? 'pendiente') === estadoFilter)
 
   const counts: Record<EstadoFilter, number> = {
-    pendiente:  dateFiltered.filter(r => (r.estado ?? 'pendiente') === 'pendiente').length,
-    respondida: dateFiltered.filter(r => r.estado === 'respondida').length,
-    ignorada:   dateFiltered.filter(r => r.estado === 'ignorada').length,
-    todas:      dateFiltered.length,
+    pendiente:  reviews.filter(r => (r.estado ?? 'pendiente') === 'pendiente').length,
+    respondida: reviews.filter(r => r.estado === 'respondida').length,
+    ignorada:   reviews.filter(r => r.estado === 'ignorada').length,
+    todas:      reviews.length,
   }
 
   const selectedReview = selectedId ? filtered.find(r => r.id === selectedId) ?? null : null
@@ -403,23 +395,6 @@ export default function DashboardPage() {
 
           {/* ── LEFT: filter tabs + scrollable list + manual ── */}
           <div className={`w-full lg:w-80 xl:w-96 shrink-0 flex-col lg:h-full gap-3 ${selectedId ? 'hidden lg:flex' : 'flex'}`}>
-
-            {/* Date filter */}
-            <div className="flex items-center gap-1 shrink-0 bg-slate-100 dark:bg-slate-800/60 rounded-lg p-1 self-start">
-              {(['6m', '12m', 'all'] as const).map(f => (
-                <button
-                  key={f}
-                  onClick={() => { setDateFilter(f); setSelectedId(null) }}
-                  className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                    dateFilter === f
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                  }`}
-                >
-                  {f === '6m' ? '6 meses' : f === '12m' ? '12 meses' : 'Todo'}
-                </button>
-              ))}
-            </div>
 
             {/* Filter tabs — 4 columnas iguales, sin scroll */}
             <div className="grid grid-cols-4 gap-1 shrink-0">
