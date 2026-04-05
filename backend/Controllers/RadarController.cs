@@ -225,12 +225,13 @@ public class RadarController : ControllerBase
         return (negocio, null);
     }
 
-    private static object? ParseAnalisisJson(string json)
+    private static object? ParseAnalisisJson(string? json)
     {
+        if (string.IsNullOrWhiteSpace(json)) return null;
         try
         {
             using var doc = JsonDocument.Parse(json);
-            return JsonSerializer.Deserialize<object>(json);
+            return doc.RootElement.Clone();   // Clone sobrevive al Dispose del doc
         }
         catch { return null; }
     }
