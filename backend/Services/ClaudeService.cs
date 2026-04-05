@@ -204,7 +204,7 @@ public class ClaudeService : IReviewAiService
         {
             Messages = [new Message(RoleType.User, sb.ToString())],
             Model    = _model,
-            MaxTokens = 700,
+            MaxTokens = 1800,
             Temperature = 0.5m,
             System = [new SystemMessage(systemPrompt)]
         };

@@ -586,7 +586,6 @@ export interface RadarAnalisisResult {
     oportunidades: string[]
     accion: string
   } | null
-  resultadoRaw?: string  // DEBUG
 }
 
 export interface RadarData {
