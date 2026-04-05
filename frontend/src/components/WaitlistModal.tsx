@@ -1,52 +1,47 @@
 'use client'
 
 import { useState } from 'react'
-import { notifyWaitlist } from '@/lib/api'
+import { getLemonCheckoutUrl } from '@/lib/api'
 
 interface Props {
   plan: 'core' | 'pro'
   onClose: () => void
 }
 
-const PLAN_LABELS: Record<'core' | 'pro', { name: string; price: string; desc: string }> = {
+const PLAN_INFO: Record<'core' | 'pro', { name: string; price: string; desc: string }> = {
   core: {
     name: 'Core',
-    price: '19,90 €/mes',
-    desc: '10 respuestas IA al mes, panel de salud completo y análisis de tendencias.',
+    price: '19 €/mes',
+    desc: '18 respuestas IA al mes, panel de salud completo y gestión de reseñas.',
   },
   pro: {
     name: 'Pro',
-    price: '29,90 €/mes',
-    desc: 'Respuestas IA ilimitadas, acceso completo a todas las funciones sin restricciones.',
+    price: '45 €/mes',
+    desc: 'Respuestas IA ilimitadas, Radar de Competencia y acceso completo sin restricciones.',
   },
 }
 
 export default function WaitlistModal({ plan, onClose }: Props) {
-  const [notas, setNotas] = useState('')
-  const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const info = PLAN_INFO[plan]
 
-  const info = PLAN_LABELS[plan]
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSending(true)
+  async function handleCheckout() {
+    setLoading(true)
     setError('')
     try {
-      await notifyWaitlist(plan, notas)
-      setSent(true)
+      const url = await getLemonCheckoutUrl(plan, 'monthly')
+      window.location.href = url
     } catch {
-      setError('No se pudo enviar. Inténtalo de nuevo o escríbenos a info@velacre.com')
-    } finally {
-      setSending(false)
+      setError('No se pudo iniciar el pago. Inténtalo de nuevo.')
+      setLoading(false)
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
 
         {/* Header */}
         <div className="px-6 pt-6 pb-5 border-b border-slate-100 dark:border-slate-800">
@@ -60,14 +55,11 @@ export default function WaitlistModal({ plan, onClose }: Props) {
                 }`}>{info.name}</span>
                 <span className="text-sm font-semibold text-slate-900 dark:text-white">{info.price}</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Reserva tu acceso anticipado</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Pásate a {info.name}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{info.desc}</p>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors mt-0.5"
-            >
+            <button type="button" onClick={onClose}
+              className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors mt-0.5">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -76,74 +68,23 @@ export default function WaitlistModal({ plan, onClose }: Props) {
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5">
-          {sent ? (
-            <div className="text-center py-4 space-y-3">
-              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">Plaza reservada</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  Eres de los primeros. Te avisamos en cuanto activemos el plan {info.name}.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-                <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-                  Estamos activando el plan {info.name} para los primeros usuarios. Reserva tu plaza ahora y accede con precio de lanzamiento.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Notas <span className="text-slate-400 font-normal">(opcional)</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={notas}
-                  onChange={e => setNotas(e.target.value)}
-                  placeholder="¿Qué funcionalidad te interesa más? ¿Tienes alguna pregunta?"
-                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-slate-400 dark:placeholder-slate-500"
-                />
-              </div>
-
-              {error && (
-                <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800">
-                  {error}
-                </p>
-              )}
-
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={sending}
-                  className="flex-1 py-2.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {sending && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  {sending ? 'Enviando...' : 'Apuntarme'}
-                </button>
-              </div>
-            </form>
+        <div className="px-6 py-5 space-y-4">
+          {error && (
+            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800">
+              {error}
+            </p>
           )}
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              Ahora no
+            </button>
+            <button type="button" onClick={handleCheckout} disabled={loading}
+              className="flex-1 py-2.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+              {loading && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+              {loading ? 'Redirigiendo...' : `Activar ${info.name} →`}
+            </button>
+          </div>
         </div>
       </div>
     </div>

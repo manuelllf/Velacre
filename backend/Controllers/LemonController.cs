@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Models.Entities;
+using backend.Services;
 
 namespace backend.Controllers;
 
@@ -14,15 +15,18 @@ public class LemonController : ControllerBase
     private readonly Supabase.Client _supabase;
     private readonly ILogger<LemonController> _logger;
     private readonly IHttpClientFactory _httpFactory;
+    private readonly EmailService _email;
 
     public LemonController(
         Supabase.Client supabase,
         ILogger<LemonController> logger,
-        IHttpClientFactory httpFactory)
+        IHttpClientFactory httpFactory,
+        EmailService email)
     {
-        _supabase   = supabase;
-        _logger     = logger;
+        _supabase    = supabase;
+        _logger      = logger;
         _httpFactory = httpFactory;
+        _email       = email;
     }
 
     // ─── GET /api/lemon/checkout ─────────────────────────────────────────────
@@ -229,12 +233,23 @@ public class LemonController : ControllerBase
         var renewsAt       = ParseDate(attrs, "renews_at");
         var endsAt         = ParseDate(attrs, "ends_at");
 
+        // Fetch user for email notifications (best-effort)
+        var userRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userGuid).Limit(1).Get();
+        var usuario = userRes.Models.FirstOrDefault();
+        var userEmail  = usuario?.Email  ?? "";
+        var userNombre = usuario?.Nombre ?? "";
+
         switch (eventName)
         {
             case "subscription_created":
             case "subscription_resumed":
-                await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
+            {
+                var plan = DetectPlan(dataEl);
+                await SetPlan(userGuid, plan, portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
+                if (eventName == "subscription_created" && !string.IsNullOrEmpty(userEmail))
+                    _ = _email.SendSubscriptionConfirmedAsync(userEmail, userNombre, plan);
                 break;
+            }
 
             case "subscription_updated":
                 // "cancelled" = usuario canceló pero sigue en período pagado → mantener plan
@@ -248,11 +263,15 @@ public class LemonController : ControllerBase
             case "subscription_cancelled":
                 // Keep access until period ends (endsAt), plan downgrade via subscription_expired
                 await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
+                if (!string.IsNullOrEmpty(userEmail))
+                    _ = _email.SendSubscriptionCancelledAsync(userEmail, userNombre, DetectPlan(dataEl), endsAt);
                 break;
 
             case "subscription_expired":
             case "subscription_paused":
                 await SetPlan(userGuid, "basic", null, null, lsStatus, null, null);
+                if (eventName == "subscription_expired" && !string.IsNullOrEmpty(userEmail))
+                    _ = _email.SendSubscriptionExpiredAsync(userEmail, userNombre);
                 break;
 
             default:
