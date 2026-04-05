@@ -15,15 +15,13 @@ public class ReviewController : ControllerBase
     private readonly IReviewAiService _aiService;
     private readonly IGoogleBusinessService _gbp;
     private readonly Supabase.Client _supabase;
-    private readonly EmailService _email;
     private readonly ILogger<ReviewController> _logger;
 
-    public ReviewController(IReviewAiService aiService, IGoogleBusinessService gbp, Supabase.Client supabase, EmailService email, ILogger<ReviewController> logger)
+    public ReviewController(IReviewAiService aiService, IGoogleBusinessService gbp, Supabase.Client supabase, ILogger<ReviewController> logger)
     {
         _aiService = aiService;
         _gbp       = gbp;
         _supabase  = supabase;
-        _email     = email;
         _logger    = logger;
     }
 
@@ -351,11 +349,6 @@ public class ReviewController : ControllerBase
                     await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
                         .Set(u => u.RespuestasIaMes, Math.Max(0, usuario.RespuestasIaMes))
                         .Update();
-
-                // Email urgente al usuario
-                if (!string.IsNullOrEmpty(usuario?.Email))
-                    _ = Task.Run(() => _email.SendRetainedReviewAlertAsync(
-                        usuario.Email, negocio.Nombre, review.ClienteReview, motivoRetencion ?? ""));
 
                 return Ok(new { retenida = true, motivoRetencion, response = (string?)null });
             }
