@@ -293,7 +293,6 @@ Registro (Google OAuth o email)
     Step 2: buscar Google Place (manual, Outscraper) — GBP deshabilitado (Próximamente)
     Step 3: sync inicial (60 reseñas)
   ↓ /dashboard
-    - Filtro de fecha: 6m (default) / 12m / todo
     - Ver reseñas (últimas 10 si basic, 60 si core/pro)
     - Badge ⚠ en reseñas retenidas por seguridad
     - Generar respuesta IA por reseña (contador atómico)
@@ -495,8 +494,8 @@ backend/
 
 frontend/src/
   app/
-    dashboard/page.tsx      — panel reseñas (date filter 6m/12m/all, badge retenida,
-                              botón "Responder en Google" copy-paste, GBP deshabilitado)
+    dashboard/page.tsx      — panel reseñas (badge retenida, botón "Responder en Google"
+                              copy-paste, GBP deshabilitado)
     dashboard/salud/page.tsx — analytics + Radar de Competencia (Pro, loading animado)
     settings/page.tsx       — config, planes, keywords SEO, GBP deshabilitado Próximamente
     onboarding/page.tsx     — setup inicial, GBP deshabilitado Próximamente
@@ -546,11 +545,23 @@ frontend/src/
 ### Activar pagos
 - Alta como autónomo → activar variantes Lemon Squeezy → cambiar "lista de espera" a checkout real.
 
-### Ideas futuras (post-GBP)
+### Backlog inmediato (antes o junto con GBP)
+
+**Eliminación de reseñas (Pro):**
+- Feature de alto valor percibido, coste mínimo de desarrollo.
+- Flujo: usuario selecciona reseña → marca el motivo (spam, irrelevante, falsa, ofensiva...) → Claude genera el texto de reclamación exacto según políticas de Google → usuario copia y pega en el formulario oficial de Google.
+- Velacre no elimina nada, Google decide. El valor es saber exactamente qué decir y dónde.
+- Añadir a panel de reseña como botón "Solicitar eliminación" (Pro).
+
+**Precios por ubicación (multi-local):**
+- Si un negocio tiene 2+ locales, paga proporcionalmente (le ahorramos el doble de tiempo).
+- Modelo: precio base primer local (ej. €45/mes Pro) + add-on por local adicional (ej. €20/mes).
+- Implementación: quantity en Stripe/LS o add-on de "sede adicional".
+- Gestión manual mientras no haya demanda validada (primeros clientes).
+
+### Ideas futuras (post-GBP + tracción)
 - **Marca blanca (Enterprise+):** agencias pueden ofrecer Velacre con su logo/colores a sus clientes. +100€/mes.
-- **QR generado para el local:** si 4-5★ → lleva a Google Maps; si 1-2★ → guarda nota interna sin publicar.
-- **Eliminación de reseñas:** Velacre cruza políticas de spam de Google + redacta texto legal óptimo para solicitar eliminación.
+- **QR anti-reseñas negativas:** si 4-5★ → lleva a Google Maps; si 1-2★ → guarda nota interna sin publicar. Descartado para el corto plazo — implica cambio de paradigma de producto (diseño físico, logística, soporte, ventas distintas). Retomar cuando haya 50+ clientes de pago.
 - **WhatsApp/Gmail semanal:** cron los lunes a las 10am con recuento semanal + respuesta ya preparada.
-- **Múltiples locales en Pro:** hasta 3-5 locales por cuenta (para cadenas).
 - **Métricas propias velocidad:** cuando haya usuarios reales, benchmark interno anónimo en vez del de Google (48h).
 - **Auditoría FOMO** con casos de éxito cuando haya usuarios reales.
