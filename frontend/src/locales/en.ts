@@ -123,7 +123,7 @@ const en: LandingLocale = {
         priceYearly: '€190',
         priceYearlyMonthly: '€15.83',
         desc: 'For businesses with moderate traffic who want to automate their responses.',
-        features: ['10 AI responses per month', 'Google sync', 'Pre-generated responses', 'Review management'],
+        features: ['18 AI responses per month', 'Google sync', 'Pre-generated responses', 'Review management'],
         cta: 'Choose Core',
       },
       pro: {
@@ -295,7 +295,7 @@ const en: LandingLocale = {
       planCurrent: '{plan} plan active',
       planThanks: 'You have full access. Thank you for trusting Velacre.',
       planChoose: 'Choose a plan to activate Velacre.',
-      planCore: ['10 AI responses/month', 'Google sync', 'Review management'],
+      planCore: ['18 AI responses/month', 'Google sync', 'Review management'],
       planPro: ['Unlimited AI responses', 'Health panel & AI analysis', 'Priority support'],
       planRecommended: 'Recommended',
       planRedirecting: 'Redirecting...',

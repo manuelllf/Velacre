@@ -123,7 +123,7 @@ const es: LandingLocale = {
         priceYearly: '190 €',
         priceYearlyMonthly: '15,83 €',
         desc: 'Automatiza tus respuestas y mantén tu reputación al día.',
-        features: ['10 respuestas IA al mes', 'Sincronización con Google', 'Contexto y tono personalizados', 'Gestión de reseñas'],
+        features: ['18 respuestas IA al mes', 'Sincronización con Google', 'Contexto y tono personalizados', 'Gestión de reseñas'],
         cta: 'Elegir Core',
       },
       pro: {
@@ -295,7 +295,7 @@ const es: LandingLocale = {
       planCurrent: 'Plan {plan} activo',
       planThanks: 'Tienes acceso completo. Gracias por confiar en Velacre.',
       planChoose: 'Elige un plan para activar Velacre.',
-      planCore: ['10 respuestas IA/mes', 'Sincronización Google', 'Gestión de reseñas'],
+      planCore: ['18 respuestas IA/mes', 'Sincronización Google', 'Gestión de reseñas'],
       planPro: ['Respuestas IA ilimitadas', 'Panel de salud y análisis IA', 'Soporte prioritario'],
       planRecommended: 'Recomendado',
       planRedirecting: 'Redirigiendo...',

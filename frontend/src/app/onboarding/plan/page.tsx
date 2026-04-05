@@ -98,7 +98,7 @@ export default function OnboardingPlanPage() {
             <p className="text-xs text-slate-500 mt-1">Sin tarjeta</p>
           </div>
           <ul className="space-y-2 flex-1">
-            {['3 respuestas IA/mes', 'Sync Google (últimas 10)', 'Otras plataformas'].map(f => (
+            {['3 respuestas IA/mes', 'Sincronización Google', 'Otras plataformas'].map(f => (
               <li key={f} className="flex items-start gap-2 text-sm text-slate-400">
                 <svg className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

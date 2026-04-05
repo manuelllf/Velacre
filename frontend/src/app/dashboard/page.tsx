@@ -669,12 +669,12 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white">
-                      {isCore ? 'Tus 10 respuestas IA se acabaron' : 'Tus 3 respuestas IA se acabaron'}
+                      {isCore ? 'Tus 18 respuestas IA se acabaron' : 'Tus 3 respuestas IA se acabaron'}
                     </h3>
                     <p className="text-sm text-slate-400 mt-0.5">
                       {isCore
-                        ? 'El plan Core tiene límite. El plan Pro no.'
-                        : 'El plan Basic tiene límite. Core y Pro no.'}
+                        ? 'El plan Core incluye 18 al mes. Pásate a Pro para tenerlas ilimitadas.'
+                        : 'El plan Basic incluye 3 al mes. Core amplía el límite a 18, Pro es ilimitado.'}
                     </p>
                   </div>
                 </div>
