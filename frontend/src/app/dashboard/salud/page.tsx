@@ -184,6 +184,7 @@ export default function SaludPage() {
       const msg = err instanceof Error ? err.message : 'Error al analizar'
       if (msg.includes('sin_competidores')) setRadarError('Añade al menos un competidor antes de analizar.')
       else if (msg.includes('sin_resenas_propias')) setRadarError('Necesitas reseñas propias en el sistema para comparar.')
+      else if (msg.includes('ya_analizado_este_mes')) setRadarError('Ya has usado el análisis este mes. Disponible el mes que viene.')
       else setRadarError(msg)
     } finally { setAnalyzingRadar(false) }
   }
@@ -272,6 +273,20 @@ export default function SaludPage() {
   // Meses del año actual en orden ascendente (para PDF mensual y anual)
   const currentYearMonths = allMonths.filter(m => m.year === now.getFullYear()).reverse()
   const speedBenchmark: SpeedBenchmark | null = computeSpeedBenchmark(reviews)
+
+  // ── Radar: computed ──────────────────────────────────────────
+  const radarResultado = radarData?.ultimoAnalisis?.resultado ?? null
+  const radarAnalisisDate = radarData?.ultimoAnalisis
+    ? new Date(radarData.ultimoAnalisis.createdAt) : null
+  const canAnalizar = !radarAnalisisDate ||
+    radarAnalisisDate.getMonth() !== now.getMonth() ||
+    radarAnalisisDate.getFullYear() !== now.getFullYear()
+  const proximoAnalisisLabel = radarAnalisisDate && !canAnalizar
+    ? (() => {
+        const next = new Date(radarAnalisisDate.getFullYear(), radarAnalisisDate.getMonth() + 1, 1)
+        return next.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })
+      })()
+    : null
 
   async function handleDownloadPdf(type: 'month' | 'year') {
     if (!negocio) return
@@ -946,31 +961,34 @@ export default function SaludPage() {
 
               {/* Botón analizar */}
               {radarData && radarData.competidores.length > 0 && (
-                <button
-                  onClick={handleRunRadar}
-                  disabled={analyzingRadar}
-                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
-                >
-                  {analyzingRadar ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Analizando…
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                      {radarData.ultimoAnalisis ? 'Re-analizar' : 'Analizar ahora'}
-                    </>
+                <div className="flex items-center gap-3 mb-4">
+                  <button
+                    onClick={handleRunRadar}
+                    disabled={analyzingRadar || !canAnalizar}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {analyzingRadar ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Analizando…
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        {radarData.ultimoAnalisis ? 'Re-analizar' : 'Analizar ahora'}
+                      </>
+                    )}
+                  </button>
+                  {proximoAnalisisLabel && (
+                    <span className="text-xs text-slate-500">Próximo análisis disponible el {proximoAnalisisLabel}</span>
                   )}
-                </button>
+                </div>
               )}
 
               {/* Resultado del análisis */}
-              {radarData?.ultimoAnalisis?.resultado && (() => {
-                const r = radarData.ultimoAnalisis!.resultado!
-                return (
+              {radarResultado && (
                   <div className="space-y-4">
                     {/* Tu negocio */}
                     <div className="grid sm:grid-cols-2 gap-3">
@@ -979,19 +997,19 @@ export default function SaludPage() {
                           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                           <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Tu fortaleza</p>
                         </div>
-                        <p className="text-sm text-slate-200 leading-relaxed">{r.tuFortaleza}</p>
+                        <p className="text-sm text-slate-200 leading-relaxed">{radarResultado.tuFortaleza}</p>
                       </div>
                       <div className="bg-red-950/40 border border-red-900/50 rounded-xl p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
                           <p className="text-xs font-bold text-red-400 uppercase tracking-wider">Tu debilidad</p>
                         </div>
-                        <p className="text-sm text-slate-200 leading-relaxed">{r.tuDebilidad}</p>
+                        <p className="text-sm text-slate-200 leading-relaxed">{radarResultado.tuDebilidad}</p>
                       </div>
                     </div>
 
                     {/* Competidores */}
-                    {r.competidores && r.competidores.length > 0 && (
+                    {radarResultado.competidores && radarResultado.competidores.length > 0 && (
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
@@ -1003,7 +1021,7 @@ export default function SaludPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {r.competidores.map((c, i) => (
+                            {radarResultado.competidores.map((c, i) => (
                               <tr key={i} className="border-b border-slate-800 last:border-0">
                                 <td className="py-2.5 pr-4 font-medium text-slate-200">{c.nombre}</td>
                                 <td className="py-2.5 pr-4 text-slate-400">{c.fortaleza}</td>
@@ -1026,11 +1044,11 @@ export default function SaludPage() {
 
                     {/* Oportunidades + Acción */}
                     <div className="grid sm:grid-cols-2 gap-3">
-                      {r.oportunidades && r.oportunidades.length > 0 && (
+                      {radarResultado.oportunidades && radarResultado.oportunidades.length > 0 && (
                         <div className="bg-blue-950/40 border border-blue-900/50 rounded-xl p-4">
                           <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">Oportunidades</p>
                           <ul className="space-y-1">
-                            {r.oportunidades.map((op, i) => (
+                            {radarResultado.oportunidades.map((op, i) => (
                               <li key={i} className="text-sm text-slate-200 flex gap-2">
                                 <span className="text-blue-500 shrink-0">→</span>
                                 {op}
@@ -1039,16 +1057,15 @@ export default function SaludPage() {
                           </ul>
                         </div>
                       )}
-                      {r.accion && (
-                        <div className="bg-violet-950/40 border border-violet-900/50 rounded-xl p-4">
-                          <p className="text-xs font-bold text-violet-400 uppercase tracking-wider mb-2">Acción esta semana</p>
-                          <p className="text-sm text-slate-200 leading-relaxed">{r.accion}</p>
+                      {radarResultado.accion && (
+                        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Acción esta semana</p>
+                          <p className="text-sm text-slate-200 leading-relaxed">{radarResultado.accion}</p>
                         </div>
                       )}
                     </div>
                   </div>
-                )
-              })()}
+              )}
             </div>
           </>
         )}

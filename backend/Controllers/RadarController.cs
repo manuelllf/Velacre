@@ -132,6 +132,19 @@ public class RadarController : ControllerBase
         if (competidoresRes.Models.Count == 0)
             return BadRequest(new { error = "sin_competidores" });
 
+        // Límite: 1 análisis por mes
+        var latestRes = await _supabase.From<RadarAnalisisEntity>()
+            .Where(a => a.NegocioId == negocio!.Id)
+            .Order(a => a.CreatedAt, Postgrest.Constants.Ordering.Descending)
+            .Limit(1).Get();
+        var latest = latestRes.Models.FirstOrDefault();
+        if (latest != null)
+        {
+            var utcNow = DateTimeOffset.UtcNow;
+            if (latest.CreatedAt.Year == utcNow.Year && latest.CreatedAt.Month == utcNow.Month)
+                return StatusCode(429, new { error = "ya_analizado_este_mes" });
+        }
+
         // 1. Reseñas propias desde BD (sin coste)
         var misResenasRes = await _supabase.From<ReviewEntity>()
             .Where(r => r.IdNegocio == negocio!.Id)
