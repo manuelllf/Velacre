@@ -391,10 +391,11 @@ export default function SettingsPage() {
 
               {/* Google Business */}
               <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.googleSection}</h2>
+                  <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">Próximamente</span>
                 </div>
-                <div className="p-5 space-y-4">
+                <div className="p-5 space-y-4 opacity-40 pointer-events-none select-none">
                   {gbpMsg && (
                     <div className={`px-3 py-2.5 rounded-xl text-sm border ${gbpMsg.type === 'ok' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'}`}>
                       {gbpMsg.text}

@@ -423,9 +423,8 @@ export default function OnboardingPage() {
               {/* Selector método — solo si no hay método elegido (o si fue error de GBP) */}
               {connectionMethod === 'none' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* GBP */}
-                  <button type="button" onClick={() => setConnectionMethod('google')}
-                    className="flex flex-col items-start gap-2 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left group">
+                  {/* GBP — Próximamente */}
+                  <div className="flex flex-col items-start gap-2 p-4 rounded-xl border border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed select-none text-left">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
                         <svg viewBox="0 0 24 24" className="w-4 h-4">
@@ -435,11 +434,11 @@ export default function OnboardingPage() {
                           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                         </svg>
                       </div>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Google Business</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">Google Business</span>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400">Acceso nativo y directo. Sin Outscraper. Publica respuestas sin salir de Velacre.</p>
-                    <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full">Recomendado</span>
-                  </button>
+                    <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full">Próximamente</span>
+                  </div>
 
                   {/* Manual */}
                   <button type="button" onClick={() => setConnectionMethod('manual')}
