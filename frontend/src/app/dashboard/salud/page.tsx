@@ -80,6 +80,7 @@ export default function SaludPage() {
   const [radarSearch, setRadarSearch] = useState('')
   const [radarSearchResults, setRadarSearchResults] = useState<{ placeId: string; name: string; address: string }[]>([])
   const [radarSearching, setRadarSearching] = useState(false)
+  const [radarSteps, setRadarSteps] = useState<{ label: string; done: boolean }[]>([])
 
   useEffect(() => {
     async function init() {
@@ -177,6 +178,23 @@ export default function SaludPage() {
   async function handleRunRadar() {
     setAnalyzingRadar(true)
     setRadarError('')
+
+    const nombres = radarData?.competidores.map(c => c.nombre) ?? []
+    const stepDefs = [
+      { label: 'Recuperando tus últimas reseñas…', delay: 0 },
+      ...nombres.map((n, i) => ({ label: `Consultando reseñas de ${n}…`, delay: 1500 + i * 4500 })),
+      { label: 'Analizando patrones con IA…', delay: 1500 + nombres.length * 4500 },
+      { label: 'Generando informe comparativo…', delay: 1500 + nombres.length * 4500 + 5000 },
+    ]
+
+    setRadarSteps(stepDefs.map((s, i) => ({ label: s.label, done: false, active: i === 0 })) as { label: string; done: boolean }[])
+
+    const timers: ReturnType<typeof setTimeout>[] = stepDefs.slice(1).map((step, i) =>
+      setTimeout(() => {
+        setRadarSteps(prev => prev.map((s, idx) => ({ ...s, done: idx < i + 1 })))
+      }, step.delay)
+    )
+
     try {
       const result = await runRadarAnalysis()
       setRadarData(prev => prev ? { ...prev, ultimoAnalisis: result } : { competidores: [], ultimoAnalisis: result })
@@ -186,7 +204,11 @@ export default function SaludPage() {
       else if (msg.includes('sin_resenas_propias')) setRadarError('Necesitas reseñas propias en el sistema para comparar.')
       else if (msg.includes('ya_analizado_este_mes')) setRadarError('Ya has usado el análisis este mes. Disponible el mes que viene.')
       else setRadarError(msg)
-    } finally { setAnalyzingRadar(false) }
+    } finally {
+      timers.forEach(clearTimeout)
+      setAnalyzingRadar(false)
+      setRadarSteps([])
+    }
   }
 
   if (loading) {
@@ -959,30 +981,47 @@ export default function SaludPage() {
                 <p className="text-sm text-red-400 mb-3">{radarError}</p>
               )}
 
-              {/* Botón analizar */}
+              {/* Botón analizar / pasos en progreso */}
               {radarData && radarData.competidores.length > 0 && (
-                <div className="flex items-center gap-3 mb-4">
-                  <button
-                    onClick={handleRunRadar}
-                    disabled={analyzingRadar || !canAnalizar}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {analyzingRadar ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Analizando…
-                      </>
-                    ) : (
-                      <>
+                <div className="mb-4">
+                  {analyzingRadar ? (
+                    <div className="space-y-2 py-1">
+                      {radarSteps.map((step, i) => {
+                        const isActive = !step.done && radarSteps.slice(0, i).every(s => s.done)
+                        return (
+                          <div key={i} className="flex items-center gap-2.5">
+                            {step.done ? (
+                              <svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : isActive ? (
+                              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                            ) : (
+                              <div className="w-4 h-4 rounded-full border border-slate-700 shrink-0" />
+                            )}
+                            <span className={`text-sm transition-colors ${step.done ? 'text-slate-500 line-through' : isActive ? 'text-slate-200' : 'text-slate-600'}`}>
+                              {step.label}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleRunRadar}
+                        disabled={!canAnalizar}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                         {radarData.ultimoAnalisis ? 'Re-analizar' : 'Analizar ahora'}
-                      </>
-                    )}
-                  </button>
-                  {proximoAnalisisLabel && (
-                    <span className="text-xs text-slate-500">Próximo análisis disponible el {proximoAnalisisLabel}</span>
+                      </button>
+                      {proximoAnalisisLabel && (
+                        <span className="text-xs text-slate-500">Próximo análisis disponible el {proximoAnalisisLabel}</span>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
