@@ -65,9 +65,11 @@ public class LemonController : ControllerBase
             ["email"]  = usuario.Email ?? ""
         };
 
+        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://www.velacre.com";
         var attributes = new Dictionary<string, object>
         {
-            ["checkout_data"] = checkoutData
+            ["checkout_data"] = checkoutData,
+            ["redirect_url"]  = $"{frontendUrl}/settings"
         };
 
         var payload = new

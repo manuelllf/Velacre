@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, cancelarSuscripcion, getGbpStatus, getGbpAuthUrl, getGbpLocations, finalizeGbpConnection, disconnectGbp, type Negocio, type GbpStatus, type GbpLocation } from '@/lib/api'
+import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, getLemonCheckoutUrl, getGbpStatus, getGbpAuthUrl, getGbpLocations, finalizeGbpConnection, disconnectGbp, type Negocio, type GbpStatus, type GbpLocation } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
-import WaitlistModal from '@/components/WaitlistModal'
 import { useLanguage } from '@/lib/i18n'
 
 export default function SettingsPage() {
@@ -28,13 +27,12 @@ export default function SettingsPage() {
   const [lsStatus, setLsStatus] = useState<string | null>(null)
   const [lsRenewsAt, setLsRenewsAt] = useState<string | null>(null)
   const [lsEndsAt, setLsEndsAt] = useState<string | null>(null)
-  const [waitlistPlan, setWaitlistPlan] = useState<'core' | 'pro' | null>(null)
+  const [lsCustomerPortal, setLsCustomerPortal] = useState<string | null>(null)
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
+  const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
-  const [showCancelModal, setShowCancelModal] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
 
   // GBP state
   const [gbpStatus,           setGbpStatus]           = useState<GbpStatus | null>(null)
@@ -68,6 +66,7 @@ export default function SettingsPage() {
         setLsStatus(u.lsStatus ?? null)
         setLsRenewsAt(u.lsRenewsAt ?? null)
         setLsEndsAt(u.lsEndsAt ?? null)
+        setLsCustomerPortal(u.lsCustomerPortal ?? null)
         if (n) {
           setNegocio(n)
           setForm({
@@ -186,18 +185,15 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleCancelSub() {
-    if (cancelling) return
-    setCancelling(true)
+  async function handleCheckout(p: 'core' | 'pro') {
+    setCheckoutLoading(p)
+    setError('')
     try {
-      const res = await cancelarSuscripcion()
-      setLsStatus('cancelled')
-      if (res.endsAt) setLsEndsAt(res.endsAt)
-      setShowCancelModal(false)
+      const url = await getLemonCheckoutUrl(p, billing)
+      window.location.href = url
     } catch {
-      setError('No se pudo cancelar la suscripción. Inténtalo de nuevo.')
-    } finally {
-      setCancelling(false)
+      setError('No se pudo iniciar el pago. Inténtalo de nuevo.')
+      setCheckoutLoading(null)
     }
   }
 
@@ -281,11 +277,12 @@ export default function SettingsPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setWaitlistPlan('core')}
-                    className="w-full py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    onClick={() => handleCheckout('core')}
+                    disabled={checkoutLoading !== null}
+                    className="w-full py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                    Reservar acceso anticipado
+                    {checkoutLoading === 'core' ? <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : null}
+                    Empezar con Core →
                   </button>
                 </div>
 
@@ -318,11 +315,12 @@ export default function SettingsPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setWaitlistPlan('pro')}
-                    className="w-full py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    onClick={() => handleCheckout('pro')}
+                    disabled={checkoutLoading !== null}
+                    className="w-full py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                    Reservar acceso anticipado
+                    {checkoutLoading === 'pro' ? <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
+                    Empezar con Pro →
                   </button>
                 </div>
               </div>
@@ -365,16 +363,18 @@ export default function SettingsPage() {
               {plan === 'core' && lsStatus !== 'cancelled' && (
                 <button
                   type="button"
-                  onClick={() => setWaitlistPlan('pro')}
-                  className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-600/30 rounded-xl transition-colors text-left"
+                  onClick={() => handleCheckout('pro')}
+                  disabled={checkoutLoading !== null}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-600/30 rounded-xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-blue-400">Pasarme a Pro</p>
+                    <p className="text-sm font-semibold text-blue-400">Pasarme a Pro →</p>
                     <p className="text-xs text-slate-500 mt-0.5">Respuestas ilimitadas + panel de salud y análisis IA</p>
                   </div>
-                  <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  {checkoutLoading === 'pro'
+                    ? <span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                    : <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  }
                 </button>
               )}
             </div>
@@ -597,20 +597,21 @@ export default function SettingsPage() {
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
 
-            {/* Cancelar suscripción — solo si está activa y no cancelada ya */}
-            {plan !== 'basic' && lsStatus !== 'cancelled' && (
+            {/* Gestionar suscripción — portal LS */}
+            {plan !== 'basic' && lsCustomerPortal && (
               <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{s.dangerZone.cancelSub}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.dangerZone.cancelSubDesc}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">Gestionar suscripción</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Cancela, cambia de plan o actualiza tu método de pago.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowCancelModal(true)}
-                  className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                <a
+                  href={lsCustomerPortal}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-center"
                 >
-                  {s.dangerZone.cancelSub}
-                </button>
+                  Gestionar suscripción →
+                </a>
               </div>
             )}
 
@@ -632,11 +633,6 @@ export default function SettingsPage() {
         </section>
 
       </main>
-
-      {/* Waitlist modal */}
-      {waitlistPlan && (
-        <WaitlistModal plan={waitlistPlan} onClose={() => setWaitlistPlan(null)} />
-      )}
 
       {/* GBP Disconnect modal */}
       {showDisconnectModal && (
@@ -685,43 +681,6 @@ export default function SettingsPage() {
               {finalizingLocation && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               {finalizingLocation ? 'Conectando...' : 'Conectar este local'}
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Cancel subscription modal */}
-      {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => { if (!cancelling) setShowCancelModal(false) }} />
-          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">{s.dangerZone.cancelSub}</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{s.dangerZone.cancelSubConfirm}</p>
-            {lsRenewsAt && (
-              <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-                <p className="text-xs text-amber-700 dark:text-amber-300">
-                  Seguirás teniendo acceso hasta el <strong>{fmtDate(lsRenewsAt)}</strong>, cuando finaliza tu período actual.
-                </p>
-              </div>
-            )}
-            <div className="flex gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() => setShowCancelModal(false)}
-                disabled={cancelling}
-                className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
-              >
-                Mantener suscripción
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelSub}
-                disabled={cancelling}
-                className="flex-1 py-2.5 text-sm font-semibold bg-slate-800 dark:bg-slate-700 text-white rounded-xl hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {cancelling && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                {cancelling ? 'Cancelando...' : 'Confirmar cancelación'}
-              </button>
-            </div>
           </div>
         </div>
       )}

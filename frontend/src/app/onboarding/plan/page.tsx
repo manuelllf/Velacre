@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getMyNegocio, getMyUsuario } from '@/lib/api'
+import { getMyNegocio, getMyUsuario, getLemonCheckoutUrl } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
-import WaitlistModal from '@/components/WaitlistModal'
 
 export default function OnboardingPlanPage() {
   const router = useRouter()
@@ -15,7 +14,8 @@ export default function OnboardingPlanPage() {
   const FEATURES_PRO = t.app.settings.planPro
 
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
-  const [waitlistPlan, setWaitlistPlan] = useState<'core' | 'pro' | null>(null)
+  const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
+  const [checkoutError, setCheckoutError] = useState('')
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -33,6 +33,18 @@ export default function OnboardingPlanPage() {
     guard()
   }, [router])
 
+
+  async function handleCheckout(p: 'core' | 'pro') {
+    setCheckoutLoading(p)
+    setCheckoutError('')
+    try {
+      const url = await getLemonCheckoutUrl(p, billing)
+      window.location.href = url
+    } catch {
+      setCheckoutError('No se pudo iniciar el pago. Inténtalo de nuevo.')
+      setCheckoutLoading(null)
+    }
+  }
 
   if (!ready) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950">
@@ -109,11 +121,11 @@ export default function OnboardingPlanPage() {
             <p className="text-lg font-bold text-white">Core</p>
             {billing === 'yearly' ? (
               <div className="mt-2">
-                <p className="text-3xl font-extrabold text-white">199 €<span className="text-base font-normal text-slate-400">/año</span></p>
-                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 16,58 €/mes · 2 meses gratis</p>
+                <p className="text-3xl font-extrabold text-white">190 €<span className="text-base font-normal text-slate-400">/año</span></p>
+                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 15,83 €/mes · 2 meses gratis</p>
               </div>
             ) : (
-              <p className="text-3xl font-extrabold text-white mt-2">19,90 €<span className="text-base font-normal text-slate-400">/mes</span></p>
+              <p className="text-3xl font-extrabold text-white mt-2">19 €<span className="text-base font-normal text-slate-400">/mes</span></p>
             )}
           </div>
           <ul className="space-y-2 flex-1">
@@ -127,11 +139,12 @@ export default function OnboardingPlanPage() {
             ))}
           </ul>
           <button
-            onClick={() => setWaitlistPlan('core')}
-            className="w-full py-3 rounded-xl border-2 border-blue-500 text-blue-400 font-semibold text-sm hover:bg-blue-500/10 transition-colors cursor-pointer flex items-center justify-center gap-2"
+            onClick={() => handleCheckout('core')}
+            disabled={checkoutLoading !== null}
+            className="w-full py-3 rounded-xl border-2 border-blue-500 text-blue-400 font-semibold text-sm hover:bg-blue-500/10 transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            Reservar acceso anticipado
+            {checkoutLoading === 'core' ? <span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> : null}
+            Empezar con Core →
           </button>
         </div>
 
@@ -144,11 +157,11 @@ export default function OnboardingPlanPage() {
             <p className="text-lg font-bold text-white">Pro</p>
             {billing === 'yearly' ? (
               <div className="mt-2">
-                <p className="text-3xl font-extrabold text-white">299 €<span className="text-base font-normal text-slate-400">/año</span></p>
-                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 24,92 €/mes · 2 meses gratis</p>
+                <p className="text-3xl font-extrabold text-white">449 €<span className="text-base font-normal text-slate-400">/año</span></p>
+                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 37,42 €/mes · 2 meses gratis</p>
               </div>
             ) : (
-              <p className="text-3xl font-extrabold text-white mt-2">29,90 €<span className="text-base font-normal text-slate-400">/mes</span></p>
+              <p className="text-3xl font-extrabold text-white mt-2">45 €<span className="text-base font-normal text-slate-400">/mes</span></p>
             )}
           </div>
           <ul className="space-y-2 flex-1">
@@ -162,17 +175,18 @@ export default function OnboardingPlanPage() {
             ))}
           </ul>
           <button
-            onClick={() => setWaitlistPlan('pro')}
-            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
+            onClick={() => handleCheckout('pro')}
+            disabled={checkoutLoading !== null}
+            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            Reservar acceso anticipado
+            {checkoutLoading === 'pro' ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
+            Empezar con Pro →
           </button>
         </div>
       </div>
 
-      {waitlistPlan && (
-        <WaitlistModal plan={waitlistPlan} onClose={() => setWaitlistPlan(null)} />
+      {checkoutError && (
+        <p className="text-sm text-red-400 mt-4">{checkoutError}</p>
       )}
     </div>
   )
