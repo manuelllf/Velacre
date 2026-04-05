@@ -437,6 +437,14 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 
 ---
 
+## Favicon y PWA icons
+
+- `src/app/icon.png` — logo Velacre (128px), Next.js App Router lo sirve automáticamente como favicon en la pestaña del navegador
+- `public/apple-touch-icon.png`, `public/icon-192.png`, `public/icon-512.png` — logo Velacre para PWA y dispositivos móviles
+- Fuente de verdad: `images/logo128.png` y `images/logo600.png` en la raíz del repositorio
+
+---
+
 ## Páginas legales
 
 - `/privacidad`, `/terminos`, `/contacto` — dark normalizado (slate-950/900/800)
