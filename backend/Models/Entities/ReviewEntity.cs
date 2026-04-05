@@ -91,4 +91,12 @@ public class ReviewEntity : BaseModel
     /// <summary>Timestamp en que se publicó la respuesta en Google</summary>
     [Column("publicada_fecha")]
     public DateTimeOffset? PublicadaFecha { get; set; }
+
+    /// <summary>True si la IA detectó contenido crítico y retuvo la generación para revisión manual</summary>
+    [Column("retenida")]
+    public bool Retenida { get; set; }
+
+    /// <summary>Motivo por el que la reseña fue retenida: intoxicacion | maltrato | amenaza_legal | datos_personales</summary>
+    [Column("motivo_retencion")]
+    public string? MotivoRetencion { get; set; }
 }

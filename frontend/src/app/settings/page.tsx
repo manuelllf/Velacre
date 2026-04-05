@@ -308,11 +308,11 @@ export default function SettingsPage() {
                     <div className="text-right shrink-0">
                       {billing === 'yearly' ? (
                         <>
-                          <p className="text-lg font-bold text-slate-900 dark:text-white">290 €<span className="text-xs font-normal text-slate-400">/año</span></p>
-                          <p className="text-xs text-emerald-600 dark:text-emerald-400">≈ 24,17 €/mes</p>
+                          <p className="text-lg font-bold text-slate-900 dark:text-white">449 €<span className="text-xs font-normal text-slate-400">/año</span></p>
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400">≈ 37,42 €/mes</p>
                         </>
                       ) : (
-                        <p className="text-lg font-bold text-slate-900 dark:text-white">29 €<span className="text-xs font-normal text-slate-400">/mes</span></p>
+                        <p className="text-lg font-bold text-slate-900 dark:text-white">45 €<span className="text-xs font-normal text-slate-400">/mes</span></p>
                       )}
                     </div>
                   </div>

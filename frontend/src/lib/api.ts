@@ -65,6 +65,8 @@ export interface PendingReview {
   respuestaPublicada?: string
   publicadaEnGoogle?: boolean
   publicadaFecha?: string
+  retenida?: boolean
+  motivoRetencion?: string
 }
 
 export interface GbpStatus {
@@ -362,10 +364,12 @@ export async function getPendingReviews(): Promise<PendingReview[]> {
 }
 
 export interface GenerateForReviewResult {
-  response: string
+  response: string | null
   tono: string
   contextoCliente?: string
   contextoRespuesta?: string
+  retenida?: boolean
+  motivoRetencion?: string
 }
 
 export async function generateForReview(reviewId: string): Promise<GenerateForReviewResult> {

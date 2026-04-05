@@ -15,13 +15,15 @@ public class ReviewController : ControllerBase
     private readonly IReviewAiService _aiService;
     private readonly IGoogleBusinessService _gbp;
     private readonly Supabase.Client _supabase;
+    private readonly EmailService _email;
     private readonly ILogger<ReviewController> _logger;
 
-    public ReviewController(IReviewAiService aiService, IGoogleBusinessService gbp, Supabase.Client supabase, ILogger<ReviewController> logger)
+    public ReviewController(IReviewAiService aiService, IGoogleBusinessService gbp, Supabase.Client supabase, EmailService email, ILogger<ReviewController> logger)
     {
         _aiService = aiService;
         _gbp       = gbp;
         _supabase  = supabase;
+        _email     = email;
         _logger    = logger;
     }
 
@@ -65,7 +67,7 @@ public class ReviewController : ControllerBase
             // Límite de respuestas manuales solo para no-Pro
             if (!esProEfectivo)
             {
-                int manualLimit = usuario.Plan == "core" ? 10 : 3;
+                int manualLimit = usuario.Plan == "core" ? 18 : 3;
 
                 // Reset counter if it's a new month
                 if (usuario.RespuestasMesReset == null ||
@@ -244,7 +246,7 @@ public class ReviewController : ControllerBase
 
             if (!esProEfectivo && (usuario.Plan == "core" || usuario.Plan == "basic"))
             {
-                int iaLimit = usuario.Plan == "core" ? 10 : 3;
+                int iaLimit = usuario.Plan == "core" ? 18 : 3;
 
                 // Incremento atómico: comprueba el límite e incrementa en una sola operación SQL
                 var rpcResult = await _supabase.Rpc("try_increment_ia_counter",
@@ -329,6 +331,35 @@ public class ReviewController : ControllerBase
             var contextoCliente   = result.ContextoCliente;
             var contextoRespuesta = result.ContextoRespuesta;
             var keywordsUsadas    = result.KeywordsUsadas;
+            var retenida          = result.Retenida;
+            var motivoRetencion   = result.MotivoRetencion;
+
+            // ── Reseña retenida por seguridad ─────────────────────────────────
+            if (retenida)
+            {
+                _logger.LogWarning("[ReviewController] Reseña {ReviewId} retenida por seguridad — motivo={Motivo}", id, motivoRetencion);
+
+                review.Retenida         = true;
+                review.MotivoRetencion  = motivoRetencion;
+                review.ActualizadoPor   = userId;
+                review.ActualizadoFecha = DateTimeOffset.UtcNow;
+
+                await _supabase.From<ReviewEntity>().Where(r => r.Id == review.Id).Update(review);
+
+                // Revertir el slot de IA consumido (no se generó respuesta real)
+                if (incrementedCounter && usuario != null)
+                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
+                        .Set(u => u.RespuestasIaMes, Math.Max(0, usuario.RespuestasIaMes))
+                        .Update();
+
+                // Email urgente al usuario
+                if (!string.IsNullOrEmpty(usuario?.Email))
+                    _ = Task.Run(() => _email.SendRetainedReviewAlertAsync(
+                        usuario.Email, negocio.Nombre, review.ClienteReview, motivoRetencion ?? ""));
+
+                return Ok(new { retenida = true, motivoRetencion, response = (string?)null });
+            }
+            // ─────────────────────────────────────────────────────────────────
 
             switch (toneLower)
             {
@@ -361,7 +392,8 @@ public class ReviewController : ControllerBase
                 tono              = tone,
                 contextoCliente   = contextoCliente,
                 contextoRespuesta = contextoRespuesta,
-                keywordsUsadas    = keywordsUsadas
+                keywordsUsadas    = keywordsUsadas,
+                retenida          = false
             });
         }
         catch (Exception ex)
@@ -423,6 +455,8 @@ public class ReviewController : ControllerBase
                 respuestaPublicada = r.RespuestaPublicada,
                 publicadaEnGoogle  = r.PublicadaEnGoogle,
                 publicadaFecha     = r.PublicadaFecha,
+                retenida           = r.Retenida,
+                motivoRetencion    = r.MotivoRetencion,
             })
             .ToList();
 

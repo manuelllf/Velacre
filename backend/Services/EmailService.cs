@@ -80,6 +80,92 @@ public class EmailService
         }
     }
 
+    public async Task SendRetainedReviewAlertAsync(string toEmail, string negocioNombre, string reviewText, string motivo)
+    {
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            _logger.LogWarning("[EmailService] RESEND_API_KEY no configurada, omitiendo alerta de reseña retenida");
+            return;
+        }
+
+        var motivoLabel = motivo switch
+        {
+            "intoxicacion"   => "posible intoxicación alimentaria o enfermedad grave",
+            "maltrato"       => "acusaciones de malos tratos o agresión",
+            "amenaza_legal"  => "amenaza de denuncia o demanda judicial",
+            "datos_personales" => "datos personales sensibles del cliente",
+            _ => "contenido que requiere revisión manual"
+        };
+
+        var reviewPreview = reviewText.Length > 300 ? reviewText[..300] + "…" : reviewText;
+
+        var html = $"""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;margin:0;padding:0;">
+              <div style="max-width:520px;margin:40px auto;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+                <div style="background:#dc2626;padding:28px 32px;">
+                  <h1 style="color:#fff;margin:0;font-size:20px;font-weight:600;">⚠️ Velacre · Reseña retenida</h1>
+                </div>
+                <div style="padding:32px;">
+                  <h2 style="color:#0f172a;font-size:16px;font-weight:600;margin:0 0 12px;">
+                    Se ha retenido una reseña de <strong>{negocioNombre}</strong> para revisión manual
+                  </h2>
+                  <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:12px 16px;margin-bottom:16px;">
+                    <p style="color:#991b1b;font-size:13px;font-weight:600;margin:0 0 4px;">Motivo detectado:</p>
+                    <p style="color:#7f1d1d;font-size:13px;margin:0;">{motivoLabel}</p>
+                  </div>
+                  <p style="color:#475569;font-size:13px;font-weight:600;margin:0 0 6px;">Texto de la reseña:</p>
+                  <div style="background:#f8fafc;border-left:3px solid #dc2626;padding:12px 16px;border-radius:0 6px 6px 0;margin-bottom:20px;">
+                    <p style="color:#334155;font-size:13px;line-height:1.6;margin:0;font-style:italic;">"{reviewPreview}"</p>
+                  </div>
+                  <p style="color:#475569;font-size:13px;line-height:1.6;margin:0 0 20px;">
+                    Velacre no ha generado respuesta automática para esta reseña.
+                    <strong>Requiere tu atención directa</strong> — accede al dashboard para gestionarla manualmente.
+                  </p>
+                  <a href="https://www.velacre.com/dashboard"
+                     style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:500;">
+                    Ver en el dashboard →
+                  </a>
+                </div>
+                <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+                  <p style="color:#94a3b8;font-size:11px;margin:0;">© {DateTime.UtcNow.Year} Velacre · Alerta de seguridad automática</p>
+                </div>
+              </div>
+            </body>
+            </html>
+            """;
+
+        var payload = new
+        {
+            from    = _from,
+            to      = new[] { toEmail },
+            subject = $"⚠️ [{negocioNombre}] Reseña retenida: {motivoLabel}",
+            html,
+        };
+
+        try
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
+            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+            req.Content = System.Net.Http.Json.JsonContent.Create(payload);
+
+            var res = await _http.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+                _logger.LogInformation("[EmailService] Alerta retenida enviada a {Email}", toEmail);
+            else
+            {
+                var body = await res.Content.ReadAsStringAsync();
+                _logger.LogWarning("[EmailService] Resend respondió {Status}: {Body}", res.StatusCode, body);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[EmailService] Error enviando alerta de reseña retenida a {Email}", toEmail);
+        }
+    }
+
     public async Task SendWelcomeAsync(string toEmail, string nombre)
     {
         if (string.IsNullOrEmpty(_apiKey))

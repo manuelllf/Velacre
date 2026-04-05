@@ -58,6 +58,7 @@ export default function DashboardPage() {
   const [reviews, setReviews] = useState<PendingReview[]>([])
   const [loadingReviews, setLoadingReviews] = useState(false)
   const [estadoFilter, setEstadoFilter] = useState<EstadoFilter>('pendiente')
+  const [dateFilter, setDateFilter] = useState<'6m' | '12m' | 'all'>('6m')
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set())
@@ -174,7 +175,15 @@ export default function DashboardPage() {
     setGeneratingIds(prev => new Set(prev).add(reviewId))
     try {
       const result = await generateForReview(reviewId)
-      setGeneratedResponses(prev => ({ ...prev, [reviewId]: result.response }))
+
+      if (result.retenida) {
+        setReviews(prev => prev.map(r => r.id === reviewId
+          ? { ...r, retenida: true, motivoRetencion: result.motivoRetencion ?? undefined }
+          : r))
+        return
+      }
+
+      setGeneratedResponses(prev => ({ ...prev, [reviewId]: result.response ?? '' }))
       if (userPlan === 'basic' || userPlan === 'core') setIaUsed(prev => prev + 1)
       if (result.contextoCliente && result.contextoRespuesta) {
         setContextos(prev => ({ ...prev, [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! } }))
@@ -230,15 +239,22 @@ export default function DashboardPage() {
     )
   }
 
+  const dateCutoff = dateFilter === 'all' ? null
+    : new Date(Date.now() - (dateFilter === '6m' ? 6 : 12) * 30 * 24 * 60 * 60 * 1000)
+
+  const dateFiltered = dateCutoff
+    ? reviews.filter(r => !r.reviewDate || new Date(r.reviewDate) >= dateCutoff)
+    : reviews
+
   const filtered = estadoFilter === 'todas'
-    ? reviews
-    : reviews.filter(r => (r.estado ?? 'pendiente') === estadoFilter)
+    ? dateFiltered
+    : dateFiltered.filter(r => (r.estado ?? 'pendiente') === estadoFilter)
 
   const counts: Record<EstadoFilter, number> = {
-    pendiente:  reviews.filter(r => (r.estado ?? 'pendiente') === 'pendiente').length,
-    respondida: reviews.filter(r => r.estado === 'respondida').length,
-    ignorada:   reviews.filter(r => r.estado === 'ignorada').length,
-    todas:      reviews.length,
+    pendiente:  dateFiltered.filter(r => (r.estado ?? 'pendiente') === 'pendiente').length,
+    respondida: dateFiltered.filter(r => r.estado === 'respondida').length,
+    ignorada:   dateFiltered.filter(r => r.estado === 'ignorada').length,
+    todas:      dateFiltered.length,
   }
 
   const selectedReview = selectedId ? filtered.find(r => r.id === selectedId) ?? null : null
@@ -388,6 +404,23 @@ export default function DashboardPage() {
           {/* ── LEFT: filter tabs + scrollable list + manual ── */}
           <div className={`w-full lg:w-80 xl:w-96 shrink-0 flex-col lg:h-full gap-3 ${selectedId ? 'hidden lg:flex' : 'flex'}`}>
 
+            {/* Date filter */}
+            <div className="flex items-center gap-1 shrink-0 bg-slate-100 dark:bg-slate-800/60 rounded-lg p-1 self-start">
+              {(['6m', '12m', 'all'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => { setDateFilter(f); setSelectedId(null) }}
+                  className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    dateFilter === f
+                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {f === '6m' ? '6 meses' : f === '12m' ? '12 meses' : 'Todo'}
+                </button>
+              ))}
+            </div>
+
             {/* Filter tabs — 4 columnas iguales, sin scroll */}
             <div className="grid grid-cols-4 gap-1 shrink-0">
               {FILTER_ORDER.map(f => (
@@ -487,6 +520,11 @@ export default function DashboardPage() {
                             {hasGenerated && (
                               <span className="text-[10px] font-semibold uppercase tracking-wide bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-full">
                                 IA lista
+                              </span>
+                            )}
+                            {review.retenida && (
+                              <span className="text-[10px] font-bold uppercase tracking-wide bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-1.5 py-0.5 rounded-full">
+                                ⚠ Revisión
                               </span>
                             )}
                           </div>
@@ -780,6 +818,13 @@ interface DetailPanelProps {
   commonError: string
 }
 
+const MOTIVO_LABELS: Record<string, string> = {
+  intoxicacion:     'Posible intoxicación alimentaria o enfermedad grave',
+  maltrato:         'Acusaciones de malos tratos o agresión',
+  amenaza_legal:    'Amenaza de denuncia o demanda judicial',
+  datos_personales: 'Datos personales sensibles del cliente',
+}
+
 function DetailPanel({
   review, generated, generatedError, contexto,
   isGenerating, isUpdating, copiedId,
@@ -790,6 +835,7 @@ function DetailPanel({
   const isNegative = (review.starRating ?? 5) <= 2
   const hasGenerated = !!generated
   const hasError = !!generatedError
+  const isRetenida = !!review.retenida
 
   return (
     <div className={`bg-white dark:bg-slate-900 rounded-2xl border ${
@@ -951,10 +997,30 @@ function DetailPanel({
         </div>
       )}
 
+      {/* Retained review warning */}
+      {isRetenida && (
+        <div className="mx-6 mb-4 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-lg shrink-0">⚠️</span>
+            <div>
+              <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">Retenida por seguridad — Requiere revisión manual</p>
+              {review.motivoRetencion && (
+                <p className="text-xs text-orange-700 dark:text-orange-400 mt-1">
+                  {MOTIVO_LABELS[review.motivoRetencion] ?? review.motivoRetencion}
+                </p>
+              )}
+              <p className="text-xs text-orange-600/80 dark:text-orange-500 mt-2">
+                Velacre no ha generado respuesta automática. Se te ha enviado un email de aviso. Responde manualmente desde Google Business.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Actions footer */}
       <div className="px-6 pb-5 flex items-center justify-between gap-3 flex-wrap">
         <div>
-          {!hasGenerated && !hasError && estado === 'respondida' && (
+          {!isRetenida && !hasGenerated && !hasError && estado === 'respondida' && (
             review.tonoGenerado === 'google' ? (
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 Respondida directamente en Google.{' '}
@@ -981,7 +1047,7 @@ function DetailPanel({
               </p>
             )
           )}
-          {!hasGenerated && !hasError && estado !== 'respondida' && (
+          {!isRetenida && !hasGenerated && !hasError && estado !== 'respondida' && (
             <button
               onClick={onGenerate}
               disabled={isGenerating}
@@ -994,7 +1060,7 @@ function DetailPanel({
               )}
             </button>
           )}
-          {hasError && (
+          {!isRetenida && hasError && (
             <button onClick={onRetry} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
               Reintentar
             </button>

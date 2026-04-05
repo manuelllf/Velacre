@@ -77,7 +77,7 @@ public class ClaudeService : IReviewAiService
         }
     }
 
-    public async Task<(string Response, string ContextoCliente, string ContextoRespuesta, string[] KeywordsUsadas)> GenerateSingleResponseWithContextAsync(
+    public async Task<(string Response, string ContextoCliente, string ContextoRespuesta, string[] KeywordsUsadas, bool Retenida, string MotivoRetencion)> GenerateSingleResponseWithContextAsync(
         string reviewText, string businessDesc, string tone, string reviewLanguage, string[]? keywords = null)
     {
         var instructions = tone.ToLower() switch
@@ -97,17 +97,26 @@ public class ClaudeService : IReviewAiService
             $"Responde SIEMPRE en el mismo idioma que la reseña (código '{reviewLanguage}'). " +
             $"Si la reseña no tiene texto, agradece la valoración basándote en las estrellas. " +
             keywordsBlock +
+            "IMPORTANTE — Filtro de seguridad: antes de generar la respuesta evalúa si la reseña describe alguna de estas situaciones críticas que requieren atención humana urgente: " +
+            "(1) intoxicación alimentaria real o enfermedad grave por consumo del producto, " +
+            "(2) acusaciones concretas de agresión física, malos tratos o acoso grave a un empleado o cliente, " +
+            "(3) amenaza explícita de denuncia judicial o demanda legal, " +
+            "(4) datos personales sensibles del cliente (nombre completo + datos médicos, datos bancarios, etc.). " +
+            "Si detectas alguna de estas situaciones, devuelve retenida:true con motivoRetencion ('intoxicacion'|'maltrato'|'amenaza_legal'|'datos_personales') y respuesta:null. " +
+            "Si no, genera la respuesta normalmente con retenida:false y motivoRetencion:null. " +
             "Devuelve ÚNICAMENTE este JSON (sin markdown):\n" +
-            "{\"respuesta\":\"<máx 150 palabras, mismo idioma que la reseña>\"," +
+            "{\"respuesta\":\"<máx 150 palabras, mismo idioma que la reseña, o null si retenida>\"," +
             "\"contextoCliente\":\"<1 frase en español>\"," +
             "\"contextoRespuesta\":\"<1 frase en español>\"," +
-            "\"keywordsUsadas\":[\"<keywords usadas, array vacío si ninguna>\"]}";
+            "\"keywordsUsadas\":[\"<keywords usadas, array vacío si ninguna>\"]," +
+            "\"retenida\":false," +
+            "\"motivoRetencion\":null}";
 
         var parameters = new MessageParameters
         {
             Messages = [new Message(RoleType.User, $"Reseña: '{reviewText}'")],
             Model = _model,
-            MaxTokens = 450,
+            MaxTokens = 500,
             Temperature = 0.7m,
             System = [new SystemMessage(systemPrompt)]
         };
@@ -125,10 +134,12 @@ public class ClaudeService : IReviewAiService
                 if (jsonStart >= 0 && jsonEnd > jsonStart)
                 {
                     var doc = System.Text.Json.JsonDocument.Parse(raw[jsonStart..(jsonEnd + 1)]);
-                    var respuesta        = doc.RootElement.GetProperty("respuesta").GetString() ?? "";
-                    var contextoCliente  = doc.RootElement.GetProperty("contextoCliente").GetString() ?? "";
-                    var contextoResp     = doc.RootElement.GetProperty("contextoRespuesta").GetString() ?? "";
-                    string[] kwUsadas    = [];
+                    var respuesta       = doc.RootElement.TryGetProperty("respuesta", out var rp) && rp.ValueKind != System.Text.Json.JsonValueKind.Null ? rp.GetString() ?? "" : "";
+                    var contextoCliente = doc.RootElement.TryGetProperty("contextoCliente", out var cc) ? cc.GetString() ?? "" : "";
+                    var contextoResp    = doc.RootElement.TryGetProperty("contextoRespuesta", out var cr) ? cr.GetString() ?? "" : "";
+                    var retenida        = doc.RootElement.TryGetProperty("retenida", out var ret) && ret.ValueKind == System.Text.Json.JsonValueKind.True;
+                    var motivo          = doc.RootElement.TryGetProperty("motivoRetencion", out var mv) && mv.ValueKind != System.Text.Json.JsonValueKind.Null ? mv.GetString() ?? "" : "";
+                    string[] kwUsadas   = [];
                     if (doc.RootElement.TryGetProperty("keywordsUsadas", out var kwElement) && kwElement.ValueKind == System.Text.Json.JsonValueKind.Array)
                     {
                         kwUsadas = kwElement.EnumerateArray()
@@ -136,15 +147,16 @@ public class ClaudeService : IReviewAiService
                             .Where(s => !string.IsNullOrWhiteSpace(s))
                             .ToArray();
                     }
-                    return (respuesta, contextoCliente, contextoResp, kwUsadas);
+                    if (retenida) _logger.LogWarning("[ClaudeService] Reseña retenida por seguridad: motivo={Motivo}", motivo);
+                    return (respuesta, contextoCliente, contextoResp, kwUsadas, retenida, motivo);
                 }
 
                 _logger.LogWarning("[ClaudeService] GenerateSingleResponseWithContextAsync: JSON no encontrado en respuesta");
-                return (raw.Trim(), "", "", []);
+                return (raw.Trim(), "", "", [], false, "");
             }
             catch (Exception ex) when (attempt < maxRetries && ex.Message.Contains("overloaded_error"))
             {
-                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt)); // 2s, 4s
+                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt));
                 _logger.LogWarning("[ClaudeService] Overloaded (intento {Attempt}/{Max}), reintentando en {Delay}s...", attempt, maxRetries, delay.TotalSeconds);
                 await Task.Delay(delay);
             }

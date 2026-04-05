@@ -9,9 +9,9 @@ public interface IReviewAiService
 
     /// <summary>
     /// Genera la respuesta en el idioma de la reseña e incluye contexto en español en una sola llamada.
-    /// Devuelve (respuesta, contextoCliente, contextoRespuesta).
+    /// Si detecta contenido crítico (intoxicación, maltrato, amenaza legal, datos sensibles) devuelve Retenida=true.
     /// </summary>
-    Task<(string Response, string ContextoCliente, string ContextoRespuesta, string[] KeywordsUsadas)> GenerateSingleResponseWithContextAsync(
+    Task<(string Response, string ContextoCliente, string ContextoRespuesta, string[] KeywordsUsadas, bool Retenida, string MotivoRetencion)> GenerateSingleResponseWithContextAsync(
         string reviewText, string businessDesc, string tone, string reviewLanguage, string[]? keywords = null);
 
     Task<string> GetClaudeMessageAsync(string userPrompt, string systemPrompt);
