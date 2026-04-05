@@ -1005,8 +1005,8 @@ export default function SaludPage() {
 
               {/* Resultado del análisis */}
               {/* DEBUG — borrar tras confirmar */}
-              <pre className="text-[10px] text-green-400 bg-black/40 rounded p-2 overflow-auto max-h-40 mb-2">
-                radarResultado: {JSON.stringify(radarResultado, null, 2)}
+              <pre className="text-[10px] text-green-400 bg-black/40 rounded p-2 overflow-auto max-h-60 mb-2">
+                ultimoAnalisis: {JSON.stringify(radarData?.ultimoAnalisis, null, 2)}
               </pre>
 
               {radarResultado && (
