@@ -558,6 +558,7 @@ frontend/src/
 - Modelo: precio base primer local (ej. €45/mes Pro) + add-on por local adicional (ej. €20/mes).
 - Implementación: quantity en Stripe/LS o add-on de "sede adicional".
 - Gestión manual mientras no haya demanda validada (primeros clientes).
+- ⚠️ **Al implementar esta feature, revisar y actualizar la tabla de planes de pago** (sistema de planes, precios, variantes LS) para reflejar el nuevo modelo de precios.
 
 ### Ideas futuras (post-GBP + tracción)
 - **Marca blanca (Enterprise+):** agencias pueden ofrecer Velacre con su logo/colores a sus clientes. +100€/mes.
