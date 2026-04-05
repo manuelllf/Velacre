@@ -7,6 +7,9 @@ public interface IOutscraperService
     /// sinceDate = fecha → sync incremental (solo nuevas desde esa fecha)
     /// </summary>
     Task<List<OutscraperReview>> GetReviewsAsync(string placeId, DateTimeOffset? sinceDate = null);
+
+    /// <summary>Obtiene las últimas N reseñas de un competidor para análisis comparativo.</summary>
+    Task<List<OutscraperReview>> GetCompetitorReviewsAsync(string placeId, int limit = 20);
 }
 
 public record OutscraperReview(

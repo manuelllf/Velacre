@@ -169,6 +169,61 @@ public class ClaudeService : IReviewAiService
         throw new InvalidOperationException("Claude API overloaded tras 3 intentos");
     }
 
+    public async Task<string> GenerateRadarAnalysisAsync(
+        string miNegocioNombre,
+        List<string> misResenas,
+        List<(string Nombre, List<string> Resenas)> competidores)
+    {
+        _logger.LogInformation("[ClaudeService] GenerateRadarAnalysisAsync — negocio={Negocio}, competidores={Count}", miNegocioNombre, competidores.Count);
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"## Tu negocio: {miNegocioNombre}");
+        sb.AppendLine($"Últimas reseñas ({misResenas.Count}):");
+        foreach (var r in misResenas.Take(25)) sb.AppendLine($"- {r}");
+
+        foreach (var (nombre, resenas) in competidores)
+        {
+            sb.AppendLine($"\n## Competidor: {nombre}");
+            sb.AppendLine($"Últimas reseñas ({resenas.Count}):");
+            foreach (var r in resenas.Take(20)) sb.AppendLine($"- {r}");
+        }
+
+        var competidoresSchema = string.Join(",", competidores.Select(c =>
+            $"{{\"nombre\":\"{c.Nombre}\",\"fortaleza\":\"...\",\"debilidad\":\"...\",\"amenaza\":\"alta|media|baja\"}}"));
+
+        var systemPrompt =
+            "Eres un experto en reputación online para hostelería. Analiza las reseñas reales de un negocio y sus competidores. " +
+            "Sé específico, directo y accionable — nada de frases genéricas. Máximo 2 frases por campo. " +
+            "Devuelve ÚNICAMENTE este JSON (sin markdown):\n" +
+            "{\"tuFortaleza\":\"...\",\"tuDebilidad\":\"...\"," +
+            "\"competidores\":[{\"nombre\":\"...\",\"fortaleza\":\"...\",\"debilidad\":\"...\",\"amenaza\":\"alta|media|baja\"}]," +
+            "\"oportunidades\":[\"...\",\"...\"]," +
+            "\"accion\":\"Una acción concreta que puedes hacer esta semana\"}";
+
+        var parameters = new MessageParameters
+        {
+            Messages = [new Message(RoleType.User, sb.ToString())],
+            Model    = _model,
+            MaxTokens = 700,
+            Temperature = 0.5m,
+            System = [new SystemMessage(systemPrompt)]
+        };
+
+        try
+        {
+            var response = await _client.Messages.GetClaudeMessageAsync(parameters);
+            var raw = response.Content.FirstOrDefault()?.ToString() ?? "{}";
+            var jsonStart = raw.IndexOf('{');
+            var jsonEnd   = raw.LastIndexOf('}');
+            return jsonStart >= 0 && jsonEnd > jsonStart ? raw[jsonStart..(jsonEnd + 1)] : raw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ClaudeService] Error en GenerateRadarAnalysisAsync");
+            throw;
+        }
+    }
+
     private async Task<string> GenerateSingleAsync(
         string reviewText, string businessDesc, string tone, string toneInstructions)
     {

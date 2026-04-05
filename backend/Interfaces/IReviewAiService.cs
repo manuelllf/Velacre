@@ -15,4 +15,13 @@ public interface IReviewAiService
         string reviewText, string businessDesc, string tone, string reviewLanguage, string[]? keywords = null);
 
     Task<string> GetClaudeMessageAsync(string userPrompt, string systemPrompt);
+
+    /// <summary>
+    /// Genera un análisis comparativo de reputación frente a competidores.
+    /// Devuelve JSON con tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion.
+    /// </summary>
+    Task<string> GenerateRadarAnalysisAsync(
+        string miNegocioNombre,
+        List<string> misResenas,
+        List<(string Nombre, List<string> Resenas)> competidores);
 }

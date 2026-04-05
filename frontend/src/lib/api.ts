@@ -559,3 +559,75 @@ export async function createUsuario(data: {
   }
   console.log('[api] createUsuario ← OK')
 }
+
+// ── Radar de competencia ─────────────────────────────────────────────────────
+
+export interface Competidor {
+  id: string
+  placeId: string
+  nombre: string
+  createdAt: string
+}
+
+export interface RadarCompetidorResult {
+  nombre: string
+  fortaleza: string
+  debilidad: string
+  amenaza: 'alta' | 'media' | 'baja'
+}
+
+export interface RadarAnalisisResult {
+  id: string
+  createdAt: string
+  resultado: {
+    tuFortaleza: string
+    tuDebilidad: string
+    competidores: RadarCompetidorResult[]
+    oportunidades: string[]
+    accion: string
+  } | null
+}
+
+export interface RadarData {
+  competidores: Competidor[]
+  ultimoAnalisis: RadarAnalisisResult | null
+}
+
+export async function getRadar(): Promise<RadarData> {
+  const res = await fetch(`${API_URL}/api/radar`, { headers: await authHeaders() })
+  if (!res.ok) throw new ApiError(res.status, await res.text())
+  return res.json()
+}
+
+export async function addCompetidor(placeId: string, nombre: string): Promise<Competidor> {
+  const res = await fetch(`${API_URL}/api/radar/competidores`, {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ placeId, nombre }),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new ApiError(res.status, (data as { error?: string }).error ?? 'Error', data as Record<string, unknown>)
+  }
+  return res.json()
+}
+
+export async function removeCompetidor(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/radar/competidores/${id}`, {
+    method: 'DELETE',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new ApiError(res.status, await res.text())
+}
+
+export async function runRadarAnalysis(): Promise<RadarAnalisisResult> {
+  const res = await fetch(`${API_URL}/api/radar/analizar`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new ApiError(res.status, (data as { error?: string }).error ?? 'Error', data as Record<string, unknown>)
+  }
+  return res.json()
+}

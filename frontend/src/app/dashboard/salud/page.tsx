@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData } from '@/lib/api'
+import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, getRadar, addCompetidor, removeCompetidor, runRadarAnalysis, searchPlaces, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData, type RadarData } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import WaitlistModal from '@/components/WaitlistModal'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, computeSpeedBenchmark, type MonthMetrics, type SpeedBenchmark } from '@/lib/report-pdf'
@@ -72,6 +72,15 @@ export default function SaludPage() {
   const [basicUpsellPlan, setBasicUpsellPlan] = useState<'core' | 'pro' | null>(null)
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null)
 
+  // ── Radar de Competencia ──────────────────────────────────────
+  const [radarData, setRadarData] = useState<RadarData | null>(null)
+  const [loadingRadar, setLoadingRadar] = useState(false)
+  const [analyzingRadar, setAnalyzingRadar] = useState(false)
+  const [radarError, setRadarError] = useState('')
+  const [radarSearch, setRadarSearch] = useState('')
+  const [radarSearchResults, setRadarSearchResults] = useState<{ placeId: string; name: string; address: string }[]>([])
+  const [radarSearching, setRadarSearching] = useState(false)
+
   useEffect(() => {
     async function init() {
       const { data: { session } } = await supabase.auth.getSession()
@@ -84,7 +93,8 @@ export default function SaludPage() {
           getAnalysis().catch(() => null),
         ])
         setIsAdmin(u.isAdmin)
-        setUserPlan(u.plan ?? 'basic')
+        const plan = u.plan ?? 'basic'
+        setUserPlan(plan)
         if (!n) { router.replace('/onboarding'); return }
         setNegocio(n)
         setReviews(r)
@@ -92,6 +102,9 @@ export default function SaludPage() {
         if (ad) {
           setAnalysisData(ad)
           if (ad.analysis) setSummary({ brilla: ad.analysis.brilla, quema: ad.analysis.quema, accion: ad.analysis.accion })
+        }
+        if (plan === 'pro') {
+          getRadar().then(rd => setRadarData(rd)).catch(() => null)
         }
       } catch (err) {
         // Solo redirigir al login en errores de sesión (401), no en errores de red
@@ -125,6 +138,54 @@ export default function SaludPage() {
         }
       })
       .finally(() => setLoadingSummary(false))
+  }
+
+  async function handleRadarSearch(query: string) {
+    if (!query.trim()) { setRadarSearchResults([]); return }
+    setRadarSearching(true)
+    try {
+      const results = await searchPlaces(query)
+      setRadarSearchResults(results.map(p => ({ placeId: p.placeId, name: p.name, address: p.address })))
+    } catch { setRadarSearchResults([]) }
+    finally { setRadarSearching(false) }
+  }
+
+  async function handleAddCompetidor(placeId: string, nombre: string) {
+    setRadarError('')
+    try {
+      await addCompetidor(placeId, nombre)
+      const rd = await getRadar()
+      setRadarData(rd)
+      setRadarSearch('')
+      setRadarSearchResults([])
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error'
+      if (msg.includes('max_competidores')) setRadarError('Máximo 3 competidores.')
+      else if (msg.includes('ya_existe')) setRadarError('Este competidor ya está añadido.')
+      else setRadarError(msg)
+    }
+  }
+
+  async function handleRemoveCompetidor(id: string) {
+    setRadarError('')
+    try {
+      await removeCompetidor(id)
+      setRadarData(prev => prev ? { ...prev, competidores: prev.competidores.filter(c => c.id !== id) } : prev)
+    } catch { setRadarError('Error al eliminar competidor.') }
+  }
+
+  async function handleRunRadar() {
+    setAnalyzingRadar(true)
+    setRadarError('')
+    try {
+      const result = await runRadarAnalysis()
+      setRadarData(prev => prev ? { ...prev, ultimoAnalisis: result } : { competidores: [], ultimoAnalisis: result })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al analizar'
+      if (msg.includes('sin_competidores')) setRadarError('Añade al menos un competidor antes de analizar.')
+      else if (msg.includes('sin_resenas_propias')) setRadarError('Necesitas reseñas propias en el sistema para comparar.')
+      else setRadarError(msg)
+    } finally { setAnalyzingRadar(false) }
   }
 
   if (loading) {
@@ -798,6 +859,196 @@ export default function SaludPage() {
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* ── RADAR DE COMPETENCIA ── */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Radar de competencia</p>
+                  <p className="text-sm text-slate-400 mt-0.5">Compara tu reputación con la competencia usando IA</p>
+                </div>
+                {radarData?.ultimoAnalisis && (
+                  <span className="text-[11px] text-slate-600">
+                    {(() => {
+                      const d = new Date(radarData.ultimoAnalisis.createdAt)
+                      return isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                    })()}
+                  </span>
+                )}
+              </div>
+
+              {/* Competidores añadidos */}
+              <div className="mb-4">
+                {radarData && radarData.competidores.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {radarData.competidores.map(c => (
+                      <div key={c.id} className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5">
+                        <span className="text-sm text-slate-200">{c.nombre}</span>
+                        <button
+                          onClick={() => handleRemoveCompetidor(c.id)}
+                          className="text-slate-500 hover:text-red-400 transition-colors"
+                          title="Eliminar"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 mb-3">Sin competidores añadidos.</p>
+                )}
+
+                {/* Buscar competidor */}
+                {(!radarData || radarData.competidores.length < 3) && (
+                  <div className="relative">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={radarSearch}
+                        onChange={e => {
+                          setRadarSearch(e.target.value)
+                          if (e.target.value.length >= 3) handleRadarSearch(e.target.value)
+                          else setRadarSearchResults([])
+                        }}
+                        placeholder="Busca un negocio por nombre o dirección…"
+                        className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                      />
+                      {radarSearching && (
+                        <div className="flex items-center px-2">
+                          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    {radarSearchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden z-10 shadow-xl">
+                        {radarSearchResults.slice(0, 5).map(r => (
+                          <button
+                            key={r.placeId}
+                            onClick={() => handleAddCompetidor(r.placeId, r.name)}
+                            className="w-full text-left px-4 py-3 hover:bg-slate-700 transition-colors border-b border-slate-700 last:border-0"
+                          >
+                            <p className="text-sm font-medium text-slate-200">{r.name}</p>
+                            <p className="text-xs text-slate-500 truncate">{r.address}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {radarError && (
+                <p className="text-sm text-red-400 mb-3">{radarError}</p>
+              )}
+
+              {/* Botón analizar */}
+              {radarData && radarData.competidores.length > 0 && (
+                <button
+                  onClick={handleRunRadar}
+                  disabled={analyzingRadar}
+                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                >
+                  {analyzingRadar ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Analizando…
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      {radarData.ultimoAnalisis ? 'Re-analizar' : 'Analizar ahora'}
+                    </>
+                  )}
+                </button>
+              )}
+
+              {/* Resultado del análisis */}
+              {radarData?.ultimoAnalisis?.resultado && (() => {
+                const r = radarData.ultimoAnalisis!.resultado!
+                return (
+                  <div className="space-y-4">
+                    {/* Tu negocio */}
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="bg-emerald-950/40 border border-emerald-900/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                          <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Tu fortaleza</p>
+                        </div>
+                        <p className="text-sm text-slate-200 leading-relaxed">{r.tuFortaleza}</p>
+                      </div>
+                      <div className="bg-red-950/40 border border-red-900/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                          <p className="text-xs font-bold text-red-400 uppercase tracking-wider">Tu debilidad</p>
+                        </div>
+                        <p className="text-sm text-slate-200 leading-relaxed">{r.tuDebilidad}</p>
+                      </div>
+                    </div>
+
+                    {/* Competidores */}
+                    {r.competidores && r.competidores.length > 0 && (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-700">
+                              <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Competidor</th>
+                              <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fortaleza</th>
+                              <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Debilidad</th>
+                              <th className="text-left py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Amenaza</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {r.competidores.map((c, i) => (
+                              <tr key={i} className="border-b border-slate-800 last:border-0">
+                                <td className="py-2.5 pr-4 font-medium text-slate-200">{c.nombre}</td>
+                                <td className="py-2.5 pr-4 text-slate-400">{c.fortaleza}</td>
+                                <td className="py-2.5 pr-4 text-slate-400">{c.debilidad}</td>
+                                <td className="py-2.5">
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                    c.amenaza === 'alta' ? 'bg-red-900/50 text-red-300' :
+                                    c.amenaza === 'media' ? 'bg-yellow-900/50 text-yellow-300' :
+                                    'bg-slate-700 text-slate-400'
+                                  }`}>
+                                    {c.amenaza}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* Oportunidades + Acción */}
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {r.oportunidades && r.oportunidades.length > 0 && (
+                        <div className="bg-blue-950/40 border border-blue-900/50 rounded-xl p-4">
+                          <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">Oportunidades</p>
+                          <ul className="space-y-1">
+                            {r.oportunidades.map((op, i) => (
+                              <li key={i} className="text-sm text-slate-200 flex gap-2">
+                                <span className="text-blue-500 shrink-0">→</span>
+                                {op}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {r.accion && (
+                        <div className="bg-violet-950/40 border border-violet-900/50 rounded-xl p-4">
+                          <p className="text-xs font-bold text-violet-400 uppercase tracking-wider mb-2">Acción esta semana</p>
+                          <p className="text-sm text-slate-200 leading-relaxed">{r.accion}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           </>
         )}
