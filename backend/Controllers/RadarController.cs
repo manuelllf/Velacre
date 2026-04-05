@@ -59,9 +59,10 @@ public class RadarController : ControllerBase
             }),
             ultimoAnalisis = ultimoAnalisis == null ? null : new
             {
-                id         = ultimoAnalisis.Id,
-                createdAt  = ultimoAnalisis.CreatedAt,
-                resultado  = ParseAnalisisJson(ultimoAnalisis.ResultadoJson),
+                id           = ultimoAnalisis.Id,
+                createdAt    = ultimoAnalisis.CreatedAt,
+                resultado    = ParseAnalisisJson(ultimoAnalisis.ResultadoJson),
+                resultadoRaw = ultimoAnalisis.ResultadoJson,   // DEBUG
             }
         });
     }

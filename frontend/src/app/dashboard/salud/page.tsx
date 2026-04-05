@@ -275,7 +275,23 @@ export default function SaludPage() {
   const speedBenchmark: SpeedBenchmark | null = computeSpeedBenchmark(reviews)
 
   // ── Radar: computed ──────────────────────────────────────────
-  const radarResultado = radarData?.ultimoAnalisis?.resultado ?? null
+  // Si resultado viene null del backend (bug ParseAnalisisJson), intentar parsear el raw en cliente
+  const radarResultado = (() => {
+    const ua = radarData?.ultimoAnalisis
+    if (!ua) return null
+    if (ua.resultado) return ua.resultado
+    if (ua.resultadoRaw) {
+      try {
+        const parsed = JSON.parse(ua.resultadoRaw)
+        console.log('[Radar] resultado parseado en cliente desde resultadoRaw:', parsed)
+        return parsed as NonNullable<typeof ua.resultado>
+      } catch (e) {
+        console.error('[Radar] resultadoRaw no es JSON válido:', ua.resultadoRaw, e)
+      }
+    }
+    console.warn('[Radar] ultimoAnalisis existe pero resultado y resultadoRaw son null/vacíos', ua)
+    return null
+  })()
   const radarAnalisisDate = radarData?.ultimoAnalisis
     ? new Date(radarData.ultimoAnalisis.createdAt) : null
   const canAnalizar = !radarAnalisisDate ||
