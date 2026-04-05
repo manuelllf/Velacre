@@ -222,7 +222,7 @@ function pdfFooter(doc: any, W: number, ML: number, MR: number) {
     doc.setTextColor(...LIGHT); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
     const dt = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
     doc.text(`Generado por Velacre - velacre.com - ${dt}`, ML, 291)
-    doc.text(`Pag. ${p} / ${n}`, MR, 291, { align: 'right' })
+    doc.text(`Pág. ${p} / ${n}`, MR, 291, { align: 'right' })
   }
 }
 
@@ -269,7 +269,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   const slug = safe(data.negocioNombre).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
   // CABECERA
-  pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revision mensual - ${mLabel}`)
+  pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revisión mensual - ${mLabel}`)
   y = 38
 
   // SUBHEADER negocio: teléfono y email si disponibles
@@ -284,9 +284,9 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
 
   // TITULO
   c(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(14)
-  doc.text(`Revision mensual: ${mLabel}`, ML, y)
+  doc.text(`Revisión mensual: ${mLabel}`, ML, y)
   c(MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(8)
-  doc.text(pLabel ? `Comparativa con ${pLabel} incluida` : 'Analisis del mes en curso', ML, y + 6)
+  doc.text(pLabel ? `Comparativa con ${pLabel} incluida` : 'Análisis del mes en curso', ML, y + 6)
   y += 16
 
   // SECTION 1: KPIs del mes — 2 filas de 3
@@ -298,7 +298,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   const kpis3rows: Array<{ label: string; val: string; vt: ReturnType<typeof varText>; up: boolean; col: RGB }[]> = [
     [
       { label: 'Nota media', val: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cm.avgRating, pm?.avgRating ?? null, 2), up: true, col: AMBER },
-      { label: 'Resenas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
+      { label: 'Reseñas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
       { label: 'Sin respuesta', val: String(pendingCount), vt: varText(pendingCount, null, 0), up: false, col: pendingCount > 0 ? RED : GREEN },
     ],
     [
@@ -336,7 +336,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
     // Fila de 3 mini KPIs
     const sbW = CW / 3
     const sbKpis = [
-      { label: 'Media de respuesta', val: sb.avgDays < 1 ? `${Math.round(sb.avgDays * 24)}h` : `${sb.avgDays.toFixed(1)} dias`, col: sb.avgDays < 2 ? GREEN : RED },
+      { label: 'Media de respuesta', val: sb.avgDays < 1 ? `${Math.round(sb.avgDays * 24)}h` : `${sb.avgDays.toFixed(1)} días`, col: sb.avgDays < 2 ? GREEN : RED },
       { label: 'Respondidas en <48h', val: `${sb.pct48h.toFixed(0)}%`, col: sb.pct48h >= 80 ? GREEN : sb.pct48h >= 50 ? AMBER : RED },
       { label: 'Respondidas en <24h', val: `${sb.pct24h.toFixed(0)}%`, col: sb.pct24h >= 60 ? GREEN : sb.pct24h >= 30 ? AMBER : RED },
     ]
@@ -375,7 +375,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
       lx += 38
     })
     c(LIGHT); doc.setFontSize(6)
-    doc.text(`Benchmark Google: responder en < 48h. Basado en ${sb.totalResponded} resenas respondidas.`, ML, y + 9)
+    doc.text(`Benchmark Google: responder en < 48h. Basado en ${sb.totalResponded} reseñas respondidas.`, ML, y + 9)
     y += 14
   }
 
@@ -385,14 +385,14 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   const totalStars = sc.slice(1).reduce((a, b) => a + b, 0)
   if (totalStars > 0) {
     if (y > 230) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'DISTRIBUCION DE ESTRELLAS', y, ML)
+    sectionLabel(doc, 'DISTRIBUCIÓN DE ESTRELLAS', y, ML)
     y += 13
 
     const BAR_MAX = 80  // mm máx para la barra
     const COL_LABEL = 20, COL_BAR = BAR_MAX, COL_NUM = 14, COL_PCT = 16, COL_PREV = 22
     // cabecera
     doc.setFont('helvetica', 'bold'); doc.setFontSize(7); c(MID)
-    doc.text('Estrellas', ML, y + 4); doc.text('Resenas', ML + COL_LABEL + COL_BAR + 2, y + 4)
+    doc.text('Estrellas', ML, y + 4); doc.text('Reseñas', ML + COL_LABEL + COL_BAR + 2, y + 4)
     doc.text('%', ML + COL_LABEL + COL_BAR + COL_NUM + 2, y + 4)
     if (sp) doc.text(safe(pLabel ?? 'Anterior'), ML + COL_LABEL + COL_BAR + COL_NUM + COL_PCT + 2, y + 4)
     y += 7
@@ -435,14 +435,14 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
     y += 13
 
     const cW1 = 56, cW2 = 36, cW3 = 36, cW4 = 46  // 174mm
-    y = tableHeader(doc, ['Indicador', mLabel, pLabel, 'Variacion'], [cW1, cW2, cW3, cW4], y, ML)
+    y = tableHeader(doc, ['Indicador', mLabel, pLabel, 'Variación'], [cW1, cW2, cW3, cW4], y, ML)
 
     const rows = [
       { m: 'Nota media', cv: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : '—', pv: pm.avgRating != null ? `${pm.avgRating.toFixed(2)} / 5` : '—', vt: varText(cm.avgRating, pm.avgRating, 2), up: true },
-      { m: 'Resenas recibidas', cv: String(cm.count), pv: String(pm.count), vt: varText(cm.count, pm.count, 0), up: true },
+      { m: 'Reseñas recibidas', cv: String(cm.count), pv: String(pm.count), vt: varText(cm.count, pm.count, 0), up: true },
       { m: 'Positivas (4-5)', cv: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(1)}%` : '—', pv: pm.positiveRatio != null ? `${pm.positiveRatio.toFixed(1)}%` : '—', vt: varText(cm.positiveRatio, pm.positiveRatio, 1), up: true },
       { m: 'Negativas (1-2)', cv: cm.negativeRatio != null ? `${cm.negativeRatio.toFixed(1)}%` : '—', pv: pm.negativeRatio != null ? `${pm.negativeRatio.toFixed(1)}%` : '—', vt: varText(cm.negativeRatio, pm.negativeRatio, 1), up: false },
-      { m: 'Indice respuesta', cv: cm.responseRate != null ? `${cm.responseRate.toFixed(1)}%` : '—', pv: pm.responseRate != null ? `${pm.responseRate.toFixed(1)}%` : '—', vt: varText(cm.responseRate, pm.responseRate, 1), up: true },
+      { m: 'Índice de respuesta', cv: cm.responseRate != null ? `${cm.responseRate.toFixed(1)}%` : '—', pv: pm.responseRate != null ? `${pm.responseRate.toFixed(1)}%` : '—', vt: varText(cm.responseRate, pm.responseRate, 1), up: true },
     ]
     rows.forEach((row, idx) => {
       d(S200); doc.setLineWidth(0.1)
@@ -456,7 +456,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
         c(good ? GREEN : RED); doc.setFont('helvetica', 'bold')
         doc.text(row.vt.text, ML + cW1 + cW2 + cW3 + 3, y + 4.5)
         doc.setFont('helvetica', 'normal')
-      } else { c(LIGHT); doc.text('Sin variacion', ML + cW1 + cW2 + cW3 + 3, y + 4.5) }
+      } else { c(LIGHT); doc.text('Sin variación', ML + cW1 + cW2 + cW3 + 3, y + 4.5) }
       y += 6.5
     })
     y += 8
@@ -465,11 +465,11 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   // SECTION 3: Evolución en el año
   if (data.yearMonths.length > 0) {
     if (y > 210) { doc.addPage(); y = 20 }
-    sectionLabel(doc, `EVOLUCION MES A MES EN ${cm.year}`, y, ML)
+    sectionLabel(doc, `EVOLUCIÓN MES A MES EN ${cm.year}`, y, ML)
     y += 13
 
     const tw = [34, 18, 24, 20, 24, 24, 30]  // 174mm
-    y = tableHeader(doc, ['Mes', 'Resenas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML)
+    y = tableHeader(doc, ['Mes', 'Reseñas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML)
 
     data.yearMonths.forEach((m, idx) => {
       if (y > 272) { doc.addPage(); y = 20 }
@@ -520,19 +520,19 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
     const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
     const neuKw = data.keywords.filter(k => k.sentiment === 'neutral').map(k => safe(k.word))
     if (posKw.length > 0) {
-      c(GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionado positivo:', ML, y + 3.5)
+      c(GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionadas positivas:', ML, y + 3.5)
       c(MID); doc.setFont('helvetica', 'normal')
       const ln = doc.splitTextToSize(posKw.join('  -  '), CW - 42) as string[]
       doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
     }
     if (negKw.length > 0) {
-      c(RED); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionado negativo:', ML, y + 3.5)
+      c(RED); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionadas negativas:', ML, y + 3.5)
       c(MID); doc.setFont('helvetica', 'normal')
       const ln = doc.splitTextToSize(negKw.join('  -  '), CW - 42) as string[]
       doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
     }
     if (neuKw.length > 0) {
-      c(AMBER); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionado neutral:', ML, y + 3.5)
+      c(AMBER); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionadas neutras:', ML, y + 3.5)
       c(MID); doc.setFont('helvetica', 'normal')
       const ln = doc.splitTextToSize(neuKw.join('  -  '), CW - 42) as string[]
       doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
@@ -543,12 +543,12 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   // SECTION 5: IA
   if (data.summary) {
     if (y > 205) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'DIAGNOSTICO IA', y, ML)
+    sectionLabel(doc, 'DIAGNÓSTICO IA', y, ML)
     y += 13
     const ins = [
       { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: [240, 253, 244] as RGB },
       { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: [254, 242, 242] as RGB },
-      { l: 'Accion recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: [238, 242, 255] as RGB },
+      { l: 'Acción recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: [238, 242, 255] as RGB },
     ]
     ins.forEach(i => {
       if (y > 255) { doc.addPage(); y = 20 }
@@ -561,7 +561,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
       y += bh + 4
     })
     c(LIGHT); doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5)
-    doc.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
+    doc.text('Análisis generado automáticamente por Claude (Anthropic). Carácter orientativo.', ML, y)
     y += 5
   }
 
@@ -592,7 +592,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   const py = data.allYears.find(yr => yr.year === data.currentYear - 1) ?? null
 
   // CABECERA
-  pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revision anual - ${data.currentYear}`)
+  pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revisión anual - ${data.currentYear}`)
   y = 38
 
   // TITULO
@@ -610,7 +610,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
     const kW = CW / 4
     const kpis = [
       { label: `Nota media ${data.currentYear}`, val: cy.avgRating != null ? `${cy.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cy.avgRating, py?.avgRating ?? null, 2), up: true, col: AMBER },
-      { label: `Resenas ${data.currentYear}`, val: String(cy.count), vt: varText(cy.count, py?.count ?? null, 0), up: true, col: INDIGO },
+      { label: `Reseñas ${data.currentYear}`, val: String(cy.count), vt: varText(cy.count, py?.count ?? null, 0), up: true, col: INDIGO },
       { label: 'Positivas (4-5)', val: cy.positiveRatio != null ? `${cy.positiveRatio.toFixed(0)}%` : '—', vt: varText(cy.positiveRatio, py?.positiveRatio ?? null, 1), up: true, col: GREEN },
       { label: 'Respondidas', val: cy.responseRate != null ? `${cy.responseRate.toFixed(0)}%` : '—', vt: varText(cy.responseRate, py?.responseRate ?? null, 1), up: true, col: INDIGO },
     ]
@@ -630,12 +630,12 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   }
 
   // SECTION 2: Evolución interanual
-  sectionLabel(doc, 'EVOLUCION INTERANUAL (POR EJERCICIO)', y, ML)
+  sectionLabel(doc, 'EVOLUCIÓN INTERANUAL (POR EJERCICIO)', y, ML)
   y += 13
 
   // cols: Ejercicio | Resenas | Nota | Var.nota | Positivas | Negativas | Respondidas = 174mm
   const yw = [22, 22, 28, 24, 26, 26, 26]
-  y = tableHeader(doc, ['Ejercicio', 'Resenas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML)
+  y = tableHeader(doc, ['Ejercicio', 'Reseñas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML)
 
   data.allYears.forEach((yr, idx) => {
     const prevYr = data.allYears[idx + 1] ?? null  // más antiguo (lista desc)
@@ -669,7 +669,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
     y += 13
 
     const mw = [34, 18, 28, 20, 26, 26, 22]  // 174mm
-    y = tableHeader(doc, ['Mes', 'Resenas', 'Nota media', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], mw, y, ML)
+    y = tableHeader(doc, ['Mes', 'Reseñas', 'Nota media', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], mw, y, ML)
 
     data.currentYearMonths.forEach((m, idx) => {
       if (y > 272) { doc.addPage(); y = 20 }
@@ -699,7 +699,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   // SECTION 4: Keywords
   if (data.keywords.length > 0) {
     if (y > 235) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'PALABRAS MAS MENCIONADAS', y, ML)
+    sectionLabel(doc, 'PALABRAS MÁS MENCIONADAS', y, ML)
     y += 13
     const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
     const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
@@ -721,12 +721,12 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
   // SECTION 5: IA
   if (data.summary) {
     if (y > 205) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'DIAGNOSTICO IA', y, ML)
+    sectionLabel(doc, 'DIAGNÓSTICO IA', y, ML)
     y += 13
     const ins = [
       { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: [240, 253, 244] as RGB },
       { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: [254, 242, 242] as RGB },
-      { l: 'Accion recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: [238, 242, 255] as RGB },
+      { l: 'Acción recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: [238, 242, 255] as RGB },
     ]
     ins.forEach(i => {
       if (y > 255) { doc.addPage(); y = 20 }
@@ -739,7 +739,7 @@ export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
       y += bh + 4
     })
     c(LIGHT); doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5)
-    doc.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
+    doc.text('Análisis generado automáticamente por Claude (Anthropic). Carácter orientativo.', ML, y)
   }
 
   pdfFooter(doc, W, ML, MR)
