@@ -123,7 +123,7 @@ const es: LandingLocale = {
         priceYearly: '190 €',
         priceYearlyMonthly: '15,83 €',
         desc: 'Para el negocio que no quiere perder ni una reseña sin responder.',
-        features: ['18 respuestas IA al mes', 'Google + otras plataformas', 'Tono personalizado y palabras clave SEO', 'Panel de salud completo'],
+        features: ['18 respuestas IA al mes', 'Google + otras plataformas', 'Tono personalizado y palabras clave SEO', 'Historial completo de reseñas'],
         cta: 'Elegir Core',
       },
       pro: {
@@ -132,7 +132,7 @@ const es: LandingLocale = {
         priceYearly: '449 €',
         priceYearlyMonthly: '37,42 €',
         desc: 'La diferencia entre responder reseñas y entender tu reputación.',
-        features: ['Respuestas IA ilimitadas', 'Radar: benchmark vs hasta 3 competidores', 'Análisis IA mensual con acción concreta', 'Informes PDF descargables'],
+        features: ['Panel de Salud completo', 'Respuestas IA ilimitadas', 'Radar: benchmark vs hasta 3 competidores', 'Análisis IA mensual + informes PDF'],
         cta: 'Elegir Pro',
         badge: 'El más elegido',
       },

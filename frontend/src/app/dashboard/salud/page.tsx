@@ -394,18 +394,16 @@ export default function SaludPage() {
       </header>
       <SectionNav />
 
-      {/* Non-pro teaser — nota media real + resto blurred con datos dummy */}
-      {userPlan !== 'pro' && (
+      {/* ── BASIC teaser: nota media real + 2 KPIs dummy blurred ── */}
+      {userPlan === 'basic' && (
         <div className="relative">
-          {/* Nota media real — visible y por encima del blur */}
+          {/* Nota media real */}
           <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-4 relative z-[1]">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 inline-flex items-center gap-6 shadow-sm">
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 inline-flex items-center gap-6 shadow-sm">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Tu nota media</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-black text-slate-900 dark:text-white tabular-nums">
-                    {avgRating > 0 ? avgRating.toFixed(1) : '—'}
-                  </span>
+                  <span className="text-5xl font-black text-white tabular-nums">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
                   {avgRating > 0 && <span className="text-slate-400 text-xl font-light">/5</span>}
                 </div>
                 {avgRating > 0 && (
@@ -420,18 +418,83 @@ export default function SaludPage() {
             </div>
           </div>
 
-          {/* Dummy blurred content */}
-          <div className="max-w-screen-xl mx-auto px-4 pb-6 space-y-4" style={{ filter: 'blur(7px)', pointerEvents: 'none', userSelect: 'none' }}>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[['87%', 'Respondidas'], ['31', 'Reseñas este mes'], ['+0,3', 'Tendencia mensual'], ['4 min', 'Tiempo ahorrado']].map(([val, label]) => (
-                <div key={label} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{val}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{label}</p>
+          {/* Dummy blurred — mínimo: 2 KPIs */}
+          <div className="max-w-screen-xl mx-auto px-4 pb-6 space-y-4" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
+            <div className="grid grid-cols-2 gap-3">
+              {[['87%', 'Tasa de respuesta'], ['+0,3', 'Tendencia mensual']].map(([val, label]) => (
+                <div key={label} className="bg-slate-800 rounded-2xl border border-slate-700 p-4">
+                  <p className="text-2xl font-bold text-white">{val}</p>
+                  <p className="text-xs text-slate-400 mt-1">{label}</p>
                 </div>
               ))}
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-3 w-1/3" />
+            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-5 h-24" />
+          </div>
+
+          {/* Upsell overlay */}
+          <div className="absolute inset-x-0 bottom-0 top-28 flex items-center justify-center pointer-events-auto">
+            <div className="bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl max-w-sm mx-4 overflow-hidden">
+              <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600" />
+              <div className="p-7 text-center space-y-4">
+                {(() => {
+                  const pending = reviews.filter(r => !r.tonoGenerado && r.estado !== 'ignorada').length
+                  return pending > 0 ? (
+                    <div className="bg-amber-950/50 border border-amber-800/50 rounded-xl px-4 py-3 text-left">
+                      <p className="text-sm font-bold text-amber-300">{pending} reseña{pending !== 1 ? 's' : ''} sin responder</p>
+                      <p className="text-xs text-amber-600 mt-0.5">18 respuestas IA al mes con Core.</p>
+                    </div>
+                  ) : null
+                })()}
+                <div>
+                  <h2 className="text-lg font-bold text-white mb-2">Empieza a responder en serio</h2>
+                  <p className="text-sm text-slate-400">18 respuestas IA al mes, tono personalizado y palabras clave SEO. Por 19 €/mes.</p>
+                </div>
+                <button type="button" onClick={() => setBasicUpsellPlan('core')}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-colors cursor-pointer">
+                  Pasarme a Core →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CORE teaser: nota media real + secciones dummy blurred + upsell Pro ── */}
+      {userPlan === 'core' && (
+        <div className="relative">
+          {/* Nota media real */}
+          <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-4 relative z-[1]">
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 inline-flex items-center gap-6 shadow-sm">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Tu nota media</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-black text-white tabular-nums">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
+                  {avgRating > 0 && <span className="text-slate-400 text-xl font-light">/5</span>}
+                </div>
+                {avgRating > 0 && (
+                  <div className="flex gap-1 mt-1">
+                    {[1,2,3,4,5].map(s => (
+                      <span key={s} className={`text-base ${s <= Math.round(avgRating) ? 'text-amber-400' : 'text-slate-700'}`}>★</span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-slate-500 mt-1">Basado en {reviews.length} reseñas</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Dummy blurred — más secciones que basic */}
+          <div className="max-w-screen-xl mx-auto px-4 pb-6 space-y-4" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[['87%', 'Tasa de respuesta'], ['31', 'Reseñas este mes'], ['+0,3', 'Tendencia mensual'], ['4 min', 'Tiempo ahorrado']].map(([val, label]) => (
+                <div key={label} className="bg-slate-800 rounded-2xl border border-slate-700 p-4">
+                  <p className="text-2xl font-bold text-white">{val}</p>
+                  <p className="text-xs text-slate-400 mt-1">{label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6">
+              <div className="h-3 bg-slate-700 rounded mb-3 w-1/3" />
               <div className="flex rounded-full overflow-hidden h-4">
                 <div className="bg-emerald-500" style={{ width: '64%' }} />
                 <div className="bg-amber-400" style={{ width: '19%' }} />
@@ -439,11 +502,23 @@ export default function SaludPage() {
               </div>
               <div className="flex flex-wrap gap-2 mt-4">
                 {['excelente', 'servicio', 'comida', 'precio', 'ubicación', 'trato', 'ambiente'].map(w => (
-                  <span key={w} className="px-3 py-1 rounded-full text-xs bg-slate-200 dark:bg-slate-700 text-slate-500">{w}</span>
+                  <span key={w} className="px-3 py-1 rounded-full text-xs bg-slate-700 text-slate-500">{w}</span>
                 ))}
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 h-32" />
+            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6">
+              <div className="h-3 bg-slate-700 rounded mb-4 w-1/4" />
+              <div className="space-y-2">
+                {[['Comida', '8.4', '7.1'], ['Trato', '9.1', '6.8'], ['Limpieza', '7.6', '8.2']].map(([cat, yo, rival]) => (
+                  <div key={cat} className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400 w-16">{cat}</span>
+                    <div className="flex-1 h-2 bg-slate-700 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{ width: `${parseFloat(yo) * 10}%` }} /></div>
+                    <span className="text-xs text-slate-500 tabular-nums">{yo} vs {rival}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 h-28" />
           </div>
 
           {/* Upsell overlay */}
@@ -451,38 +526,22 @@ export default function SaludPage() {
             <div className="bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl max-w-sm mx-4 overflow-hidden">
               <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600" />
               <div className="p-7 text-center space-y-4">
-                {/* Dato real: reseñas sin responder */}
                 {(() => {
                   const pending = reviews.filter(r => !r.tonoGenerado && r.estado !== 'ignorada').length
                   return pending > 0 ? (
                     <div className="bg-amber-950/50 border border-amber-800/50 rounded-xl px-4 py-3 text-left">
-                      <p className="text-sm font-bold text-amber-300">
-                        {pending} reseña{pending !== 1 ? 's' : ''} esperando respuesta
-                      </p>
-                      <p className="text-xs text-amber-600 mt-0.5">
-                        Sin métricas no sabes cuáles son más urgentes.
-                      </p>
+                      <p className="text-sm font-bold text-amber-300">{pending} reseña{pending !== 1 ? 's' : ''} sin responder</p>
+                      <p className="text-xs text-amber-600 mt-0.5">El análisis IA te dice cuáles importan más.</p>
                     </div>
                   ) : null
                 })()}
-
                 <div>
-                  <h2 className="text-lg font-bold text-white mb-2">
-                    {userPlan === 'core' ? 'Entiende tu reputación' : 'Panel de salud completo'}
-                  </h2>
-                  <p className="text-sm text-slate-400">
-                    {userPlan === 'core'
-                      ? 'Sentimiento de clientes, tendencias, keywords SEO y PDFs para el equipo. Todo en Pro.'
-                      : 'Descubre qué dicen realmente tus clientes. Tendencias, sentimiento, keywords y reportes. Solo en Pro.'}
-                  </p>
+                  <h2 className="text-lg font-bold text-white mb-2">Panel de Salud completo</h2>
+                  <p className="text-sm text-slate-400">Análisis IA mensual, radar de competidores, sentimiento por categoría e informes PDF. Solo en Pro.</p>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setBasicUpsellPlan('pro')}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-colors cursor-pointer"
-                >
-                  {userPlan === 'core' ? 'Pasarme a Pro →' : 'Quiero el panel completo →'}
+                <button type="button" onClick={() => setBasicUpsellPlan('pro')}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-colors cursor-pointer">
+                  Pasarme a Pro →
                 </button>
               </div>
             </div>
@@ -495,7 +554,7 @@ export default function SaludPage() {
         {/* ── CABECERA DE PÁGINA ── */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">{sl.title}</h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">Panel de Salud</h1>
             {negocio && <p className="text-sm text-slate-400 mt-0.5">{negocio.nombre} <span className="text-slate-600">·</span> <span className="capitalize">{monthName}</span></p>}
           </div>
           {reviews.length > 0 && (
