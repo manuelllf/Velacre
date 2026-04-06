@@ -170,8 +170,9 @@ END; $$;
 - Acepta `palabrasClave: string[]` en POST y PUT
 
 ### `/api/review`
-- `POST /generate` — manual: 3 tonos, límite 3/mes basic
-- `GET /all` — todas las reseñas (ordenadas por fecha desc), incluye `respondidaFecha`, `retenida`, `motivoRetencion`
+- `POST /generate` — solo genera (sin guardar): 3 tonos + safe filter integrado. Devuelve `{ retenida: true, motivoRetencion }` o `{ retenida: false, respuestaProfesional, respuestaCercana, respuestaDirecta }`. Límite 3/mes basic.
+- `POST /save-manual` — guarda la respuesta manual con tono elegido + estado (`pendiente`/`respondida`) + `plataforma='Otra'`. Incrementa contador manual.
+- `GET /all` — todas las reseñas (ordenadas por fecha desc), incluye `respondidaFecha`, `retenida`, `motivoRetencion`, `plataforma`
 - `GET /pending` — reseñas sin respuesta
 - `POST /{id}/generate` — IA: límite atómico por plan (RPC). Detecta contenido crítico en misma llamada Claude.
   - Si `retenida=true`: guarda en BD, rollback del contador IA, devuelve `{ retenida: true, motivoRetencion }`
@@ -200,7 +201,7 @@ END; $$;
   2. Outscraper: 20 reseñas de cada competidor (~€0.02/llamada)
   3. Claude genera JSON con tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion
   4. Reemplaza análisis anterior en `radar_analisis`
-  - **Límite:** 1 análisis por mes natural (devuelve 429 `ya_analizado_este_mes` si ya existe)
+  - **Límite:** 2 análisis por mes natural (devuelve 429 `ya_analizado_este_mes` si ya se alcanzó el límite)
 
 ### `/api/lemonsqueezy`
 - `GET /checkout?plan=core|pro&billing=monthly|yearly` — crea sesión LS, devuelve URL
@@ -294,7 +295,7 @@ Feature visible en `/dashboard/salud` al final del bloque Pro.
 3. Loading animado con pasos: reseñas propias → consulta por competidor → IA → informe
 4. Claude devuelve JSON: `tuFortaleza`, `tuDebilidad`, `competidores[{nombre, fortaleza, debilidad, amenaza}]`, `oportunidades[]`, `accion`
 5. Se muestra: cards fortaleza/debilidad propias, tabla competidores con badge amenaza (alta/media/baja), lista oportunidades, acción concreta de la semana
-6. Al mes siguiente se habilita el botón "Re-analizar"
+6. Se habilita hasta 2 veces por mes natural ("Re-analizar" disponible mientras no se alcance el límite)
 
 **Coste por análisis:** ~€0.02–0.06 Outscraper + fracción de céntimo Claude (MaxTokens: 1800).
 
@@ -367,7 +368,8 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 
 ## ClaudeService — comportamiento actual
 
-- `GenerateSingleResponseWithContextAsync` — respuesta + filtro seguridad en una sola llamada. JSON: `{ respuesta, contextoCliente, contextoRespuesta, keywordsUsadas, retenida, motivoRetencion }`. MaxTokens: 500.
+- `GenerateSingleResponseWithContextAsync` — respuesta IA + filtro seguridad en una sola llamada. JSON: `{ respuesta, contextoCliente, contextoRespuesta, keywordsUsadas, retenida, motivoRetencion }`. MaxTokens: 500.
+- `GenerateThreeResponsesWithSafeFilterAsync` — genera los 3 tonos + safe filter en una sola llamada (para POST /generate manual). JSON: `{ retenida, motivoRetencion, respuestaProfesional, respuestaCercana, respuestaDirecta }`. MaxTokens: 1500.
 - `GenerateRadarAnalysisAsync` — análisis comparativo reputación. MaxTokens: 1800. JSON: `{ tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion }`.
 - `GetClaudeMessageAsync` — análisis IA salud (brilla/quema/acción). MaxTokens: 800.
 - Retry automático (3 intentos, backoff exponencial) para `overloaded_error`.
@@ -440,6 +442,7 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 ## Favicon y PWA icons
 
 - `src/app/icon.png` — logo Velacre (128px), Next.js App Router lo sirve automáticamente como favicon en la pestaña del navegador
+- `public/favicon.svg` — favicon circular via SVG con `<clipPath>` + `<circle>`. Declarado en `layout.tsx` con `<link rel="icon" href="/favicon.svg" type="image/svg+xml">`.
 - `public/apple-touch-icon.png`, `public/icon-192.png`, `public/icon-512.png` — logo Velacre para PWA y dispositivos móviles
 - Fuente de verdad: `images/logo128.png` y `images/logo600.png` en la raíz del repositorio
 
@@ -529,6 +532,8 @@ frontend/src/
     SectionNav.tsx          — pill flotante centrado, 3 tabs con iconos
     WaitlistModal.tsx       — modal upsell Core/Pro con checkout LS (ya no es waitlist)
     PublishGoogleModal.tsx  — modal publicar en GBP (implementado, sin uso activo)
+    Tooltip.tsx             — componente ? minimalista, muestra info en hover para tecnicismos
+    HelpModal.tsx           — wizard 8 pasos de ayuda, botón flotante ? en dashboard/salud/settings
   lib/
     api.ts                  — PendingReview incluye retenida/motivoRetencion,
                               RadarData/RadarAnalisisResult/Competidor interfaces,
@@ -557,8 +562,11 @@ frontend/src/
 - **Velocidad de respuesta:** `respondida_fecha` setea al marcar respondida (solo si null), limpia al revertir
 - **Modo oscuro forzado:** siempre dark. `<html class="dark">` en layout
 - **Acento blue** en toda la UI (cambiado de indigo)
-- **Filtro seguridad reseñas:** misma llamada Claude, sin coste extra. Rollback contador IA si retenida.
-- **Radar:** ParseAnalisisJson usa `RootElement.Clone()` para evitar JsonElement inválido tras dispose del JsonDocument
+- **Filtro seguridad reseñas:** misma llamada Claude, sin coste extra. Rollback contador IA si retenida. Aplica tanto en POST /generate (manual, `GenerateThreeResponsesWithSafeFilterAsync`) como en POST /{id}/generate (IA, `GenerateSingleResponseWithContextAsync`).
+- **POST /generate separado de /save-manual:** generación y guardado son dos pasos separados. El usuario elige el tono y decide si guardar como pendiente o respondida.
+- **Flujo "Otra Plataforma":** badge en lista, botones de Google deshabilitados para `plataforma='Otra'`, modal con selección de tono obligatoria, auto-aparece en lista tras guardar, banner si retenida.
+- **Tooltips en UI:** componente Tooltip.tsx con `?` minimalista en hover para: respuestas IA, palabras clave SEO, tono, impacto Velacre, SEO, sentimiento, velocidad de respuesta, radar.
+- **Radar:** ParseAnalisisJson usa `RootElement.Clone()` para evitar JsonElement inválido tras dispose del JsonDocument. Límite 2 análisis/mes (antes era 1).
 - **GBP deshabilitado:** todo el código está, solo la UI muestra "Próximamente". Fácil de activar cuando llegue la autorización de Google.
 - **safe() en jsPDF:** solo elimina chars fuera de `\x20-\x7E\xA0-\xFF`. Las tildes españolas están dentro del rango y funcionan.
 
