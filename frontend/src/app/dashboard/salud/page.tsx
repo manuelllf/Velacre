@@ -34,9 +34,9 @@ interface SummaryData {
 
 
 function ScoreBadge({ score }: { score: number }) {
-  const cls = score >= 75
+  const cls = score >= 7.5
     ? 'text-emerald-400 bg-emerald-950/60 border border-emerald-900/50'
-    : score >= 50
+    : score >= 5
       ? 'text-amber-400 bg-amber-950/60 border border-amber-900/50'
       : 'text-red-400 bg-red-950/60 border border-red-900/50'
   return (
