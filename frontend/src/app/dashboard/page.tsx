@@ -949,7 +949,7 @@ function DetailPanel({
                 </p>
               )}
               <p className="text-xs text-orange-600/80 dark:text-orange-500 mt-2">
-                Velacre no ha generado respuesta automática. Se te ha enviado un email de aviso. Responde manualmente desde Google Business.
+                Velacre no ha generado respuesta automática. Responde manualmente desde Google Business.
               </p>
             </div>
           </div>

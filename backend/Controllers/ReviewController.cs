@@ -4,7 +4,6 @@ using backend.Interfaces;
 using backend.Models.Entities;
 using backend.Models.Requests;
 using backend.Models.Responses;
-using backend.Services;
 
 namespace backend.Controllers;
 
@@ -17,15 +16,13 @@ public class ReviewController : ControllerBase
     private readonly IGoogleBusinessService _gbp;
     private readonly Supabase.Client _supabase;
     private readonly ILogger<ReviewController> _logger;
-    private readonly EmailService _email;
 
-    public ReviewController(IReviewAiService aiService, IGoogleBusinessService gbp, Supabase.Client supabase, ILogger<ReviewController> logger, EmailService email)
+    public ReviewController(IReviewAiService aiService, IGoogleBusinessService gbp, Supabase.Client supabase, ILogger<ReviewController> logger)
     {
         _aiService = aiService;
         _gbp       = gbp;
         _supabase  = supabase;
         _logger    = logger;
-        _email     = email;
     }
 
     [HttpPost("generate")]
@@ -352,10 +349,6 @@ public class ReviewController : ControllerBase
                     await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
                         .Set(u => u.RespuestasIaMes, Math.Max(0, usuario.RespuestasIaMes))
                         .Update();
-
-                // Email de alerta al propietario (fire-and-forget)
-                if (!string.IsNullOrEmpty(usuario?.Email))
-                    _ = _email.SendRetainedReviewAlertAsync(usuario.Email, negocio.Nombre, reviewContext, motivoRetencion ?? "");
 
                 return Ok(new { retenida = true, motivoRetencion, response = (string?)null });
             }
