@@ -853,12 +853,23 @@ export default function DashboardPage() {
                 )}
 
                 <div className="space-y-2 pt-1">
-                  <a
-                    href="/settings"
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors"
-                  >
-                    {isCore ? 'Pasarme a Pro — respuestas ilimitadas →' : 'Ver planes Core y Pro →'}
-                  </a>
+                  {isCore ? (
+                    <a href="/settings"
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors">
+                      Pasarme a Pro — respuestas ilimitadas →
+                    </a>
+                  ) : (
+                    <>
+                      <a href="/settings?plan=pro"
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors">
+                        Pro — ilimitadas →
+                      </a>
+                      <a href="/settings?plan=core"
+                        className="flex items-center justify-center gap-2 w-full py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-semibold rounded-xl transition-colors">
+                        Core — 18 al mes · 19 €/mes
+                      </a>
+                    </>
+                  )}
                   <button
                     onClick={() => setShowUpsell(false)}
                     className="block w-full py-2 text-xs text-slate-600 hover:text-slate-400 transition-colors"

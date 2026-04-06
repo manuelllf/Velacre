@@ -442,17 +442,17 @@ export default function SaludPage() {
                   return pending > 0 ? (
                     <div className="bg-amber-950/50 border border-amber-800/50 rounded-xl px-4 py-3 text-left">
                       <p className="text-sm font-bold text-amber-300">{pending} reseña{pending !== 1 ? 's' : ''} sin responder</p>
-                      <p className="text-xs text-amber-600 mt-0.5">18 respuestas IA al mes con Core.</p>
+                      <p className="text-xs text-amber-600 mt-0.5">El análisis IA te dice cuáles importan más.</p>
                     </div>
                   ) : null
                 })()}
                 <div>
-                  <h2 className="text-lg font-bold text-white mb-2">Empieza a responder en serio</h2>
-                  <p className="text-sm text-slate-400">18 respuestas IA al mes, tono personalizado y palabras clave SEO. Por 19 €/mes.</p>
+                  <h2 className="text-lg font-bold text-white mb-2">Panel de Salud completo</h2>
+                  <p className="text-sm text-slate-400">Análisis IA, radar de competidores, sentimiento por categoría e informes PDF. Solo en Pro.</p>
                 </div>
-                <button type="button" onClick={() => setBasicUpsellPlan('core')}
+                <button type="button" onClick={() => setBasicUpsellPlan('pro')}
                   className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-colors cursor-pointer">
-                  Pasarme a Core →
+                  Pasarme a Pro →
                 </button>
               </div>
             </div>
