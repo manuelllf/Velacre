@@ -411,7 +411,7 @@ export default function DashboardPage() {
 
         {/* ── Barra de uso IA — solo Basic y Core ── */}
         {(userPlan === 'basic' || userPlan === 'core') && (() => {
-          const limit = userPlan === 'core' ? 10 : 3
+          const limit = userPlan === 'core' ? 18 : 3
           const used = Math.min(iaUsed, limit)
           const pct = Math.round((used / limit) * 100)
           const atLimit = used >= limit

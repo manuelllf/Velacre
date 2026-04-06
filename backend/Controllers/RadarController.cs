@@ -44,8 +44,11 @@ public class RadarController : ControllerBase
         var analisisRes = await _supabase.From<RadarAnalisisEntity>()
             .Where(a => a.NegocioId == negocio!.Id)
             .Order(a => a.CreatedAt, Postgrest.Constants.Ordering.Descending)
-            .Limit(1).Get();
+            .Get();
 
+        var utcNow2 = DateTimeOffset.UtcNow;
+        var analisisEsteMes = analisisRes.Models
+            .Count(a => a.CreatedAt.Year == utcNow2.Year && a.CreatedAt.Month == utcNow2.Month);
         var ultimoAnalisis = analisisRes.Models.FirstOrDefault();
 
         return Ok(new
@@ -57,6 +60,7 @@ public class RadarController : ControllerBase
                 nombre    = c.Nombre,
                 createdAt = c.CreatedAt,
             }),
+            analisisEsteMes,
             ultimoAnalisis = ultimoAnalisis == null ? null : new
             {
                 id        = ultimoAnalisis.Id,
@@ -173,12 +177,7 @@ public class RadarController : ControllerBase
         _logger.LogInformation("[RadarController] Lanzando análisis IA radar para negocio={NegocioId}", negocio!.Id);
         var resultJson = await _aiService.GenerateRadarAnalysisAsync(negocio.Nombre, misResenas, competidoresData);
 
-        // 4. Guardar (reemplaza análisis anterior)
-        var existingAnalisis = await _supabase.From<RadarAnalisisEntity>()
-            .Where(a => a.NegocioId == negocio.Id).Get();
-        foreach (var old in existingAnalisis.Models)
-            await _supabase.From<RadarAnalisisEntity>().Where(a => a.Id == old.Id).Delete();
-
+        // 4. Guardar (conserva los 2 más recientes, borra el resto)
         var nuevo = new RadarAnalisisEntity
         {
             Id            = Guid.NewGuid(),
@@ -188,13 +187,21 @@ public class RadarController : ControllerBase
         };
         await _supabase.From<RadarAnalisisEntity>().Insert(nuevo);
 
+        var allAfterInsert = await _supabase.From<RadarAnalisisEntity>()
+            .Where(a => a.NegocioId == negocio.Id)
+            .Order(a => a.CreatedAt, Postgrest.Constants.Ordering.Descending)
+            .Get();
+        foreach (var old in allAfterInsert.Models.Skip(2))
+            await _supabase.From<RadarAnalisisEntity>().Where(a => a.Id == old.Id).Delete();
+
         _logger.LogInformation("[RadarController] Análisis radar guardado para negocio={NegocioId}", negocio.Id);
 
         return Ok(new
         {
-            id        = nuevo.Id,
-            createdAt = nuevo.CreatedAt,
-            resultado = ParseAnalisisJson(resultJson),
+            id              = nuevo.Id,
+            createdAt       = nuevo.CreatedAt,
+            resultado       = ParseAnalisisJson(resultJson),
+            analisisEsteMes = thisMonthCount + 1,
         });
     }
 

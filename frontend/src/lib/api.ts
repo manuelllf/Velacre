@@ -632,6 +632,7 @@ export interface RadarAnalisisResult {
 export interface RadarData {
   competidores: Competidor[]
   ultimoAnalisis: RadarAnalisisResult | null
+  analisisEsteMes: number
 }
 
 export async function getRadar(): Promise<RadarData> {
@@ -661,7 +662,7 @@ export async function removeCompetidor(id: string): Promise<void> {
   if (!res.ok) throw new ApiError(res.status, await res.text())
 }
 
-export async function runRadarAnalysis(): Promise<RadarAnalisisResult> {
+export async function runRadarAnalysis(): Promise<RadarAnalisisResult & { analisisEsteMes: number }> {
   const res = await fetch(`${API_URL}/api/radar/analizar`, {
     method: 'POST',
     headers: await authHeaders(),

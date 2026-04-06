@@ -212,7 +212,9 @@ export default function SaludPage() {
 
     try {
       const result = await runRadarAnalysis()
-      setRadarData(prev => prev ? { ...prev, ultimoAnalisis: result } : { competidores: [], ultimoAnalisis: result })
+      setRadarData(prev => prev
+        ? { ...prev, ultimoAnalisis: result, analisisEsteMes: result.analisisEsteMes }
+        : { competidores: [], ultimoAnalisis: result, analisisEsteMes: result.analisisEsteMes })
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error al analizar'
       if (msg.includes('sin_competidores')) setRadarError('Añade al menos un competidor antes de analizar.')
@@ -315,12 +317,11 @@ export default function SaludPage() {
   const radarResultado = radarData?.ultimoAnalisis?.resultado ?? null
   const radarAnalisisDate = radarData?.ultimoAnalisis
     ? new Date(radarData.ultimoAnalisis.createdAt) : null
-  const canAnalizar = !radarAnalisisDate ||
-    radarAnalisisDate.getMonth() !== now.getMonth() ||
-    radarAnalisisDate.getFullYear() !== now.getFullYear()
-  const proximoAnalisisLabel = radarAnalisisDate && !canAnalizar
+  const analisisEsteMes = radarData?.analisisEsteMes ?? 0
+  const canAnalizar = analisisEsteMes < 2
+  const proximoAnalisisLabel = !canAnalizar
     ? (() => {
-        const next = new Date(radarAnalisisDate.getFullYear(), radarAnalisisDate.getMonth() + 1, 1)
+        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
         return next.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })
       })()
     : null
@@ -1314,7 +1315,9 @@ export default function SaludPage() {
                                 <th className="text-left pb-2.5 pr-4 text-xs font-semibold text-slate-500">Categoría</th>
                                 <th className="text-center pb-2.5 pr-3 text-xs font-semibold text-emerald-500">Tú</th>
                                 {radarData?.competidores.map(c => (
-                                  <th key={c.id} className="text-center pb-2.5 pr-3 text-xs font-semibold text-slate-500 max-w-[80px] truncate">{c.nombre.split(' ')[0]}</th>
+                                  <th key={c.id} className="text-center pb-2.5 pr-3 text-xs font-semibold text-slate-500 max-w-[120px]">
+                                    <span className="block truncate" title={c.nombre}>{c.nombre}</span>
+                                  </th>
                                 ))}
                                 <th className="text-left pb-2.5 text-xs font-semibold text-slate-500">Insight</th>
                               </tr>
