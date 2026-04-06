@@ -1314,9 +1314,9 @@ export default function SaludPage() {
                               <tr className="border-b border-slate-700">
                                 <th className="text-left pb-2.5 pr-4 text-xs font-semibold text-slate-500">Categoría</th>
                                 <th className="text-center pb-2.5 pr-3 text-xs font-semibold text-emerald-500">Tú</th>
-                                {radarData?.competidores.map(c => (
-                                  <th key={c.id} className="text-center pb-2.5 pr-3 text-xs font-semibold text-slate-500 max-w-[120px]">
-                                    <span className="block truncate" title={c.nombre}>{c.nombre}</span>
+                                {radarData?.competidores.map((c, ci) => (
+                                  <th key={c.id} className="text-center pb-2.5 pr-3 text-xs font-semibold text-slate-500" title={c.nombre}>
+                                    Comp. {ci + 1}
                                   </th>
                                 ))}
                                 <th className="text-left pb-2.5 text-xs font-semibold text-slate-500">Insight</th>
