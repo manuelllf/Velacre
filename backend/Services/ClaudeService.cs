@@ -169,7 +169,7 @@ public class ClaudeService : IReviewAiService
         throw new InvalidOperationException("Claude API overloaded tras 3 intentos");
     }
 
-    public async Task<(string Profesional, string Cercano, string Directo, bool Retenida, string MotivoRetencion)> GenerateThreeResponsesWithSafeFilterAsync(
+    public async Task<(string Profesional, string Cercano, string Directo, string ContextoCliente, string ContextoRespuesta, bool Retenida, string MotivoRetencion)> GenerateThreeResponsesWithSafeFilterAsync(
         string reviewText, string businessDesc)
     {
         _logger.LogInformation("[ClaudeService] GenerateThreeResponsesWithSafeFilterAsync — modelo={Model}", _model);
@@ -187,13 +187,15 @@ public class ClaudeService : IReviewAiService
             "Tono Profesional: formal y pulido. Tono Cercano: cálido y humano. Tono Directo: breve y claro. " +
             "Devuelve ÚNICAMENTE este JSON (sin markdown):\n" +
             "{\"retenida\":false,\"motivoRetencion\":null," +
+            "\"contextoCliente\":\"<1 frase en español resumiendo qué menciona el cliente>\"," +
+            "\"contextoRespuesta\":\"<1 frase en español resumiendo qué aborda la respuesta>\"," +
             "\"profesional\":\"<respuesta o null>\",\"cercano\":\"<respuesta o null>\",\"directo\":\"<respuesta o null>\"}";
 
         var parameters = new MessageParameters
         {
             Messages = [new Message(RoleType.User, $"Reseña: '{reviewText}'")],
             Model = _model,
-            MaxTokens = 800,
+            MaxTokens = 1200,
             Temperature = 0.7m,
             System = [new SystemMessage(systemPrompt)]
         };
@@ -217,18 +219,20 @@ public class ClaudeService : IReviewAiService
                     if (retenida)
                     {
                         _logger.LogWarning("[ClaudeService] Reseña manual retenida: motivo={Motivo}", motivo);
-                        return ("", "", "", true, motivo);
+                        return ("", "", "", "", "", true, motivo);
                     }
 
-                    var profesional = doc.RootElement.TryGetProperty("profesional", out var p) && p.ValueKind != System.Text.Json.JsonValueKind.Null ? p.GetString() ?? "" : "";
-                    var cercano     = doc.RootElement.TryGetProperty("cercano",     out var c) && c.ValueKind != System.Text.Json.JsonValueKind.Null ? c.GetString() ?? "" : "";
-                    var directo     = doc.RootElement.TryGetProperty("directo",     out var d) && d.ValueKind != System.Text.Json.JsonValueKind.Null ? d.GetString() ?? "" : "";
-                    return (profesional, cercano, directo, false, "");
+                    var profesional      = doc.RootElement.TryGetProperty("profesional",      out var p)  && p.ValueKind  != System.Text.Json.JsonValueKind.Null ? p.GetString()  ?? "" : "";
+                    var cercano          = doc.RootElement.TryGetProperty("cercano",          out var c)  && c.ValueKind  != System.Text.Json.JsonValueKind.Null ? c.GetString()  ?? "" : "";
+                    var directo          = doc.RootElement.TryGetProperty("directo",          out var d)  && d.ValueKind  != System.Text.Json.JsonValueKind.Null ? d.GetString()  ?? "" : "";
+                    var contextoCliente  = doc.RootElement.TryGetProperty("contextoCliente",  out var cc) && cc.ValueKind != System.Text.Json.JsonValueKind.Null ? cc.GetString() ?? "" : "";
+                    var contextoResp     = doc.RootElement.TryGetProperty("contextoRespuesta",out var cr) && cr.ValueKind != System.Text.Json.JsonValueKind.Null ? cr.GetString() ?? "" : "";
+                    return (profesional, cercano, directo, contextoCliente, contextoResp, false, "");
                 }
 
                 _logger.LogWarning("[ClaudeService] GenerateThreeResponsesWithSafeFilterAsync: JSON no encontrado");
                 // Fallback to raw text
-                return (raw.Trim(), "", "", false, "");
+                return (raw.Trim(), "", "", "", "", false, "");
             }
             catch (Exception ex) when (attempt < maxRetries && ex.Message.Contains("overloaded_error"))
             {

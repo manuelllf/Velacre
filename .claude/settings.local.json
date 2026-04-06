@@ -20,7 +20,18 @@
       "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\(p[''''version'''']\\)\")",
       "Bash(npm install:*)",
       "Bash(powershell.exe -Command \"Get-Process -Name ''dotnet'' -ErrorAction SilentlyContinue | Stop-Process -Force; Write-Output ''stopped''\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(ls D:/ProyectosMLF/reviewshield-app/frontend/src/app/icon*)",
+      "Bash(node -e \"const sharp = require\\(''sharp''\\); console.log\\(''ok''\\)\")",
+      "Bash(node -e \":*)",
+      "Bash(python -c \"from PIL import Image, ImageDraw; print\\(''ok''\\)\")",
+      "Bash(python3 -c \"from PIL import Image, ImageDraw; print\\(''ok''\\)\")",
+      "Bash(python -c \"import struct, zlib, base64, math; print\\(''ok''\\)\")",
+      "Bash(python3 -c \"import struct, zlib, base64, math; print\\(''ok''\\)\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\); const data=fs.readFileSync\\(''D:/ProyectosMLF/reviewshield-app/frontend/public/icon-192.png''\\); console.log\\(''size:'', data.length, ''bytes''\\);\")",
+      "Bash(xargs grep:*)"
     ]
   }
 }

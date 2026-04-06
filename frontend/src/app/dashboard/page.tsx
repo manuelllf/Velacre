@@ -89,6 +89,7 @@ export default function DashboardPage() {
   const [manualError, setManualError] = useState('')
   const [manualSelectedTone, setManualSelectedTone] = useState<'profesional' | 'cercano' | 'directo' | null>(null)
   const [manualSaving, setManualSaving] = useState(false)
+  const [manualContexto, setManualContexto] = useState<{ cliente: string; respuesta: string } | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -225,6 +226,7 @@ export default function DashboardPage() {
     setManualError('')
     setReviewText('')
     setManualSelectedTone(null)
+    setManualContexto(null)
   }
 
   async function handleGenerateManual(e: React.FormEvent) {
@@ -237,6 +239,9 @@ export default function DashboardPage() {
     try {
       const result = await generateResponses(reviewText)
       setManualResponses(result)
+      if (result.contextoCliente || result.contextoRespuesta) {
+        setManualContexto({ cliente: result.contextoCliente ?? '', respuesta: result.contextoRespuesta ?? '' })
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
         const d = err.data as { plan?: string; limit?: number; used?: number } | undefined
@@ -647,15 +652,17 @@ export default function DashboardPage() {
 
       {/* ── Modal: otra plataforma ── */}
       {manualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => { if (!manualLoading && !manualSaving) closeManualModal() }} />
-          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { if (!manualLoading && !manualSaving) closeManualModal() }} />
+          <div className="relative w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl border-0 sm:border border-slate-200 dark:border-slate-800 flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden">
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div>
                 <p className="text-sm font-semibold text-slate-900 dark:text-white">Otra plataforma</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Tripadvisor, Booking, Yelp… pega la reseña y genera una respuesta</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  {manualResponses && !manualResponses.retenida ? 'Elige el tono y guarda la respuesta' : 'Tripadvisor, Booking, Yelp… pega la reseña y genera una respuesta'}
+                </p>
               </div>
               <button
                 type="button"
@@ -671,20 +678,20 @@ export default function DashboardPage() {
 
             {/* Step 1: Input */}
             {!manualResponses && (
-              <form onSubmit={handleGenerateManual} className="p-5 space-y-3">
+              <form onSubmit={handleGenerateManual} className="flex flex-col flex-1 p-5 gap-4">
                 <textarea
-                  rows={5}
+                  rows={6}
                   value={reviewText}
                   onChange={e => setReviewText(e.target.value)}
                   autoFocus
-                  className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none scroll-thin"
+                  className="flex-1 w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none scroll-thin"
                   placeholder="Pega aquí el texto de la reseña…"
                 />
                 {manualError && <p className="text-xs text-red-600 dark:text-red-400">{manualError}</p>}
                 <button
                   type="submit"
                   disabled={manualLoading || !reviewText.trim()}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
                   {manualLoading
                     ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>
@@ -695,7 +702,7 @@ export default function DashboardPage() {
 
             {/* Reseña retenida por seguridad */}
             {manualResponses?.retenida && (
-              <div className="p-5">
+              <div className="p-5 flex flex-col gap-4">
                 <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4">
                   <div className="flex items-start gap-3">
                     <span className="text-lg shrink-0">⚠️</span>
@@ -716,38 +723,59 @@ export default function DashboardPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setManualResponses(null); setManualError('') }}
-                  className="w-full mt-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                  onClick={() => { setManualResponses(null); setManualError(''); setManualContexto(null) }}
+                  className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                 >
                   ← Probar con otra reseña
                 </button>
               </div>
             )}
 
-            {/* Step 2: Responses + tone selection */}
+            {/* Step 2: Context card + tone selection */}
             {manualResponses && !manualResponses.retenida && (
-              <div className="overflow-y-auto max-h-[70vh] scroll-thin">
-                <p className="px-5 pt-4 text-xs text-slate-500 dark:text-slate-400">Selecciona el tono que quieras guardar:</p>
-                <div className="divide-y divide-slate-100 dark:divide-slate-800 mt-2">
-                  {([
-                    { key: 'profesional' as const, label: 'Profesional', text: manualResponses.profesional ?? '', accent: 'blue' },
-                    { key: 'cercano'     as const, label: 'Cercano',     text: manualResponses.cercano     ?? '', accent: 'emerald' },
-                    { key: 'directo'     as const, label: 'Directo',     text: manualResponses.directo     ?? '', accent: 'amber' },
-                  ]).map(({ key, label, text, accent }) => (
-                    <ManualResponseRow
-                      key={key}
-                      toneKey={key}
-                      tone={label}
-                      text={text}
-                      accent={accent}
-                      selected={manualSelectedTone === key}
-                      onSelect={() => setManualSelectedTone(key)}
-                    />
-                  ))}
+              <>
+                {/* Context card */}
+                {manualContexto && (manualContexto.cliente || manualContexto.respuesta) && (
+                  <div className="mx-5 mt-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 space-y-1.5 shrink-0">
+                    {manualContexto.cliente && (
+                      <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">Cliente dijo</span>
+                        <span>{manualContexto.cliente}</span>
+                      </div>
+                    )}
+                    {manualContexto.respuesta && (
+                      <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">Tú respondes</span>
+                        <span>{manualContexto.respuesta}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tone options — scrollable */}
+                <div className="flex-1 overflow-y-auto scroll-thin mt-3">
+                  <p className="px-5 pb-2 text-xs text-slate-500 dark:text-slate-400">Selecciona el tono que quieras guardar:</p>
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {([
+                      { key: 'profesional' as const, label: 'Profesional', text: manualResponses.profesional ?? '', accent: 'blue' },
+                      { key: 'cercano'     as const, label: 'Cercano',     text: manualResponses.cercano     ?? '', accent: 'emerald' },
+                      { key: 'directo'     as const, label: 'Directo',     text: manualResponses.directo     ?? '', accent: 'amber' },
+                    ]).map(({ key, label, text, accent }) => (
+                      <ManualResponseRow
+                        key={key}
+                        toneKey={key}
+                        tone={label}
+                        text={text}
+                        accent={accent}
+                        selected={manualSelectedTone === key}
+                        onSelect={() => setManualSelectedTone(key)}
+                      />
+                    ))}
+                  </div>
                 </div>
 
-                {/* Save actions */}
-                <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                {/* Save actions — sticky footer */}
+                <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 space-y-2 shrink-0 bg-white dark:bg-slate-900">
                   {manualError && <p className="text-xs text-red-600 dark:text-red-400 mb-2">{manualError}</p>}
                   <div className="flex gap-2">
                     <button
@@ -756,7 +784,7 @@ export default function DashboardPage() {
                       onClick={() => handleSaveManual('pendiente')}
                       className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      {manualSaving ? <span className="flex items-center justify-center gap-1"><span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /> Guardando…</span> : 'Guardar como pendiente'}
+                      {manualSaving ? <span className="flex items-center justify-center gap-1"><span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /> Guardando…</span> : 'Guardar pendiente'}
                     </button>
                     <button
                       type="button"
@@ -768,17 +796,17 @@ export default function DashboardPage() {
                     </button>
                   </div>
                   {!manualSelectedTone && (
-                    <p className="text-xs text-center text-slate-400 dark:text-slate-500">Selecciona un tono para activar el botón guardar</p>
+                    <p className="text-xs text-center text-slate-400 dark:text-slate-500">Selecciona un tono para guardar</p>
                   )}
                   <button
                     type="button"
-                    onClick={() => { setManualResponses(null); setManualError(''); setManualSelectedTone(null) }}
+                    onClick={() => { setManualResponses(null); setManualError(''); setManualSelectedTone(null); setManualContexto(null) }}
                     className="w-full py-1.5 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   >
                     ← Probar con otra reseña
                   </button>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>

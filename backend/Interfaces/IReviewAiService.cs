@@ -20,7 +20,7 @@ public interface IReviewAiService
     /// Genera 3 respuestas (Profesional, Cercano, Directo) con filtro de seguridad integrado.
     /// Si detecta contenido crítico devuelve Retenida=true y las respuestas vacías.
     /// </summary>
-    Task<(string Profesional, string Cercano, string Directo, bool Retenida, string MotivoRetencion)> GenerateThreeResponsesWithSafeFilterAsync(
+    Task<(string Profesional, string Cercano, string Directo, string ContextoCliente, string ContextoRespuesta, bool Retenida, string MotivoRetencion)> GenerateThreeResponsesWithSafeFilterAsync(
         string reviewText, string businessDesc);
 
     /// <summary>

@@ -73,7 +73,7 @@ public class ReviewController : ControllerBase
 
         try
         {
-            var (profesional, cercano, directo, retenida, motivoRetencion) =
+            var (profesional, cercano, directo, contextoCliente, contextoRespuesta, retenida, motivoRetencion) =
                 await _aiService.GenerateThreeResponsesWithSafeFilterAsync(
                     request.ReviewText,
                     negocio.Descripcion ?? negocio.Nombre
@@ -86,7 +86,7 @@ public class ReviewController : ControllerBase
             }
 
             _logger.LogInformation("[ReviewController] Respuestas manuales generadas OK (sin guardar)");
-            return Ok(new { retenida = false, motivoRetencion = (string?)null, profesional, cercano, directo });
+            return Ok(new { retenida = false, motivoRetencion = (string?)null, contextoCliente, contextoRespuesta, profesional, cercano, directo });
         }
         catch (Exception ex)
         {

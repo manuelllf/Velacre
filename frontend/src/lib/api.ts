@@ -21,6 +21,8 @@ async function authHeaders(): Promise<HeadersInit> {
 export interface ReviewResponses {
   retenida: boolean
   motivoRetencion?: string
+  contextoCliente?: string
+  contextoRespuesta?: string
   profesional?: string
   cercano?: string
   directo?: string
