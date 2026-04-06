@@ -501,7 +501,7 @@ export default function SettingsPage() {
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Palabras clave SEO
-                      <Tooltip text="Palabras que la IA intentará incluir de forma natural en las respuestas. Mejoran tu visibilidad en Google cuando alguien busca esos términos. Ej: 'terraza', 'menú del día', 'sin gluten'." />
+                      <Tooltip text="Palabras que quieres que aparezcan en tus respuestas. Ayudan a que Google te encuentre cuando alguien busca esos términos. Ej: 'terraza', 'menú del día'." />
                     </label>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">Hasta 5. La IA las incluirá con naturalidad en las respuestas para mejorar tu posicionamiento.</p>
                     {palabrasClave.length > 0 && (
@@ -550,7 +550,7 @@ export default function SettingsPage() {
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       {s.toneSection}
-                      <Tooltip text="El tono con el que Velacre redactará tus respuestas. Profesional: formal y serio. Cercano: cálido y humano. Directo: breve y al grano." />
+                      <Tooltip text="Cómo sonarán tus respuestas. Puedes cambiarlo cuando quieras." />
                     </label>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{s.toneSubtitle}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">

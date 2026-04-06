@@ -423,7 +423,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2 min-w-0">
                   <span className={`flex items-center gap-1.5 text-xs font-semibold ${atLimit ? 'text-red-400' : nearLimit ? 'text-amber-400' : 'text-slate-400'}`}>
                     Respuestas IA este mes
-                    <Tooltip text="La IA genera una respuesta personalizada por cada reseña de Google. Tienes un límite mensual según tu plan. Se renueva el 1 de cada mes." />
+                    <Tooltip text="Cuántas respuestas automáticas has generado este mes. Se renueva cada mes." />
                   </span>
                   {atLimit && (
                     <span className="text-xs font-bold text-red-400 bg-red-900/40 border border-red-800/50 px-2 py-0.5 rounded-full shrink-0">

@@ -17,7 +17,7 @@ export default function Tooltip({ text, className = '' }: TooltipProps) {
   }
 
   function hide() {
-    timeoutRef.current = setTimeout(() => setVisible(false), 100)
+    timeoutRef.current = setTimeout(() => setVisible(false), 120)
   }
 
   return (
@@ -31,17 +31,26 @@ export default function Tooltip({ text, className = '' }: TooltipProps) {
       <button
         type="button"
         aria-label="Más información"
-        className="w-4 h-4 rounded-full border border-slate-400 dark:border-slate-500 text-slate-400 dark:text-slate-500 text-[10px] font-bold leading-none flex items-center justify-center hover:border-blue-500 hover:text-blue-500 dark:hover:border-blue-400 dark:hover:text-blue-400 transition-colors shrink-0"
+        className="w-3.5 h-3.5 rounded-full border border-current opacity-40 hover:opacity-70 text-[9px] font-bold leading-none flex items-center justify-center transition-opacity shrink-0"
+        style={{ fontVariant: 'normal', letterSpacing: 'normal', textTransform: 'none' }}
       >
         ?
       </button>
       {visible && (
         <span
           role="tooltip"
-          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-xl shadow-lg pointer-events-none leading-relaxed"
+          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-48 px-2.5 py-2 bg-slate-800 text-slate-200 rounded-lg shadow-xl pointer-events-none"
+          style={{
+            fontSize: '11px',
+            fontWeight: 400,
+            lineHeight: '1.4',
+            textTransform: 'none',
+            letterSpacing: 'normal',
+            fontVariant: 'normal',
+          }}
         >
           {text}
-          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800 dark:border-t-slate-700" />
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
         </span>
       )}
     </span>

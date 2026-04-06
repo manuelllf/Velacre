@@ -582,7 +582,10 @@ export default function SaludPage() {
             <div className="grid md:grid-cols-2 gap-5">
               {/* Distribución global */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">{sl.sentiment}</p>
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
+                  {sl.sentiment}
+                  <Tooltip text="Clasifica tus reseñas según la puntuación: positivas (4-5★), neutras (3★) o negativas (1-2★)." />
+                </p>
                 <div className="space-y-3">
                   {[
                     { label: sl.positive, count: positive, total: sentimentTotal, color: 'bg-emerald-500', textColor: 'text-emerald-400', range: '4–5 ★' },
@@ -613,7 +616,7 @@ export default function SaludPage() {
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                   <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
                     Impacto Velacre
-                    <Tooltip text="Cuánto tiempo has ahorrado respondiendo con IA en lugar de hacerlo manualmente. Estimación: ~4 min manual vs ~15 seg con Velacre." />
+                    <Tooltip text="Estadísticas de lo que Velacre ha hecho por ti este mes." />
                   </p>
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     {/* Dimensión 1: % respondidas */}
@@ -634,7 +637,10 @@ export default function SaludPage() {
                     </div>
                     {/* Dimensión 3: SEO — keywords usadas */}
                     <div>
-                      <p className="text-xs text-slate-500 mb-1">Optimización SEO</p>
+                      <p className="flex items-center gap-1 text-xs text-slate-500 mb-1">
+                        Optimización SEO
+                        <Tooltip text="SEO = posicionamiento en buscadores. Cuántas veces la IA ha incluido tus palabras clave en las respuestas, lo que ayuda a que Google te encuentre." />
+                      </p>
                       <p className="text-3xl font-black text-emerald-400 tabular-nums">
                         {metrics.topKeywordsUsadas.length > 0 ? metrics.topKeywordsUsadas.reduce((s, k) => s + k.count, 0) : 0}
                       </p>
@@ -661,7 +667,10 @@ export default function SaludPage() {
               {/* ── VELOCIDAD DE RESPUESTA ── */}
               {speedBenchmark && (
                 <div className="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Velocidad de respuesta</p>
+                  <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
+                    Velocidad de respuesta
+                    <Tooltip text="Cuánto tardas en responder desde que llega una reseña. Google valora los negocios que responden rápido." />
+                  </p>
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Media de respuesta</p>
@@ -909,7 +918,7 @@ export default function SaludPage() {
                 <div>
                   <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500">
                     Radar de competencia
-                    <Tooltip text="Añade hasta 3 competidores y Velacre compara sus reseñas con las tuyas usando IA para identificar tus puntos fuertes, débiles y oportunidades. 1 análisis al mes." />
+                    <Tooltip text="Compara tu reputación con la de hasta 3 competidores. La IA analiza sus reseñas y las tuyas. Hasta 2 análisis al mes." />
                   </p>
                   <p className="text-sm text-slate-400 mt-0.5">Compara tu reputación con la competencia usando IA</p>
                 </div>
