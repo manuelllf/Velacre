@@ -8,12 +8,17 @@ export const metadata = {
 export default function TerminosPage() {
   return (
     <div className="min-h-screen bg-slate-950">
-      <header className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="font-bold text-base text-white">Velacre</Link>
-          <Link href="/auth/login" className="text-sm text-slate-400 hover:text-white transition-colors">
-            Iniciar sesión
-          </Link>
+      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold tracking-tight text-white">Velacre</Link>
+          <div className="flex items-center gap-3">
+            <Link href="/auth/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2">
+              Iniciar sesión
+            </Link>
+            <Link href="/auth/register" className="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors">
+              Empezar gratis
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -198,12 +203,18 @@ export default function TerminosPage() {
 
         </div>
 
-        <div className="mt-12 pt-8 border-t border-slate-800 flex flex-wrap gap-4 justify-center text-sm">
-          <Link href="/privacidad" className="text-blue-400 hover:underline">Política de Privacidad</Link>
-          <Link href="/contacto" className="text-blue-400 hover:underline">Contacto</Link>
-          <Link href="/" className="text-slate-500 hover:text-slate-300 transition-colors">Volver al inicio</Link>
-        </div>
       </main>
+
+      <footer className="border-t border-slate-800 py-8 mt-12">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="text-slate-500 text-sm">© 2026 Velacre. Todos los derechos reservados.</span>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <Link href="/privacidad" className="hover:text-slate-300 transition-colors">Privacidad</Link>
+            <Link href="/terminos" className="hover:text-slate-300 transition-colors">Términos</Link>
+            <Link href="/contacto" className="hover:text-slate-300 transition-colors">Contacto</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
