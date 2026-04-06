@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "Gestiona y responde las reseñas de tu negocio con IA",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: '/icon-192.png', type: 'image/png', sizes: '192x192' }],
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
   },
   appleWebApp: {
     capable: true,
