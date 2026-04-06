@@ -113,8 +113,8 @@ const es: LandingLocale = {
       basic: {
         name: 'Basic',
         price: 'Gratis',
-        desc: 'Prueba la IA sin conectar tu negocio. Sin tarjeta.',
-        features: ['3 respuestas manuales al mes', 'Formulario de otras plataformas', 'Sin conexión con Google'],
+        desc: 'Empieza a responder sin pagar nada. Sin tarjeta.',
+        features: ['Conecta tu negocio de Google', '3 respuestas IA al mes', '3 respuestas para otras plataformas', 'Importación automática de reseñas'],
         cta: 'Empezar gratis',
       },
       core: {
@@ -122,8 +122,8 @@ const es: LandingLocale = {
         priceMonthly: '19 €',
         priceYearly: '190 €',
         priceYearlyMonthly: '15,83 €',
-        desc: 'Automatiza tus respuestas y mantén tu reputación al día.',
-        features: ['18 respuestas IA al mes', 'Sincronización con Google', 'Contexto y tono personalizados', 'Gestión de reseñas'],
+        desc: 'Para el negocio que no quiere perder ni una reseña sin responder.',
+        features: ['18 respuestas IA al mes', 'Google + otras plataformas', 'Tono personalizado y palabras clave SEO', 'Panel de salud completo'],
         cta: 'Elegir Core',
       },
       pro: {
@@ -132,7 +132,7 @@ const es: LandingLocale = {
         priceYearly: '449 €',
         priceYearlyMonthly: '37,42 €',
         desc: 'La diferencia entre responder reseñas y entender tu reputación.',
-        features: ['Panel de salud y análisis IA', 'Respuestas IA ilimitadas', 'Contexto, tono y palabras clave', 'Soporte prioritario'],
+        features: ['Respuestas IA ilimitadas', 'Radar de competencia', 'Análisis IA mensual con acción concreta', 'Informes PDF descargables'],
         cta: 'Elegir Pro',
         badge: 'El más elegido',
       },
