@@ -100,11 +100,11 @@ export default function ContactoPage() {
                 },
                 {
                   q: '¿Velacre publica las respuestas en Google?',
-                  a: 'No. Velacre genera el texto; tú lo revisas y lo publicas manualmente en Google Business. Siempre tienes el control.',
+                  a: 'Todavía no de forma automática. Velacre genera el texto y tú lo copias y publicas desde Google Business Profile. La publicación automática directa en Google está en desarrollo y llegará próximamente.',
                 },
                 {
                   q: '¿Cómo cancelo mi suscripción?',
-                  a: 'Puedes cancelar en cualquier momento desde Configuración o escribiendo a info@velacre.com. La cancelación es efectiva al final del período facturado.',
+                  a: 'Desde tu panel de Configuración encontrarás un enlace directo al portal de gestión de suscripción. Allí puedes cancelar, cambiar de plan o actualizar tu método de pago en cualquier momento. La cancelación es efectiva al final del período facturado.',
                 },
               ].map((item, i) => (
                 <div key={i} className="bg-slate-900 rounded-xl border border-slate-800 p-4">
