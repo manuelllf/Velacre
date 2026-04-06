@@ -608,6 +608,13 @@ export interface RadarCompetidorResult {
   amenaza: 'alta' | 'media' | 'baja'
 }
 
+export interface RadarCategoria {
+  nombre: string
+  yo: number
+  rivales: { nombre: string; score: number }[]
+  insight: string
+}
+
 export interface RadarAnalisisResult {
   id: string
   createdAt: string
@@ -617,6 +624,8 @@ export interface RadarAnalisisResult {
     competidores: RadarCompetidorResult[]
     oportunidades: string[]
     accion: string
+    categorias?: RadarCategoria[]
+    accionPro?: string
   } | null
 }
 

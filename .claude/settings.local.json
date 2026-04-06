@@ -31,7 +31,10 @@
       "Bash(python -c \"import struct, zlib, base64, math; print\\(''ok''\\)\")",
       "Bash(python3 -c \"import struct, zlib, base64, math; print\\(''ok''\\)\")",
       "Bash(node -e \"const fs=require\\(''fs''\\); const data=fs.readFileSync\\(''D:/ProyectosMLF/reviewshield-app/frontend/public/icon-192.png''\\); console.log\\(''size:'', data.length, ''bytes''\\);\")",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(find D:/ProyectosMLF/reviewshield-app -name *.woff2 -o -name CalSans* -o -name cal-sans*)",
+      "Bash(find D:/ProyectosMLF/reviewshield-app/frontend/public -name *.woff2 -o -name *.woff -o -name *.ttf)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

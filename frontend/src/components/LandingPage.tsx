@@ -33,6 +33,8 @@ export default function LandingPage({ locale: l }: Props) {
   const [selectedTone, setSelectedTone] = useState<'profesional' | 'cercano' | 'directo' | null>(null)
   const [typedText, setTypedText] = useState('')
   const [billingYearly, setBillingYearly] = useState(false)
+  const [calcResenas, setCalcResenas] = useState(25)
+  const [calcPrecioHora, setCalcPrecioHora] = useState(20)
 
   const toneKeys: Array<'profesional' | 'cercano' | 'directo'> = ['profesional', 'cercano', 'directo']
   const currentToneText = selectedTone ? l.demo.response.tones[selectedTone].text : ''
@@ -302,43 +304,109 @@ export default function LandingPage({ locale: l }: Props) {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="max-w-5xl mx-auto px-6 py-24">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-white mb-3">{l.howto.h2}</h2>
-          <p className="text-slate-400">{l.howto.p}</p>
+      <section className="max-w-4xl mx-auto px-6 py-24">
+        <div className="mb-16">
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-3">{l.howto.h2}</h2>
+          <p className="text-slate-400 max-w-xl">{l.howto.p}</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div>
           {l.howto.steps.map((step, index) => {
             const num = String(index + 1).padStart(2, '0')
-            const icons = [
-              <svg key="0" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>,
-              <svg key="1" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>,
-              <svg key="2" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>,
-            ]
             return (
-              <div key={num} className="relative">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 h-full">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-blue-950 border border-blue-800 rounded-xl flex items-center justify-center text-blue-400">
-                      {icons[index]}
-                    </div>
-                    <span className="text-xs font-bold text-blue-500 tracking-widest">{l.howto.stepLabel} {num}</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
+              <div key={num} className="flex gap-8 md:gap-12 items-start py-10 border-b border-slate-800/60 last:border-0 group">
+                <div className="shrink-0 w-16 md:w-24 pt-1">
+                  <span className="text-6xl md:text-7xl font-black text-slate-800 leading-none select-none group-hover:text-blue-900/60 transition-colors duration-300">
+                    {num}
+                  </span>
+                </div>
+                <div className="flex-1 pt-1.5">
+                  <span className="text-xs font-bold text-blue-500 tracking-widest uppercase block mb-3">{l.howto.stepLabel} {num}</span>
+                  <h3 className="text-xl md:text-2xl font-black text-white mb-3">{step.title}</h3>
+                  <p className="text-slate-400 leading-relaxed max-w-lg">{step.desc}</p>
                 </div>
               </div>
             )
           })}
         </div>
       </section>
+
+      {/* ── CALCULADORA DE PAZ MENTAL ── */}
+      {(() => {
+        const minSin = calcResenas * 4
+        const minCon = Math.ceil(calcResenas * 0.25)
+        const ahorroMin = minSin - minCon
+        const ahorroH = Math.floor(ahorroMin / 60)
+        const ahorroM = Math.round(ahorroMin % 60)
+        const ahorroEuros = Math.round((ahorroMin / 60) * calcPrecioHora)
+        return (
+          <section className="max-w-4xl mx-auto px-6 pb-24">
+            <div className="bg-gradient-to-br from-blue-950/50 to-slate-900 border border-blue-900/30 rounded-3xl p-8 md:p-10">
+              <div className="mb-8">
+                <h2 className="text-2xl md:text-3xl font-black text-white mb-2">¿Cuánto vale tu tiempo?</h2>
+                <p className="text-slate-400 text-sm">Calcula lo que te cuesta responder reseñas cada mes.</p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8 md:gap-12">
+                {/* Inputs */}
+                <div className="space-y-7">
+                  <div>
+                    <div className="flex justify-between items-baseline mb-3">
+                      <label className="text-sm font-semibold text-slate-300">Reseñas al mes</label>
+                      <span className="text-2xl font-black text-white tabular-nums">{calcResenas}</span>
+                    </div>
+                    <input
+                      type="range" min={1} max={150} value={calcResenas}
+                      onChange={e => setCalcResenas(+e.target.value)}
+                      className="w-full h-1.5 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+                    />
+                    <div className="flex justify-between text-xs text-slate-600 mt-1.5">
+                      <span>1</span><span>150</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-300 block mb-3">Precio de tu hora</label>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-sm font-medium">€</span>
+                      <input
+                        type="number" min={5} max={500} step={5} value={calcPrecioHora}
+                        onChange={e => setCalcPrecioHora(Math.max(5, Math.min(500, +e.target.value)))}
+                        className="w-24 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 text-center tabular-nums"
+                      />
+                      <span className="text-slate-500 text-sm">/hora</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Resultado */}
+                <div className="bg-slate-900/70 rounded-2xl p-6 border border-slate-800 flex flex-col justify-between">
+                  <div className="space-y-3 mb-5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-400">Sin Velacre <span className="text-slate-600 text-xs">(4 min/reseña)</span></span>
+                      <span className="text-slate-300 font-semibold tabular-nums">{minSin} min</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-400">Con Velacre <span className="text-slate-600 text-xs">(15 seg/reseña)</span></span>
+                      <span className="text-emerald-400 font-semibold tabular-nums">{minCon} min</span>
+                    </div>
+                    <div className="h-px bg-slate-800" />
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Ahorras al mes</p>
+                      <p className="text-3xl font-black text-white tabular-nums leading-tight">
+                        {ahorroH > 0 ? `${ahorroH}h ` : ''}{ahorroM > 0 ? `${ahorroM}min` : ''}
+                      </p>
+                      <p className="text-blue-400 font-bold mt-0.5">{ahorroEuros}€ de tu tiempo</p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/auth/register"
+                    className="block text-center py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors"
+                  >
+                    Empieza gratis →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        )
+      })()}
 
       {/* ── FOR WHO ── */}
       <section className="bg-slate-900/50 border-y border-slate-800 py-20">

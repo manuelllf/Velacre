@@ -274,17 +274,21 @@ public class ClaudeService : IReviewAiService
         var systemPrompt =
             "Eres un experto en reputación online para hostelería. Analiza las reseñas reales de un negocio y sus competidores. " +
             "Sé específico, directo y accionable — nada de frases genéricas. Máximo 2 frases por campo. " +
+            "Identifica las 4 categorías más relevantes que emergen de las reseñas (p.ej: comida, trato, limpieza, precio, ambiente, servicio, rapidez...). " +
+            "Para cada categoría puntúa el sentimiento de 0-100 (0=muy negativo, 100=muy positivo) basándote en las reseñas reales. " +
             "Devuelve ÚNICAMENTE este JSON (sin markdown):\n" +
             "{\"tuFortaleza\":\"...\",\"tuDebilidad\":\"...\"," +
             "\"competidores\":[{\"nombre\":\"...\",\"fortaleza\":\"...\",\"debilidad\":\"...\",\"amenaza\":\"alta|media|baja\"}]," +
             "\"oportunidades\":[\"...\",\"...\"]," +
-            "\"accion\":\"Una acción concreta que puedes hacer esta semana\"}";
+            "\"accion\":\"Una acción concreta que puedes hacer esta semana\"," +
+            "\"categorias\":[{\"nombre\":\"...\",\"yo\":85,\"rivales\":[{\"nombre\":\"...\",\"score\":72}],\"insight\":\"1 frase accionable basada en la diferencia\"}]," +
+            "\"accionPro\":\"Acción concreta y específica basada en donde tu competencia falla esta semana\"}";
 
         var parameters = new MessageParameters
         {
             Messages = [new Message(RoleType.User, sb.ToString())],
             Model    = _model,
-            MaxTokens = 1800,
+            MaxTokens = 2200,
             Temperature = 0.5m,
             System = [new SystemMessage(systemPrompt)]
         };

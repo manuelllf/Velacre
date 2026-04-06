@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, getRadar, addCompetidor, removeCompetidor, runRadarAnalysis, searchPlaces, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData, type RadarData } from '@/lib/api'
+import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, getRadar, addCompetidor, removeCompetidor, runRadarAnalysis, searchPlaces, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData, type RadarData, type RadarCategoria } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import WaitlistModal from '@/components/WaitlistModal'
 import Tooltip from '@/components/Tooltip'
@@ -32,6 +32,19 @@ interface SummaryData {
   accion: string
 }
 
+
+function ScoreBadge({ score }: { score: number }) {
+  const cls = score >= 75
+    ? 'text-emerald-400 bg-emerald-950/60 border border-emerald-900/50'
+    : score >= 50
+      ? 'text-amber-400 bg-amber-950/60 border border-amber-900/50'
+      : 'text-red-400 bg-red-950/60 border border-red-900/50'
+  return (
+    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold tabular-nums ${cls}`}>
+      {score}
+    </span>
+  )
+}
 
 function computeKeywords(reviews: PendingReview[]): KeywordInfo[] {
   const freq: Record<string, { count: number; pos: number; neg: number }> = {}
@@ -1120,6 +1133,54 @@ export default function SaludPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Matriz de sentimiento por categorías */}
+                    {radarResultado.categorias && radarResultado.categorias.length > 0 && (
+                      <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Sentimiento por categoría</p>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-slate-700">
+                                <th className="text-left pb-2.5 pr-4 text-xs font-semibold text-slate-500">Categoría</th>
+                                <th className="text-center pb-2.5 pr-3 text-xs font-semibold text-emerald-500">Tú</th>
+                                {radarData?.competidores.map(c => (
+                                  <th key={c.id} className="text-center pb-2.5 pr-3 text-xs font-semibold text-slate-500 max-w-[80px] truncate">{c.nombre.split(' ')[0]}</th>
+                                ))}
+                                <th className="text-left pb-2.5 text-xs font-semibold text-slate-500">Insight</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {radarResultado.categorias.map((cat: RadarCategoria, i: number) => (
+                                <tr key={i} className="border-b border-slate-800/60 last:border-0">
+                                  <td className="py-2.5 pr-4 font-semibold text-slate-200 capitalize">{cat.nombre}</td>
+                                  <td className="py-2.5 pr-3 text-center"><ScoreBadge score={cat.yo} /></td>
+                                  {cat.rivales.map((r, ri) => (
+                                    <td key={ri} className="py-2.5 pr-3 text-center"><ScoreBadge score={r.score} /></td>
+                                  ))}
+                                  <td className="py-2.5 text-xs text-slate-400 italic leading-snug">{cat.insight}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Acción estratégica Pro */}
+                    {radarResultado.accionPro && (
+                      <div className="bg-blue-950/50 border border-blue-800/50 rounded-xl p-4 flex items-start gap-3">
+                        <div className="shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mt-0.5">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">Acción estratégica</p>
+                          <p className="text-sm text-slate-200 leading-relaxed">{radarResultado.accionPro}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
               )}
             </div>
