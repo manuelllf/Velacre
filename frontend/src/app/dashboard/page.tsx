@@ -14,6 +14,7 @@ import {
   syncReviews,
   setReviewEstado,
   getGbpStatus,
+  getLemonCheckoutUrl,
   ApiError,
   type ReviewResponses,
   type Negocio,
@@ -75,6 +76,7 @@ export default function DashboardPage() {
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [showUpsell, setShowUpsell] = useState(false)
   const [upsellInfo, setUpsellInfo] = useState<{ plan: string; limit: number; used: number } | null>(null)
+  const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
   const [iaUsed, setIaUsed] = useState<number>(0)
 
   // GBP
@@ -854,20 +856,38 @@ export default function DashboardPage() {
 
                 <div className="space-y-2 pt-1">
                   {isCore ? (
-                    <a href="/settings"
-                      className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors">
-                      Pasarme a Pro — respuestas ilimitadas →
-                    </a>
+                    <button
+                      onClick={async () => {
+                        setCheckoutLoading('pro')
+                        try { window.location.href = await getLemonCheckoutUrl('pro') }
+                        finally { setCheckoutLoading(null) }
+                      }}
+                      disabled={checkoutLoading !== null}
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-bold rounded-xl transition-colors">
+                      {checkoutLoading === 'pro' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Redirigiendo...</> : 'Pasarme a Pro — respuestas ilimitadas →'}
+                    </button>
                   ) : (
                     <>
-                      <a href="/settings?plan=pro"
-                        className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors">
-                        Pro — ilimitadas →
-                      </a>
-                      <a href="/settings?plan=core"
-                        className="flex items-center justify-center gap-2 w-full py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-semibold rounded-xl transition-colors">
-                        Core — 18 al mes · 19 €/mes
-                      </a>
+                      <button
+                        onClick={async () => {
+                          setCheckoutLoading('pro')
+                          try { window.location.href = await getLemonCheckoutUrl('pro') }
+                          finally { setCheckoutLoading(null) }
+                        }}
+                        disabled={checkoutLoading !== null}
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-bold rounded-xl transition-colors">
+                        {checkoutLoading === 'pro' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Redirigiendo...</> : 'Pro — ilimitadas →'}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setCheckoutLoading('core')
+                          try { window.location.href = await getLemonCheckoutUrl('core') }
+                          finally { setCheckoutLoading(null) }
+                        }}
+                        disabled={checkoutLoading !== null}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 border border-slate-700 hover:bg-slate-800 disabled:opacity-60 text-slate-300 text-sm font-semibold rounded-xl transition-colors">
+                        {checkoutLoading === 'core' ? <><span className="w-4 h-4 border-2 border-slate-400/40 border-t-slate-300 rounded-full animate-spin" />Redirigiendo...</> : 'Core — 18 al mes · 19 €/mes'}
+                      </button>
                     </>
                   )}
                   <button
