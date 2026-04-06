@@ -560,21 +560,26 @@ export default function LandingPage({ locale: l }: Props) {
           <p className="text-slate-300">{l.pricing.p}</p>
         </FadeInUp>
 
-        <FadeInUp delay={0.05} className="flex items-center justify-center gap-3 mb-12">
-          <span className={`text-sm font-medium transition-colors ${!billingYearly ? 'text-white' : 'text-slate-500'}`}>{l.pricing.monthly}</span>
-          <button type="button" onClick={() => setBillingYearly(v => !v)}
-            className={`relative w-12 h-6 rounded-full transition-colors ${billingYearly ? 'bg-blue-600' : 'bg-slate-700'}`}>
-            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${billingYearly ? 'left-7' : 'left-1'}`} />
-          </button>
-          <span className={`text-sm font-medium transition-colors ${billingYearly ? 'text-white' : 'text-slate-500'}`}>{l.pricing.yearly}</span>
-          <AnimatePresence>
-            {billingYearly && (
-              <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                className="text-xs font-semibold bg-emerald-900/60 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full">
-                {l.pricing.yearlySave}
-              </motion.span>
-            )}
-          </AnimatePresence>
+        <FadeInUp delay={0.05} className="flex flex-col items-center gap-2 mb-12">
+          <div className="flex items-center gap-3">
+            <span className={`text-sm font-medium transition-colors ${!billingYearly ? 'text-white' : 'text-slate-500'}`}>{l.pricing.monthly}</span>
+            <button type="button" onClick={() => setBillingYearly(v => !v)}
+              className={`relative w-12 h-6 rounded-full transition-colors ${billingYearly ? 'bg-blue-600' : 'bg-slate-700'}`}>
+              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${billingYearly ? 'left-7' : 'left-1'}`} />
+            </button>
+            <span className={`text-sm font-medium transition-colors ${billingYearly ? 'text-white' : 'text-slate-500'}`}>{l.pricing.yearly}</span>
+          </div>
+          <div className="h-6 flex items-center">
+            <AnimatePresence>
+              {billingYearly && (
+                <motion.span initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xs font-semibold bg-emerald-900/60 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full">
+                  {l.pricing.yearlySave}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
         </FadeInUp>
 
         <div className="grid md:grid-cols-3 gap-6 items-start">
