@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, getLemonCheckoutUrl, getGbpStatus, getGbpAuthUrl, getGbpLocations, finalizeGbpConnection, disconnectGbp, type Negocio, type GbpStatus, type GbpLocation } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
+import Tooltip from '@/components/Tooltip'
+import { HelpButton } from '@/components/HelpModal'
 import { useLanguage } from '@/lib/i18n'
 
 export default function SettingsPage() {
@@ -497,7 +499,10 @@ export default function SettingsPage() {
                   </div>
                   {/* Palabras clave SEO */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Palabras clave SEO</label>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Palabras clave SEO
+                      <Tooltip text="Palabras que la IA intentará incluir de forma natural en las respuestas. Mejoran tu visibilidad en Google cuando alguien busca esos términos. Ej: 'terraza', 'menú del día', 'sin gluten'." />
+                    </label>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">Hasta 5. La IA las incluirá con naturalidad en las respuestas para mejorar tu posicionamiento.</p>
                     {palabrasClave.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-2">
@@ -543,7 +548,10 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{s.toneSection}</label>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      {s.toneSection}
+                      <Tooltip text="El tono con el que Velacre redactará tus respuestas. Profesional: formal y serio. Cercano: cálido y humano. Directo: breve y al grano." />
+                    </label>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{s.toneSubtitle}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {TONOS.map(tono => (
@@ -727,6 +735,8 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      <HelpButton />
 
       <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-5">
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">

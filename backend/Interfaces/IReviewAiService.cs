@@ -17,6 +17,13 @@ public interface IReviewAiService
     Task<string> GetClaudeMessageAsync(string userPrompt, string systemPrompt);
 
     /// <summary>
+    /// Genera 3 respuestas (Profesional, Cercano, Directo) con filtro de seguridad integrado.
+    /// Si detecta contenido crítico devuelve Retenida=true y las respuestas vacías.
+    /// </summary>
+    Task<(string Profesional, string Cercano, string Directo, bool Retenida, string MotivoRetencion)> GenerateThreeResponsesWithSafeFilterAsync(
+        string reviewText, string businessDesc);
+
+    /// <summary>
     /// Genera un análisis comparativo de reputación frente a competidores.
     /// Devuelve JSON con tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion.
     /// </summary>

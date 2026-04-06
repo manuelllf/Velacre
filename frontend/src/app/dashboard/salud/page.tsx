@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, getRadar, addCompetidor, removeCompetidor, runRadarAnalysis, searchPlaces, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData, type RadarData } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import WaitlistModal from '@/components/WaitlistModal'
+import Tooltip from '@/components/Tooltip'
+import { HelpButton } from '@/components/HelpModal'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, computeSpeedBenchmark, type MonthMetrics, type SpeedBenchmark } from '@/lib/report-pdf'
 import { useLanguage } from '@/lib/i18n'
 
@@ -609,7 +611,10 @@ export default function SaludPage() {
               {/* ── MÉTRICAS DE IMPACTO VELACRE ── */}
               {metrics && (
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Impacto Velacre</p>
+                  <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
+                    Impacto Velacre
+                    <Tooltip text="Cuánto tiempo has ahorrado respondiendo con IA en lugar de hacerlo manualmente. Estimación: ~4 min manual vs ~15 seg con Velacre." />
+                  </p>
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     {/* Dimensión 1: % respondidas */}
                     <div>
@@ -902,7 +907,10 @@ export default function SaludPage() {
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Radar de competencia</p>
+                  <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    Radar de competencia
+                    <Tooltip text="Añade hasta 3 competidores y Velacre compara sus reseñas con las tuyas usando IA para identificar tus puntos fuertes, débiles y oportunidades. 1 análisis al mes." />
+                  </p>
                   <p className="text-sm text-slate-400 mt-0.5">Compara tu reputación con la competencia usando IA</p>
                 </div>
                 {radarData?.ultimoAnalisis && (
@@ -1113,6 +1121,8 @@ export default function SaludPage() {
       {basicUpsellPlan && (
         <WaitlistModal plan={basicUpsellPlan} onClose={() => setBasicUpsellPlan(null)} />
       )}
+
+      <HelpButton />
 
       <footer className="mt-8 border-t border-slate-800 py-5">
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">

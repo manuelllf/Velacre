@@ -169,6 +169,82 @@ public class ClaudeService : IReviewAiService
         throw new InvalidOperationException("Claude API overloaded tras 3 intentos");
     }
 
+    public async Task<(string Profesional, string Cercano, string Directo, bool Retenida, string MotivoRetencion)> GenerateThreeResponsesWithSafeFilterAsync(
+        string reviewText, string businessDesc)
+    {
+        _logger.LogInformation("[ClaudeService] GenerateThreeResponsesWithSafeFilterAsync — modelo={Model}", _model);
+
+        var systemPrompt =
+            $"Eres un experto en reputación online para hostelería en Ferrol, Galicia. " +
+            $"Negocio: {businessDesc}. " +
+            "IMPORTANTE — Filtro de seguridad: antes de generar respuestas evalúa si la reseña describe alguna situación crítica: " +
+            "(1) intoxicación alimentaria real o enfermedad grave, " +
+            "(2) acusaciones de agresión física, malos tratos o acoso grave, " +
+            "(3) amenaza explícita de denuncia judicial o demanda legal, " +
+            "(4) datos personales sensibles (nombre + datos médicos/bancarios). " +
+            "Si detectas alguna, devuelve retenida:true y profesional/cercano/directo:null. " +
+            "Si no, genera 3 respuestas en el mismo idioma que la reseña. Máximo 150 palabras cada una. " +
+            "Tono Profesional: formal y pulido. Tono Cercano: cálido y humano. Tono Directo: breve y claro. " +
+            "Devuelve ÚNICAMENTE este JSON (sin markdown):\n" +
+            "{\"retenida\":false,\"motivoRetencion\":null," +
+            "\"profesional\":\"<respuesta o null>\",\"cercano\":\"<respuesta o null>\",\"directo\":\"<respuesta o null>\"}";
+
+        var parameters = new MessageParameters
+        {
+            Messages = [new Message(RoleType.User, $"Reseña: '{reviewText}'")],
+            Model = _model,
+            MaxTokens = 800,
+            Temperature = 0.7m,
+            System = [new SystemMessage(systemPrompt)]
+        };
+
+        const int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                var apiResponse = await _client.Messages.GetClaudeMessageAsync(parameters);
+                var raw = apiResponse.Content.FirstOrDefault()?.ToString() ?? "";
+
+                var jsonStart = raw.IndexOf('{');
+                var jsonEnd   = raw.LastIndexOf('}');
+                if (jsonStart >= 0 && jsonEnd > jsonStart)
+                {
+                    var doc = System.Text.Json.JsonDocument.Parse(raw[jsonStart..(jsonEnd + 1)]);
+                    var retenida = doc.RootElement.TryGetProperty("retenida", out var ret) && ret.ValueKind == System.Text.Json.JsonValueKind.True;
+                    var motivo   = doc.RootElement.TryGetProperty("motivoRetencion", out var mv) && mv.ValueKind != System.Text.Json.JsonValueKind.Null ? mv.GetString() ?? "" : "";
+
+                    if (retenida)
+                    {
+                        _logger.LogWarning("[ClaudeService] Reseña manual retenida: motivo={Motivo}", motivo);
+                        return ("", "", "", true, motivo);
+                    }
+
+                    var profesional = doc.RootElement.TryGetProperty("profesional", out var p) && p.ValueKind != System.Text.Json.JsonValueKind.Null ? p.GetString() ?? "" : "";
+                    var cercano     = doc.RootElement.TryGetProperty("cercano",     out var c) && c.ValueKind != System.Text.Json.JsonValueKind.Null ? c.GetString() ?? "" : "";
+                    var directo     = doc.RootElement.TryGetProperty("directo",     out var d) && d.ValueKind != System.Text.Json.JsonValueKind.Null ? d.GetString() ?? "" : "";
+                    return (profesional, cercano, directo, false, "");
+                }
+
+                _logger.LogWarning("[ClaudeService] GenerateThreeResponsesWithSafeFilterAsync: JSON no encontrado");
+                // Fallback to raw text
+                return (raw.Trim(), "", "", false, "");
+            }
+            catch (Exception ex) when (attempt < maxRetries && ex.Message.Contains("overloaded_error"))
+            {
+                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt));
+                _logger.LogWarning("[ClaudeService] Overloaded (intento {Attempt}/{Max}), reintentando en {Delay}s...", attempt, maxRetries, delay.TotalSeconds);
+                await Task.Delay(delay);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[ClaudeService] Error en GenerateThreeResponsesWithSafeFilterAsync");
+                throw;
+            }
+        }
+        throw new InvalidOperationException("Claude API overloaded tras 3 intentos");
+    }
+
     public async Task<string> GenerateRadarAnalysisAsync(
         string miNegocioNombre,
         List<string> misResenas,

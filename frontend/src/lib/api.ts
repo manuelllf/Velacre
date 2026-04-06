@@ -19,11 +19,11 @@ async function authHeaders(): Promise<HeadersInit> {
 }
 
 export interface ReviewResponses {
-  profesional: string
-  cercano: string
-  directo: string
-  reviewId: string
-  codigo: string
+  retenida: boolean
+  motivoRetencion?: string
+  profesional?: string
+  cercano?: string
+  directo?: string
 }
 
 export interface Negocio {
@@ -67,6 +67,7 @@ export interface PendingReview {
   publicadaFecha?: string
   retenida?: boolean
   motivoRetencion?: string
+  plataforma?: string
 }
 
 export interface GbpStatus {
@@ -92,22 +93,51 @@ export async function notifyWaitlist(plan: 'core' | 'pro', notas?: string): Prom
 
 export async function generateResponses(
   reviewText: string,
-  plataforma?: string
 ): Promise<ReviewResponses> {
-  console.log('[api] generateResponses →', { plataforma, chars: reviewText.length })
   const res = await fetch(`${API_URL}/api/review/generate`, {
     method: 'POST',
     headers: await authHeaders(),
-    body: JSON.stringify({ reviewText, plataforma }),
+    body: JSON.stringify({ reviewText }),
   })
   if (!res.ok) {
+    if (res.status === 429) {
+      const data = await res.json().catch(() => ({}))
+      throw new ApiError(429, 'limit_reached', data as Record<string, unknown>)
+    }
     const body = await res.text()
-    console.error('[api] generateResponses ERROR', res.status, body)
     throw new Error(body)
   }
-  const data = await res.json()
-  console.log('[api] generateResponses ← OK', data.codigo)
-  return data
+  return res.json()
+}
+
+export async function saveManualReview(data: {
+  reviewText: string
+  tonoSeleccionado: 'profesional' | 'cercano' | 'directo'
+  respuestaProfesional: string
+  respuestaCercano: string
+  respuestaDirecto: string
+  estado: 'pendiente' | 'respondida'
+}): Promise<PendingReview> {
+  const res = await fetch(`${API_URL}/api/review/save-manual`, {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({
+      reviewText: data.reviewText,
+      tonoSeleccionado: data.tonoSeleccionado,
+      respuestaProfesional: data.respuestaProfesional,
+      respuestaCercano: data.respuestaCercano,
+      respuestaDirecto: data.respuestaDirecto,
+      estado: data.estado,
+    }),
+  })
+  if (!res.ok) {
+    if (res.status === 429) {
+      const body = await res.json().catch(() => ({}))
+      throw new ApiError(429, 'limit_reached', body as Record<string, unknown>)
+    }
+    throw new Error(await res.text())
+  }
+  return res.json()
 }
 
 export async function getMyNegocio(): Promise<Negocio | null> {

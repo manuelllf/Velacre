@@ -32,123 +32,180 @@ public class ReviewController : ControllerBase
             return BadRequest("La reseña no puede estar vacía.");
 
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
-        _logger.LogInformation("[ReviewController] POST /generate — userId={UserId}, plataforma={Plataforma}", userId, request.Plataforma);
+        _logger.LogInformation("[ReviewController] POST /generate — userId={UserId}", userId);
 
-        // Check plan limits for manual generation
-        var usuarioResult = await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == userId)
-            .Limit(1)
-            .Get();
-
+        var usuarioResult = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
         var usuario = usuarioResult.Models.FirstOrDefault();
 
         if (usuario != null)
         {
             var now = DateTimeOffset.UtcNow;
-
-            // Verificar estado: baneado o prueba expirada → bloquear
             if (usuario.Estado == "baneado")
-            {
-                _logger.LogWarning("[ReviewController] Usuario {UserId} baneado intentó generar respuesta", userId);
                 return StatusCode(403, "Tu cuenta está suspendida. Contacta con soporte.");
-            }
             if (usuario.Estado == "prueba" && usuario.PruebaHasta.HasValue && usuario.PruebaHasta.Value < now)
-            {
-                _logger.LogWarning("[ReviewController] Usuario {UserId} con prueba expirada intentó generar respuesta", userId);
                 return StatusCode(403, "Tu período de prueba ha expirado. Contacta con soporte para activar tu cuenta.");
-            }
 
-            // Pro efectivo: plan pro O override activo
             var esProEfectivo = usuario.Plan == "pro" ||
                 (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > now));
 
-            // Límite de respuestas manuales solo para no-Pro
             if (!esProEfectivo)
             {
                 int manualLimit = usuario.Plan == "core" ? 18 : 3;
-
-                // Reset counter if it's a new month
                 if (usuario.RespuestasMesReset == null ||
                     usuario.RespuestasMesReset.Value.Year < now.Year ||
                     (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
                 {
                     usuario.RespuestasManualesMes = 0;
-                    usuario.RespuestasMesReset = now; // sincronizar local antes del update
+                    usuario.RespuestasMesReset = now;
                     await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
                 }
-
                 if (usuario.RespuestasManualesMes >= manualLimit)
                 {
-                    _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite de {Limit} respuestas manuales en plan {Plan}", userId, manualLimit, usuario.Plan);
-                    return StatusCode(403, $"Has alcanzado el límite de {manualLimit} respuestas manuales este mes.");
+                    _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite manual {Limit} plan={Plan}", userId, manualLimit, usuario.Plan);
+                    return StatusCode(429, new { error = "limit_reached", plan = usuario.Plan, limit = manualLimit, used = manualLimit });
                 }
             }
         }
 
-        var negocioResult = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId)
-            .Limit(1)
-            .Get();
-
+        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
         var negocio = negocioResult.Models.FirstOrDefault();
-
-        if (negocio == null)
-        {
-            _logger.LogWarning("[ReviewController] userId={UserId} no tiene negocio registrado", userId);
-            return NotFound("No tienes ningún negocio registrado. Completa el onboarding primero.");
-        }
-
-        _logger.LogDebug("[ReviewController] Generando respuestas para negocio={NegocioId}", negocio.Id);
+        if (negocio == null) return NotFound("No tienes ningún negocio registrado. Completa el onboarding primero.");
 
         try
         {
-            var (profesional, cercano, directo) = await _aiService.GenerateThreeResponsesAsync(
-                request.ReviewText,
-                negocio.Descripcion ?? negocio.Nombre
-            );
+            var (profesional, cercano, directo, retenida, motivoRetencion) =
+                await _aiService.GenerateThreeResponsesWithSafeFilterAsync(
+                    request.ReviewText,
+                    negocio.Descripcion ?? negocio.Nombre
+                );
 
-            _logger.LogInformation("[ReviewController] Respuestas generadas OK, guardando en BD...");
+            if (retenida)
+            {
+                _logger.LogWarning("[ReviewController] Reseña manual retenida por seguridad — motivo={Motivo}", motivoRetencion);
+                return Ok(new { retenida = true, motivoRetencion });
+            }
+
+            _logger.LogInformation("[ReviewController] Respuestas manuales generadas OK (sin guardar)");
+            return Ok(new { retenida = false, motivoRetencion = (string?)null, profesional, cercano, directo });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ReviewController] Error al generar respuesta manual para userId={UserId}", userId);
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpPost("save-manual")]
+    public async Task<IActionResult> SaveManualReview([FromBody] SaveManualReviewRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.ReviewText))
+            return BadRequest("La reseña no puede estar vacía.");
+
+        var tonoLower = request.TonoSeleccionado.ToLower();
+        if (tonoLower != "profesional" && tonoLower != "cercano" && tonoLower != "directo")
+            return BadRequest("Tono inválido.");
+
+        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        _logger.LogInformation("[ReviewController] POST /save-manual — userId={UserId}, tono={Tono}", userId, request.TonoSeleccionado);
+
+        var usuarioResult = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
+        var usuario = usuarioResult.Models.FirstOrDefault();
+
+        if (usuario != null)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var esProEfectivo = usuario.Plan == "pro" ||
+                (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > now));
+
+            if (!esProEfectivo)
+            {
+                int manualLimit = usuario.Plan == "core" ? 18 : 3;
+                if (usuario.RespuestasMesReset == null ||
+                    usuario.RespuestasMesReset.Value.Year < now.Year ||
+                    (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
+                {
+                    usuario.RespuestasManualesMes = 0;
+                    usuario.RespuestasMesReset = now;
+                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+                }
+                if (usuario.RespuestasManualesMes >= manualLimit)
+                {
+                    _logger.LogWarning("[ReviewController] Usuario {UserId} alcanzó límite manual {Limit} al guardar", userId, manualLimit);
+                    return StatusCode(429, new { error = "limit_reached", plan = usuario.Plan, limit = manualLimit, used = manualLimit });
+                }
+            }
+        }
+
+        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
+        var negocio = negocioResult.Models.FirstOrDefault();
+        if (negocio == null) return NotFound("No tienes ningún negocio registrado.");
+
+        try
+        {
+            var estado = request.Estado == "respondida" ? "respondida" : "pendiente";
+            var tonoCapitalized = char.ToUpper(tonoLower[0]) + tonoLower[1..];
+            var now2 = DateTimeOffset.UtcNow;
 
             var entity = new ReviewEntity
             {
                 Codigo = "BFK" + Guid.NewGuid().ToString("N")[..7].ToUpper(),
                 IdNegocio = negocio.Id,
                 ClienteReview = request.ReviewText,
-                RespuestaProfesional = profesional,
-                RespuestaCercano = cercano,
-                RespuestaDirecto = directo,
-                Plataforma = request.Plataforma,
+                RespuestaProfesional = request.RespuestaProfesional,
+                RespuestaCercano = request.RespuestaCercano,
+                RespuestaDirecto = request.RespuestaDirecto,
+                TonoGenerado = tonoCapitalized,
+                Plataforma = "Otra",
+                Estado = estado,
+                RespondidaFecha = estado == "respondida" ? now2 : null,
                 CreadoPor = userId,
-                CreadoFecha = DateTimeOffset.UtcNow
+                CreadoFecha = now2
             };
 
             var result = await _supabase.From<ReviewEntity>().Insert(entity);
-
             if (result.Models.Count == 0)
-            {
-                _logger.LogError("[ReviewController] Insert de review devolvió 0 modelos, negocioId={NegocioId}", negocio.Id);
-                return StatusCode(500, "Las respuestas se generaron pero no se pudieron guardar.");
-            }
+                return StatusCode(500, "No se pudo guardar la reseña.");
 
             var saved = result.Models[0];
-            _logger.LogInformation("[ReviewController] Review guardada: {ReviewId} ({Codigo})", saved.Id, saved.Codigo);
 
-            // Increment monthly counter for non-Pro users
-            var esProEfectivoPostGen = usuario != null && (usuario.Plan == "pro" ||
-                (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > DateTimeOffset.UtcNow)));
-            if (usuario != null && !esProEfectivoPostGen)
+            // Increment manual counter
+            if (usuario != null)
             {
-                usuario.RespuestasManualesMes += 1;
-                if (usuario.RespuestasMesReset == null) usuario.RespuestasMesReset = DateTimeOffset.UtcNow;
-                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
-                _logger.LogDebug("[ReviewController] Contador manual incrementado → {Count}/30 para userId={UserId}", usuario.RespuestasManualesMes, userId);
+                var esProEfectivo2 = usuario.Plan == "pro" ||
+                    (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > DateTimeOffset.UtcNow));
+                if (!esProEfectivo2)
+                {
+                    usuario.RespuestasManualesMes += 1;
+                    if (usuario.RespuestasMesReset == null) usuario.RespuestasMesReset = DateTimeOffset.UtcNow;
+                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+                    _logger.LogDebug("[ReviewController] Contador manual → {Count} para userId={UserId}", usuario.RespuestasManualesMes, userId);
+                }
             }
 
-            return Ok(new GenerateReviewResponse(profesional, cercano, directo, saved.Id, saved.Codigo));
+            _logger.LogInformation("[ReviewController] Review manual guardada: {ReviewId}", saved.Id);
+
+            return Ok(new
+            {
+                id = saved.Id,
+                googleReviewId = (string?)null,
+                authorName = (string?)null,
+                starRating = (int?)null,
+                reviewDate = saved.CreadoFecha,
+                clientereview = saved.ClienteReview,
+                estado = saved.Estado,
+                respuestaProfesional = saved.RespuestaProfesional,
+                respuestaCercano = saved.RespuestaCercano,
+                respuestaDirecto = saved.RespuestaDirecto,
+                tonoGenerado = saved.TonoGenerado,
+                plataforma = saved.Plataforma,
+                respondidaFecha = saved.RespondidaFecha,
+                retenida = false,
+                motivoRetencion = (string?)null,
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[ReviewController] Error al generar/guardar review para userId={UserId}", userId);
+            _logger.LogError(ex, "[ReviewController] Error al guardar review manual para userId={UserId}", userId);
             return StatusCode(500, ex.Message);
         }
     }
@@ -440,6 +497,7 @@ public class ReviewController : ControllerBase
                 respuestaCercano = r.RespuestaCercano,
                 respuestaDirecto = r.RespuestaDirecto,
                 tonoGenerado = r.TonoGenerado,
+                plataforma = r.Plataforma,
                 keywordsUsadas = r.KeywordsUsadas ?? Array.Empty<string>(),
                 actualizadoFecha   = r.ActualizadoFecha,
                 respondidaFecha    = r.RespondidaFecha,
