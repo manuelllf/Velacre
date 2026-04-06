@@ -586,6 +586,7 @@ frontend/src/
 
 ### Backlog inmediato (antes o junto con GBP)
 - Comprobar como se guarda la tarjeta de contextos en las reseñas manuales de otra plataforma, al guardarla en el dashboard no aparece ese contexto. En móvil, al acabar la interacción y darle a guardar el modal desaparece y el usuario se queda bloqueado en una pestaña vacía sin nada, tiene que redirigir correctamente.
+- Rediseñar de forma agresiva los PDFs, son horribles.
 **Eliminación de reseñas (Pro):**
 - Feature de alto valor percibido, coste mínimo de desarrollo.
 - Flujo: usuario selecciona reseña → marca el motivo (spam, irrelevante, falsa, ofensiva...) → Claude genera el texto de reclamación exacto según políticas de Google → usuario copia y pega en el formulario oficial de Google.
