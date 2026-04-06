@@ -459,94 +459,204 @@ export default function SaludPage() {
         </div>
       )}
 
-      {/* ── CORE teaser: nota media real + secciones dummy blurred + upsell Pro ── */}
+      {/* ── CORE teaser: cards reales + cards Pro bloqueadas ── */}
       {userPlan === 'core' && (
-        <div className="relative">
-          {/* Nota media real */}
-          <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-4 relative z-[1]">
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 inline-flex items-center gap-6 shadow-sm">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Tu nota media</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-black text-white tabular-nums">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
-                  {avgRating > 0 && <span className="text-slate-400 text-xl font-light">/5</span>}
-                </div>
-                {avgRating > 0 && (
-                  <div className="flex gap-1 mt-1">
-                    {[1,2,3,4,5].map(s => (
-                      <span key={s} className={`text-base ${s <= Math.round(avgRating) ? 'text-amber-400' : 'text-slate-700'}`}>★</span>
-                    ))}
-                  </div>
-                )}
-                <p className="text-xs text-slate-500 mt-1">Basado en {reviews.length} reseñas</p>
+        <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-5">
+
+          {/* Cabecera */}
+          <div>
+            <h1 className="text-xl font-bold text-white tracking-tight">Panel de Salud</h1>
+            {negocio && <p className="text-sm text-slate-400 mt-0.5">{negocio.nombre} <span className="text-slate-600">·</span> <span className="capitalize">{monthName}</span></p>}
+          </div>
+
+          {/* ── CARDS REALES (datos sin blur) ── */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Nota media */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 col-span-2 sm:col-span-1">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Nota media</p>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-3xl font-black text-white tabular-nums">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
+                {avgRating > 0 && <span className="text-slate-500 text-base">/5</span>}
               </div>
+              {avgRating > 0 && (
+                <div className="flex gap-0.5 mt-1">
+                  {[1,2,3,4,5].map(s => (
+                    <span key={s} className={`text-sm ${s <= Math.round(avgRating) ? 'text-amber-400' : 'text-slate-700'}`}>★</span>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-slate-500 mt-1">{reviews.length} reseñas</p>
+            </div>
+
+            {/* Tasa de respuesta */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Respondidas</p>
+              <p className="text-3xl font-black text-white tabular-nums">{responseRate}%</p>
+              <p className="text-xs text-slate-500 mt-1">{responded} de {reviews.length}</p>
+            </div>
+
+            {/* Reseñas este mes */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Este mes</p>
+              <p className="text-3xl font-black text-white tabular-nums">{thisMonthReviews.length}</p>
+              <p className="text-xs text-slate-500 mt-1">reseñas nuevas</p>
+            </div>
+
+            {/* Tendencia */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">Tendencia</p>
+              {ratingDiff !== 0 ? (
+                <>
+                  <p className={`text-3xl font-black tabular-nums ${ratingDiff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {ratingDiff > 0 ? '+' : ''}{ratingDiff.toFixed(1)}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">vs mes anterior</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-3xl font-black text-slate-600">—</p>
+                  <p className="text-xs text-slate-500 mt-1">sin datos previos</p>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Dummy blurred — más secciones que basic */}
-          <div className="max-w-screen-xl mx-auto px-4 pb-6 space-y-4" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[['87%', 'Tasa de respuesta'], ['31', 'Reseñas este mes'], ['+0,3', 'Tendencia mensual'], ['4 min', 'Tiempo ahorrado']].map(([val, label]) => (
-                <div key={label} className="bg-slate-800 rounded-2xl border border-slate-700 p-4">
-                  <p className="text-2xl font-bold text-white">{val}</p>
-                  <p className="text-xs text-slate-400 mt-1">{label}</p>
-                </div>
-              ))}
+          {/* Sentimiento real */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">Distribución de sentimiento</p>
+            <div className="flex rounded-full overflow-hidden h-3">
+              <div className="bg-emerald-500 transition-all" style={{ width: `${(positive / sentimentTotal) * 100}%` }} />
+              <div className="bg-amber-400 transition-all" style={{ width: `${(neutral / sentimentTotal) * 100}%` }} />
+              <div className="bg-red-500 transition-all" style={{ width: `${(negative / sentimentTotal) * 100}%` }} />
             </div>
-            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6">
-              <div className="h-3 bg-slate-700 rounded mb-3 w-1/3" />
-              <div className="flex rounded-full overflow-hidden h-4">
-                <div className="bg-emerald-500" style={{ width: '64%' }} />
-                <div className="bg-amber-400" style={{ width: '19%' }} />
-                <div className="bg-red-500" style={{ width: '17%' }} />
-              </div>
-              <div className="flex flex-wrap gap-2 mt-4">
-                {['excelente', 'servicio', 'comida', 'precio', 'ubicación', 'trato', 'ambiente'].map(w => (
-                  <span key={w} className="px-3 py-1 rounded-full text-xs bg-slate-700 text-slate-500">{w}</span>
-                ))}
-              </div>
+            <div className="flex gap-4 mt-3 text-xs text-slate-400">
+              <span><span className="text-emerald-400 font-bold">{positive}</span> positivas</span>
+              <span><span className="text-amber-400 font-bold">{neutral}</span> neutras</span>
+              <span><span className="text-red-400 font-bold">{negative}</span> negativas</span>
             </div>
-            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6">
-              <div className="h-3 bg-slate-700 rounded mb-4 w-1/4" />
-              <div className="space-y-2">
-                {[['Comida', '8.4', '7.1'], ['Trato', '9.1', '6.8'], ['Limpieza', '7.6', '8.2']].map(([cat, yo, rival]) => (
-                  <div key={cat} className="flex items-center gap-3">
-                    <span className="text-xs text-slate-400 w-16">{cat}</span>
-                    <div className="flex-1 h-2 bg-slate-700 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{ width: `${parseFloat(yo) * 10}%` }} /></div>
-                    <span className="text-xs text-slate-500 tabular-nums">{yo} vs {rival}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 h-28" />
           </div>
 
-          {/* Upsell overlay */}
-          <div className="absolute inset-x-0 bottom-0 top-32 flex items-center justify-center pointer-events-auto">
-            <div className="bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl max-w-sm mx-4 overflow-hidden">
-              <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600" />
-              <div className="p-7 text-center space-y-4">
-                {(() => {
-                  const pending = reviews.filter(r => !r.tonoGenerado && r.estado !== 'ignorada').length
-                  return pending > 0 ? (
-                    <div className="bg-amber-950/50 border border-amber-800/50 rounded-xl px-4 py-3 text-left">
-                      <p className="text-sm font-bold text-amber-300">{pending} reseña{pending !== 1 ? 's' : ''} sin responder</p>
-                      <p className="text-xs text-amber-600 mt-0.5">El análisis IA te dice cuáles importan más.</p>
+          {/* ── CARDS PRO BLOQUEADAS ── */}
+          <div className="grid sm:grid-cols-2 gap-4">
+
+            {/* Análisis IA — bloqueado */}
+            <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-5 overflow-hidden">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Análisis IA</p>
+                <span className="text-xs font-bold text-blue-400 bg-blue-950/60 border border-blue-900/50 px-2 py-0.5 rounded-full">Pro</span>
+              </div>
+              <div className="space-y-3" style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none' }}>
+                <div className="space-y-1">
+                  <p className="text-xs text-emerald-400 font-semibold">Lo que brilla</p>
+                  <div className="h-3 bg-slate-700 rounded w-4/5" />
+                  <div className="h-3 bg-slate-700 rounded w-3/5" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-red-400 font-semibold">Lo que quema</p>
+                  <div className="h-3 bg-slate-700 rounded w-4/5" />
+                  <div className="h-3 bg-slate-700 rounded w-2/5" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-blue-400 font-semibold">Acción esta semana</p>
+                  <div className="h-3 bg-slate-700 rounded w-full" />
+                  <div className="h-3 bg-slate-700 rounded w-3/4" />
+                </div>
+              </div>
+              <button type="button" onClick={() => setBasicUpsellPlan('pro')}
+                className="mt-4 w-full py-2 text-xs font-semibold text-blue-400 border border-blue-900/60 rounded-xl hover:bg-blue-950/40 transition-colors cursor-pointer">
+                Desbloquear con Pro →
+              </button>
+            </div>
+
+            {/* Radar de competidores — bloqueado */}
+            <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-5 overflow-hidden">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Radar de competidores</p>
+                <span className="text-xs font-bold text-blue-400 bg-blue-950/60 border border-blue-900/50 px-2 py-0.5 rounded-full">Pro</span>
+              </div>
+              <div className="space-y-2" style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none' }}>
+                {[60, 75, 45].map((w, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-3 bg-slate-700 rounded w-16 shrink-0" />
+                    <div className="flex-1 h-2 bg-slate-800 rounded-full">
+                      <div className="h-2 bg-blue-500 rounded-full" style={{ width: `${w}%` }} />
                     </div>
-                  ) : null
-                })()}
-                <div>
-                  <h2 className="text-lg font-bold text-white mb-2">Panel de Salud completo</h2>
-                  <p className="text-sm text-slate-400">Análisis IA mensual, radar de competidores, sentimiento por categoría e informes PDF. Solo en Pro.</p>
-                </div>
-                <button type="button" onClick={() => setBasicUpsellPlan('pro')}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-colors cursor-pointer">
-                  Pasarme a Pro →
-                </button>
+                    <div className="h-3 bg-slate-700 rounded w-8 shrink-0" />
+                  </div>
+                ))}
+                <div className="h-3 bg-slate-700 rounded w-2/3 mt-2" />
               </div>
+              <button type="button" onClick={() => setBasicUpsellPlan('pro')}
+                className="mt-4 w-full py-2 text-xs font-semibold text-blue-400 border border-blue-900/60 rounded-xl hover:bg-blue-950/40 transition-colors cursor-pointer">
+                Desbloquear con Pro →
+              </button>
+            </div>
+
+            {/* Categorías sentimiento — bloqueado */}
+            <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-5 overflow-hidden">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Sentimiento por categoría</p>
+                <span className="text-xs font-bold text-blue-400 bg-blue-950/60 border border-blue-900/50 px-2 py-0.5 rounded-full">Pro</span>
+              </div>
+              <div className="space-y-2" style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none' }}>
+                {[['', 40], ['', 65], ['', 50], ['', 80]].map(([, w], i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-3 bg-slate-700 rounded w-14 shrink-0" />
+                    <div className="flex-1 h-2 bg-slate-800 rounded-full">
+                      <div className="h-2 bg-emerald-500 rounded-full" style={{ width: `${w}%` }} />
+                    </div>
+                    <div className="h-3 bg-slate-700 rounded w-6 shrink-0" />
+                  </div>
+                ))}
+              </div>
+              <button type="button" onClick={() => setBasicUpsellPlan('pro')}
+                className="mt-4 w-full py-2 text-xs font-semibold text-blue-400 border border-blue-900/60 rounded-xl hover:bg-blue-950/40 transition-colors cursor-pointer">
+                Desbloquear con Pro →
+              </button>
+            </div>
+
+            {/* Informes PDF — bloqueado */}
+            <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-5 overflow-hidden">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Informes PDF</p>
+                <span className="text-xs font-bold text-blue-400 bg-blue-950/60 border border-blue-900/50 px-2 py-0.5 rounded-full">Pro</span>
+              </div>
+              <div className="space-y-2" style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none' }}>
+                <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-3">
+                  <div className="w-8 h-8 bg-slate-700 rounded-lg" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3 bg-slate-700 rounded w-3/5" />
+                    <div className="h-2 bg-slate-700 rounded w-2/5" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-3">
+                  <div className="w-8 h-8 bg-slate-700 rounded-lg" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3 bg-slate-700 rounded w-2/5" />
+                    <div className="h-2 bg-slate-700 rounded w-1/3" />
+                  </div>
+                </div>
+              </div>
+              <button type="button" onClick={() => setBasicUpsellPlan('pro')}
+                className="mt-4 w-full py-2 text-xs font-semibold text-blue-400 border border-blue-900/60 rounded-xl hover:bg-blue-950/40 transition-colors cursor-pointer">
+                Desbloquear con Pro →
+              </button>
             </div>
           </div>
-        </div>
+
+          {/* Banner upsell final */}
+          <div className="bg-blue-950/30 border border-blue-900/40 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-white">Panel de Salud completo — solo Pro</p>
+              <p className="text-xs text-slate-400 mt-1">Análisis IA, radar de competidores, sentimiento por categoría e informes PDF descargables.</p>
+            </div>
+            <button type="button" onClick={() => setBasicUpsellPlan('pro')}
+              className="shrink-0 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-colors cursor-pointer whitespace-nowrap">
+              Pasarme a Pro →
+            </button>
+          </div>
+
+        </main>
       )}
 
       {userPlan === 'pro' && <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-5">
