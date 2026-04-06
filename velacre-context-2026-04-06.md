@@ -296,6 +296,8 @@ Feature visible en `/dashboard/salud` al final del bloque Pro.
 4. Claude devuelve JSON: `tuFortaleza`, `tuDebilidad`, `competidores[{nombre, fortaleza, debilidad, amenaza}]`, `oportunidades[]`, `accion`
 5. Se muestra: cards fortaleza/debilidad propias, tabla competidores con badge amenaza (alta/media/baja), lista oportunidades, acción concreta de la semana
 6. Se habilita hasta 2 veces por mes natural ("Re-analizar" disponible mientras no se alcance el límite)
+7. **Matriz de sentimiento (2026-04-06):** tabla con 4 categorías detectadas dinámicamente por Claude, puntuación 0-10 para propio y cada competidor. `ScoreBadge` verde (≥7.5), ámbar (≥5), rojo (<5). Visible en `/dashboard/salud` tras el análisis radar.
+8. **accionPro banner (2026-04-06):** banner azul debajo de la matriz con análisis estratégico — "Tu competencia falla en X, refuerza Y esta semana". Claude genera `accionPro` en el mismo JSON del radar.
 
 **Coste por análisis:** ~€0.02–0.06 Outscraper + fracción de céntimo Claude (MaxTokens: 1800).
 
@@ -369,8 +371,8 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 ## ClaudeService — comportamiento actual
 
 - `GenerateSingleResponseWithContextAsync` — respuesta IA + filtro seguridad en una sola llamada. JSON: `{ respuesta, contextoCliente, contextoRespuesta, keywordsUsadas, retenida, motivoRetencion }`. MaxTokens: 500.
-- `GenerateThreeResponsesWithSafeFilterAsync` — genera los 3 tonos + safe filter + contexto en una sola llamada (para POST /generate manual). JSON: `{ retenida, motivoRetencion, contextoCliente, contextoRespuesta, profesional, cercano, directo }`. MaxTokens: 1200.
-- `GenerateRadarAnalysisAsync` — análisis comparativo reputación. MaxTokens: 1800. JSON: `{ tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion }`.
+- `GenerateThreeResponsesWithSafeFilterAsync` — genera los 3 tonos + safe filter + contexto en una sola llamada (para POST /generate manual). JSON: `{ retenida, motivoRetencion, contextoCliente, contextoRespuesta, profesional, cercano, directo }`. MaxTokens: 1200. Devuelve tupla 7-valores.
+- `GenerateRadarAnalysisAsync` — análisis comparativo reputación. MaxTokens: 2200. JSON: `{ tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion, categorias[], accionPro }`. Claude detecta dinámicamente las 4 categorías más destacadas de las reseñas propias y aplica las mismas a los competidores para comparativa justa. Puntuación 0-10.
 - `GetClaudeMessageAsync` — análisis IA salud (brilla/quema/acción). MaxTokens: 800.
 - Retry automático (3 intentos, backoff exponencial) para `overloaded_error`.
 - Modelo configurable via `AI_MODEL` env var (default: `claude-sonnet-4-6`).
@@ -436,6 +438,34 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 - Sección precios: "Planes"
 - Copy ES con enfoque FOMO/acceso anticipado
 - Solo locale ES activo en copy (en/gal mantenidos en código)
+
+### Framer Motion — capa de animaciones (2026-04-06)
+
+Instalado `framer-motion` como dependencia. `LandingPage.tsx` completamente reescrito con:
+
+- **`FadeInUp`** helper: `useInView(once:true, margin:'-60px')`, `opacity:0,y:22 → 1,0`, ease `[0.21,0.47,0.32,0.98]`, 0.55s, delay configurable
+- **`GlowCard`** helper: `whileHover boxShadow` azul `rgba(59,130,246,0.45)` sin tocar clases Tailwind
+- **Hero:** mount animations escalonadas (badge 0.1s → h1 0.2s → p 0.35s → botones 0.5s → setup 0.7s). CTA `whileHover scale:1.02, whileTap scale:0.98`
+- **Demo IA interactivo:** `isTyping` state, ícono IA pulsa mientras genera, badge "Generando…", `AnimatePresence mode="wait"` keyed por `selectedTone` para transición limpia entre tonos, CTA final aparece con slide-up al completar
+- **Stats:** staggered FadeInUp `i×0.08` por stat
+- **Calculadora:** FadeInUp wrapper, `motion.p` en valores ahorro con key-based re-animación al cambiar inputs
+- **Keywords:** staggered `whileInView scale:0.9→1` `i×0.04` delay
+- **Steps:** FadeInUp `i×0.1` delay
+- **Sectores:** staggered scale-in + `whileHover` cambio color border
+- **Pricing:** staggered FadeInUp (0, 0.08, 0.16) + GlowCard por plan. `AnimatePresence` en badge ahorro anual
+- **Final CTA:** FadeInUp + `whileHover/whileTap scale`
+
+### Calculadora de paz mental (2026-04-06)
+
+- Widget posicionado **inmediatamente después de la barra de stats** (antes del DEMO IA) — máxima visibilidad/conversión
+- Inputs: reseñas/mes (stepper +/−), precio/hora (stepper +/− inline-flex, sin input nativo para evitar bug scroll+selección)
+- Cálculo: horas ahorradas = (reseñas × 4min) / 60; ahorro€ = horas × precio/hora; tiempo Velacre = reseñas × 15s
+- Animación en los valores de resultado con `motion.p` + key-based re-render
+
+### Sistema de fuentes (2026-04-06)
+
+- **Cal Sans (CalSansUI):** self-hosted via `@font-face` en `globals.css`. Ficheros en `frontend/public/fonts/CalSansUI-Bold.woff2` (w700) y `CalSansUI-SemiBold.woff2` (w600). Variable Tailwind: `--font-cal`. Aplicado globalmente a `h1, h2, h3`.
+- **Geist:** font para `body` (var `--font-geist-sans`). Importado via `next/font/google` en `layout.tsx`.
 
 ---
 
@@ -564,8 +594,10 @@ frontend/src/
 - **Acento blue** en toda la UI (cambiado de indigo)
 - **Filtro seguridad reseñas:** misma llamada Claude, sin coste extra. Rollback contador IA si retenida. Aplica tanto en POST /generate (manual, `GenerateThreeResponsesWithSafeFilterAsync`) como en POST /{id}/generate (IA, `GenerateSingleResponseWithContextAsync`).
 - **POST /generate separado de /save-manual:** generación y guardado son dos pasos separados. El usuario elige el tono y decide si guardar como pendiente o respondida.
-- **Flujo "Otra Plataforma":** badge en lista, botones de Google deshabilitados para `plataforma='Otra'`, modal con selección de tono obligatoria, auto-aparece en lista tras guardar, banner si retenida. Modal rediseñado: bottom-sheet en móvil, centrado en desktop, header/footer sticky, contenido scrollable.
-- **Contexto card en Otra Plataforma:** tras generar, se muestra tarjeta "Cliente dijo / Tú respondes" igual que en reseñas Google. Útil si la reseña está en otro idioma.
+- **Flujo "Otra Plataforma":** badge en lista, botones de Google deshabilitados para `plataforma='Otra'`, modal con selección de tono obligatoria, auto-aparece en lista tras guardar, banner si retenida. Modal rediseñado: bottom-sheet en móvil (`items-end sm:items-center`, `rounded-t-2xl sm:rounded-2xl`), centrado en desktop, `max-h-[92dvh] sm:max-h-[90vh]`, header/footer sticky, contenido scrollable (`flex-1 overflow-y-auto`).
+- **Contexto card en Otra Plataforma:** tras generar, se muestra tarjeta "Cliente dijo / Tú respondes" igual que en reseñas Google. Útil si la reseña está en otro idioma. State: `manualContexto: { cliente, respuesta } | null`, se resetea en `closeManualModal()`.
+- **Radar categorías dinámicas:** Claude detecta las 4 categorías más relevantes de las reseñas propias (no hardcodeadas), aplica las mismas a competidores. `RadarCategoria: { nombre, yo: number (0-10), rivales[{nombre, score}], insight }` en `api.ts`.
+- **Favicon circular:** `src/app/icon.png` generado con `sharp` + SVG clipPath mask (circle). Next.js App Router lo sirve como favicon automáticamente. No hay `metadata.icons` en `layout.tsx` (conflicto eliminado).
 - **Tooltips en UI:** componente Tooltip.tsx con `?` minimalista en hover para: respuestas IA, palabras clave SEO, tono, impacto Velacre, SEO, sentimiento, velocidad de respuesta, radar.
 - **Radar:** ParseAnalisisJson usa `RootElement.Clone()` para evitar JsonElement inválido tras dispose del JsonDocument. Límite 2 análisis/mes (antes era 1).
 - **GBP deshabilitado:** todo el código está, solo la UI muestra "Próximamente". Fácil de activar cuando llegue la autorización de Google.
