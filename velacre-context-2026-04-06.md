@@ -170,7 +170,7 @@ END; $$;
 - Acepta `palabrasClave: string[]` en POST y PUT
 
 ### `/api/review`
-- `POST /generate` — solo genera (sin guardar): 3 tonos + safe filter integrado. Devuelve `{ retenida: true, motivoRetencion }` o `{ retenida: false, respuestaProfesional, respuestaCercana, respuestaDirecta }`. Límite 3/mes basic.
+- `POST /generate` — solo genera (sin guardar): 3 tonos + safe filter integrado. Devuelve `{ retenida: true, motivoRetencion }` o `{ retenida: false, contextoCliente, contextoRespuesta, profesional, cercano, directo }`. Límite 3/mes basic.
 - `POST /save-manual` — guarda la respuesta manual con tono elegido + estado (`pendiente`/`respondida`) + `plataforma='Otra'`. Incrementa contador manual.
 - `GET /all` — todas las reseñas (ordenadas por fecha desc), incluye `respondidaFecha`, `retenida`, `motivoRetencion`, `plataforma`
 - `GET /pending` — reseñas sin respuesta
@@ -369,7 +369,7 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 ## ClaudeService — comportamiento actual
 
 - `GenerateSingleResponseWithContextAsync` — respuesta IA + filtro seguridad en una sola llamada. JSON: `{ respuesta, contextoCliente, contextoRespuesta, keywordsUsadas, retenida, motivoRetencion }`. MaxTokens: 500.
-- `GenerateThreeResponsesWithSafeFilterAsync` — genera los 3 tonos + safe filter en una sola llamada (para POST /generate manual). JSON: `{ retenida, motivoRetencion, respuestaProfesional, respuestaCercana, respuestaDirecta }`. MaxTokens: 1500.
+- `GenerateThreeResponsesWithSafeFilterAsync` — genera los 3 tonos + safe filter + contexto en una sola llamada (para POST /generate manual). JSON: `{ retenida, motivoRetencion, contextoCliente, contextoRespuesta, profesional, cercano, directo }`. MaxTokens: 1200.
 - `GenerateRadarAnalysisAsync` — análisis comparativo reputación. MaxTokens: 1800. JSON: `{ tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion }`.
 - `GetClaudeMessageAsync` — análisis IA salud (brilla/quema/acción). MaxTokens: 800.
 - Retry automático (3 intentos, backoff exponencial) para `overloaded_error`.
@@ -564,7 +564,8 @@ frontend/src/
 - **Acento blue** en toda la UI (cambiado de indigo)
 - **Filtro seguridad reseñas:** misma llamada Claude, sin coste extra. Rollback contador IA si retenida. Aplica tanto en POST /generate (manual, `GenerateThreeResponsesWithSafeFilterAsync`) como en POST /{id}/generate (IA, `GenerateSingleResponseWithContextAsync`).
 - **POST /generate separado de /save-manual:** generación y guardado son dos pasos separados. El usuario elige el tono y decide si guardar como pendiente o respondida.
-- **Flujo "Otra Plataforma":** badge en lista, botones de Google deshabilitados para `plataforma='Otra'`, modal con selección de tono obligatoria, auto-aparece en lista tras guardar, banner si retenida.
+- **Flujo "Otra Plataforma":** badge en lista, botones de Google deshabilitados para `plataforma='Otra'`, modal con selección de tono obligatoria, auto-aparece en lista tras guardar, banner si retenida. Modal rediseñado: bottom-sheet en móvil, centrado en desktop, header/footer sticky, contenido scrollable.
+- **Contexto card en Otra Plataforma:** tras generar, se muestra tarjeta "Cliente dijo / Tú respondes" igual que en reseñas Google. Útil si la reseña está en otro idioma.
 - **Tooltips en UI:** componente Tooltip.tsx con `?` minimalista en hover para: respuestas IA, palabras clave SEO, tono, impacto Velacre, SEO, sentimiento, velocidad de respuesta, radar.
 - **Radar:** ParseAnalisisJson usa `RootElement.Clone()` para evitar JsonElement inválido tras dispose del JsonDocument. Límite 2 análisis/mes (antes era 1).
 - **GBP deshabilitado:** todo el código está, solo la UI muestra "Próximamente". Fácil de activar cuando llegue la autorización de Google.
