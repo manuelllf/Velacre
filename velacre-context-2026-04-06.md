@@ -585,7 +585,7 @@ frontend/src/
 - El checkout ya está implementado y probado en modo test.
 
 ### Backlog inmediato (antes o junto con GBP)
-
+- Comprobar como se guarda la tarjeta de contextos en las reseñas manuales de otra plataforma, al guardarla en el dashboard no aparece ese contexto.
 **Eliminación de reseñas (Pro):**
 - Feature de alto valor percibido, coste mínimo de desarrollo.
 - Flujo: usuario selecciona reseña → marca el motivo (spam, irrelevante, falsa, ofensiva...) → Claude genera el texto de reclamación exacto según políticas de Google → usuario copia y pega en el formulario oficial de Google.
