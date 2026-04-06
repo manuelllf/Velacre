@@ -17,9 +17,6 @@ export const metadata: Metadata = {
   title: "Velacre",
   description: "Gestiona y responde las reseñas de tu negocio con IA",
   manifest: "/manifest.webmanifest",
-  icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
