@@ -277,7 +277,7 @@ function pdfFooter(doc: any, W: number, ML: number, MR: number, theme: PdfTheme)
     const preW = doc.getTextWidth('Generado por Velacre - ')
     const urlW = doc.getTextWidth('velacre.com')
     doc.link(ML + preW, 287, urlW, 5, { url: 'https://velacre.com' })
-    doc.text(`Pag. ${p} / ${n}`, MR, 291, { align: 'right' })
+    doc.text(`Pág. ${p} / ${n}`, MR, 291, { align: 'right' })
   }
 }
 
@@ -393,7 +393,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
   const slug = safe(data.negocioNombre).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
   // CABECERA
-  pdfHeader(d, W, ML, MR, data.negocioNombre, `Revision mensual - ${mLabel}`)
+  pdfHeader(d, W, ML, MR, data.negocioNombre, `Revisión mensual - ${mLabel}`)
   y = 38
 
   // Contacto
@@ -408,9 +408,9 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
 
   // TÍTULO
   c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(14)
-  d.text(`Revision mensual: ${mLabel}`, ML, y)
+  d.text(`Revisión mensual: ${mLabel}`, ML, y)
   c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(8)
-  d.text(pLabel ? `Comparativa con ${pLabel} incluida` : 'Analisis del mes en curso', ML, y + 6)
+  d.text(pLabel ? `Comparativa con ${pLabel} incluida` : 'Análisis del mes en curso', ML, y + 6)
   y += 16
 
   // SECTION 1: KPIs 2x2
@@ -421,7 +421,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
   const kpis2x2: Array<{ label: string; val: string; vt: ReturnType<typeof varText>; up: boolean; col: RGB }>[] = [
     [
       { label: 'Nota media', val: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cm.avgRating, pm?.avgRating ?? null, 2), up: true, col: AMBER },
-      { label: 'Resenas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
+      { label: 'Reseñas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
     ],
     [
       { label: 'Positivas (4-5 estrellas)', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(0)}%  (${cm.positiveCount})` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
@@ -456,7 +456,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
   const miniKpis = [
     { label: 'Negativas (1-2)', val: cm.negativeRatio != null ? `${cm.negativeRatio.toFixed(0)}%  (${cm.negativeCount})` : '—', vt: varText(cm.negativeRatio, pm?.negativeRatio ?? null, 1), up: false, col: cm.negativeCount > 0 ? RED : colors.MID },
     { label: 'Respondidas', val: cm.responseRate != null ? `${cm.responseRate.toFixed(0)}%  (${cm.respondedCount})` : '—', vt: varText(cm.responseRate, pm?.responseRate ?? null, 1), up: true, col: INDIGO },
-    { label: 'Reseñas positivas ratio', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(1)}%` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
+    { label: 'Ratio positivas', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(1)}%` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
   ]
   const mkW = CW / 3
   miniKpis.forEach((k, i) => {
@@ -479,7 +479,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
 
     const sbW = CW / 3
     const sbKpis = [
-      { label: 'Media de respuesta', val: sb.avgDays < 1 ? `${Math.round(sb.avgDays * 24)}h` : `${sb.avgDays.toFixed(1)} dias`, col: sb.avgDays < 2 ? GREEN : RED },
+      { label: 'Media de respuesta', val: sb.avgDays < 1 ? `${Math.round(sb.avgDays * 24)}h` : `${sb.avgDays.toFixed(1)} días`, col: sb.avgDays < 2 ? GREEN : RED },
       { label: 'Respondidas en <48h', val: `${sb.pct48h.toFixed(0)}%`, col: sb.pct48h >= 80 ? GREEN : sb.pct48h >= 50 ? AMBER : RED },
       { label: 'Respondidas en <24h', val: `${sb.pct24h.toFixed(0)}%`, col: sb.pct24h >= 60 ? GREEN : sb.pct24h >= 30 ? AMBER : RED },
     ]
@@ -518,7 +518,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
       lx += 38
     })
     c(colors.LIGHT); d.setFontSize(6)
-    d.text(`Benchmark Google: responder en < 48h. Basado en ${sb.totalResponded} resenas respondidas.`, ML, y + 9)
+    d.text(`Benchmark Google: responder en < 48h. Basado en ${sb.totalResponded} reseñas respondidas.`, ML, y + 9)
     y += 14
   }
 
@@ -528,14 +528,14 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
   const totalStars = sc.slice(1).reduce((a, b) => a + b, 0)
   if (totalStars > 0) {
     if (y > 225) { addPageThemed(d, W, theme); y = 20 }
-    sectionLabel(d, 'DISTRIBUCION DE ESTRELLAS', y, ML, colors)
+    sectionLabel(d, 'DISTRIBUCIÓN DE ESTRELLAS', y, ML, colors)
     y += 13
 
     const BAR_MAX = 100
     // Cabecera
     d.setFont('helvetica', 'bold'); d.setFontSize(7); c(colors.MID)
     d.text('Estrellas', ML, y + 4)
-    d.text('Resenas', ML + 22 + BAR_MAX + 2, y + 4)
+    d.text('Reseñas', ML + 22 + BAR_MAX + 2, y + 4)
     d.text('%', ML + 22 + BAR_MAX + 18, y + 4)
     if (sp) d.text(safe(pLabel ?? 'Anterior'), ML + 22 + BAR_MAX + 34, y + 4)
     y += 7
@@ -582,14 +582,14 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
     y += 13
 
     const cW1 = 56, cW2 = 36, cW3 = 36, cW4 = 46
-    y = themedTableHeader(d, ['Indicador', mLabel, pLabel, 'Variacion'], [cW1, cW2, cW3, cW4], y, ML, colors)
+    y = themedTableHeader(d, ['Indicador', mLabel, pLabel, 'Variación'], [cW1, cW2, cW3, cW4], y, ML, colors)
 
     const rows = [
       { m: 'Nota media', cv: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : '—', pv: pm.avgRating != null ? `${pm.avgRating.toFixed(2)} / 5` : '—', vt: varText(cm.avgRating, pm.avgRating, 2), up: true },
-      { m: 'Resenas recibidas', cv: String(cm.count), pv: String(pm.count), vt: varText(cm.count, pm.count, 0), up: true },
+      { m: 'Reseñas recibidas', cv: String(cm.count), pv: String(pm.count), vt: varText(cm.count, pm.count, 0), up: true },
       { m: 'Positivas (4-5)', cv: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(1)}%` : '—', pv: pm.positiveRatio != null ? `${pm.positiveRatio.toFixed(1)}%` : '—', vt: varText(cm.positiveRatio, pm.positiveRatio, 1), up: true },
       { m: 'Negativas (1-2)', cv: cm.negativeRatio != null ? `${cm.negativeRatio.toFixed(1)}%` : '—', pv: pm.negativeRatio != null ? `${pm.negativeRatio.toFixed(1)}%` : '—', vt: varText(cm.negativeRatio, pm.negativeRatio, 1), up: false },
-      { m: 'Indice de respuesta', cv: cm.responseRate != null ? `${cm.responseRate.toFixed(1)}%` : '—', pv: pm.responseRate != null ? `${pm.responseRate.toFixed(1)}%` : '—', vt: varText(cm.responseRate, pm.responseRate, 1), up: true },
+      { m: 'Índice de respuesta', cv: cm.responseRate != null ? `${cm.responseRate.toFixed(1)}%` : '—', pv: pm.responseRate != null ? `${pm.responseRate.toFixed(1)}%` : '—', vt: varText(cm.responseRate, pm.responseRate, 1), up: true },
     ]
     rows.forEach((row, idx) => {
       dr(colors.BORDER); d.setLineWidth(0.1)
@@ -604,7 +604,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
         c(good ? GREEN : RED); d.setFont('helvetica', 'bold')
         d.text(row.vt.text, ML + cW1 + cW2 + cW3 + 3, y + 4.5)
         d.setFont('helvetica', 'normal')
-      } else { c(colors.LIGHT); d.text('Sin variacion', ML + cW1 + cW2 + cW3 + 3, y + 4.5) }
+      } else { c(colors.LIGHT); d.text('Sin variación', ML + cW1 + cW2 + cW3 + 3, y + 4.5) }
       y += 6.5
     })
     y += 8
@@ -613,11 +613,11 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
   // SECTION 3: Evolución en el año
   if (data.yearMonths.length > 0) {
     if (y > 210) { addPageThemed(d, W, theme); y = 20 }
-    sectionLabel(d, `EVOLUCION MES A MES EN ${cm.year}`, y, ML, colors)
+    sectionLabel(d, `EVOLUCIÓN MES A MES EN ${cm.year}`, y, ML, colors)
     y += 13
 
     const tw = [34, 18, 24, 20, 24, 24, 30]
-    y = themedTableHeader(d, ['Mes', 'Resenas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML, colors)
+    y = themedTableHeader(d, ['Mes', 'Reseñas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML, colors)
 
     data.yearMonths.forEach((m, idx) => {
       if (y > 272) { addPageThemed(d, W, theme); y = 20 }
@@ -691,13 +691,13 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
   // SECTION 5: Diagnóstico IA — bloques destacados
   if (data.summary) {
     if (y > 205) { addPageThemed(d, W, theme); y = 20 }
-    sectionLabel(d, 'DIAGNOSTICO IA', y, ML, colors)
+    sectionLabel(d, 'DIAGNÓSTICO IA', y, ML, colors)
     y += 13
 
     const ins = [
       { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: colors.AI_SHINE, icon: '+' },
       { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: colors.AI_WORRY, icon: '!' },
-      { l: 'Accion recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
+      { l: 'Acción recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
     ]
 
     ins.forEach(i => {
@@ -732,7 +732,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
     })
 
     c(colors.LIGHT); d.setFont('helvetica', 'italic'); d.setFontSize(6.5)
-    d.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
+    d.text('Análisis generado automáticamente por Claude (Anthropic). Carácter orientativo.', ML, y)
     y += 5
   }
 
@@ -743,13 +743,13 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
     addPageThemed(d, W, theme)
     y = 20
 
-    pdfHeader(d, W, ML, MR, data.negocioNombre, `Analisis de Competencias - ${mLabel}`)
+    pdfHeader(d, W, ML, MR, data.negocioNombre, `Análisis de Competencias - ${mLabel}`)
     y = 45
 
     c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(13)
-    d.text('Analisis de Competencias', ML, y)
+    d.text('Análisis de Competencias', ML, y)
     c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(8)
-    d.text('Posicion de tu negocio frente a competidores en las categorias clave (escala 0-10)', ML, y + 7)
+    d.text('Posición de tu negocio frente a competidores en las categorías clave (escala 0-10)', ML, y + 7)
     y += 18
 
     // Nombres de competidores
@@ -763,16 +763,16 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
     while (compNames.length < maxComps) compNames.push(`Comp. ${compNames.length + 1}`)
 
     // Cabecera de matriz
-    sectionLabel(d, 'PUNTUACIONES POR CATEGORIA (0-10)', y, ML, colors)
+    sectionLabel(d, 'PUNTUACIONES POR CATEGORÍA (0-10)', y, ML, colors)
     y += 13
 
     // Columnas: categoría más ancha, score propio, 3 competidores
     const colCat = 52, colYo = 36, colComp = Math.floor((CW - colCat - colYo) / maxComps)
-    const headers = ['Categoria', 'Tu negocio', ...compNames.slice(0, maxComps)]
+    const headers = ['Categoría', 'Tu negocio', ...compNames.slice(0, maxComps)]
     const widths = [colCat, colYo, ...Array(maxComps).fill(colComp)]
     y = themedTableHeader(d, headers, widths, y, ML, colors)
 
-    const ROW_H = 16  // más espacio por fila
+    const ROW_H = 14
 
     radarCats.forEach((cat, idx) => {
       if (y > 265) { addPageThemed(d, W, theme); y = 20 }
@@ -780,21 +780,16 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
       f(idx % 2 === 0 ? colors.ROW_EVEN : colors.ROW_ODD)
       d.rect(ML, y, CW, ROW_H, 'FD')
 
-      // Nombre categoría + insight
-      c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(7.5)
-      d.text(safe(cat.nombre), ML + 3, y + 5.5)
-      if (cat.insight) {
-        c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(6)
-        const ins = d.splitTextToSize(safe(cat.insight), colCat - 5) as string[]
-        d.text(ins[0], ML + 3, y + 11)
-      }
+      // Nombre categoría centrado verticalmente
+      c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(8)
+      d.text(safe(cat.nombre), ML + 3, y + ROW_H / 2 + 2.5)
 
-      // Mi score: número grande + barra debajo
+      // Mi score: número + barra
       const myScore = cat.yo ?? 0
       const myCol: RGB = myScore >= 7 ? GREEN : myScore >= 5 ? AMBER : RED
       const scoreX = ML + colCat
       c(myCol); d.setFont('helvetica', 'bold'); d.setFontSize(10)
-      d.text(myScore.toFixed(1), scoreX + 3, y + 6)
+      d.text(myScore.toFixed(1), scoreX + 3, y + 6.5)
       progressBar(d, scoreX + 3, y + 9, colYo - 7, 3, myScore, 10, myCol, colors.BORDER)
 
       // Scores competidores
@@ -803,14 +798,14 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
         const rScore = r.score ?? 0
         const rCol: RGB = rScore >= 7 ? GREEN : rScore >= 5 ? AMBER : RED
         c(rCol); d.setFont('helvetica', 'bold'); d.setFontSize(10)
-        d.text(rScore.toFixed(1), rx + 3, y + 6)
+        d.text(rScore.toFixed(1), rx + 3, y + 6.5)
         progressBar(d, rx + 3, y + 9, colComp - 7, 3, rScore, 10, rCol, colors.BORDER)
       })
       // Columnas sin datos
       for (let ci = (cat.rivales?.length ?? 0); ci < maxComps; ci++) {
         const rx = ML + colCat + colYo + ci * colComp
         c(colors.LIGHT); d.setFont('helvetica', 'normal'); d.setFontSize(7)
-        d.text('—', rx + 3, y + 6)
+        d.text('—', rx + 3, y + 6.5)
       }
 
       y += ROW_H
@@ -820,13 +815,13 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
     // Fortaleza / Debilidad / Acción Pro
     if (radar.tuFortaleza || radar.tuDebilidad || radar.accionPro) {
       if (y > 210) { addPageThemed(d, W, theme); y = 20 }
-      sectionLabel(d, 'DIAGNOSTICO COMPETITIVO IA', y, ML, colors)
+      sectionLabel(d, 'DIAGNÓSTICO COMPETITIVO IA', y, ML, colors)
       y += 13
 
       const compIns = [
         { l: 'Tu fortaleza', t: safe(radar.tuFortaleza ?? ''), ac: GREEN, bg: colors.AI_SHINE, icon: '+' },
         { l: 'Tu debilidad', t: safe(radar.tuDebilidad ?? ''), ac: RED, bg: colors.AI_WORRY, icon: '!' },
-        { l: 'Accion prioritaria', t: safe(radar.accionPro ?? radar.accion ?? ''), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
+        { l: 'Acción prioritaria', t: safe(radar.accionPro ?? radar.accion ?? ''), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
       ].filter(i => i.t.length > 0)
 
       compIns.forEach(i => {
@@ -868,7 +863,7 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
     }
 
     c(colors.LIGHT); d.setFont('helvetica', 'italic'); d.setFontSize(6.5)
-    d.text('Analisis radar generado por IA. Referencia orientativa para toma de decisiones.', ML, y)
+    d.text('Análisis radar generado por IA. Referencia orientativa para toma de decisiones.', ML, y)
   }
 
   pdfFooter(d, W, ML, MR, theme)
@@ -901,7 +896,7 @@ export async function generateYearlyPDF(data: YearlyPdfData, theme: PdfTheme = '
   const py = data.allYears.find(yr => yr.year === data.currentYear - 1) ?? null
 
   // CABECERA
-  pdfHeader(d, W, ML, MR, data.negocioNombre, `Revision anual - ${data.currentYear}`)
+  pdfHeader(d, W, ML, MR, data.negocioNombre, `Revisión anual - ${data.currentYear}`)
   y = 38
 
   // TITULO
@@ -920,11 +915,11 @@ export async function generateYearlyPDF(data: YearlyPdfData, theme: PdfTheme = '
     const kpis2x2: Array<{ label: string; val: string; vt: ReturnType<typeof varText>; up: boolean; col: RGB }>[] = [
       [
         { label: `Nota media ${data.currentYear}`, val: cy.avgRating != null ? `${cy.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cy.avgRating, py?.avgRating ?? null, 2), up: true, col: AMBER },
-        { label: `Resenas ${data.currentYear}`, val: String(cy.count), vt: varText(cy.count, py?.count ?? null, 0), up: true, col: INDIGO },
+        { label: `Reseñas ${data.currentYear}`, val: String(cy.count), vt: varText(cy.count, py?.count ?? null, 0), up: true, col: INDIGO },
       ],
       [
         { label: 'Positivas (4-5 estrellas)', val: cy.positiveRatio != null ? `${cy.positiveRatio.toFixed(0)}%` : '—', vt: varText(cy.positiveRatio, py?.positiveRatio ?? null, 1), up: true, col: GREEN },
-        { label: 'Indice de respuesta', val: cy.responseRate != null ? `${cy.responseRate.toFixed(0)}%` : '—', vt: varText(cy.responseRate, py?.responseRate ?? null, 1), up: true, col: INDIGO },
+        { label: 'Índice de respuesta', val: cy.responseRate != null ? `${cy.responseRate.toFixed(0)}%` : '—', vt: varText(cy.responseRate, py?.responseRate ?? null, 1), up: true, col: INDIGO },
       ],
     ]
 
@@ -949,11 +944,11 @@ export async function generateYearlyPDF(data: YearlyPdfData, theme: PdfTheme = '
   }
 
   // SECTION 2: Evolución interanual (tabla)
-  sectionLabel(d, 'EVOLUCION INTERANUAL (POR EJERCICIO)', y, ML, colors)
+  sectionLabel(d, 'EVOLUCIÓN INTERANUAL (POR EJERCICIO)', y, ML, colors)
   y += 13
 
   const yw = [22, 22, 28, 24, 26, 26, 26]
-  y = themedTableHeader(d, ['Ejercicio', 'Resenas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML, colors)
+  y = themedTableHeader(d, ['Ejercicio', 'Reseñas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML, colors)
 
   data.allYears.forEach((yr, idx) => {
     const prevYr = data.allYears[idx + 1] ?? null
@@ -988,7 +983,7 @@ export async function generateYearlyPDF(data: YearlyPdfData, theme: PdfTheme = '
 
     // Gráfico de barras de nota media
     c(colors.MID); d.setFont('helvetica', 'bold'); d.setFontSize(7)
-    d.text('Nota media por mes (barras) y volumen de resenas (etiqueta inferior)', ML, y)
+    d.text('Nota media por mes (barras) y volumen de reseñas (etiqueta inferior)', ML, y)
     y += 5
 
     // Usamos los meses en orden ascendente (ya están así)
@@ -1067,12 +1062,12 @@ export async function generateYearlyPDF(data: YearlyPdfData, theme: PdfTheme = '
   // SECTION 5: IA
   if (data.summary) {
     if (y > 205) { addPageThemed(d, W, theme); y = 20 }
-    sectionLabel(d, 'DIAGNOSTICO IA', y, ML, colors)
+    sectionLabel(d, 'DIAGNÓSTICO IA', y, ML, colors)
     y += 13
     const ins = [
       { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: colors.AI_SHINE, icon: '+' },
       { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: colors.AI_WORRY, icon: '!' },
-      { l: 'Accion recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
+      { l: 'Acción recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
     ]
     ins.forEach(i => {
       if (y > 255) { addPageThemed(d, W, theme); y = 20 }
@@ -1094,7 +1089,7 @@ export async function generateYearlyPDF(data: YearlyPdfData, theme: PdfTheme = '
     })
 
     c(colors.LIGHT); d.setFont('helvetica', 'italic'); d.setFontSize(6.5)
-    d.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
+    d.text('Análisis generado automáticamente por Claude (Anthropic). Carácter orientativo.', ML, y)
   }
 
   pdfFooter(d, W, ML, MR, theme)
