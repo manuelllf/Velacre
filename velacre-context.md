@@ -1,5 +1,4 @@
 # Velacre — Contexto del proyecto
-**Fecha:** 5 de abril de 2026
 
 ---
 
@@ -18,7 +17,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | Base de datos | Supabase (PostgreSQL) |
 | Auth | Supabase Auth — JWT ES256 |
 | IA | Claude API (`claude-sonnet-4-6`) via Anthropic SDK v5.10.0 |
-| Pagos | Lemon Squeezy (desactivado hasta alta autónomo) |
+| Pagos | Lemon Squeezy — checkout implementado, tienda pendiente activación (alta autónomo) |
 | Scraping reseñas | Outscraper API v3 |
 | Email | Resend (`hola@velacre.com`) |
 | Deploy | Railway (backend) + Vercel (frontend) |
@@ -91,7 +90,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | review_count | int |
 | created_at | timestamptz |
 
-### `competidor` *(nuevo 2026-04-05)*
+### `competidor`
 | Campo | Tipo | Notas |
 |-------|------|-------|
 | id | UUID | PK |
@@ -100,7 +99,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | nombre | string | |
 | created_at | timestamptz | |
 
-### `radar_analisis` *(nuevo 2026-04-05)*
+### `radar_analisis`
 | Campo | Tipo | Notas |
 |-------|------|-------|
 | id | UUID | PK |
@@ -170,8 +169,9 @@ END; $$;
 - Acepta `palabrasClave: string[]` en POST y PUT
 
 ### `/api/review`
-- `POST /generate` — manual: 3 tonos, límite 3/mes basic
-- `GET /all` — todas las reseñas (ordenadas por fecha desc), incluye `respondidaFecha`, `retenida`, `motivoRetencion`
+- `POST /generate` — solo genera (sin guardar): 3 tonos + safe filter integrado. Devuelve `{ retenida: true, motivoRetencion }` o `{ retenida: false, contextoCliente, contextoRespuesta, profesional, cercano, directo }`. Límite 3/mes basic.
+- `POST /save-manual` — guarda la respuesta manual con tono elegido + estado (`pendiente`/`respondida`) + `plataforma='Otra'` + `contextoCliente/contextoRespuesta`. Incrementa contador manual. Frontend popula el mapa `contextos[]` tras el save para mostrar el contexto sin recargar. Fix móvil: `setEstadoFilter(estado)` antes de `setSelectedId` para que el filtro coincida y el panel no quede en blanco.
+- `GET /all` — todas las reseñas (ordenadas por fecha desc), incluye `respondidaFecha`, `retenida`, `motivoRetencion`, `plataforma`
 - `GET /pending` — reseñas sin respuesta
 - `POST /{id}/generate` — IA: límite atómico por plan (RPC). Detecta contenido crítico en misma llamada Claude.
   - Si `retenida=true`: guarda en BD, rollback del contador IA, devuelve `{ retenida: true, motivoRetencion }`
@@ -191,7 +191,7 @@ END; $$;
   - Si reseña tiene `owner_answer` → `estado=respondida`, `tono_generado=google`
   - Sync incremental actualiza reseñas que el propietario respondió en Google
 
-### `/api/radar` *(nuevo 2026-04-05 — solo Pro)*
+### `/api/radar` *(solo Pro)*
 - `GET /` — devuelve `{ competidores[], ultimoAnalisis }` del negocio
 - `POST /competidores` — añade competidor `{ placeId, nombre }` (máx 3, sin duplicados)
 - `DELETE /competidores/{id}` — elimina competidor
@@ -200,12 +200,17 @@ END; $$;
   2. Outscraper: 20 reseñas de cada competidor (~€0.02/llamada)
   3. Claude genera JSON con tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion
   4. Reemplaza análisis anterior en `radar_analisis`
-  - **Límite:** 1 análisis por mes natural (devuelve 429 `ya_analizado_este_mes` si ya existe)
+  - **Límite:** 2 análisis por mes natural (devuelve 429 `ya_analizado_este_mes` si ya se alcanzó el límite)
 
 ### `/api/lemonsqueezy`
-- `GET /checkout?plan=core|pro&billing=monthly|yearly`
-- `POST /cancelar`
-- `POST /webhook` (sin auth, firma HMAC-SHA256)
+- `GET /checkout?plan=core|pro&billing=monthly|yearly` — crea sesión LS, devuelve URL
+- `POST /cancelar` — cancela suscripción activa via LS API, actualiza `ls_status=cancelled`
+- `POST /webhook` (sin auth, firma HMAC-SHA256) — gestiona eventos de suscripción:
+  - `subscription_created/resumed` → activa plan, email confirmación
+  - `subscription_updated` → actualiza plan/estado
+  - `subscription_cancelled` → mantiene plan hasta `ls_ends_at`, email cancelación
+  - `subscription_expired/paused` → baja a basic, email expiración
+  - Todos los eventos guardan `ls_customer_portal`, `ls_subscription_id`, `ls_renews_at`, `ls_ends_at`
 
 ### `/api/notify`
 - `POST /waitlist` — envía email a `infovelacre@gmail.com`
@@ -228,7 +233,7 @@ END; $$;
 | Pro | **€45/mes** | **€449/año** | Ilimitadas | Ilimitadas | Completo + análisis IA + Radar | ✅ |
 
 > **Fórmula anual:** ~10 meses × precio mensual.
-> **Estado pagos:** Botones muestran "Únete a la lista de espera" → email a `infovelacre@gmail.com`. Sin pagos hasta alta como autónomo.
+> **Estado pagos:** Checkout LS implementado y funcional (modo test). Tienda sin activar hasta alta como autónomo — cuando se active, los pagos en producción se procesarán automáticamente con IVA correcto (LS como Merchant of Record).
 
 ### Estrategia post-integración Google Business Profile (pendiente)
 
@@ -240,7 +245,32 @@ END; $$;
 
 ---
 
-## Filtro de seguridad en reseñas (2026-04-05)
+## Lemon Squeezy — flujo completo
+
+**Checkout:** `GET /api/lemonsqueezy/checkout?plan=core|pro&billing=monthly|yearly` → URL LS → `window.location.href`. `redirect_url` anidado en `product_options` (no en atributos raíz).
+
+**Gestión suscripción:** desde settings → enlace `ls_customer_portal` (URL que llega vía webhook) → portal LS para cancelar, cambiar plan o actualizar pago. No hay modal de cancelación propio.
+
+**Emails transaccionales (vía Resend):**
+- `subscription_created` → "¡Ya tienes el plan X!" con acceso y próxima renovación
+- `subscription_cancelled` → con fecha de acceso hasta `ls_ends_at`
+- `subscription_expired` → con CTA para reactivar
+
+**Variables de entorno:**
+```
+LEMONSQUEEZY_STORE_ID
+LEMONSQUEEZY_VARIANT_ID_CORE_MONTHLY
+LEMONSQUEEZY_VARIANT_ID_CORE_YEARLY
+LEMONSQUEEZY_VARIANT_ID_PRO_MONTHLY
+LEMONSQUEEZY_VARIANT_ID_PRO_YEARLY
+LEMONSQUEEZY_API_KEY
+LEMON_VELACRE_API
+LEMONSQUEEZY_WEBHOOK_SECRET
+```
+
+---
+
+## Filtro de seguridad en reseñas
 
 Claude detecta en la misma llamada de generación (sin coste extra) si la reseña describe:
 1. **intoxicacion** — intoxicación alimentaria real o enfermedad grave
@@ -254,7 +284,7 @@ En el dashboard: badge ⚠ "Revisión" naranja en la card de la reseña. En el d
 
 ---
 
-## Radar de Competencia (2026-04-05 — Pro)
+## Radar de Competencia (Pro)
 
 Feature visible en `/dashboard/salud` al final del bloque Pro.
 
@@ -264,7 +294,9 @@ Feature visible en `/dashboard/salud` al final del bloque Pro.
 3. Loading animado con pasos: reseñas propias → consulta por competidor → IA → informe
 4. Claude devuelve JSON: `tuFortaleza`, `tuDebilidad`, `competidores[{nombre, fortaleza, debilidad, amenaza}]`, `oportunidades[]`, `accion`
 5. Se muestra: cards fortaleza/debilidad propias, tabla competidores con badge amenaza (alta/media/baja), lista oportunidades, acción concreta de la semana
-6. Al mes siguiente se habilita el botón "Re-analizar"
+6. Se habilita hasta 2 veces por mes natural ("Re-analizar" disponible mientras no se alcance el límite)
+7. **Matriz de sentimiento:** tabla con 4 categorías detectadas dinámicamente por Claude, puntuación 0-10 para propio y cada competidor. `ScoreBadge` verde (≥7.5), ámbar (≥5), rojo (<5). Visible en `/dashboard/salud` tras el análisis radar.
+8. **accionPro banner:** banner azul debajo de la matriz con análisis estratégico — "Tu competencia falla en X, refuerza Y esta semana". Claude genera `accionPro` en el mismo JSON del radar.
 
 **Coste por análisis:** ~€0.02–0.06 Outscraper + fracción de céntimo Claude (MaxTokens: 1800).
 
@@ -277,7 +309,7 @@ Feature visible en `/dashboard/salud` al final del bloque Pro.
 - Backend completo: OAuth flow, `GoogleController`, `GoogleBusinessService`, `google_connection` table, `PublishGoogleModal`
 - **Dashboard:** botón "Publicar en Google" deshabilitado (opacity-50, no-clickable) + botón "Responder en Google" activo que abre `business.google.com/reviews` para copy-paste manual
 - **Settings:** sección Google Business con `pointer-events-none opacity-40` + badge Próximamente
-- **Onboarding:** opción Google Business como `div` no-clickable con badge Próximamente (antes era "Recomendado")
+- **Onboarding:** opción Google Business como `div` no-clickable con badge Próximamente
 
 **Bloqueante:** Google requiere aprobación de "Application for Basic API Access" (form enviado). Plazo: 7-10 días hábiles. Proyecto GCloud: `project-72316eb2-58d3-4784-b66`, número `770493491631`.
 
@@ -292,6 +324,8 @@ Registro (Google OAuth o email)
     Step 1: datos negocio + tono + hasta 5 palabras clave SEO
     Step 2: buscar Google Place (manual, Outscraper) — GBP deshabilitado (Próximamente)
     Step 3: sync inicial (60 reseñas)
+  ↓ /onboarding/plan
+    - Elegir Core/Pro con checkout real LS, o continuar gratis (Basic)
   ↓ /dashboard
     - Ver reseñas (últimas 10 si basic, 60 si core/pro)
     - Badge ⚠ en reseñas retenidas por seguridad
@@ -307,8 +341,9 @@ Registro (Google OAuth o email)
   ↓ /settings
     - Perfil, tono, palabras clave SEO
     - Google Business: deshabilitado con badge Próximamente
-    - Plan (basic: lista espera; core/pro: gestión LS)
-    - Danger zone (cancelar, eliminar cuenta)
+    - Plan basic: botones con checkout real Core/Pro
+    - Plan core/pro: estado suscripción + upsell Pro (si Core) + enlace portal LS (gestión/cancelación)
+    - Danger zone: enlace portal LS (si suscripción activa) + eliminar cuenta
 ```
 
 ---
@@ -334,8 +369,9 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 
 ## ClaudeService — comportamiento actual
 
-- `GenerateSingleResponseWithContextAsync` — respuesta + filtro seguridad en una sola llamada. JSON: `{ respuesta, contextoCliente, contextoRespuesta, keywordsUsadas, retenida, motivoRetencion }`. MaxTokens: 500.
-- `GenerateRadarAnalysisAsync` — análisis comparativo reputación. MaxTokens: 1800. JSON: `{ tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion }`.
+- `GenerateSingleResponseWithContextAsync` — respuesta IA + filtro seguridad en una sola llamada. JSON: `{ respuesta, contextoCliente, contextoRespuesta, keywordsUsadas, retenida, motivoRetencion }`. MaxTokens: 500.
+- `GenerateThreeResponsesWithSafeFilterAsync` — genera los 3 tonos + safe filter + contexto en una sola llamada (para POST /generate manual). JSON: `{ retenida, motivoRetencion, contextoCliente, contextoRespuesta, profesional, cercano, directo }`. MaxTokens: 1200. Devuelve tupla 7-valores.
+- `GenerateRadarAnalysisAsync` — análisis comparativo reputación. MaxTokens: 2200. JSON: `{ tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion, categorias[], accionPro }`. Claude detecta dinámicamente las 4 categorías más destacadas de las reseñas propias y aplica las mismas a los competidores para comparativa justa. Puntuación 0-10.
 - `GetClaudeMessageAsync` — análisis IA salud (brilla/quema/acción). MaxTokens: 800.
 - Retry automático (3 intentos, backoff exponencial) para `overloaded_error`.
 - Modelo configurable via `AI_MODEL` env var (default: `claude-sonnet-4-6`).
@@ -375,14 +411,20 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 
 ## PDF mensual — contenido
 
-1. Cabecera: nombre negocio, teléfono, email
-2. 6 KPIs en 2 filas: nota media · total reseñas · sin respuesta / positivas% · negativas% · respondidas%
+1. Cabecera: Atlantic Blue (#051020) con velacre.com clickable
+2. 6 KPIs en grid 2×2 con banda de acento superior (nota media, total reseñas, sin respuesta, positivas%, negativas%, respondidas%)
 3. Velocidad de respuesta: media, %<48h, %<24h + barra de distribución + benchmark Google 48h
-4. Distribución 1★–5★ con comparativa vs mes anterior
+4. Distribución 1★–5★ con barras de progreso coloreadas (rojo/amber/verde) y comparativa vs mes anterior
 5. Comparativa mes actual vs anterior (tabla 5 filas)
 6. Evolución mes a mes en el año
-7. Palabras clave y menciones (SEO del negocio + menciones clientes positivas/negativas/neutrales)
-8. Diagnóstico IA: brilla / quema / acción
+7. Palabras clave y menciones (SEO del negocio + mencionadas positivas/negativas/neutras)
+8. Diagnóstico IA: bloques destacados con icono y borde lateral izquierdo
+9. *(Si hay radar data Pro)* Análisis de Competencias: "PUNTUACIONES POR CATEGORÍA (0-10)". Matriz 0-10 por 4 categorías vs hasta 3 competidores. Columna categoría 52mm, altura fila 14mm, sin insights. Barras de progreso coloreadas.
+
+**PDF anual:** gráfico de barras verticales mes a mes (en lugar de tabla plana).
+**UI:** 2 botones de descarga — "PDF mes" / "PDF ejercicio" (tema claro).
+
+> **Nota:** `safe()` en jsPDF solo elimina caracteres fuera de WinAnsi. Tildes españolas (á, é, í, ó, ú, ñ) están dentro del rango `\xA0-\xFF` y se renderizan correctamente.
 
 ---
 
@@ -400,6 +442,43 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 - Copy ES con enfoque FOMO/acceso anticipado
 - Solo locale ES activo en copy (en/gal mantenidos en código)
 
+### Framer Motion — capa de animaciones
+
+Instalado `framer-motion` como dependencia. `LandingPage.tsx` completamente reescrito con:
+
+- **`FadeInUp`** helper: `useInView(once:true, margin:'-60px')`, `opacity:0,y:22 → 1,0`, ease `[0.21,0.47,0.32,0.98]`, 0.55s, delay configurable
+- **`GlowCard`** helper: `whileHover boxShadow` azul `rgba(59,130,246,0.45)` sin tocar clases Tailwind
+- **Hero:** mount animations escalonadas (badge 0.1s → h1 0.2s → p 0.35s → botones 0.5s → setup 0.7s). CTA `whileHover scale:1.02, whileTap scale:0.98`
+- **Demo IA interactivo:** `isTyping` state, ícono IA pulsa mientras genera, badge "Generando…", `AnimatePresence mode="wait"` keyed por `selectedTone` para transición limpia entre tonos, CTA final aparece con slide-up al completar
+- **Stats:** staggered FadeInUp `i×0.08` por stat
+- **Calculadora:** FadeInUp wrapper, `motion.p` en valores ahorro con key-based re-animación al cambiar inputs
+- **Keywords:** staggered `whileInView scale:0.9→1` `i×0.04` delay
+- **Steps:** FadeInUp `i×0.1` delay
+- **Sectores:** staggered scale-in + `whileHover` cambio color border
+- **Pricing:** staggered FadeInUp (0, 0.08, 0.16) + GlowCard por plan. `AnimatePresence` en badge ahorro anual
+- **Final CTA:** FadeInUp + `whileHover/whileTap scale`
+
+### Calculadora de paz mental
+
+- Widget posicionado **inmediatamente después de la barra de stats** (antes del DEMO IA) — máxima visibilidad/conversión
+- Inputs: reseñas/mes (stepper +/−), precio/hora (stepper +/− inline-flex, sin input nativo para evitar bug scroll+selección)
+- Cálculo: horas ahorradas = (reseñas × 4min) / 60; ahorro€ = horas × precio/hora; tiempo Velacre = reseñas × 15s
+- Animación en los valores de resultado con `motion.p` + key-based re-render
+
+### Sistema de fuentes
+
+- **Cal Sans (CalSansUI):** self-hosted via `@font-face` en `globals.css`. Ficheros en `frontend/public/fonts/CalSansUI-Bold.woff2` (w700) y `CalSansUI-SemiBold.woff2` (w600). Variable Tailwind: `--font-cal`. Aplicado globalmente a `h1, h2, h3`.
+- **Geist:** font para `body` (var `--font-geist-sans`). Importado via `next/font/google` en `layout.tsx`.
+
+---
+
+## Favicon y PWA icons
+
+- `src/app/icon.png` — logo Velacre (128px), Next.js App Router lo sirve automáticamente como favicon en la pestaña del navegador
+- `public/favicon.svg` — favicon circular via SVG con `<clipPath>` + `<circle>`. Declarado en `layout.tsx` con `<link rel="icon" href="/favicon.svg" type="image/svg+xml">`.
+- `public/apple-touch-icon.png`, `public/icon-192.png`, `public/icon-512.png` — logo Velacre para PWA y dispositivos móviles
+- Fuente de verdad: `images/logo128.png` y `images/logo600.png` en la raíz del repositorio
+
 ---
 
 ## Páginas legales
@@ -407,26 +486,6 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 - `/privacidad`, `/terminos`, `/contacto` — dark normalizado (slate-950/900/800)
 - Sin datos personales sensibles (solo "Manuel Llao Freire, A Coruña, Galicia, España")
 - Jurisdicción: A Coruña
-
----
-
-## Lemon Squeezy — configuración
-
-Eventos webhook manejados: `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_expired`, `subscription_paused`.
-
-`subscription_expired` → baja plan a basic. `subscription_cancelled` → mantiene plan hasta `ls_ends_at`.
-
-Variables de entorno:
-```
-LEMONSQUEEZY_STORE_ID
-LEMONSQUEEZY_VARIANT_ID_CORE_MONTHLY
-LEMONSQUEEZY_VARIANT_ID_CORE_YEARLY
-LEMONSQUEEZY_VARIANT_ID_PRO_MONTHLY
-LEMONSQUEEZY_VARIANT_ID_PRO_YEARLY
-LEMONSQUEEZY_API_KEY
-LEMON_VELACRE_API
-LEMONSQUEEZY_WEBHOOK_SECRET
-```
 
 ---
 
@@ -477,7 +536,7 @@ backend/
     PlacesController.cs     — sync Google (Outscraper)
     NegocioController.cs    — CRUD negocio (palabras_clave)
     UsuarioController.cs    — perfil, eliminación cuenta
-    LemonController.cs      — pagos, webhooks
+    LemonController.cs      — checkout, webhooks, emails transaccionales suscripción
     AdminController.cs      — panel administración
     NotifyController.cs     — waitlist (→ infovelacre@gmail.com)
     GoogleController.cs     — GBP OAuth (implementado, pendiente activación)
@@ -487,29 +546,36 @@ backend/
     OutscraperService.cs    — sync reseñas + GetCompetitorReviewsAsync
     GooglePlacesService.cs  — búsqueda lugares
     GoogleBusinessService.cs — GBP OAuth + locations (pendiente activación)
-    EmailService.cs         — Resend (bienvenida, waitlist)
-  Models/Entities/          — entidades Supabase/Postgrest
-    CompetidorEntity.cs     — tabla competidor
-    RadarAnalisisEntity.cs  — tabla radar_analisis
+    EmailService.cs         — Resend: bienvenida, subscription_confirmed,
+                              subscription_cancelled, subscription_expired
 
 frontend/src/
   app/
     dashboard/page.tsx      — panel reseñas (badge retenida, botón "Responder en Google"
                               copy-paste, GBP deshabilitado)
     dashboard/salud/page.tsx — analytics + Radar de Competencia (Pro, loading animado)
-    settings/page.tsx       — config, planes, keywords SEO, GBP deshabilitado Próximamente
+    settings/page.tsx       — config, planes con checkout LS, portal LS para gestión,
+                              keywords SEO, GBP deshabilitado Próximamente
     onboarding/page.tsx     — setup inicial, GBP deshabilitado Próximamente
+    onboarding/plan/page.tsx — elección plan con checkout LS real
+    auth/callback/page.tsx  — bg-slate-950 (normalizado)
     admin/page.tsx          — panel admin
   components/
     LandingPage.tsx         — landing pública (copy FOMO, "Planes")
     SectionNav.tsx          — pill flotante centrado, 3 tabs con iconos
-    WaitlistModal.tsx       — modal lista espera Core/Pro
+    WaitlistModal.tsx       — modal upsell Core/Pro con checkout LS (ya no es waitlist)
     PublishGoogleModal.tsx  — modal publicar en GBP (implementado, sin uso activo)
+    Tooltip.tsx             — componente ? minimalista, muestra info en hover para tecnicismos
+    HelpModal.tsx           — wizard 8 pasos de ayuda, botón flotante ? en dashboard/salud/settings
   lib/
     api.ts                  — PendingReview incluye retenida/motivoRetencion,
                               RadarData/RadarAnalisisResult/Competidor interfaces,
-                              getRadar/addCompetidor/removeCompetidor/runRadarAnalysis
-    report-pdf.ts           — PDFs: computeSpeedBenchmark, SpeedBenchmark
+                              getRadar/addCompetidor/removeCompetidor/runRadarAnalysis,
+                              getLemonCheckoutUrl
+    report-pdf.ts           — PDFs mes/ejercicio: cabecera Atlantic Blue, KPIs grid 2×2,
+                              barras progreso estrellas, diagnóstico IA bloques,
+                              página Análisis de Competencias (radar Pro),
+                              barras verticales anuales. MonthlyPdfData incluye radarAnalisis.
     i18n.tsx                — contexto multiidioma
     supabase.ts             — cliente Supabase Auth
 ```
@@ -522,16 +588,35 @@ frontend/src/
 - **Eliminar cuenta:** anonimiza `usuario`, borra `review`/`negocio`, llama `DELETE /auth/v1/admin/users/{id}`
 - **Plan efectivo:** `GetMe` computa `effectivePlan = pro_override && !expired ? "pro" : usuario.plan`
 - **Sync incremental:** detecta reseñas que el propietario respondió en Google desde el último sync
-- **Panel salud:** solo core/pro. Basic ve teaser con nota media real + blur + upsell waitlist
-- **Pagos desactivados:** Core/Pro muestran "Únete a la lista de espera" → email directo
+- **Panel salud:** solo Pro. Basic y Core ven teasers diferenciados:
+  - Basic: nota media real + 2 KPIs dummy blurred + upsell directo a Pro
+  - Core: nota media real + sentimiento real + cards Pro bloqueadas (análisis IA, radar, sentimiento categoría, PDFs) con skeleton dummy + badge Pro + botón desbloquear individual. Upsell a Pro.
+  - Si quitan el CSS blur: ven skeletons vacíos (no datos reales)
+  - h1 del panel Pro: "Panel de Salud"
+- **Checkout LS:** `redirect_url` va dentro de `product_options`, no en atributos raíz
+- **Gestión suscripción:** exclusivamente via portal LS (`ls_customer_portal`). Sin modal propio de cancelación.
+- **Emails suscripción:** fire-and-forget (`_ = _email.SendXxx(...)`) en webhook LS
 - **Contador IA atómico:** RPC PostgreSQL `try_increment_ia_counter` — check + increment en una operación SQL
 - **Keywords SEO fallback:** si no hay `palabras_clave`, usa top 6 `keywords_usadas`; si ninguna, usa nombre negocio
 - **Velocidad de respuesta:** `respondida_fecha` setea al marcar respondida (solo si null), limpia al revertir
 - **Modo oscuro forzado:** siempre dark. `<html class="dark">` en layout
 - **Acento blue** en toda la UI (cambiado de indigo)
-- **Filtro seguridad reseñas:** misma llamada Claude, sin coste extra. Rollback contador IA si retenida.
-- **Radar:** ParseAnalisisJson usa `RootElement.Clone()` para evitar JsonElement inválido tras dispose del JsonDocument
+- **Filtro seguridad reseñas:** misma llamada Claude, sin coste extra. Rollback contador IA si retenida. Aplica tanto en POST /generate (manual, `GenerateThreeResponsesWithSafeFilterAsync`) como en POST /{id}/generate (IA, `GenerateSingleResponseWithContextAsync`).
+- **POST /generate separado de /save-manual:** generación y guardado son dos pasos separados. El usuario elige el tono y decide si guardar como pendiente o respondida.
+- **Flujo "Otra Plataforma":** badge en lista, botones de Google deshabilitados para `plataforma='Otra'`, modal con selección de tono obligatoria, auto-aparece en lista tras guardar, banner si retenida. Modal rediseñado: bottom-sheet en móvil (`items-end sm:items-center`, `rounded-t-2xl sm:rounded-2xl`), centrado en desktop, `max-h-[92dvh] sm:max-h-[90vh]`, header/footer sticky, contenido scrollable (`flex-1 overflow-y-auto`).
+- **Contexto card en Otra Plataforma:** tras generar, se muestra tarjeta "Cliente dijo / Tú respondes" igual que en reseñas Google. Útil si la reseña está en otro idioma. State: `manualContexto: { cliente, respuesta } | null`, se resetea en `closeManualModal()`.
+- **Radar categorías dinámicas:** Claude detecta las 4 categorías más relevantes de las reseñas propias (no hardcodeadas), aplica las mismas a competidores. `RadarCategoria: { nombre, yo: number (0-10), rivales[{nombre, score}], insight }` en `api.ts`.
+- **Favicon circular:** `src/app/icon.png` generado con `sharp` + SVG clipPath mask (circle). Next.js App Router lo sirve como favicon automáticamente. No hay `metadata.icons` en `layout.tsx` (conflicto eliminado).
+- **Tooltips en UI:** componente Tooltip.tsx con `?` minimalista en hover para: respuestas IA, palabras clave SEO, tono, impacto Velacre, SEO, sentimiento, velocidad de respuesta, radar.
+- **Radar:** ParseAnalisisJson usa `RootElement.Clone()` para evitar JsonElement inválido tras dispose del JsonDocument. Límite 2 análisis/mes. Backend guarda los 2 últimos registros (no borra todo), GET devuelve `analisisEsteMes: int`. Frontend usa `analisisEsteMes < 2` para `canAnalizar`. Columnas competidor en tabla: "Comp. 1/2/3" con `title` tooltip al nombre completo.
+- **Core IA limit:** 18/mes (corregido de 10 que aparecía hardcodeado en dashboard).
+- **Upsell modal límite IA:** checkout directo LS sin pasar por settings. Basic: botones Pro (principal) + Core (secundario) con spinner. Core: botón Pro directo.
+- **Pricing features:** Basic incluye Google + 3 IA + 3 otras plataformas + importación. Core: 18 IA, Google + otras, tono+keywords, historial completo. Pro: Panel de Salud, ilimitadas, Radar benchmark vs 3 competidores, análisis IA mensual + PDFs. Sin "soporte prioritario".
+- **Header/footer páginas legales:** normalizados al mismo estilo que landing (sticky blur, h-16, max-w-6xl, Login + Empezar gratis, footer copyright + links).
 - **GBP deshabilitado:** todo el código está, solo la UI muestra "Próximamente". Fácil de activar cuando llegue la autorización de Google.
+- **safe() en jsPDF:** solo elimina chars fuera de `\x20-\x7E\xA0-\xFF`. Las tildes españolas están dentro del rango y funcionan.
+- **PDF diseño actual:** cabecera Atlantic Blue fija, KPIs en grid 2×2 con banda acento, distribución estrellas con barras de progreso coloreadas (rojo/amber/verde), diagnóstico IA con icono + borde lateral, página "Análisis de Competencias" con matriz 0-10 si hay radar Pro (título "PUNTUACIONES POR CATEGORÍA"), PDF anual con gráfico de barras vertical. 2 botones UI: mes/ejercicio, tema claro únicamente.
+- **save-manual contexto:** endpoint acepta y persiste `contextoCliente/contextoRespuesta`. Frontend pasa el contexto al guardar y popula `contextos[]` sin recargar. Fix móvil: `setEstadoFilter(estado)` antes de `setSelectedId` para evitar panel en blanco al guardar.
 
 ---
 
@@ -543,17 +628,19 @@ frontend/src/
 - Revisar precios post-GBP: Core €29/mes, Pro €69/mes (incluyendo Radar como add-on integrado).
 
 ### Activar pagos
-- Alta como autónomo → activar variantes Lemon Squeezy → cambiar "lista de espera" a checkout real.
+- Alta como autónomo → activar tienda Lemon Squeezy (payout/datos bancarios) → en producción los pagos se procesarán automáticamente con IVA correcto (LS como MoR).
+- El checkout ya está implementado y probado en modo test.
 
-### Backlog inmediato (antes o junto con GBP)
-
-**Eliminación de reseñas (Pro):**
+### Backlog inmediato (mejoras/bugs para antes o junto con GBP)
+- Revisar MVP
+  
++ **Eliminación de reseñas (Pro):**
 - Feature de alto valor percibido, coste mínimo de desarrollo.
 - Flujo: usuario selecciona reseña → marca el motivo (spam, irrelevante, falsa, ofensiva...) → Claude genera el texto de reclamación exacto según políticas de Google → usuario copia y pega en el formulario oficial de Google.
 - Velacre no elimina nada, Google decide. El valor es saber exactamente qué decir y dónde.
 - Añadir a panel de reseña como botón "Solicitar eliminación" (Pro).
 
-**Precios por ubicación (multi-local):**
++ **Precios por ubicación (multi-local):**
 - Si un negocio tiene 2+ locales, paga proporcionalmente (le ahorramos el doble de tiempo).
 - Modelo: precio base primer local (ej. €45/mes Pro) + add-on por local adicional (ej. €20/mes).
 - Implementación: quantity en Stripe/LS o add-on de "sede adicional".
