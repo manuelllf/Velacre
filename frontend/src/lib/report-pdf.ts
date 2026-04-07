@@ -743,11 +743,11 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
     addPageThemed(d, W, theme)
     y = 20
 
-    pdfHeader(d, W, ML, MR, data.negocioNombre, `Benchmark Pro - ${mLabel}`)
+    pdfHeader(d, W, ML, MR, data.negocioNombre, `Analisis de Competencias - ${mLabel}`)
     y = 45
 
     c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(13)
-    d.text('Benchmark Pro: Analisis de Competencia', ML, y)
+    d.text('Analisis de Competencias', ML, y)
     c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(8)
     d.text('Posicion de tu negocio frente a competidores en las categorias clave (escala 0-10)', ML, y + 7)
     y += 18
@@ -763,51 +763,57 @@ export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme =
     while (compNames.length < maxComps) compNames.push(`Comp. ${compNames.length + 1}`)
 
     // Cabecera de matriz
-    sectionLabel(d, 'MATRIZ DE PUNTUACIONES (0-10)', y, ML, colors)
+    sectionLabel(d, 'PUNTUACIONES POR CATEGORIA (0-10)', y, ML, colors)
     y += 13
 
-    const colYo = 40, colComp = 35, totalCols = 1 + maxComps
+    // Columnas: categoría más ancha, score propio, 3 competidores
+    const colCat = 52, colYo = 36, colComp = Math.floor((CW - colCat - colYo) / maxComps)
     const headers = ['Categoria', 'Tu negocio', ...compNames.slice(0, maxComps)]
-    const widths = [CW - colYo - colComp * maxComps, colYo, ...Array(maxComps).fill(colComp)]
+    const widths = [colCat, colYo, ...Array(maxComps).fill(colComp)]
     y = themedTableHeader(d, headers, widths, y, ML, colors)
 
+    const ROW_H = 16  // más espacio por fila
+
     radarCats.forEach((cat, idx) => {
-      if (y > 272) { addPageThemed(d, W, theme); y = 20 }
+      if (y > 265) { addPageThemed(d, W, theme); y = 20 }
       dr(colors.BORDER); d.setLineWidth(0.1)
       f(idx % 2 === 0 ? colors.ROW_EVEN : colors.ROW_ODD)
-      d.rect(ML, y, CW, 10, 'FD')
+      d.rect(ML, y, CW, ROW_H, 'FD')
 
-      // Nombre categoría
+      // Nombre categoría + insight
       c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(7.5)
-      d.text(safe(cat.nombre), ML + 2, y + 4)
-      c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(6)
-      const insight = d.splitTextToSize(safe(cat.insight ?? ''), widths[0] - 4) as string[]
-      if (insight.length > 0) d.text(insight[0], ML + 2, y + 8)
+      d.text(safe(cat.nombre), ML + 3, y + 5.5)
+      if (cat.insight) {
+        c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(6)
+        const ins = d.splitTextToSize(safe(cat.insight), colCat - 5) as string[]
+        d.text(ins[0], ML + 3, y + 11)
+      }
 
-      // Mi score con barra
+      // Mi score: número grande + barra debajo
       const myScore = cat.yo ?? 0
       const myCol: RGB = myScore >= 7 ? GREEN : myScore >= 5 ? AMBER : RED
-      c(myCol); d.setFont('helvetica', 'bold'); d.setFontSize(9)
-      d.text(myScore.toFixed(1), ML + widths[0] + 3, y + 4.5)
-      progressBar(d, ML + widths[0] + 3, y + 6, colYo - 6, 2.5, myScore, 10, myCol, colors.BORDER)
+      const scoreX = ML + colCat
+      c(myCol); d.setFont('helvetica', 'bold'); d.setFontSize(10)
+      d.text(myScore.toFixed(1), scoreX + 3, y + 6)
+      progressBar(d, scoreX + 3, y + 9, colYo - 7, 3, myScore, 10, myCol, colors.BORDER)
 
       // Scores competidores
       cat.rivales?.slice(0, maxComps).forEach((r, ci) => {
-        const rx = ML + widths[0] + colYo + ci * colComp
+        const rx = ML + colCat + colYo + ci * colComp
         const rScore = r.score ?? 0
         const rCol: RGB = rScore >= 7 ? GREEN : rScore >= 5 ? AMBER : RED
-        c(rCol); d.setFont('helvetica', 'bold'); d.setFontSize(9)
-        d.text(rScore.toFixed(1), rx + 3, y + 4.5)
-        progressBar(d, rx + 3, y + 6, colComp - 6, 2.5, rScore, 10, rCol, colors.BORDER)
+        c(rCol); d.setFont('helvetica', 'bold'); d.setFontSize(10)
+        d.text(rScore.toFixed(1), rx + 3, y + 6)
+        progressBar(d, rx + 3, y + 9, colComp - 7, 3, rScore, 10, rCol, colors.BORDER)
       })
-      // Rellenar competidores sin datos
+      // Columnas sin datos
       for (let ci = (cat.rivales?.length ?? 0); ci < maxComps; ci++) {
-        const rx = ML + widths[0] + colYo + ci * colComp
+        const rx = ML + colCat + colYo + ci * colComp
         c(colors.LIGHT); d.setFont('helvetica', 'normal'); d.setFontSize(7)
-        d.text('—', rx + 3, y + 4.5)
+        d.text('—', rx + 3, y + 6)
       }
 
-      y += 10
+      y += ROW_H
     })
     y += 6
 
