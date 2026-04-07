@@ -624,16 +624,16 @@ frontend/src/
 - Alta como autónomo → activar tienda Lemon Squeezy (payout/datos bancarios) → en producción los pagos se procesarán automáticamente con IVA correcto (LS como MoR).
 - El checkout ya está implementado y probado en modo test.
 
-### Backlog inmediato (antes o junto con GBP)
-- Comprobar como se guarda la tarjeta de contextos en las reseñas manuales de otra plataforma, al guardarla en el dashboard no aparece ese contexto. En móvil, al acabar la interacción y darle a guardar el modal desaparece y el usuario se queda bloqueado en una pestaña vacía sin nada, tiene que redirigir correctamente.
-- Rediseñar de forma agresiva los PDFs, son horribles.
-**Eliminación de reseñas (Pro):**
+### Backlog inmediato (mejoras/bugs para antes o junto con GBP)
+- Revisar MVP
+  
++ **Eliminación de reseñas (Pro):**
 - Feature de alto valor percibido, coste mínimo de desarrollo.
 - Flujo: usuario selecciona reseña → marca el motivo (spam, irrelevante, falsa, ofensiva...) → Claude genera el texto de reclamación exacto según políticas de Google → usuario copia y pega en el formulario oficial de Google.
 - Velacre no elimina nada, Google decide. El valor es saber exactamente qué decir y dónde.
 - Añadir a panel de reseña como botón "Solicitar eliminación" (Pro).
 
-**Precios por ubicación (multi-local):**
++ **Precios por ubicación (multi-local):**
 - Si un negocio tiene 2+ locales, paga proporcionalmente (le ahorramos el doble de tiempo).
 - Modelo: precio base primer local (ej. €45/mes Pro) + add-on por local adicional (ej. €20/mes).
 - Implementación: quantity en Stripe/LS o add-on de "sede adicional".
