@@ -157,6 +157,8 @@ public class ReviewController : ControllerBase
                 TonoGenerado = tonoCapitalized,
                 Plataforma = "Otra",
                 Estado = estado,
+                ContextoCliente = request.ContextoCliente,
+                ContextoRespuesta = request.ContextoRespuesta,
                 RespondidaFecha = estado == "respondida" ? now2 : null,
                 CreadoPor = userId,
                 CreadoFecha = now2
@@ -199,6 +201,8 @@ public class ReviewController : ControllerBase
                 tonoGenerado = saved.TonoGenerado,
                 plataforma = saved.Plataforma,
                 respondidaFecha = saved.RespondidaFecha,
+                contextoCliente = saved.ContextoCliente,
+                contextoRespuesta = saved.ContextoRespuesta,
                 retenida = false,
                 motivoRetencion = (string?)null,
             });

@@ -119,6 +119,8 @@ export async function saveManualReview(data: {
   respuestaCercano: string
   respuestaDirecto: string
   estado: 'pendiente' | 'respondida'
+  contextoCliente?: string
+  contextoRespuesta?: string
 }): Promise<PendingReview> {
   const res = await fetch(`${API_URL}/api/review/save-manual`, {
     method: 'POST',
@@ -130,6 +132,8 @@ export async function saveManualReview(data: {
       respuestaCercano: data.respuestaCercano,
       respuestaDirecto: data.respuestaDirecto,
       estado: data.estado,
+      contextoCliente: data.contextoCliente,
+      contextoRespuesta: data.contextoRespuesta,
     }),
   })
   if (!res.ok) {

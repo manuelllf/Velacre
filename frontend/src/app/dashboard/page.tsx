@@ -262,6 +262,7 @@ export default function DashboardPage() {
     if (!manualSelectedTone || !manualResponses) return
     setManualSaving(true)
     try {
+      const ctx = manualContexto
       const saved = await saveManualReview({
         reviewText,
         tonoSeleccionado: manualSelectedTone,
@@ -269,6 +270,8 @@ export default function DashboardPage() {
         respuestaCercano: manualResponses.cercano ?? '',
         respuestaDirecto: manualResponses.directo ?? '',
         estado,
+        contextoCliente: manualContexto?.cliente,
+        contextoRespuesta: manualContexto?.respuesta,
       })
       // Prepend to reviews list (auto-appear without reload)
       setReviews(prev => {
@@ -284,6 +287,15 @@ export default function DashboardPage() {
       if (resp && saved.id) {
         setGeneratedResponses(prev => ({ ...prev, [saved.id]: resp }))
       }
+      // Populate context so it shows immediately in the detail panel
+      const contextoToStore = saved.contextoCliente && saved.contextoRespuesta
+        ? { cliente: saved.contextoCliente, respuesta: saved.contextoRespuesta }
+        : ctx
+      if (contextoToStore && saved.id) {
+        setContextos(prev => ({ ...prev, [saved.id]: contextoToStore }))
+      }
+      // Switch filter so the saved review is visible in the list, then select it
+      setEstadoFilter(estado)
       closeManualModal()
       setSelectedId(saved.id)
     } catch (err) {

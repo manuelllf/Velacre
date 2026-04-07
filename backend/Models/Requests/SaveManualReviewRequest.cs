@@ -8,4 +8,6 @@ public record SaveManualReviewRequest
     public string RespuestaCercano { get; init; } = "";
     public string RespuestaDirecto { get; init; } = "";
     public string Estado { get; init; } = "pendiente"; // pendiente | respondida
+    public string? ContextoCliente { get; init; }
+    public string? ContextoRespuesta { get; init; }
 }
