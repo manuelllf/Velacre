@@ -254,6 +254,9 @@ function pdfHeader(doc: any, W: number, ML: number, MR: number, negocioNombre: s
   doc.setFillColor(...ATLANTIC); doc.rect(0, 0, W, 30, 'F')
   doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('Velacre', ML, 14)
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...LIGHT); doc.text('velacre.com', ML, 21)
+  // Enlace clickable sobre "velacre.com"
+  const linkW = doc.getTextWidth('velacre.com')
+  doc.link(ML, 17, linkW, 5, { url: 'https://velacre.com' })
   doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text(safe(negocioNombre), MR, 13, { align: 'right' })
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...LIGHT); doc.text(reportLabel, MR, 21, { align: 'right' })
   // Línea separadora Indigo
@@ -268,7 +271,12 @@ function pdfFooter(doc: any, W: number, ML: number, MR: number, theme: PdfTheme)
     doc.setFillColor(...ATLANTIC); doc.rect(0, 284, W, 13, 'F')
     doc.setTextColor(...colors.MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
     const dt = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
-    doc.text(`Generado por Velacre - velacre.com - ${dt}`, ML, 291)
+    const footerTxt = `Generado por Velacre - velacre.com - ${dt}`
+    doc.text(footerTxt, ML, 291)
+    // Enlace sobre "velacre.com" en el footer
+    const preW = doc.getTextWidth('Generado por Velacre - ')
+    const urlW = doc.getTextWidth('velacre.com')
+    doc.link(ML + preW, 287, urlW, 5, { url: 'https://velacre.com' })
     doc.text(`Pag. ${p} / ${n}`, MR, 291, { align: 'right' })
   }
 }

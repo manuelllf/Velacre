@@ -672,25 +672,16 @@ export default function SaludPage() {
           </div>
           {reviews.length > 0 && (
             <div className="flex gap-2 flex-wrap items-center">
-              {([
-                { type: 'month', theme: 'dark', label: 'PDF mes' },
-                { type: 'month', theme: 'light', label: 'PDF mes claro' },
-                { type: 'year', theme: 'dark', label: 'PDF ejercicio' },
-                { type: 'year', theme: 'light', label: 'PDF ejercicio claro' },
-              ] as const).map(({ type, theme, label }) => {
-                const key = `${type}-${theme}`
+              {(['month', 'year'] as const).map(type => {
+                const key = `${type}-light`
                 const isLoading = downloadingPdf === key
-                const isDisabled = downloadingPdf !== null
+                const label = type === 'month' ? 'PDF mes' : 'PDF ejercicio'
                 return (
                   <button
                     key={key}
-                    onClick={() => handleDownloadPdf(type, theme)}
-                    disabled={isDisabled}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 ${
-                      theme === 'light'
-                        ? 'border border-slate-600 text-slate-400 hover:bg-slate-800'
-                        : 'border border-slate-700 text-slate-300 hover:bg-slate-800'
-                    }`}
+                    onClick={() => handleDownloadPdf(type, 'light')}
+                    disabled={downloadingPdf !== null}
+                    className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 text-slate-300 rounded-lg text-xs font-medium hover:bg-slate-800 transition-colors disabled:opacity-40"
                   >
                     {isLoading
                       ? <><span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />Generando...</>
@@ -699,7 +690,6 @@ export default function SaludPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                           </svg>
                           {label}
-                          {theme === 'light' && <span className="text-slate-500">☀</span>}
                         </>
                     }
                   </button>
