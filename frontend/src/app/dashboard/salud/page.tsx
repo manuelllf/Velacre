@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, getRadar, addCompetidor, removeCompetidor, runRadarAnalysis, searchPlaces, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData, type RadarData, type RadarCategoria } from '@/lib/api'
+import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, getRadar, addCompetidor, removeCompetidor, runRadarAnalysis, searchPlaces, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData, type RadarData, type RadarCategoria, type RadarAnalisisResult } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import WaitlistModal from '@/components/WaitlistModal'
 import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
-import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, computeSpeedBenchmark, type MonthMetrics, type SpeedBenchmark } from '@/lib/report-pdf'
+import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, computeSpeedBenchmark, type MonthMetrics, type SpeedBenchmark, type PdfTheme } from '@/lib/report-pdf'
 import { useLanguage } from '@/lib/i18n'
 
 const STOPWORDS = new Set([
@@ -81,7 +81,7 @@ export default function SaludPage() {
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [userPlan, setUserPlan] = useState<string>('basic')
-  const [downloadingPdf, setDownloadingPdf] = useState<'month' | 'year' | null>(null)
+  const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null)
   const [aiLimitReached, setAiLimitReached] = useState(false)
   const [metrics, setMetrics] = useState<VelacreMetrics | null>(null)
   const [basicUpsellPlan, setBasicUpsellPlan] = useState<'core' | 'pro' | null>(null)
@@ -326,13 +326,13 @@ export default function SaludPage() {
       })()
     : null
 
-  async function handleDownloadPdf(type: 'month' | 'year') {
+  async function handleDownloadPdf(type: 'month' | 'year', theme: PdfTheme) {
     if (!negocio) return
-    setDownloadingPdf(type)
+    const key = `${type}-${theme}`
+    setDownloadingPdf(key)
     try {
       const kwData = keywords.map(k => ({ word: k.word, sentiment: k.sentiment }))
       if (type === 'month') {
-        // Distribución de estrellas del mes actual y anterior
         const buildStarCounts = (year: number, month: number): number[] => {
           const sc = [0, 0, 0, 0, 0, 0]
           reviews
@@ -344,6 +344,7 @@ export default function SaludPage() {
         const pmValid = previousM.count > 0 || previousM.avgRating != null
         const scPrev = pmValid ? buildStarCounts(previousM.year, previousM.month) : undefined
         const pendingCount = reviews.filter(r => !r.tonoGenerado && r.estado !== 'ignorada').length
+        const radarAnalisis: RadarAnalisisResult | null = radarData?.ultimoAnalisis ?? null
         await generateMonthlyPDF({
           negocioNombre: negocio.nombre,
           negocioTelefono: negocio.telefono,
@@ -358,7 +359,8 @@ export default function SaludPage() {
           starCountsPrevious: scPrev,
           pendingCount,
           speedBenchmark,
-        })
+          radarAnalisis,
+        }, theme)
       } else {
         await generateYearlyPDF({
           negocioNombre: negocio.nombre,
@@ -367,7 +369,7 @@ export default function SaludPage() {
           currentYearMonths,
           keywords: kwData,
           summary,
-        })
+        }, theme)
       }
     } catch (e) {
       console.error('PDF error', e)
@@ -669,20 +671,40 @@ export default function SaludPage() {
             {negocio && <p className="text-sm text-slate-400 mt-0.5">{negocio.nombre} <span className="text-slate-600">·</span> <span className="capitalize">{monthName}</span></p>}
           </div>
           {reviews.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {(['month', 'year'] as const).map(type => (
-                <button
-                  key={type}
-                  onClick={() => handleDownloadPdf(type)}
-                  disabled={downloadingPdf !== null}
-                  className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 text-slate-300 rounded-lg text-xs font-medium hover:bg-slate-800 transition-colors disabled:opacity-40"
-                >
-                  {downloadingPdf === type
-                    ? <><span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />Generando...</>
-                    : <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>{type === 'month' ? 'PDF mes' : 'PDF ejercicio'}</>
-                  }
-                </button>
-              ))}
+            <div className="flex gap-2 flex-wrap items-center">
+              {([
+                { type: 'month', theme: 'dark', label: 'PDF mes' },
+                { type: 'month', theme: 'light', label: 'PDF mes claro' },
+                { type: 'year', theme: 'dark', label: 'PDF ejercicio' },
+                { type: 'year', theme: 'light', label: 'PDF ejercicio claro' },
+              ] as const).map(({ type, theme, label }) => {
+                const key = `${type}-${theme}`
+                const isLoading = downloadingPdf === key
+                const isDisabled = downloadingPdf !== null
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handleDownloadPdf(type, theme)}
+                    disabled={isDisabled}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 ${
+                      theme === 'light'
+                        ? 'border border-slate-600 text-slate-400 hover:bg-slate-800'
+                        : 'border border-slate-700 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    {isLoading
+                      ? <><span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />Generando...</>
+                      : <>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          {label}
+                          {theme === 'light' && <span className="text-slate-500">☀</span>}
+                        </>
+                    }
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>

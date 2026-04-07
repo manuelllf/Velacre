@@ -1,4 +1,4 @@
-import type { PendingReview } from './api'
+import type { PendingReview, RadarAnalisisResult } from './api'
 
 export interface MonthMetrics {
   year: number
@@ -105,7 +105,7 @@ export function getAllYears(reviews: PendingReview[]): MonthMetrics[] {
 export function drift(current: number | null, previous: number | null): { value: number; label: string; dir: 'up' | 'down' | 'flat' } | null {
   if (current == null || previous == null || previous === 0) return null
   const diff = current - previous
-  if (Math.abs(diff) < 0.5) return null // insignificante
+  if (Math.abs(diff) < 0.5) return null
   return {
     value: diff,
     label: `${diff > 0 ? '+' : ''}${diff.toFixed(1)}%`,
@@ -119,7 +119,7 @@ export function ratingDrift(current: number | null, previous: number | null): { 
   if (Math.abs(diff) < 0.05) return null
   return {
     value: diff,
-    label: `${diff > 0 ? '+' : ''}${diff.toFixed(2)}★`,
+    label: `${diff > 0 ? '+' : ''}${diff.toFixed(2)}*`,
     dir: diff > 0 ? 'up' : 'down',
   }
 }
@@ -127,13 +127,14 @@ export function ratingDrift(current: number | null, previous: number | null): { 
 // ── PDF ──────────────────────────────────────────────────────────────────────
 
 type RGB = readonly [number, number, number]
+export type PdfTheme = 'light' | 'dark'
 
 export interface SpeedBenchmark {
-  avgDays: number           // media días reseña → respondida
-  pct24h: number            // % respondidas en <24h
-  pct48h: number            // % respondidas en <48h (acumulado)
-  pctOver48h: number        // % respondidas en >48h
-  totalResponded: number    // reseñas respondidas con fecha
+  avgDays: number
+  pct24h: number
+  pct48h: number
+  pctOver48h: number
+  totalResponded: number
 }
 
 /** Calcula benchmark de velocidad de respuesta a partir de reviews con respondidaFecha */
@@ -163,21 +164,21 @@ export interface MonthlyPdfData {
   negocioPalabrasClave?: string[]
   currentMonth: MonthMetrics
   previousMonth: MonthMetrics | null
-  yearMonths: MonthMetrics[]   // meses del año actual, orden ascendente
+  yearMonths: MonthMetrics[]
   keywords: { word: string; sentiment: 'positive' | 'neutral' | 'negative' }[]
   summary: SummaryData | null
-  // Distribución de estrellas: índice 1–5
-  starCountsCurrent: number[]   // [0, c1, c2, c3, c4, c5]
-  starCountsPrevious?: number[] // [0, c1, c2, c3, c4, c5]
-  pendingCount: number          // reseñas sin respuesta
+  starCountsCurrent: number[]
+  starCountsPrevious?: number[]
+  pendingCount: number
   speedBenchmark: SpeedBenchmark | null
+  radarAnalisis?: RadarAnalisisResult | null
 }
 
 export interface YearlyPdfData {
   negocioNombre: string
   currentYear: number
-  allYears: MonthMetrics[]          // todos los ejercicios, descendente (más reciente primero)
-  currentYearMonths: MonthMetrics[] // meses del año actual, ascendente
+  allYears: MonthMetrics[]
+  currentYearMonths: MonthMetrics[]
   keywords: { word: string; sentiment: 'positive' | 'neutral' | 'negative' }[]
   summary: SummaryData | null
 }
@@ -187,7 +188,6 @@ function safe(s: string): string {
   return s.replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
 }
 
-// Variación como texto plano (+0.20) / (-0.15), sin Unicode
 function varText(
   current: number | null,
   previous: number | null,
@@ -199,68 +199,184 @@ function varText(
   return { text: `(${d > 0 ? '+' : ''}${d.toFixed(decimals)})`, positive: d > 0, significant: true }
 }
 
+// ── Colores por tema ──────────────────────────────────────────────────────────
+
+const ATLANTIC: RGB = [5, 16, 32]   // #051020 - cabecera siempre
+const GREEN: RGB = [16, 185, 129]
+const RED: RGB = [239, 68, 68]
+const AMBER: RGB = [245, 158, 11]
+const INDIGO: RGB = [99, 102, 241]
+const WHITE: RGB = [255, 255, 255]
+
+interface TC {
+  BG: RGB; CARD: RGB; BORDER: RGB
+  ROW_ODD: RGB; ROW_EVEN: RGB
+  TEXT: RGB; MID: RGB; LIGHT: RGB
+  HDR_BG: RGB; HDR_TXT: RGB
+  AI_SHINE: RGB; AI_WORRY: RGB; AI_ACTION: RGB
+}
+
+function tc(theme: PdfTheme): TC {
+  if (theme === 'dark') return {
+    BG: [2, 6, 23], CARD: [15, 23, 42], BORDER: [30, 41, 59],
+    ROW_ODD: [15, 23, 42], ROW_EVEN: [7, 14, 31],
+    TEXT: [241, 245, 249], MID: [148, 163, 184], LIGHT: [71, 85, 105],
+    HDR_BG: [30, 41, 59], HDR_TXT: [241, 245, 249],
+    AI_SHINE: [5, 22, 14], AI_WORRY: [24, 5, 5], AI_ACTION: [5, 12, 28],
+  }
+  return {
+    BG: [255, 255, 255], CARD: [248, 250, 252], BORDER: [226, 232, 240],
+    ROW_ODD: [248, 250, 252], ROW_EVEN: [255, 255, 255],
+    TEXT: [15, 23, 42], MID: [71, 85, 105], LIGHT: [148, 163, 184],
+    HDR_BG: [15, 23, 42], HDR_TXT: [255, 255, 255],
+    AI_SHINE: [240, 253, 244], AI_WORRY: [254, 242, 242], AI_ACTION: [238, 242, 255],
+  }
+}
+
 // ── Utilidades compartidas para jsPDF ────────────────────────────────────────
-// Usamos 'any' para el doc porque jsPDF no exporta un tipo base limpio
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+function fillPage(doc: any, W: number, theme: PdfTheme) {
+  if (theme === 'dark') {
+    doc.setFillColor(2, 6, 23)
+    doc.rect(0, 0, W, 297, 'F')
+  }
+}
+
+function addPageThemed(doc: any, W: number, theme: PdfTheme) {
+  doc.addPage()
+  fillPage(doc, W, theme)
+}
+
 function pdfHeader(doc: any, W: number, ML: number, MR: number, negocioNombre: string, reportLabel: string) {
-  const DARK = [15, 23, 42], LIGHT = [148, 163, 184], WHITE = [255, 255, 255], INDIGO = [79, 70, 229]
-  doc.setFillColor(...DARK); doc.rect(0, 0, W, 30, 'F')
+  const LIGHT: RGB = [148, 163, 184]
+  doc.setFillColor(...ATLANTIC); doc.rect(0, 0, W, 30, 'F')
   doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('Velacre', ML, 14)
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...LIGHT); doc.text('velacre.com', ML, 21)
   doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text(safe(negocioNombre), MR, 13, { align: 'right' })
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...LIGHT); doc.text(reportLabel, MR, 21, { align: 'right' })
+  // Línea separadora Indigo
   doc.setFillColor(...INDIGO); doc.rect(0, 30, W, 1.5, 'F')
 }
 
-function pdfFooter(doc: any, W: number, ML: number, MR: number) {
+function pdfFooter(doc: any, W: number, ML: number, MR: number, theme: PdfTheme) {
   const n = doc.getNumberOfPages()
-  const DARK = [15, 23, 42], LIGHT = [148, 163, 184]
+  const colors = tc(theme)
   for (let p = 1; p <= n; p++) {
     doc.setPage(p)
-    doc.setFillColor(...DARK); doc.rect(0, 284, W, 13, 'F')
-    doc.setTextColor(...LIGHT); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
+    doc.setFillColor(...ATLANTIC); doc.rect(0, 284, W, 13, 'F')
+    doc.setTextColor(...colors.MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
     const dt = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
     doc.text(`Generado por Velacre - velacre.com - ${dt}`, ML, 291)
-    doc.text(`Pág. ${p} / ${n}`, MR, 291, { align: 'right' })
+    doc.text(`Pag. ${p} / ${n}`, MR, 291, { align: 'right' })
   }
 }
 
-function sectionLabel(doc: any, text: string, y: number, ML: number) {
-  const DARK = [15, 23, 42], INDIGO = [79, 70, 229], LIGHT = [148, 163, 184]
+function sectionLabel(doc: any, text: string, y: number, ML: number, colors: TC) {
   doc.setFillColor(...INDIGO); doc.rect(ML, y, 2.5, 8, 'F')
-  doc.setTextColor(...DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text(text, ML + 6, y + 5.8)
-  doc.setTextColor(...LIGHT)
+  doc.setTextColor(...colors.TEXT); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5)
+  doc.text(text, ML + 6, y + 5.8)
 }
 
-function tableHeader(doc: any, headers: string[], widths: number[], y: number, ML: number): number {
+function themedTableHeader(doc: any, headers: string[], widths: number[], y: number, ML: number, colors: TC): number {
   const CW = widths.reduce((a, b) => a + b, 0)
-  const DARK = [15, 23, 42], WHITE = [255, 255, 255], S200 = [226, 232, 240]
-  doc.setFillColor(...DARK); doc.setDrawColor(...S200); doc.setLineWidth(0.2); doc.rect(ML, y, CW, 6.5, 'FD')
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...WHITE)
+  doc.setFillColor(...colors.HDR_BG); doc.setDrawColor(...colors.BORDER); doc.setLineWidth(0.2)
+  doc.rect(ML, y, CW, 6.5, 'FD')
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...colors.HDR_TXT)
   let cx = ML + 2
   headers.forEach((h, i) => { doc.text(h, cx, y + 4.5); cx += widths[i] })
   return y + 6.5
 }
+
+// Barra de progreso horizontal coloreada por valor (0-5 estrellas, o 0-10 radar)
+function progressBar(doc: any, x: number, y: number, W: number, h: number, value: number, maxVal: number, color: RGB, bgColor: RGB) {
+  const fillW = maxVal > 0 ? Math.max(0, Math.min(1, value / maxVal)) * W : 0
+  doc.setFillColor(...bgColor); doc.rect(x, y, W, h, 'F')
+  if (fillW > 0) { doc.setFillColor(...color); doc.rect(x, y, fillW, h, 'F') }
+}
+
+// Gráfico de barras verticales para evolución temporal
+function monthBarChart(
+  doc: any,
+  months: MonthMetrics[],
+  x: number, y: number, W: number, H: number,
+  colors: TC,
+) {
+  const n = months.length
+  if (n === 0) return
+  const chartH = H - 18  // espacio para etiquetas
+  const barW = Math.min(Math.floor((W - 4) / n) - 1, 14)
+  const totalBarSpace = n * (barW + 1)
+  const startX = x + (W - totalBarSpace) / 2
+
+  // Fondo del chart
+  doc.setFillColor(...colors.CARD); doc.rect(x, y, W, H, 'F')
+
+  // Líneas guía horizontales
+  doc.setDrawColor(...colors.BORDER); doc.setLineWidth(0.2)
+  for (let g = 0; g <= 5; g++) {
+    const gy = y + chartH - (g / 5) * chartH
+    doc.line(x + 2, gy, x + W - 2, gy)
+    if (g > 0 && g < 5) {
+      doc.setTextColor(...colors.LIGHT); doc.setFontSize(4.5); doc.setFont('helvetica', 'normal')
+      doc.text(String(g), x + 2, gy - 0.5)
+    }
+  }
+
+  months.forEach((m, i) => {
+    const bx = startX + i * (barW + 1)
+    const val = m.avgRating ?? 0
+    const bh = val > 0 ? (val / 5) * chartH : 0
+    const barColor: RGB = val >= 4 ? GREEN : val >= 3 ? AMBER : val > 0 ? RED : colors.BORDER
+
+    if (bh > 0) {
+      doc.setFillColor(...barColor)
+      doc.rect(bx, y + chartH - bh, barW, bh, 'F')
+    }
+
+    // Valor encima
+    if (val > 0) {
+      doc.setTextColor(...colors.TEXT); doc.setFontSize(5); doc.setFont('helvetica', 'bold')
+      doc.text(val.toFixed(1), bx + barW / 2, y + chartH - bh - 1.5, { align: 'center' })
+    }
+
+    // Etiqueta mes
+    const ml = safe(m.label).slice(0, 3)
+    doc.setTextColor(...colors.MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(4.5)
+    doc.text(ml, bx + barW / 2, y + H - 4, { align: 'center' })
+
+    // Reseñas debajo del mes
+    doc.setTextColor(...colors.LIGHT); doc.setFontSize(4)
+    doc.text(m.count > 0 ? String(m.count) : '—', bx + barW / 2, y + H - 0.5, { align: 'center' })
+  })
+
+  // Línea base
+  doc.setDrawColor(...colors.BORDER); doc.setLineWidth(0.4)
+  doc.line(x + 2, y + chartH, x + W - 2, y + chartH)
+}
+
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 // ── PDF MENSUAL ───────────────────────────────────────────────────────────────
 
-export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
+export async function generateMonthlyPDF(data: MonthlyPdfData, theme: PdfTheme = 'dark'): Promise<void> {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF('p', 'mm', 'a4')
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const d = doc as any
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   const W = 210, ML = 18, MR = W - 18, CW = MR - ML
   let y = 0
 
-  const DARK: RGB = [15, 23, 42], MID: RGB = [71, 85, 105], LIGHT: RGB = [148, 163, 184]
-  const INDIGO: RGB = [79, 70, 229], GREEN: RGB = [16, 185, 129], RED: RGB = [239, 68, 68]
-  const AMBER: RGB = [245, 158, 11], WHITE: RGB = [255, 255, 255]
-  const S50: RGB = [248, 250, 252], S200: RGB = [226, 232, 240]
+  const colors = tc(theme)
+  const c = (r: RGB) => d.setTextColor(r[0], r[1], r[2])
+  const f = (r: RGB) => d.setFillColor(r[0], r[1], r[2])
+  const dr = (r: RGB) => d.setDrawColor(r[0], r[1], r[2])
 
-  const c = (r: RGB) => doc.setTextColor(r[0], r[1], r[2])
-  const f = (r: RGB) => doc.setFillColor(r[0], r[1], r[2])
-  const d = (r: RGB) => doc.setDrawColor(r[0], r[1], r[2])
+  fillPage(d, W, theme)
 
   const cm = data.currentMonth
   const pm = data.previousMonth
@@ -269,132 +385,151 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
   const slug = safe(data.negocioNombre).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
   // CABECERA
-  pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revisión mensual - ${mLabel}`)
+  pdfHeader(d, W, ML, MR, data.negocioNombre, `Revision mensual - ${mLabel}`)
   y = 38
 
-  // SUBHEADER negocio: teléfono y email si disponibles
+  // Contacto
   const contactParts: string[] = []
   if (data.negocioTelefono) contactParts.push(safe(data.negocioTelefono))
   if (data.negocioEmail) contactParts.push(safe(data.negocioEmail))
   if (contactParts.length > 0) {
-    c(MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
-    doc.text(contactParts.join('   |   '), ML, y)
+    c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(7)
+    d.text(contactParts.join('   |   '), ML, y)
     y += 7
   }
 
-  // TITULO
-  c(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(14)
-  doc.text(`Revisión mensual: ${mLabel}`, ML, y)
-  c(MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(8)
-  doc.text(pLabel ? `Comparativa con ${pLabel} incluida` : 'Análisis del mes en curso', ML, y + 6)
+  // TÍTULO
+  c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(14)
+  d.text(`Revision mensual: ${mLabel}`, ML, y)
+  c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(8)
+  d.text(pLabel ? `Comparativa con ${pLabel} incluida` : 'Analisis del mes en curso', ML, y + 6)
   y += 16
 
-  // SECTION 1: KPIs del mes — 2 filas de 3
-  sectionLabel(doc, `INDICADORES DE ${mLabel.toUpperCase()}`, y, ML)
+  // SECTION 1: KPIs 2x2
+  sectionLabel(d, `INDICADORES DE ${mLabel.toUpperCase()}`, y, ML, colors)
   y += 13
 
-  const pendingCount = data.pendingCount
-  const kW3 = CW / 3
-  const kpis3rows: Array<{ label: string; val: string; vt: ReturnType<typeof varText>; up: boolean; col: RGB }[]> = [
+  const kW2 = CW / 2
+  const kpis2x2: Array<{ label: string; val: string; vt: ReturnType<typeof varText>; up: boolean; col: RGB }>[] = [
     [
       { label: 'Nota media', val: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cm.avgRating, pm?.avgRating ?? null, 2), up: true, col: AMBER },
-      { label: 'Reseñas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
-      { label: 'Sin respuesta', val: String(pendingCount), vt: varText(pendingCount, null, 0), up: false, col: pendingCount > 0 ? RED : GREEN },
+      { label: 'Resenas del mes', val: String(cm.count), vt: varText(cm.count, pm?.count ?? null, 0), up: true, col: INDIGO },
     ],
     [
-      { label: 'Positivas (4-5)', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(0)}%  (${cm.positiveCount})` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
-      { label: 'Negativas (1-2)', val: cm.negativeRatio != null ? `${cm.negativeRatio.toFixed(0)}%  (${cm.negativeCount})` : '—', vt: varText(cm.negativeRatio, pm?.negativeRatio ?? null, 1), up: false, col: cm.negativeCount > 0 ? RED : MID },
-      { label: 'Respondidas', val: cm.responseRate != null ? `${cm.responseRate.toFixed(0)}%  (${cm.respondedCount})` : '—', vt: varText(cm.responseRate, pm?.responseRate ?? null, 1), up: true, col: INDIGO },
+      { label: 'Positivas (4-5 estrellas)', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(0)}%  (${cm.positiveCount})` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
+      { label: 'Sin respuesta', val: String(data.pendingCount), vt: varText(data.pendingCount, null, 0), up: false, col: data.pendingCount > 0 ? RED : GREEN },
     ],
   ]
-  kpis3rows.forEach(row => {
+
+  kpis2x2.forEach(row => {
     row.forEach((k, i) => {
-      const x = ML + i * kW3
-      f(S50); d(S200); doc.setLineWidth(0.2)
-      doc.roundedRect(x + 0.5, y, kW3 - 1.5, 23, 1.5, 1.5, 'FD')
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(MID)
-      doc.text(k.label, x + 3, y + 6)
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); c(k.col)
-      doc.text(k.val, x + 3, y + 14.5)
+      const x = ML + i * kW2
+      f(colors.CARD); dr(colors.BORDER); d.setLineWidth(0.2)
+      d.roundedRect(x + 0.5, y, kW2 - 1.5, 28, 2, 2, 'FD')
+
+      // Barra de fondo coloreada en la parte superior de la tarjeta
+      f(k.col); d.rect(x + 0.5, y, kW2 - 1.5, 3, 'F')
+
+      d.setFont('helvetica', 'normal'); d.setFontSize(6.5); c(colors.MID)
+      d.text(k.label, x + 3, y + 9)
+      d.setFont('helvetica', 'bold'); d.setFontSize(14); c(k.col)
+      d.text(k.val, x + 3, y + 19)
+
       if (k.vt.significant) {
         const good = k.up ? k.vt.positive : !k.vt.positive
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(good ? GREEN : RED)
-        doc.text(`${k.vt.text} vs ${pLabel ?? 'anterior'}`, x + 3, y + 20)
+        d.setFont('helvetica', 'normal'); d.setFontSize(6.5); c(good ? GREEN : RED)
+        d.text(`${k.vt.text} vs ${pLabel ?? 'anterior'}`, x + 3, y + 25)
       }
     })
-    y += 26
+    y += 31
   })
-  y += 4
 
-  // SECTION 1b: Benchmark de velocidad de respuesta
+  // Mini KPIs secundarios: negativas + respondidas
+  const miniKpis = [
+    { label: 'Negativas (1-2)', val: cm.negativeRatio != null ? `${cm.negativeRatio.toFixed(0)}%  (${cm.negativeCount})` : '—', vt: varText(cm.negativeRatio, pm?.negativeRatio ?? null, 1), up: false, col: cm.negativeCount > 0 ? RED : colors.MID },
+    { label: 'Respondidas', val: cm.responseRate != null ? `${cm.responseRate.toFixed(0)}%  (${cm.respondedCount})` : '—', vt: varText(cm.responseRate, pm?.responseRate ?? null, 1), up: true, col: INDIGO },
+    { label: 'Reseñas positivas ratio', val: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(1)}%` : '—', vt: varText(cm.positiveRatio, pm?.positiveRatio ?? null, 1), up: true, col: GREEN },
+  ]
+  const mkW = CW / 3
+  miniKpis.forEach((k, i) => {
+    const x = ML + i * mkW
+    f(colors.CARD); dr(colors.BORDER); d.setLineWidth(0.15)
+    d.roundedRect(x + 0.5, y, mkW - 1.5, 18, 1.5, 1.5, 'FD')
+    d.setFont('helvetica', 'normal'); d.setFontSize(6); c(colors.MID)
+    d.text(k.label, x + 3, y + 5.5)
+    d.setFont('helvetica', 'bold'); d.setFontSize(9); c(k.col)
+    d.text(k.val, x + 3, y + 13)
+  })
+  y += 22
+
+  // SECTION 1b: Velocidad de respuesta
   if (data.speedBenchmark) {
     const sb = data.speedBenchmark
-    if (y > 230) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'VELOCIDAD DE RESPUESTA', y, ML)
+    if (y > 230) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, 'VELOCIDAD DE RESPUESTA', y, ML, colors)
     y += 13
 
-    // Fila de 3 mini KPIs
     const sbW = CW / 3
     const sbKpis = [
-      { label: 'Media de respuesta', val: sb.avgDays < 1 ? `${Math.round(sb.avgDays * 24)}h` : `${sb.avgDays.toFixed(1)} días`, col: sb.avgDays < 2 ? GREEN : RED },
+      { label: 'Media de respuesta', val: sb.avgDays < 1 ? `${Math.round(sb.avgDays * 24)}h` : `${sb.avgDays.toFixed(1)} dias`, col: sb.avgDays < 2 ? GREEN : RED },
       { label: 'Respondidas en <48h', val: `${sb.pct48h.toFixed(0)}%`, col: sb.pct48h >= 80 ? GREEN : sb.pct48h >= 50 ? AMBER : RED },
       { label: 'Respondidas en <24h', val: `${sb.pct24h.toFixed(0)}%`, col: sb.pct24h >= 60 ? GREEN : sb.pct24h >= 30 ? AMBER : RED },
     ]
     sbKpis.forEach((k, i) => {
       const x = ML + i * sbW
-      f(S50); d(S200); doc.setLineWidth(0.2)
-      doc.roundedRect(x + 0.5, y, sbW - 1.5, 20, 1.5, 1.5, 'FD')
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(MID)
-      doc.text(k.label, x + 3, y + 5.5)
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); c(k.col)
-      doc.text(k.val, x + 3, y + 14)
+      f(colors.CARD); dr(colors.BORDER); d.setLineWidth(0.2)
+      d.roundedRect(x + 0.5, y, sbW - 1.5, 20, 1.5, 1.5, 'FD')
+      d.setFont('helvetica', 'normal'); d.setFontSize(6.5); c(colors.MID)
+      d.text(k.label, x + 3, y + 5.5)
+      d.setFont('helvetica', 'bold'); d.setFontSize(13); c(k.col)
+      d.text(k.val, x + 3, y + 14)
     })
     y += 23
 
-    // Barra de distribución: <24h | 24–48h | >48h
+    // Barra distribución velocidad
     const barTotalW = CW
     const b24 = (sb.pct24h / 100) * barTotalW
     const b48 = ((sb.pct48h - sb.pct24h) / 100) * barTotalW
     const bOver = ((100 - sb.pct48h) / 100) * barTotalW
     const bh = 6
-    f(GREEN);  doc.rect(ML, y, b24, bh, 'F')
-    f(AMBER);  doc.rect(ML + b24, y, b48, bh, 'F')
-    if (bOver > 0) { f(RED); doc.rect(ML + b24 + b48, y, bOver, bh, 'F') }
+    f(GREEN); d.rect(ML, y, b24, bh, 'F')
+    f(AMBER); d.rect(ML + b24, y, b48, bh, 'F')
+    if (bOver > 0) { f(RED); d.rect(ML + b24 + b48, y, bOver, bh, 'F') }
     y += bh + 4
 
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
+    d.setFont('helvetica', 'normal'); d.setFontSize(6.5)
     const legend = [
       { col: GREEN, txt: `< 24h (${sb.pct24h.toFixed(0)}%)` },
-      { col: AMBER, txt: `24–48h (${(sb.pct48h - sb.pct24h).toFixed(0)}%)` },
+      { col: AMBER, txt: `24-48h (${(sb.pct48h - sb.pct24h).toFixed(0)}%)` },
       { col: RED,   txt: `> 48h (${sb.pctOver48h.toFixed(0)}%)` },
     ]
     let lx = ML
     legend.forEach(l => {
-      f(l.col); doc.rect(lx, y, 3.5, 3.5, 'F')
-      c(MID); doc.text(l.txt, lx + 5, y + 3.2)
+      f(l.col); d.rect(lx, y, 3.5, 3.5, 'F')
+      c(colors.MID); d.text(l.txt, lx + 5, y + 3.2)
       lx += 38
     })
-    c(LIGHT); doc.setFontSize(6)
-    doc.text(`Benchmark Google: responder en < 48h. Basado en ${sb.totalResponded} reseñas respondidas.`, ML, y + 9)
+    c(colors.LIGHT); d.setFontSize(6)
+    d.text(`Benchmark Google: responder en < 48h. Basado en ${sb.totalResponded} resenas respondidas.`, ML, y + 9)
     y += 14
   }
 
-  // SECTION 1c: Distribución de estrellas
+  // SECTION 1c: Distribución de estrellas — barras de progreso
   const sc = data.starCountsCurrent
   const sp = data.starCountsPrevious
   const totalStars = sc.slice(1).reduce((a, b) => a + b, 0)
   if (totalStars > 0) {
-    if (y > 230) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'DISTRIBUCIÓN DE ESTRELLAS', y, ML)
+    if (y > 225) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, 'DISTRIBUCION DE ESTRELLAS', y, ML, colors)
     y += 13
 
-    const BAR_MAX = 80  // mm máx para la barra
-    const COL_LABEL = 20, COL_BAR = BAR_MAX, COL_NUM = 14, COL_PCT = 16, COL_PREV = 22
-    // cabecera
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); c(MID)
-    doc.text('Estrellas', ML, y + 4); doc.text('Reseñas', ML + COL_LABEL + COL_BAR + 2, y + 4)
-    doc.text('%', ML + COL_LABEL + COL_BAR + COL_NUM + 2, y + 4)
-    if (sp) doc.text(safe(pLabel ?? 'Anterior'), ML + COL_LABEL + COL_BAR + COL_NUM + COL_PCT + 2, y + 4)
+    const BAR_MAX = 100
+    // Cabecera
+    d.setFont('helvetica', 'bold'); d.setFontSize(7); c(colors.MID)
+    d.text('Estrellas', ML, y + 4)
+    d.text('Resenas', ML + 22 + BAR_MAX + 2, y + 4)
+    d.text('%', ML + 22 + BAR_MAX + 18, y + 4)
+    if (sp) d.text(safe(pLabel ?? 'Anterior'), ML + 22 + BAR_MAX + 34, y + 4)
     y += 7
 
     for (let star = 5; star >= 1; star--) {
@@ -404,59 +539,64 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
       const prevCount = sp ? (sp[star] ?? 0) : null
       const starColor: RGB = star >= 4 ? GREEN : star === 3 ? AMBER : RED
 
-      // Etiqueta
-      c(starColor); doc.setFont('helvetica', 'bold'); doc.setFontSize(7)
-      doc.text(`${star}*`, ML, y + 4.5)
-      // Barra
-      f([226, 232, 240]); doc.rect(ML + COL_LABEL, y + 1, BAR_MAX, 5.5, 'F')
-      if (barW > 0) { f(starColor); doc.rect(ML + COL_LABEL, y + 1, barW, 5.5, 'F') }
+      // Etiqueta estrella
+      c(starColor); d.setFont('helvetica', 'bold'); d.setFontSize(7.5)
+      d.text(`${star}*`, ML, y + 4.5)
+
+      // Barra de progreso
+      progressBar(d, ML + 22, y + 1, BAR_MAX, 5.5, barW, BAR_MAX, starColor, colors.BORDER)
+
       // Número
-      c(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
-      doc.text(String(count), ML + COL_LABEL + COL_BAR + 2, y + 4.5)
+      c(colors.TEXT); d.setFont('helvetica', 'normal'); d.setFontSize(7)
+      d.text(String(count), ML + 22 + BAR_MAX + 2, y + 4.5)
+
       // Porcentaje
-      c(MID); doc.text(`${pct.toFixed(0)}%`, ML + COL_LABEL + COL_BAR + COL_NUM + 2, y + 4.5)
+      c(colors.MID); d.text(`${pct.toFixed(0)}%`, ML + 22 + BAR_MAX + 18, y + 4.5)
+
       // Mes anterior
       if (sp && prevCount !== null) {
-        const prevPct = (sp.slice(1).reduce((a, b) => a + b, 0)) > 0
-          ? (prevCount / sp.slice(1).reduce((a, b) => a + b, 0)) * 100 : 0
+        const prevTotal = sp.slice(1).reduce((a, b) => a + b, 0)
         const diff = count - prevCount
-        c(diff > 0 ? GREEN : diff < 0 ? RED : LIGHT)
-        doc.text(`${prevCount} (${diff >= 0 ? '+' : ''}${diff})`, ML + COL_LABEL + COL_BAR + COL_NUM + COL_PCT + 2, y + 4.5)
+        const prevPct = prevTotal > 0 ? (prevCount / prevTotal) * 100 : 0
         void prevPct
+        c(diff > 0 ? GREEN : diff < 0 ? RED : colors.LIGHT)
+        d.text(`${prevCount} (${diff >= 0 ? '+' : ''}${diff})`, ML + 22 + BAR_MAX + 34, y + 4.5)
       }
       y += 8
     }
     y += 4
   }
 
-  // SECTION 2: Comparativa directa mes actual vs anterior
+  // SECTION 2: Comparativa directa
   if (pm && pLabel) {
-    sectionLabel(doc, `COMPARATIVA: ${mLabel.toUpperCase()} VS ${pLabel.toUpperCase()}`, y, ML)
+    if (y > 210) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, `COMPARATIVA: ${mLabel.toUpperCase()} VS ${pLabel.toUpperCase()}`, y, ML, colors)
     y += 13
 
-    const cW1 = 56, cW2 = 36, cW3 = 36, cW4 = 46  // 174mm
-    y = tableHeader(doc, ['Indicador', mLabel, pLabel, 'Variación'], [cW1, cW2, cW3, cW4], y, ML)
+    const cW1 = 56, cW2 = 36, cW3 = 36, cW4 = 46
+    y = themedTableHeader(d, ['Indicador', mLabel, pLabel, 'Variacion'], [cW1, cW2, cW3, cW4], y, ML, colors)
 
     const rows = [
       { m: 'Nota media', cv: cm.avgRating != null ? `${cm.avgRating.toFixed(2)} / 5` : '—', pv: pm.avgRating != null ? `${pm.avgRating.toFixed(2)} / 5` : '—', vt: varText(cm.avgRating, pm.avgRating, 2), up: true },
-      { m: 'Reseñas recibidas', cv: String(cm.count), pv: String(pm.count), vt: varText(cm.count, pm.count, 0), up: true },
+      { m: 'Resenas recibidas', cv: String(cm.count), pv: String(pm.count), vt: varText(cm.count, pm.count, 0), up: true },
       { m: 'Positivas (4-5)', cv: cm.positiveRatio != null ? `${cm.positiveRatio.toFixed(1)}%` : '—', pv: pm.positiveRatio != null ? `${pm.positiveRatio.toFixed(1)}%` : '—', vt: varText(cm.positiveRatio, pm.positiveRatio, 1), up: true },
       { m: 'Negativas (1-2)', cv: cm.negativeRatio != null ? `${cm.negativeRatio.toFixed(1)}%` : '—', pv: pm.negativeRatio != null ? `${pm.negativeRatio.toFixed(1)}%` : '—', vt: varText(cm.negativeRatio, pm.negativeRatio, 1), up: false },
-      { m: 'Índice de respuesta', cv: cm.responseRate != null ? `${cm.responseRate.toFixed(1)}%` : '—', pv: pm.responseRate != null ? `${pm.responseRate.toFixed(1)}%` : '—', vt: varText(cm.responseRate, pm.responseRate, 1), up: true },
+      { m: 'Indice de respuesta', cv: cm.responseRate != null ? `${cm.responseRate.toFixed(1)}%` : '—', pv: pm.responseRate != null ? `${pm.responseRate.toFixed(1)}%` : '—', vt: varText(cm.responseRate, pm.responseRate, 1), up: true },
     ]
     rows.forEach((row, idx) => {
-      d(S200); doc.setLineWidth(0.1)
-      f(idx % 2 === 0 ? WHITE : S50); doc.rect(ML, y, CW, 6.5, 'FD')
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
-      c(DARK); doc.text(row.m, ML + 3, y + 4.5)
-      c(DARK); doc.text(row.cv, ML + cW1 + 3, y + 4.5)
-      c(MID); doc.text(row.pv, ML + cW1 + cW2 + 3, y + 4.5)
+      dr(colors.BORDER); d.setLineWidth(0.1)
+      f(idx % 2 === 0 ? colors.ROW_EVEN : colors.ROW_ODD)
+      d.rect(ML, y, CW, 6.5, 'FD')
+      d.setFont('helvetica', 'normal'); d.setFontSize(7)
+      c(colors.TEXT); d.text(row.m, ML + 3, y + 4.5)
+      c(colors.TEXT); d.text(row.cv, ML + cW1 + 3, y + 4.5)
+      c(colors.MID); d.text(row.pv, ML + cW1 + cW2 + 3, y + 4.5)
       if (row.vt.significant) {
         const good = row.up ? row.vt.positive : !row.vt.positive
-        c(good ? GREEN : RED); doc.setFont('helvetica', 'bold')
-        doc.text(row.vt.text, ML + cW1 + cW2 + cW3 + 3, y + 4.5)
-        doc.setFont('helvetica', 'normal')
-      } else { c(LIGHT); doc.text('Sin variación', ML + cW1 + cW2 + cW3 + 3, y + 4.5) }
+        c(good ? GREEN : RED); d.setFont('helvetica', 'bold')
+        d.text(row.vt.text, ML + cW1 + cW2 + cW3 + 3, y + 4.5)
+        d.setFont('helvetica', 'normal')
+      } else { c(colors.LIGHT); d.text('Sin variacion', ML + cW1 + cW2 + cW3 + 3, y + 4.5) }
       y += 6.5
     })
     y += 8
@@ -464,284 +604,486 @@ export async function generateMonthlyPDF(data: MonthlyPdfData): Promise<void> {
 
   // SECTION 3: Evolución en el año
   if (data.yearMonths.length > 0) {
-    if (y > 210) { doc.addPage(); y = 20 }
-    sectionLabel(doc, `EVOLUCIÓN MES A MES EN ${cm.year}`, y, ML)
+    if (y > 210) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, `EVOLUCION MES A MES EN ${cm.year}`, y, ML, colors)
     y += 13
 
-    const tw = [34, 18, 24, 20, 24, 24, 30]  // 174mm
-    y = tableHeader(doc, ['Mes', 'Reseñas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML)
+    const tw = [34, 18, 24, 20, 24, 24, 30]
+    y = themedTableHeader(d, ['Mes', 'Resenas', 'Nota', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], tw, y, ML, colors)
 
     data.yearMonths.forEach((m, idx) => {
-      if (y > 272) { doc.addPage(); y = 20 }
+      if (y > 272) { addPageThemed(d, W, theme); y = 20 }
       const prev = idx > 0 ? data.yearMonths[idx - 1] : null
       const isCur = m.month === cm.month
-      d(S200); doc.setLineWidth(0.1)
-      f(isCur ? [238, 242, 255] as RGB : idx % 2 === 0 ? WHITE : S50)
-      doc.rect(ML, y, CW, 6.5, 'FD')
-      doc.setFont('helvetica', isCur ? 'bold' : 'normal'); doc.setFontSize(7)
+      dr(colors.BORDER); d.setLineWidth(0.1)
+      f(isCur ? (theme === 'dark' ? [20, 30, 70] as RGB : [238, 242, 255] as RGB) : idx % 2 === 0 ? colors.ROW_EVEN : colors.ROW_ODD)
+      d.rect(ML, y, CW, 6.5, 'FD')
+      d.setFont('helvetica', isCur ? 'bold' : 'normal'); d.setFontSize(7)
       let cx = ML + 2
-      c(isCur ? INDIGO : DARK)
-      const ml = safe(m.label); doc.text(ml.charAt(0).toUpperCase() + ml.slice(1), cx, y + 4.5); cx += tw[0]
-      c(m.count === 0 ? LIGHT : DARK); doc.setFont('helvetica', 'normal')
-      doc.text(m.count === 0 ? '—' : String(m.count), cx, y + 4.5); cx += tw[1]
-      c(m.avgRating == null ? LIGHT : AMBER)
-      doc.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(2)}`, cx, y + 4.5); cx += tw[2]
+      c(isCur ? INDIGO : colors.TEXT)
+      const ml = safe(m.label); d.text(ml.charAt(0).toUpperCase() + ml.slice(1), cx, y + 4.5); cx += tw[0]
+      c(m.count === 0 ? colors.LIGHT : colors.TEXT); d.setFont('helvetica', 'normal')
+      d.text(m.count === 0 ? '—' : String(m.count), cx, y + 4.5); cx += tw[1]
+      c(m.avgRating == null ? colors.LIGHT : AMBER)
+      d.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(2)}`, cx, y + 4.5); cx += tw[2]
       const nd = varText(m.avgRating, prev?.avgRating ?? null, 2)
-      if (nd.significant) { c(nd.positive ? GREEN : RED); doc.setFont('helvetica', 'bold'); doc.text(nd.text, cx, y + 4.5); doc.setFont('helvetica', 'normal') } else { c(LIGHT); doc.text('—', cx, y + 4.5) }
+      if (nd.significant) { c(nd.positive ? GREEN : RED); d.setFont('helvetica', 'bold'); d.text(nd.text, cx, y + 4.5); d.setFont('helvetica', 'normal') } else { c(colors.LIGHT); d.text('—', cx, y + 4.5) }
       cx += tw[3]
-      c(m.positiveRatio == null ? LIGHT : GREEN)
-      doc.text(m.positiveRatio == null ? '—' : `${m.positiveRatio.toFixed(0)}%`, cx, y + 4.5); cx += tw[4]
-      c(m.negativeRatio == null ? LIGHT : m.negativeRatio > 30 ? RED : MID)
-      doc.text(m.negativeRatio == null ? '—' : `${m.negativeRatio.toFixed(0)}%`, cx, y + 4.5); cx += tw[5]
-      c(m.responseRate == null ? LIGHT : INDIGO)
-      doc.text(m.responseRate == null ? '—' : `${m.responseRate.toFixed(0)}%`, cx, y + 4.5)
-      y += 6.5
-    })
-    y += 8
-  }
-
-  // SECTION 4: Keywords + palabras clave negocio
-  const hasPalabrasClave = data.negocioPalabrasClave && data.negocioPalabrasClave.length > 0
-  if (data.keywords.length > 0 || hasPalabrasClave) {
-    if (y > 235) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'PALABRAS CLAVE Y MENCIONADAS', y, ML)
-    y += 13
-
-    if (hasPalabrasClave) {
-      c(INDIGO); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5)
-      doc.text('Palabras clave SEO del negocio:', ML, y + 3.5)
-      c(DARK); doc.setFont('helvetica', 'normal')
-      const kwLine = data.negocioPalabrasClave!.map(k => safe(k)).join('   /   ')
-      const kwLines = doc.splitTextToSize(kwLine, CW - 48) as string[]
-      doc.text(kwLines, ML + 48, y + 3.5); y += kwLines.length * 4.5 + 4
-    }
-
-    const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
-    const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
-    const neuKw = data.keywords.filter(k => k.sentiment === 'neutral').map(k => safe(k.word))
-    if (posKw.length > 0) {
-      c(GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionadas positivas:', ML, y + 3.5)
-      c(MID); doc.setFont('helvetica', 'normal')
-      const ln = doc.splitTextToSize(posKw.join('  -  '), CW - 42) as string[]
-      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
-    }
-    if (negKw.length > 0) {
-      c(RED); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionadas negativas:', ML, y + 3.5)
-      c(MID); doc.setFont('helvetica', 'normal')
-      const ln = doc.splitTextToSize(negKw.join('  -  '), CW - 42) as string[]
-      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
-    }
-    if (neuKw.length > 0) {
-      c(AMBER); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Mencionadas neutras:', ML, y + 3.5)
-      c(MID); doc.setFont('helvetica', 'normal')
-      const ln = doc.splitTextToSize(neuKw.join('  -  '), CW - 42) as string[]
-      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
-    }
-    y += 4
-  }
-
-  // SECTION 5: IA
-  if (data.summary) {
-    if (y > 205) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'DIAGNÓSTICO IA', y, ML)
-    y += 13
-    const ins = [
-      { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: [240, 253, 244] as RGB },
-      { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: [254, 242, 242] as RGB },
-      { l: 'Acción recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: [238, 242, 255] as RGB },
-    ]
-    ins.forEach(i => {
-      if (y > 255) { doc.addPage(); y = 20 }
-      const lines = doc.splitTextToSize(i.t, CW - 10) as string[]
-      const bh = 11 + lines.length * 4.5
-      f(i.ac); doc.rect(ML, y, 2.5, bh, 'F')
-      f(i.bg); d(S200); doc.setLineWidth(0.1); doc.rect(ML + 2.5, y, CW - 2.5, bh, 'FD')
-      c(i.ac); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text(i.l, ML + 6, y + 6.5)
-      c(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.text(lines, ML + 6, y + 11.5)
-      y += bh + 4
-    })
-    c(LIGHT); doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5)
-    doc.text('Análisis generado automáticamente por Claude (Anthropic). Carácter orientativo.', ML, y)
-    y += 5
-  }
-
-  pdfFooter(doc, W, ML, MR)
-  doc.save(`velacre-mensual-${slug}-${mLabel.replace(/\s/g, '-').toLowerCase()}.pdf`)
-}
-
-// ── PDF ANUAL ─────────────────────────────────────────────────────────────────
-
-export async function generateYearlyPDF(data: YearlyPdfData): Promise<void> {
-  const { jsPDF } = await import('jspdf')
-  const doc = new jsPDF('p', 'mm', 'a4')
-
-  const W = 210, ML = 18, MR = W - 18, CW = MR - ML
-  let y = 0
-
-  const DARK: RGB = [15, 23, 42], MID: RGB = [71, 85, 105], LIGHT: RGB = [148, 163, 184]
-  const INDIGO: RGB = [79, 70, 229], GREEN: RGB = [16, 185, 129], RED: RGB = [239, 68, 68]
-  const AMBER: RGB = [245, 158, 11], WHITE: RGB = [255, 255, 255]
-  const S50: RGB = [248, 250, 252], S200: RGB = [226, 232, 240]
-
-  const c = (r: RGB) => doc.setTextColor(r[0], r[1], r[2])
-  const f = (r: RGB) => doc.setFillColor(r[0], r[1], r[2])
-  const d = (r: RGB) => doc.setDrawColor(r[0], r[1], r[2])
-
-  const slug = safe(data.negocioNombre).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  const cy = data.allYears.find(yr => yr.year === data.currentYear) ?? null
-  const py = data.allYears.find(yr => yr.year === data.currentYear - 1) ?? null
-
-  // CABECERA
-  pdfHeader(doc, W, ML, MR, data.negocioNombre, `Revisión anual - ${data.currentYear}`)
-  y = 38
-
-  // TITULO
-  c(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(14)
-  doc.text(`Balance del ejercicio ${data.currentYear}`, ML, y)
-  c(MID); doc.setFont('helvetica', 'normal'); doc.setFontSize(8)
-  doc.text(py ? `Comparativa con ejercicio ${data.currentYear - 1} incluida` : 'Primer ejercicio con datos registrados', ML, y + 6)
-  y += 16
-
-  // SECTION 1: KPIs del ejercicio actual
-  if (cy) {
-    sectionLabel(doc, `INDICADORES DEL EJERCICIO ${data.currentYear}`, y, ML)
-    y += 13
-
-    const kW = CW / 4
-    const kpis = [
-      { label: `Nota media ${data.currentYear}`, val: cy.avgRating != null ? `${cy.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cy.avgRating, py?.avgRating ?? null, 2), up: true, col: AMBER },
-      { label: `Reseñas ${data.currentYear}`, val: String(cy.count), vt: varText(cy.count, py?.count ?? null, 0), up: true, col: INDIGO },
-      { label: 'Positivas (4-5)', val: cy.positiveRatio != null ? `${cy.positiveRatio.toFixed(0)}%` : '—', vt: varText(cy.positiveRatio, py?.positiveRatio ?? null, 1), up: true, col: GREEN },
-      { label: 'Respondidas', val: cy.responseRate != null ? `${cy.responseRate.toFixed(0)}%` : '—', vt: varText(cy.responseRate, py?.responseRate ?? null, 1), up: true, col: INDIGO },
-    ]
-    kpis.forEach((k, i) => {
-      const x = ML + i * kW
-      f(S50); d(S200); doc.setLineWidth(0.2)
-      doc.roundedRect(x + 0.5, y, kW - 1.5, 23, 1.5, 1.5, 'FD')
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(MID); doc.text(k.label, x + 3, y + 6)
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); c(k.col); doc.text(k.val, x + 3, y + 14.5)
-      if (k.vt.significant) {
-        const good = k.up ? k.vt.positive : !k.vt.positive
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); c(good ? GREEN : RED)
-        doc.text(`${k.vt.text} vs ${data.currentYear - 1}`, x + 3, y + 20)
-      }
-    })
-    y += 28
-  }
-
-  // SECTION 2: Evolución interanual
-  sectionLabel(doc, 'EVOLUCIÓN INTERANUAL (POR EJERCICIO)', y, ML)
-  y += 13
-
-  // cols: Ejercicio | Resenas | Nota | Var.nota | Positivas | Negativas | Respondidas = 174mm
-  const yw = [22, 22, 28, 24, 26, 26, 26]
-  y = tableHeader(doc, ['Ejercicio', 'Reseñas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML)
-
-  data.allYears.forEach((yr, idx) => {
-    const prevYr = data.allYears[idx + 1] ?? null  // más antiguo (lista desc)
-    const isCur = yr.year === data.currentYear
-    d(S200); doc.setLineWidth(0.1)
-    f(isCur ? [238, 242, 255] as RGB : idx % 2 === 0 ? WHITE : S50)
-    doc.rect(ML, y, CW, 6.5, 'FD')
-    doc.setFont('helvetica', isCur ? 'bold' : 'normal'); doc.setFontSize(7)
-    let cx = ML + 2
-    c(isCur ? INDIGO : DARK); doc.text(String(yr.year), cx, y + 4.5); cx += yw[0]
-    c(DARK); doc.setFont('helvetica', 'normal'); doc.text(String(yr.count), cx, y + 4.5); cx += yw[1]
-    c(yr.avgRating == null ? LIGHT : AMBER)
-    doc.text(yr.avgRating == null ? '—' : `${yr.avgRating.toFixed(2)} / 5`, cx, y + 4.5); cx += yw[2]
-    const nd = varText(yr.avgRating, prevYr?.avgRating ?? null, 2)
-    if (nd.significant) { c(nd.positive ? GREEN : RED); doc.setFont('helvetica', 'bold'); doc.text(nd.text, cx, y + 4.5); doc.setFont('helvetica', 'normal') } else { c(LIGHT); doc.text('—', cx, y + 4.5) }
-    cx += yw[3]
-    c(yr.positiveRatio == null ? LIGHT : GREEN)
-    doc.text(yr.positiveRatio == null ? '—' : `${yr.positiveRatio.toFixed(0)}%`, cx, y + 4.5); cx += yw[4]
-    c(yr.negativeRatio == null ? LIGHT : yr.negativeRatio > 30 ? RED : MID)
-    doc.text(yr.negativeRatio == null ? '—' : `${yr.negativeRatio.toFixed(0)}%`, cx, y + 4.5); cx += yw[5]
-    c(yr.responseRate == null ? LIGHT : INDIGO)
-    doc.text(yr.responseRate == null ? '—' : `${yr.responseRate.toFixed(0)}%`, cx, y + 4.5)
-    y += 6.5
-  })
-  y += 8
-
-  // SECTION 3: Desglose mensual del año actual
-  if (data.currentYearMonths.length > 0) {
-    if (y > 200) { doc.addPage(); y = 20 }
-    sectionLabel(doc, `DESGLOSE MENSUAL ${data.currentYear}`, y, ML)
-    y += 13
-
-    const mw = [34, 18, 28, 20, 26, 26, 22]  // 174mm
-    y = tableHeader(doc, ['Mes', 'Reseñas', 'Nota media', 'Var.', 'Positivas', 'Negativas', 'Respondidas'], mw, y, ML)
-
-    data.currentYearMonths.forEach((m, idx) => {
-      if (y > 272) { doc.addPage(); y = 20 }
-      const prev = idx > 0 ? data.currentYearMonths[idx - 1] : null
-      d(S200); doc.setLineWidth(0.1)
-      f(idx % 2 === 0 ? WHITE : S50); doc.rect(ML, y, CW, 6.5, 'FD')
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
-      let cx = ML + 2
-      const ml = safe(m.label); c(DARK); doc.text(ml.charAt(0).toUpperCase() + ml.slice(1), cx, y + 4.5); cx += mw[0]
-      c(m.count === 0 ? LIGHT : DARK); doc.text(m.count === 0 ? '—' : String(m.count), cx, y + 4.5); cx += mw[1]
-      c(m.avgRating == null ? LIGHT : AMBER)
-      doc.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(2)} / 5`, cx, y + 4.5); cx += mw[2]
-      const nd = varText(m.avgRating, prev?.avgRating ?? null, 2)
-      if (nd.significant) { c(nd.positive ? GREEN : RED); doc.setFont('helvetica', 'bold'); doc.text(nd.text, cx, y + 4.5); doc.setFont('helvetica', 'normal') } else { c(LIGHT); doc.text('—', cx, y + 4.5) }
-      cx += mw[3]
-      c(m.positiveRatio == null ? LIGHT : GREEN)
-      doc.text(m.positiveRatio == null ? '—' : `${m.positiveRatio.toFixed(0)}%`, cx, y + 4.5); cx += mw[4]
-      c(m.negativeRatio == null ? LIGHT : m.negativeRatio > 30 ? RED : MID)
-      doc.text(m.negativeRatio == null ? '—' : `${m.negativeRatio.toFixed(0)}%`, cx, y + 4.5); cx += mw[5]
-      c(m.responseRate == null ? LIGHT : INDIGO)
-      doc.text(m.responseRate == null ? '—' : `${m.responseRate.toFixed(0)}%`, cx, y + 4.5)
+      c(m.positiveRatio == null ? colors.LIGHT : GREEN)
+      d.text(m.positiveRatio == null ? '—' : `${m.positiveRatio.toFixed(0)}%`, cx, y + 4.5); cx += tw[4]
+      c(m.negativeRatio == null ? colors.LIGHT : m.negativeRatio > 30 ? RED : colors.MID)
+      d.text(m.negativeRatio == null ? '—' : `${m.negativeRatio.toFixed(0)}%`, cx, y + 4.5); cx += tw[5]
+      c(m.responseRate == null ? colors.LIGHT : INDIGO)
+      d.text(m.responseRate == null ? '—' : `${m.responseRate.toFixed(0)}%`, cx, y + 4.5)
       y += 6.5
     })
     y += 8
   }
 
   // SECTION 4: Keywords
+  const hasPalabrasClave = data.negocioPalabrasClave && data.negocioPalabrasClave.length > 0
+  if (data.keywords.length > 0 || hasPalabrasClave) {
+    if (y > 235) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, 'PALABRAS CLAVE Y MENCIONADAS', y, ML, colors)
+    y += 13
+
+    if (hasPalabrasClave) {
+      c(INDIGO); d.setFont('helvetica', 'bold'); d.setFontSize(7.5)
+      d.text('Palabras clave SEO del negocio:', ML, y + 3.5)
+      c(colors.TEXT); d.setFont('helvetica', 'normal')
+      const kwLine = data.negocioPalabrasClave!.map(k => safe(k)).join('   /   ')
+      const kwLines = d.splitTextToSize(kwLine, CW - 48) as string[]
+      d.text(kwLines, ML + 48, y + 3.5); y += kwLines.length * 4.5 + 4
+    }
+
+    const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
+    const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
+    const neuKw = data.keywords.filter(k => k.sentiment === 'neutral').map(k => safe(k.word))
+    if (posKw.length > 0) {
+      c(GREEN); d.setFont('helvetica', 'bold'); d.setFontSize(7.5); d.text('Mencionadas positivas:', ML, y + 3.5)
+      c(colors.MID); d.setFont('helvetica', 'normal')
+      const ln = d.splitTextToSize(posKw.join('  -  '), CW - 42) as string[]
+      d.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+    }
+    if (negKw.length > 0) {
+      c(RED); d.setFont('helvetica', 'bold'); d.setFontSize(7.5); d.text('Mencionadas negativas:', ML, y + 3.5)
+      c(colors.MID); d.setFont('helvetica', 'normal')
+      const ln = d.splitTextToSize(negKw.join('  -  '), CW - 42) as string[]
+      d.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+    }
+    if (neuKw.length > 0) {
+      c(AMBER); d.setFont('helvetica', 'bold'); d.setFontSize(7.5); d.text('Mencionadas neutras:', ML, y + 3.5)
+      c(colors.MID); d.setFont('helvetica', 'normal')
+      const ln = d.splitTextToSize(neuKw.join('  -  '), CW - 42) as string[]
+      d.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+    }
+    y += 4
+  }
+
+  // SECTION 5: Diagnóstico IA — bloques destacados
+  if (data.summary) {
+    if (y > 205) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, 'DIAGNOSTICO IA', y, ML, colors)
+    y += 13
+
+    const ins = [
+      { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: colors.AI_SHINE, icon: '+' },
+      { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: colors.AI_WORRY, icon: '!' },
+      { l: 'Accion recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
+    ]
+
+    ins.forEach(i => {
+      if (y > 255) { addPageThemed(d, W, theme); y = 20 }
+      const lines = d.splitTextToSize(i.t, CW - 14) as string[]
+      const bh = 14 + lines.length * 4.5
+
+      // Bloque fondo coloreado
+      f(i.bg); d.rect(ML, y, CW, bh, 'F')
+
+      // Barra lateral de acento
+      f(i.ac); d.rect(ML, y, 3, bh, 'F')
+
+      // Icono circular
+      f(i.ac); d.circle(ML + 10, y + 7, 3.5, 'F')
+      d.setTextColor(255, 255, 255); d.setFont('helvetica', 'bold'); d.setFontSize(8)
+      d.text(i.icon, ML + 10, y + 8.5, { align: 'center' })
+
+      // Label
+      c(i.ac); d.setFont('helvetica', 'bold'); d.setFontSize(8)
+      d.text(i.l, ML + 17, y + 7)
+
+      // Línea separadora
+      d.setDrawColor(...i.ac); d.setLineWidth(0.3)
+      d.line(ML + 17, y + 9, ML + CW - 4, y + 9)
+
+      // Texto
+      c(colors.TEXT); d.setFont('helvetica', 'normal'); d.setFontSize(7.5)
+      d.text(lines, ML + 17, y + 13.5)
+
+      y += bh + 5
+    })
+
+    c(colors.LIGHT); d.setFont('helvetica', 'italic'); d.setFontSize(6.5)
+    d.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
+    y += 5
+  }
+
+  // SECTION 6: Benchmark Pro (Radar) — nueva página
+  const radar = data.radarAnalisis?.resultado ?? null
+  const radarCats = radar?.categorias ?? []
+  if (radar && radarCats.length > 0) {
+    addPageThemed(d, W, theme)
+    y = 20
+
+    pdfHeader(d, W, ML, MR, data.negocioNombre, `Benchmark Pro - ${mLabel}`)
+    y = 45
+
+    c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(13)
+    d.text('Benchmark Pro: Analisis de Competencia', ML, y)
+    c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(8)
+    d.text('Posicion de tu negocio frente a competidores en las categorias clave (escala 0-10)', ML, y + 7)
+    y += 18
+
+    // Nombres de competidores
+    const maxComps = 3
+    const compNames: string[] = []
+    if (radarCats[0]?.rivales) {
+      radarCats[0].rivales.slice(0, maxComps).forEach((r, i) => {
+        compNames.push(safe(r.nombre || `Competidor ${i + 1}`))
+      })
+    }
+    while (compNames.length < maxComps) compNames.push(`Comp. ${compNames.length + 1}`)
+
+    // Cabecera de matriz
+    sectionLabel(d, 'MATRIZ DE PUNTUACIONES (0-10)', y, ML, colors)
+    y += 13
+
+    const colYo = 40, colComp = 35, totalCols = 1 + maxComps
+    const headers = ['Categoria', 'Tu negocio', ...compNames.slice(0, maxComps)]
+    const widths = [CW - colYo - colComp * maxComps, colYo, ...Array(maxComps).fill(colComp)]
+    y = themedTableHeader(d, headers, widths, y, ML, colors)
+
+    radarCats.forEach((cat, idx) => {
+      if (y > 272) { addPageThemed(d, W, theme); y = 20 }
+      dr(colors.BORDER); d.setLineWidth(0.1)
+      f(idx % 2 === 0 ? colors.ROW_EVEN : colors.ROW_ODD)
+      d.rect(ML, y, CW, 10, 'FD')
+
+      // Nombre categoría
+      c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(7.5)
+      d.text(safe(cat.nombre), ML + 2, y + 4)
+      c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(6)
+      const insight = d.splitTextToSize(safe(cat.insight ?? ''), widths[0] - 4) as string[]
+      if (insight.length > 0) d.text(insight[0], ML + 2, y + 8)
+
+      // Mi score con barra
+      const myScore = cat.yo ?? 0
+      const myCol: RGB = myScore >= 7 ? GREEN : myScore >= 5 ? AMBER : RED
+      c(myCol); d.setFont('helvetica', 'bold'); d.setFontSize(9)
+      d.text(myScore.toFixed(1), ML + widths[0] + 3, y + 4.5)
+      progressBar(d, ML + widths[0] + 3, y + 6, colYo - 6, 2.5, myScore, 10, myCol, colors.BORDER)
+
+      // Scores competidores
+      cat.rivales?.slice(0, maxComps).forEach((r, ci) => {
+        const rx = ML + widths[0] + colYo + ci * colComp
+        const rScore = r.score ?? 0
+        const rCol: RGB = rScore >= 7 ? GREEN : rScore >= 5 ? AMBER : RED
+        c(rCol); d.setFont('helvetica', 'bold'); d.setFontSize(9)
+        d.text(rScore.toFixed(1), rx + 3, y + 4.5)
+        progressBar(d, rx + 3, y + 6, colComp - 6, 2.5, rScore, 10, rCol, colors.BORDER)
+      })
+      // Rellenar competidores sin datos
+      for (let ci = (cat.rivales?.length ?? 0); ci < maxComps; ci++) {
+        const rx = ML + widths[0] + colYo + ci * colComp
+        c(colors.LIGHT); d.setFont('helvetica', 'normal'); d.setFontSize(7)
+        d.text('—', rx + 3, y + 4.5)
+      }
+
+      y += 10
+    })
+    y += 6
+
+    // Fortaleza / Debilidad / Acción Pro
+    if (radar.tuFortaleza || radar.tuDebilidad || radar.accionPro) {
+      if (y > 210) { addPageThemed(d, W, theme); y = 20 }
+      sectionLabel(d, 'DIAGNOSTICO COMPETITIVO IA', y, ML, colors)
+      y += 13
+
+      const compIns = [
+        { l: 'Tu fortaleza', t: safe(radar.tuFortaleza ?? ''), ac: GREEN, bg: colors.AI_SHINE, icon: '+' },
+        { l: 'Tu debilidad', t: safe(radar.tuDebilidad ?? ''), ac: RED, bg: colors.AI_WORRY, icon: '!' },
+        { l: 'Accion prioritaria', t: safe(radar.accionPro ?? radar.accion ?? ''), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
+      ].filter(i => i.t.length > 0)
+
+      compIns.forEach(i => {
+        if (y > 255) { addPageThemed(d, W, theme); y = 20 }
+        const lines = d.splitTextToSize(i.t, CW - 14) as string[]
+        const bh = 14 + lines.length * 4.5
+
+        f(i.bg); d.rect(ML, y, CW, bh, 'F')
+        f(i.ac); d.rect(ML, y, 3, bh, 'F')
+        f(i.ac); d.circle(ML + 10, y + 7, 3.5, 'F')
+        d.setTextColor(255, 255, 255); d.setFont('helvetica', 'bold'); d.setFontSize(8)
+        d.text(i.icon, ML + 10, y + 8.5, { align: 'center' })
+        c(i.ac); d.setFont('helvetica', 'bold'); d.setFontSize(8)
+        d.text(i.l, ML + 17, y + 7)
+        d.setDrawColor(...i.ac); d.setLineWidth(0.3)
+        d.line(ML + 17, y + 9, ML + CW - 4, y + 9)
+        c(colors.TEXT); d.setFont('helvetica', 'normal'); d.setFontSize(7.5)
+        d.text(lines, ML + 17, y + 13.5)
+        y += bh + 5
+      })
+    }
+
+    // Oportunidades
+    if (radar.oportunidades && radar.oportunidades.length > 0) {
+      if (y > 235) { addPageThemed(d, W, theme); y = 20 }
+      sectionLabel(d, 'OPORTUNIDADES DETECTADAS', y, ML, colors)
+      y += 13
+      radar.oportunidades.forEach((op, i) => {
+        if (y > 270) { addPageThemed(d, W, theme); y = 20 }
+        f(i % 2 === 0 ? colors.ROW_EVEN : colors.ROW_ODD); dr(colors.BORDER); d.setLineWidth(0.1)
+        const opLines = d.splitTextToSize(`${i + 1}. ${safe(op)}`, CW - 6) as string[]
+        const rh = 5 + opLines.length * 4.5
+        d.rect(ML, y, CW, rh, 'FD')
+        c(colors.TEXT); d.setFont('helvetica', 'normal'); d.setFontSize(7)
+        d.text(opLines, ML + 3, y + 4.5)
+        y += rh
+      })
+      y += 4
+    }
+
+    c(colors.LIGHT); d.setFont('helvetica', 'italic'); d.setFontSize(6.5)
+    d.text('Analisis radar generado por IA. Referencia orientativa para toma de decisiones.', ML, y)
+  }
+
+  pdfFooter(d, W, ML, MR, theme)
+  const suffix = theme === 'light' ? 'claro' : 'oscuro'
+  d.save(`velacre-mensual-${slug}-${mLabel.replace(/\s/g, '-').toLowerCase()}-${suffix}.pdf`)
+}
+
+// ── PDF ANUAL ─────────────────────────────────────────────────────────────────
+
+export async function generateYearlyPDF(data: YearlyPdfData, theme: PdfTheme = 'dark'): Promise<void> {
+  const { jsPDF } = await import('jspdf')
+  const doc = new jsPDF('p', 'mm', 'a4')
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const d = doc as any
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
+  const W = 210, ML = 18, MR = W - 18, CW = MR - ML
+  let y = 0
+
+  const colors = tc(theme)
+  const c = (r: RGB) => d.setTextColor(r[0], r[1], r[2])
+  const f = (r: RGB) => d.setFillColor(r[0], r[1], r[2])
+  const dr = (r: RGB) => d.setDrawColor(r[0], r[1], r[2])
+
+  fillPage(d, W, theme)
+
+  const slug = safe(data.negocioNombre).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  const cy = data.allYears.find(yr => yr.year === data.currentYear) ?? null
+  const py = data.allYears.find(yr => yr.year === data.currentYear - 1) ?? null
+
+  // CABECERA
+  pdfHeader(d, W, ML, MR, data.negocioNombre, `Revision anual - ${data.currentYear}`)
+  y = 38
+
+  // TITULO
+  c(colors.TEXT); d.setFont('helvetica', 'bold'); d.setFontSize(14)
+  d.text(`Balance del ejercicio ${data.currentYear}`, ML, y)
+  c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(8)
+  d.text(py ? `Comparativa con ejercicio ${data.currentYear - 1} incluida` : 'Primer ejercicio con datos registrados', ML, y + 6)
+  y += 16
+
+  // SECTION 1: KPIs 2x2 del ejercicio
+  if (cy) {
+    sectionLabel(d, `INDICADORES DEL EJERCICIO ${data.currentYear}`, y, ML, colors)
+    y += 13
+
+    const kW2 = CW / 2
+    const kpis2x2: Array<{ label: string; val: string; vt: ReturnType<typeof varText>; up: boolean; col: RGB }>[] = [
+      [
+        { label: `Nota media ${data.currentYear}`, val: cy.avgRating != null ? `${cy.avgRating.toFixed(2)} / 5` : 'Sin datos', vt: varText(cy.avgRating, py?.avgRating ?? null, 2), up: true, col: AMBER },
+        { label: `Resenas ${data.currentYear}`, val: String(cy.count), vt: varText(cy.count, py?.count ?? null, 0), up: true, col: INDIGO },
+      ],
+      [
+        { label: 'Positivas (4-5 estrellas)', val: cy.positiveRatio != null ? `${cy.positiveRatio.toFixed(0)}%` : '—', vt: varText(cy.positiveRatio, py?.positiveRatio ?? null, 1), up: true, col: GREEN },
+        { label: 'Indice de respuesta', val: cy.responseRate != null ? `${cy.responseRate.toFixed(0)}%` : '—', vt: varText(cy.responseRate, py?.responseRate ?? null, 1), up: true, col: INDIGO },
+      ],
+    ]
+
+    kpis2x2.forEach(row => {
+      row.forEach((k, i) => {
+        const x = ML + i * kW2
+        f(colors.CARD); dr(colors.BORDER); d.setLineWidth(0.2)
+        d.roundedRect(x + 0.5, y, kW2 - 1.5, 28, 2, 2, 'FD')
+        f(k.col); d.rect(x + 0.5, y, kW2 - 1.5, 3, 'F')
+        d.setFont('helvetica', 'normal'); d.setFontSize(6.5); c(colors.MID)
+        d.text(k.label, x + 3, y + 9)
+        d.setFont('helvetica', 'bold'); d.setFontSize(14); c(k.col)
+        d.text(k.val, x + 3, y + 19)
+        if (k.vt.significant) {
+          const good = k.up ? k.vt.positive : !k.vt.positive
+          d.setFont('helvetica', 'normal'); d.setFontSize(6.5); c(good ? GREEN : RED)
+          d.text(`${k.vt.text} vs ${data.currentYear - 1}`, x + 3, y + 25)
+        }
+      })
+      y += 31
+    })
+  }
+
+  // SECTION 2: Evolución interanual (tabla)
+  sectionLabel(d, 'EVOLUCION INTERANUAL (POR EJERCICIO)', y, ML, colors)
+  y += 13
+
+  const yw = [22, 22, 28, 24, 26, 26, 26]
+  y = themedTableHeader(d, ['Ejercicio', 'Resenas', 'Nota media', 'Var. nota', 'Positivas', 'Negativas', 'Respondidas'], yw, y, ML, colors)
+
+  data.allYears.forEach((yr, idx) => {
+    const prevYr = data.allYears[idx + 1] ?? null
+    const isCur = yr.year === data.currentYear
+    dr(colors.BORDER); d.setLineWidth(0.1)
+    f(isCur ? (theme === 'dark' ? [20, 30, 70] as RGB : [238, 242, 255] as RGB) : idx % 2 === 0 ? colors.ROW_EVEN : colors.ROW_ODD)
+    d.rect(ML, y, CW, 6.5, 'FD')
+    d.setFont('helvetica', isCur ? 'bold' : 'normal'); d.setFontSize(7)
+    let cx = ML + 2
+    c(isCur ? INDIGO : colors.TEXT); d.text(String(yr.year), cx, y + 4.5); cx += yw[0]
+    c(colors.TEXT); d.setFont('helvetica', 'normal'); d.text(String(yr.count), cx, y + 4.5); cx += yw[1]
+    c(yr.avgRating == null ? colors.LIGHT : AMBER)
+    d.text(yr.avgRating == null ? '—' : `${yr.avgRating.toFixed(2)} / 5`, cx, y + 4.5); cx += yw[2]
+    const nd = varText(yr.avgRating, prevYr?.avgRating ?? null, 2)
+    if (nd.significant) { c(nd.positive ? GREEN : RED); d.setFont('helvetica', 'bold'); d.text(nd.text, cx, y + 4.5); d.setFont('helvetica', 'normal') } else { c(colors.LIGHT); d.text('—', cx, y + 4.5) }
+    cx += yw[3]
+    c(yr.positiveRatio == null ? colors.LIGHT : GREEN)
+    d.text(yr.positiveRatio == null ? '—' : `${yr.positiveRatio.toFixed(0)}%`, cx, y + 4.5); cx += yw[4]
+    c(yr.negativeRatio == null ? colors.LIGHT : yr.negativeRatio > 30 ? RED : colors.MID)
+    d.text(yr.negativeRatio == null ? '—' : `${yr.negativeRatio.toFixed(0)}%`, cx, y + 4.5); cx += yw[5]
+    c(yr.responseRate == null ? colors.LIGHT : INDIGO)
+    d.text(yr.responseRate == null ? '—' : `${yr.responseRate.toFixed(0)}%`, cx, y + 4.5)
+    y += 6.5
+  })
+  y += 8
+
+  // SECTION 3: Desglose mensual — GRÁFICO DE BARRAS
+  if (data.currentYearMonths.length > 0) {
+    if (y > 180) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, `RESUMEN DE CRECIMIENTO - ${data.currentYear} MES A MES`, y, ML, colors)
+    y += 13
+
+    // Gráfico de barras de nota media
+    c(colors.MID); d.setFont('helvetica', 'bold'); d.setFontSize(7)
+    d.text('Nota media por mes (barras) y volumen de resenas (etiqueta inferior)', ML, y)
+    y += 5
+
+    // Usamos los meses en orden ascendente (ya están así)
+    const chartH = 60
+    monthBarChart(d, data.currentYearMonths, ML, y, CW, chartH, colors)
+    y += chartH + 4
+
+    // Leyenda del gráfico
+    const legendItems = [
+      { col: GREEN, txt: 'Nota >= 4.0' },
+      { col: AMBER, txt: 'Nota 3.0-3.9' },
+      { col: RED, txt: 'Nota < 3.0' },
+    ]
+    let lx = ML
+    legendItems.forEach(l => {
+      f(l.col); d.rect(lx, y, 3.5, 3.5, 'F')
+      c(colors.MID); d.setFont('helvetica', 'normal'); d.setFontSize(6.5)
+      d.text(l.txt, lx + 5, y + 3.2)
+      lx += 45
+    })
+    y += 8
+
+    // Tabla compacta de datos mensuales debajo del gráfico
+    if (y < 230) {
+      const mw = [30, 16, 24, 18, 22, 22, 22]
+      y = themedTableHeader(d, ['Mes', 'Res.', 'Nota', 'Var.', 'Positiv.', 'Negativ.', 'Respond.'], mw, y, ML, colors)
+
+      data.currentYearMonths.forEach((m, idx) => {
+        if (y > 272) { addPageThemed(d, W, theme); y = 20 }
+        const prev = idx > 0 ? data.currentYearMonths[idx - 1] : null
+        dr(colors.BORDER); d.setLineWidth(0.1)
+        f(idx % 2 === 0 ? colors.ROW_EVEN : colors.ROW_ODD); d.rect(ML, y, CW, 6, 'FD')
+        d.setFont('helvetica', 'normal'); d.setFontSize(6.5)
+        let cx = ML + 2
+        const ml2 = safe(m.label); c(colors.TEXT); d.text(ml2.charAt(0).toUpperCase() + ml2.slice(1), cx, y + 4); cx += mw[0]
+        c(m.count === 0 ? colors.LIGHT : colors.TEXT); d.text(m.count === 0 ? '—' : String(m.count), cx, y + 4); cx += mw[1]
+        c(m.avgRating == null ? colors.LIGHT : AMBER)
+        d.text(m.avgRating == null ? '—' : `${m.avgRating.toFixed(2)}`, cx, y + 4); cx += mw[2]
+        const nd = varText(m.avgRating, prev?.avgRating ?? null, 2)
+        if (nd.significant) { c(nd.positive ? GREEN : RED); d.setFont('helvetica', 'bold'); d.text(nd.text, cx, y + 4); d.setFont('helvetica', 'normal') } else { c(colors.LIGHT); d.text('—', cx, y + 4) }
+        cx += mw[3]
+        c(m.positiveRatio == null ? colors.LIGHT : GREEN)
+        d.text(m.positiveRatio == null ? '—' : `${m.positiveRatio.toFixed(0)}%`, cx, y + 4); cx += mw[4]
+        c(m.negativeRatio == null ? colors.LIGHT : m.negativeRatio > 30 ? RED : colors.MID)
+        d.text(m.negativeRatio == null ? '—' : `${m.negativeRatio.toFixed(0)}%`, cx, y + 4); cx += mw[5]
+        c(m.responseRate == null ? colors.LIGHT : INDIGO)
+        d.text(m.responseRate == null ? '—' : `${m.responseRate.toFixed(0)}%`, cx, y + 4)
+        y += 6
+      })
+      y += 6
+    }
+  }
+
+  // SECTION 4: Keywords
   if (data.keywords.length > 0) {
-    if (y > 235) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'PALABRAS MÁS MENCIONADAS', y, ML)
+    if (y > 235) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, 'PALABRAS MAS MENCIONADAS', y, ML, colors)
     y += 13
     const posKw = data.keywords.filter(k => k.sentiment === 'positive').map(k => safe(k.word))
     const negKw = data.keywords.filter(k => k.sentiment === 'negative').map(k => safe(k.word))
     if (posKw.length > 0) {
-      c(GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Aspectos positivos:', ML, y + 3.5)
-      c(MID); doc.setFont('helvetica', 'normal')
-      const ln = doc.splitTextToSize(posKw.join('  -  '), CW - 42) as string[]
-      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+      c(GREEN); d.setFont('helvetica', 'bold'); d.setFontSize(7.5); d.text('Aspectos positivos:', ML, y + 3.5)
+      c(colors.MID); d.setFont('helvetica', 'normal')
+      const ln = d.splitTextToSize(posKw.join('  -  '), CW - 42) as string[]
+      d.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
     }
     if (negKw.length > 0) {
-      c(RED); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text('Aspectos negativos:', ML, y + 3.5)
-      c(MID); doc.setFont('helvetica', 'normal')
-      const ln = doc.splitTextToSize(negKw.join('  -  '), CW - 42) as string[]
-      doc.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
+      c(RED); d.setFont('helvetica', 'bold'); d.setFontSize(7.5); d.text('Aspectos negativos:', ML, y + 3.5)
+      c(colors.MID); d.setFont('helvetica', 'normal')
+      const ln = d.splitTextToSize(negKw.join('  -  '), CW - 42) as string[]
+      d.text(ln, ML + 42, y + 3.5); y += ln.length * 4.5 + 2
     }
     y += 4
   }
 
   // SECTION 5: IA
   if (data.summary) {
-    if (y > 205) { doc.addPage(); y = 20 }
-    sectionLabel(doc, 'DIAGNÓSTICO IA', y, ML)
+    if (y > 205) { addPageThemed(d, W, theme); y = 20 }
+    sectionLabel(d, 'DIAGNOSTICO IA', y, ML, colors)
     y += 13
     const ins = [
-      { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: [240, 253, 244] as RGB },
-      { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: [254, 242, 242] as RGB },
-      { l: 'Acción recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: [238, 242, 255] as RGB },
+      { l: 'Lo que brilla', t: safe(data.summary.brilla), ac: GREEN, bg: colors.AI_SHINE, icon: '+' },
+      { l: 'Lo que preocupa', t: safe(data.summary.quema), ac: RED, bg: colors.AI_WORRY, icon: '!' },
+      { l: 'Accion recomendada', t: safe(data.summary.accion), ac: INDIGO, bg: colors.AI_ACTION, icon: '>' },
     ]
     ins.forEach(i => {
-      if (y > 255) { doc.addPage(); y = 20 }
-      const lines = doc.splitTextToSize(i.t, CW - 10) as string[]
-      const bh = 11 + lines.length * 4.5
-      f(i.ac); doc.rect(ML, y, 2.5, bh, 'F')
-      f(i.bg); d(S200); doc.setLineWidth(0.1); doc.rect(ML + 2.5, y, CW - 2.5, bh, 'FD')
-      c(i.ac); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text(i.l, ML + 6, y + 6.5)
-      c(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.text(lines, ML + 6, y + 11.5)
-      y += bh + 4
+      if (y > 255) { addPageThemed(d, W, theme); y = 20 }
+      const lines = d.splitTextToSize(i.t, CW - 14) as string[]
+      const bh = 14 + lines.length * 4.5
+
+      f(i.bg); d.rect(ML, y, CW, bh, 'F')
+      f(i.ac); d.rect(ML, y, 3, bh, 'F')
+      f(i.ac); d.circle(ML + 10, y + 7, 3.5, 'F')
+      d.setTextColor(255, 255, 255); d.setFont('helvetica', 'bold'); d.setFontSize(8)
+      d.text(i.icon, ML + 10, y + 8.5, { align: 'center' })
+      c(i.ac); d.setFont('helvetica', 'bold'); d.setFontSize(8)
+      d.text(i.l, ML + 17, y + 7)
+      d.setDrawColor(...i.ac); d.setLineWidth(0.3)
+      d.line(ML + 17, y + 9, ML + CW - 4, y + 9)
+      c(colors.TEXT); d.setFont('helvetica', 'normal'); d.setFontSize(7.5)
+      d.text(lines, ML + 17, y + 13.5)
+      y += bh + 5
     })
-    c(LIGHT); doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5)
-    doc.text('Análisis generado automáticamente por Claude (Anthropic). Carácter orientativo.', ML, y)
+
+    c(colors.LIGHT); d.setFont('helvetica', 'italic'); d.setFontSize(6.5)
+    d.text('Analisis generado automaticamente por Claude (Anthropic). Caracter orientativo.', ML, y)
   }
 
-  pdfFooter(doc, W, ML, MR)
-  doc.save(`velacre-anual-${slug}-${data.currentYear}.pdf`)
+  pdfFooter(d, W, ML, MR, theme)
+  const suffix = theme === 'light' ? 'claro' : 'oscuro'
+  d.save(`velacre-anual-${slug}-${data.currentYear}-${suffix}.pdf`)
 }
