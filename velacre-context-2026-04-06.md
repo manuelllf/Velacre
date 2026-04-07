@@ -583,7 +583,11 @@ frontend/src/
 - **Eliminar cuenta:** anonimiza `usuario`, borra `review`/`negocio`, llama `DELETE /auth/v1/admin/users/{id}`
 - **Plan efectivo:** `GetMe` computa `effectivePlan = pro_override && !expired ? "pro" : usuario.plan`
 - **Sync incremental:** detecta reseñas que el propietario respondió en Google desde el último sync
-- **Panel salud:** solo core/pro. Basic ve teaser con nota media real + blur + upsell
+- **Panel salud:** solo Pro. Basic y Core ven teasers diferenciados:
+  - Basic: nota media real + 2 KPIs dummy blurred + upsell directo a Pro
+  - Core: nota media real + sentimiento real + cards Pro bloqueadas (análisis IA, radar, sentimiento categoría, PDFs) con skeleton dummy + badge Pro + botón desbloquear individual. Upsell a Pro.
+  - Si quitan el CSS blur: ven skeletons vacíos (no datos reales)
+  - h1 del panel Pro: "Panel de Salud"
 - **Checkout LS:** `redirect_url` va dentro de `product_options`, no en atributos raíz
 - **Gestión suscripción:** exclusivamente via portal LS (`ls_customer_portal`). Sin modal propio de cancelación.
 - **Emails suscripción:** fire-and-forget (`_ = _email.SendXxx(...)`) en webhook LS
@@ -599,7 +603,11 @@ frontend/src/
 - **Radar categorías dinámicas:** Claude detecta las 4 categorías más relevantes de las reseñas propias (no hardcodeadas), aplica las mismas a competidores. `RadarCategoria: { nombre, yo: number (0-10), rivales[{nombre, score}], insight }` en `api.ts`.
 - **Favicon circular:** `src/app/icon.png` generado con `sharp` + SVG clipPath mask (circle). Next.js App Router lo sirve como favicon automáticamente. No hay `metadata.icons` en `layout.tsx` (conflicto eliminado).
 - **Tooltips en UI:** componente Tooltip.tsx con `?` minimalista en hover para: respuestas IA, palabras clave SEO, tono, impacto Velacre, SEO, sentimiento, velocidad de respuesta, radar.
-- **Radar:** ParseAnalisisJson usa `RootElement.Clone()` para evitar JsonElement inválido tras dispose del JsonDocument. Límite 2 análisis/mes (antes era 1).
+- **Radar:** ParseAnalisisJson usa `RootElement.Clone()` para evitar JsonElement inválido tras dispose del JsonDocument. Límite 2 análisis/mes. Backend guarda los 2 últimos registros (no borra todo), GET devuelve `analisisEsteMes: int`. Frontend usa `analisisEsteMes < 2` para `canAnalizar`. Columnas competidor en tabla: "Comp. 1/2/3" con `title` tooltip al nombre completo.
+- **Core IA limit:** 18/mes (corregido de 10 que aparecía hardcodeado en dashboard).
+- **Upsell modal límite IA:** checkout directo LS sin pasar por settings. Basic: botones Pro (principal) + Core (secundario) con spinner. Core: botón Pro directo.
+- **Pricing features:** Basic incluye Google + 3 IA + 3 otras plataformas + importación. Core: 18 IA, Google + otras, tono+keywords, historial completo. Pro: Panel de Salud, ilimitadas, Radar benchmark vs 3 competidores, análisis IA mensual + PDFs. Sin "soporte prioritario".
+- **Header/footer páginas legales:** normalizados al mismo estilo que landing (sticky blur, h-16, max-w-6xl, Login + Empezar gratis, footer copyright + links).
 - **GBP deshabilitado:** todo el código está, solo la UI muestra "Próximamente". Fácil de activar cuando llegue la autorización de Google.
 - **safe() en jsPDF:** solo elimina chars fuera de `\x20-\x7E\xA0-\xFF`. Las tildes españolas están dentro del rango y funcionan.
 
