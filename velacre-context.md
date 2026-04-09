@@ -375,6 +375,7 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 - `GetClaudeMessageAsync` — análisis IA salud (brilla/quema/acción). MaxTokens: 800.
 - Retry automático (3 intentos, backoff exponencial) para `overloaded_error`.
 - Modelo configurable via `AI_MODEL` env var (default: `claude-sonnet-4-6`).
+- **Prompts sin hardcodes geográficos ni sectoriales** (2026-04-09): se eliminaron las menciones a "Galicia" y "hostelería" en los system prompts para que Velacre sirva a cualquier sector y mercado hispanohablante sin sesgo. El contexto se inyecta vía `negocio.descripcion` + `palabras_clave` + reseñas del cliente.
 
 ---
 
@@ -478,6 +479,16 @@ Instalado `framer-motion` como dependencia. `LandingPage.tsx` completamente rees
 - `public/favicon.svg` — favicon circular via SVG con `<clipPath>` + `<circle>`. Declarado en `layout.tsx` con `<link rel="icon" href="/favicon.svg" type="image/svg+xml">`.
 - `public/apple-touch-icon.png`, `public/icon-192.png`, `public/icon-512.png` — logo Velacre para PWA y dispositivos móviles
 - Fuente de verdad: `images/logo128.png` y `images/logo600.png` en la raíz del repositorio
+
+---
+
+## PWA — instalable en Android e iOS
+
+- **Service Worker** (`public/sw.js`) registrado desde `layout.tsx` para cache básico + funcionamiento offline del shell
+- **`public/manifest.webmanifest`**: nombre "Velacre", `start_url: /dashboard`, `display: standalone`, theme/background `#0f172a`, iconos 192/512 + apple-touch-icon
+- **Banner de instalación Android:** componente `InstallPromptBanner.tsx` escucha `beforeinstallprompt`, muestra CTA "Instalar Velacre" en dashboard/salud. Persistencia en `localStorage` para no insistir si el usuario cierra.
+- **iOS:** detecta UA iPhone/iPad y muestra banner alternativo con instrucciones "Compartir → Añadir a pantalla de inicio" (iOS no dispara `beforeinstallprompt`).
+- **Objetivo:** presencia en home del móvil del cliente → acceso 1 tap a reseñas, más recurrencia diaria, reduce fricción vs abrir navegador.
 
 ---
 
@@ -653,3 +664,121 @@ frontend/src/
 - **WhatsApp/Gmail semanal:** cron los lunes a las 10am con recuento semanal + respuesta ya preparada.
 - **Métricas propias velocidad:** cuando haya usuarios reales, benchmark interno anónimo en vez del de Google (48h).
 - **Auditoría FOMO** con casos de éxito cuando haya usuarios reales.
+
+---
+
+## Análisis de competencia (2026-04-09)
+
+Research sobre competidores **estatales españoles** con los que Velacre compite (o debería) de verdad. Se eligieron 2: **wiReply** (competidor directo, mismo segmento) y **RepScan** (referencia premium, techo alto del mercado español).
+
+### Competidor 1 — wiReply (SocialwiBox)
+
+- **País:** España · Mataró, Barcelona
+- **URL:** https://wireply.ai/ · calculadora: https://go.wireply.ai/?lang=es
+- **Target:** negocios locales multi-ubicación en Google Business Profile (hostelería, hoteles, gimnasios, retail)
+
+**Precios** — modelo de calculadora dinámica (sin tabla de planes fija):
+- Variables: nº de ubicaciones GBP (1-100) y reseñas/año (100-100k)
+- Ejemplo publicado: **€22,50/mes por negocio** (o €270/año)
+- Trial 7 días / 30 respuestas, sin tarjeta
+
+**Features:** integración directa GBP, respuestas automáticas y personalizadas con IA, configuración de tono y horarios de publicación, análisis de sentimiento, identificación de empleados mencionados, KPIs mensuales e informes de evolución de rating, multi-ubicación nativa.
+
+**Fortalezas vs Velacre:** integración GBP real y publicación automática, multi-ubicación nativa, presencia mediática (El Mundo Financiero, Iberian Press, etc.).
+
+**Debilidades vs Velacre:** no tienen Radar de Competencia, no tienen filtro de seguridad para reseñas críticas, no tienen PDF benchmark mensual/anual, no ofrecen plan gratis, pricing opaco.
+
+### Competidor 2 — RepScan
+
+- **País:** España
+- **URL:** https://www.repscan.com/es/responder-resenas-ia/ · eShop: https://www.repscan.com/es/eshop/
+- **Target:** restaurantes, clínicas, hoteles, tiendas, cadenas multi-ubicación y personal branding (CEOs, creators)
+
+**Precios:**
+
+| Producto | Precio |
+|----------|--------|
+| Plataforma SaaS gestión reseñas/GMB | **€249/mes** (era €415, -40%) |
+| Care Basic / Pro / Pro+ (personal) | €25 / €49 / €97 /mes |
+| CEO Care / Corporation Care | €97/mes / a consultar |
+| Pack Eliminar 5 reseñas | €485 |
+| Auditoría perfil Google | €80 |
+| Eliminar reseña (puntual) | €99 |
+| Eliminar perfil falso | €239 |
+| Eliminar perfil GBP | €539 |
+| Eliminar derecho al olvido | €699 |
+
+**Features SaaS:** 9 tonos predefinidos (formal, cercano, empático, corporativo, casual, humorístico, inspirador, minimalista, detallista), respuestas automáticas o supervisadas, detección automática de idioma, gestión multi-perfil, aprendizaje continuo por historial, "eliminación reseñas ilimitadas" en el SaaS alto.
+
+**Fortalezas vs Velacre:** servicios reales de eliminación (gancho legal + reputacional), marca consolidada, 9 tonos, modo supervisado (aprobar antes de publicar), multi-perfil/cadenas.
+
+**Debilidades vs Velacre:** precio (Velacre Pro €49 vs RepScan SaaS €249 = 5× más caro), sin plan gratis, sin Radar competencia, sin filtro seguridad integrado, onboarding tipo demo comercial. Enfoque en "reputación de crisis" (eliminar cosas malas) vs Velacre "gestión operativa diaria" → no son idénticos, pueden coexistir.
+
+### Matriz comparativa
+
+| | Velacre | wiReply | RepScan (SaaS) |
+|---|---|---|---|
+| Plan gratis | ✅ Basic | ❌ (trial 7d) | ❌ |
+| Precio entrada | **€19/mes** (Core) | €22,50/mes | — |
+| Precio Pro | **€49/mes** | ~€22,50 (sin tiers) | **€249/mes** |
+| Integración GBP | 🟡 Próximamente | ✅ | ✅ |
+| Publicación auto | 🟡 Próximamente | ✅ | ✅ |
+| Tonos IA | 3 | configurable | 9 |
+| Filtro seguridad | ✅ único | ❌ | ❌ |
+| Radar competencia | ✅ único | ❌ | ❌ |
+| PDF benchmark | ✅ único | 🟡 informes | ❌ |
+| Multi-ubicación | ❌ | ✅ | ✅ |
+| Eliminación reseñas | ❌ | ❌ | ✅ |
+| Pricing transparente | ✅ | ❌ calculadora | 🟡 |
+
+### Decisiones de precio y posicionamiento
+
+1. **Core a €19/mes — mantener**. wiReply vende a €22,50: quedarse 15% por debajo del competidor directo es correcto. Cuando se active GBP, subir a €24–25 (aún por debajo).
+2. **Pro a €49/mes — mantener**. 5× por debajo de RepScan SaaS y justificado por Radar + PDF benchmark + análisis IA. Post-GBP subir a €69 como ya está planificado.
+3. **Nuevo hueco: plan "Chains" multi-ubicación** a €99–129/mes para cadenas pequeñas (2-5 locales) — gap entre wiReply (calculadora cara por local) y RepScan (€249). Requiere soportar `negocio[]` por usuario.
+4. **Posicionamiento único:** *"Inteligencia competitiva para PYMEs — no solo responde reseñas, te dice qué mejorar vs tu competencia"*. Armas únicas que ninguno tiene: Radar de Competencia IA, filtro de seguridad en reseñas críticas, PDF benchmark mensual/anual, precio transparente con plan gratis real.
+
+### Puntos débiles a cerrar con prioridad
+
+- 🚨 **GBP publicación directa** — missing feature #1. Sin esto wiReply nos supera en demos side-by-side. Acelerar aprobación Google.
+- 🔸 **Modo supervisado** (aprobar antes de publicar) — RepScan lo tiene, es un miedo común de dueños de negocio. Barato de implementar (toggle + estado borrador).
+- 🔸 **Más tonos** (3 → 5 o 6) — gap vs RepScan (9) se nota en comparativas. Añadir "Empático" y "Humorístico" como mínimo.
+
+### ¿Podemos competir SIN GBP activo?
+
+**Respuesta corta: sí, pero con un discurso distinto.**
+
+Mientras GBP no esté autorizado, competir en la terna "responde automáticamente en Google" es perder — wiReply publica solo. Pero Velacre puede ganar en **dos frentes ortogonales** donde GBP no es requisito:
+
+1. **Inteligencia competitiva (Radar + PDF benchmark + filtro seguridad):** ninguno de los dos lo ofrece. El valor de Velacre para el cliente Pro no es "te publica en Google" — es "te dice en qué te gana y en qué te pierde tu competencia, cada semana". Ese discurso no depende de GBP y es único en España.
+2. **Flujo asistido de copy-paste rápido:** Velacre ya tiene el botón "Responder en Google" que abre `business.google.com/reviews` con la respuesta generada lista para pegar. Si el cliente tiene ≤50 reseñas/mes, copiar-pegar 10 segundos por reseña es trivial vs pagar €22,50 a wiReply por automatizarlo. **Con el PWA instalable nuevo, ese flujo es aún más natural desde el móvil** (1 tap app → generar → copiar → pegar en GBP → listo).
+
+**Posicionamiento comercial interino (sin GBP):**
+> "Velacre no publica por ti todavía (llega en semanas con el permiso de Google). Mientras tanto: genera las 3 mejores respuestas en 2 segundos, las copias al perfil de Google, y además te damos algo que nadie más tiene — un análisis mensual de qué hace mejor tu competencia."
+
+**Segmentos donde podemos ganar ya, incluso sin GBP:**
+- **Basic gratis → Core €19:** PYMEs con 5-30 reseñas/mes que no quieren pagar €22,50 a wiReply por automatizar algo que hacen en 5 min al día. Velacre les da Core + keywords SEO + salud por menos.
+- **Pro €49 (Radar):** dueños que ya responden ellos mismos pero quieren **saber** qué hacer. El valor está en el análisis, no en la publicación. Aquí no hay competencia estatal.
+- **Sectores fuera de hostelería pura** (clínicas pequeñas, talleres, peluquerías, academias): wiReply está muy orientado a cadenas, RepScan a grandes. Hay hueco PYME unifuncional.
+
+**Segmentos donde perdemos sin GBP** (evitar en ventas directas hasta que esté activo):
+- Cadenas con 3+ locales → directo a wiReply
+- Franquicias y grandes hoteles → RepScan o wiReply
+- Clientes que piden demo comparando "quién publica solo" — perderemos frontal
+
+**Conclusión estratégica:** hasta que GBP esté aprobado, no intentar ser "wiReply más barato". Ser "el único que te da Radar + benchmark + filtro seguridad + plan gratis real". GBP llegará y cerrará el flanco abierto, pero no debe ser la única propuesta de valor.
+
+---
+
+## Changelog 2026-04-09
+
+Commits del día (orden cronológico):
+
+| Hash | Tipo | Cambio |
+|------|------|--------|
+| `eebac81` | feat(pricing) | Pro sube a **€49/mes** y **€490/año** (antes €39/€390) — posicionamiento competitivo vs RepScan y margen para Radar |
+| `a3894b3` | fix(salud) | Teasers Basic/Core en móvil muestran contenido correcto; redirect post-checkout LS lleva a dashboard en lugar de quedarse en la pasarela |
+| `3a321ea` | fix(ai) | Prompts de `ClaudeService` sin referencias hardcodeadas a Galicia ni hostelería — producto neutral por sector y mercado hispanohablante |
+| `4fdeae1` | feat(pwa) | Service Worker + `manifest.webmanifest` + `InstallPromptBanner.tsx` (Android `beforeinstallprompt` + iOS instrucciones "Añadir a pantalla de inicio") → Velacre instalable como app en Android e iOS |
+
+**Impacto agregado:** con estos 4 commits Velacre tiene (1) precio Pro alineado al valor comunicado en landing, (2) IA genérica no sesgada a Galicia/hostelería lista para escalar a cualquier sector, (3) experiencia móvil con app instalable en home screen — clave para PYMEs que viven del móvil, (4) flujo de pago post-checkout pulido en móvil.
