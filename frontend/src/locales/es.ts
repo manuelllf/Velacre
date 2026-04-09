@@ -114,7 +114,7 @@ const es: LandingLocale = {
         name: 'Basic',
         price: 'Gratis',
         desc: 'Empieza a responder sin pagar nada. Sin tarjeta.',
-        features: ['Conecta tu negocio de Google', '3 respuestas IA al mes', '3 respuestas para otras plataformas', 'Importación automática de reseñas'],
+        features: ['Conecta tu negocio de Google', '10 respuestas IA al mes', '5 respuestas para otras plataformas', 'Importación automática de reseñas'],
         cta: 'Empezar gratis',
       },
       core: {
@@ -123,7 +123,7 @@ const es: LandingLocale = {
         priceYearly: '190 €',
         priceYearlyMonthly: '15,83 €',
         desc: 'Para el negocio que no quiere perder ni una reseña sin responder.',
-        features: ['18 respuestas IA al mes', 'Google + otras plataformas', 'Tono personalizado y palabras clave SEO', 'Historial completo de reseñas'],
+        features: ['20 respuestas IA al mes', 'Google + otras plataformas', 'Panel de Salud con estadísticas clave', 'Tono personalizado y palabras clave SEO', 'Historial completo de reseñas'],
         cta: 'Elegir Core',
       },
       pro: {
@@ -132,7 +132,7 @@ const es: LandingLocale = {
         priceYearly: '490 €',
         priceYearlyMonthly: '40,83 €',
         desc: 'La diferencia entre responder reseñas y entender tu reputación.',
-        features: ['Panel de Salud completo', 'Respuestas IA ilimitadas', 'Radar: benchmark vs hasta 3 competidores', 'Análisis IA mensual + informes PDF'],
+        features: ['Respuestas IA ilimitadas', 'Panel de Salud completo (análisis IA + informes PDF)', 'Radar de competencia: descubre qué hacen mejor tus 3 rivales y qué hacer esta semana', 'Benchmark 0–10 en 4 categorías vs competidores', 'Soporte prioritario'],
         cta: 'Elegir Pro',
         badge: 'El más elegido',
       },
@@ -140,6 +140,13 @@ const es: LandingLocale = {
     perMonth: '/mes',
     perYear: '/año',
     vatNote: 'Precios sin IVA · Cancela cuando quieras',
+    transversalTitle: 'Incluido en todos los planes',
+    transversalItems: [
+      'Filtro de seguridad: retenemos automáticamente reseñas críticas (intoxicaciones, amenazas legales, acusaciones graves) para que las revises tú antes de publicar',
+      '3 tonos de respuesta: Profesional, Cercano y Directo',
+      'Respuestas en el mismo idioma de la reseña',
+      'Sin permanencia — cancela cuando quieras',
+    ],
   },
 
   cta: {
@@ -295,7 +302,7 @@ const es: LandingLocale = {
       planCurrent: 'Plan {plan} activo',
       planThanks: 'Tienes acceso completo. Gracias por confiar en Velacre.',
       planChoose: 'Elige un plan para activar Velacre.',
-      planCore: ['18 respuestas IA/mes', 'Sincronización Google', 'Gestión de reseñas'],
+      planCore: ['20 respuestas IA/mes', 'Sincronización Google', 'Panel de Salud con estadísticas clave', 'Gestión de reseñas'],
       planPro: ['Respuestas IA ilimitadas', 'Panel de salud y análisis IA', 'Soporte prioritario'],
       planRecommended: 'Recomendado',
       planRedirecting: 'Redirigiendo...',

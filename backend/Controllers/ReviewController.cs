@@ -50,7 +50,7 @@ public class ReviewController : ControllerBase
 
             if (!esProEfectivo)
             {
-                int manualLimit = usuario.Plan == "core" ? 18 : 3;
+                int manualLimit = 5;
                 if (usuario.RespuestasMesReset == null ||
                     usuario.RespuestasMesReset.Value.Year < now.Year ||
                     (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
@@ -119,7 +119,7 @@ public class ReviewController : ControllerBase
 
             if (!esProEfectivo)
             {
-                int manualLimit = usuario.Plan == "core" ? 18 : 3;
+                int manualLimit = 5;
                 if (usuario.RespuestasMesReset == null ||
                     usuario.RespuestasMesReset.Value.Year < now.Year ||
                     (usuario.RespuestasMesReset.Value.Year == now.Year && usuario.RespuestasMesReset.Value.Month < now.Month))
@@ -297,27 +297,42 @@ public class ReviewController : ControllerBase
         var usuarioRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
         var usuario    = usuarioRes.Models.FirstOrDefault();
         var incrementedCounter = false;
+        var softCapWarning = false;
         if (usuario != null)
         {
             var now = DateTimeOffset.UtcNow;
             var esProEfectivo = usuario.Plan == "pro" ||
                 (usuario.ProOverride && (!usuario.ProOverrideHasta.HasValue || usuario.ProOverrideHasta.Value > now));
 
-            if (!esProEfectivo && (usuario.Plan == "core" || usuario.Plan == "basic"))
+            // Límite por plan. Pro usa -1 (sin hard cap en la RPC) pero SÍ incrementa
+            // el contador para que podamos detectar el cap soft (250 IA/mes) y avisar.
+            //   Basic: 10/mes     Core: 20/mes     Pro: sin límite duro, warning a 250
+            int iaLimit;
+            if (esProEfectivo)               iaLimit = -1;
+            else if (usuario.Plan == "core") iaLimit = 20;
+            else                             iaLimit = 10;
+
+            var preCount = usuario.RespuestasIaMes;
+
+            // Incremento atómico: comprueba el límite e incrementa en una sola operación SQL.
+            // La RPC trata p_limit < 0 como "sin límite" (siempre permite e incrementa).
+            var rpcResult = await _supabase.Rpc("try_increment_ia_counter",
+                new Dictionary<string, object> { { "p_user_id", userId }, { "p_limit", iaLimit } });
+            var allowed = rpcResult?.Content?.Trim() == "true";
+
+            if (!allowed)
             {
-                int iaLimit = usuario.Plan == "core" ? 18 : 3;
+                _logger.LogWarning("[ReviewController] IA limit alcanzado para userId={UserId} plan={Plan}", userId, usuario.Plan);
+                return StatusCode(429, new { error = "limit_reached", plan = usuario.Plan, limit = iaLimit, used = iaLimit });
+            }
+            incrementedCounter = true;
 
-                // Incremento atómico: comprueba el límite e incrementa en una sola operación SQL
-                var rpcResult = await _supabase.Rpc("try_increment_ia_counter",
-                    new Dictionary<string, object> { { "p_user_id", userId }, { "p_limit", iaLimit } });
-                var allowed = rpcResult?.Content?.Trim() == "true";
-
-                if (!allowed)
-                {
-                    _logger.LogWarning("[ReviewController] IA limit alcanzado para userId={UserId} plan={Plan}", userId, usuario.Plan);
-                    return StatusCode(429, new { error = "limit_reached", plan = usuario.Plan, limit = iaLimit, used = iaLimit });
-                }
-                incrementedCounter = true;
+            // Cap soft Pro: cuando un usuario Pro supera 250 IA/mes, devolvemos un flag
+            // para que el frontend muestre un aviso cordial (no bloqueamos).
+            if (esProEfectivo && preCount + 1 >= 250)
+            {
+                softCapWarning = true;
+                _logger.LogInformation("[ReviewController] Pro soft cap: userId={UserId} count={Count}", userId, preCount + 1);
             }
         }
         // ─────────────────────────────────────────────────────────────────────
@@ -447,7 +462,8 @@ public class ReviewController : ControllerBase
                 contextoCliente   = contextoCliente,
                 contextoRespuesta = contextoRespuesta,
                 keywordsUsadas    = keywordsUsadas,
-                retenida          = false
+                retenida          = false,
+                softCapWarning    = softCapWarning
             });
         }
         catch (Exception ex)

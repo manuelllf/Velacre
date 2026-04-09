@@ -116,6 +116,8 @@ export interface LandingLocale {
     perMonth: string
     perYear: string
     vatNote: string
+    transversalTitle: string
+    transversalItems: string[]
   }
 
   cta: {

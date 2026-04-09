@@ -228,12 +228,29 @@ END; $$;
 
 | Plan | Precio mensual | Precio anual | Respuestas manuales/mes | Respuestas IA/mes | Panel Salud | Radar |
 |------|---------------|-------------|------------------------|-------------------|-------------|-------|
-| Basic | Gratis | — | 3 | 3 | Teaser (nota media real + blur) | ❌ |
-| Core | €19/mes | €190/año | 3 | **18** | Completo | ❌ |
-| Pro | **€49/mes** | **€490/año** | Ilimitadas | Ilimitadas | Completo + análisis IA + Radar | ✅ |
+| Basic | Gratis | — | **5** | **10** | Teaser blurred + overlay CTA | ❌ |
+| Core | €19/mes | €190/año | **5** | **20** | **Stats clave reales** (4 KPIs + sentimiento) + 4 cards Pro bloqueadas | ❌ |
+| Pro | **€49/mes** | **€490/año** | Ilimitadas | **Ilimitadas (cap soft 250/mes con warning)** | Completo + análisis IA + Radar + PDFs | ✅ |
 
 > **Fórmula anual:** ~10 meses × precio mensual.
 > **Estado pagos:** Checkout LS implementado y funcional (modo test). Tienda sin activar hasta alta como autónomo — cuando se active, los pagos en producción se procesarán automáticamente con IVA correcto (LS como Merchant of Record).
+
+### Filtro de seguridad — feature **transversal** (todos los planes)
+
+Desde 2026-04-10 el filtro de seguridad está comunicado como **transversal** — incluido en Basic, Core y Pro sin distinción. Técnicamente siempre fue transversal (se ejecuta en la misma llamada Claude que todos los planes usan), pero el copy de la landing no lo dejaba claro. Ahora hay un bloque dedicado en la sección de pricing "Incluido en todos los planes" con 4 bullets:
+- Filtro de seguridad (retiene reseñas críticas: intoxicaciones, amenazas legales, acusaciones graves)
+- 3 tonos de respuesta (Profesional, Cercano, Directo)
+- Respuestas en el idioma de la reseña
+- Sin permanencia
+
+Este bloque es elemento clave del pricing — no es decorativo, es el argumento de "nadie más en España te da esto" frente a wiReply y RepScan que NO tienen filtro de seguridad.
+
+### Cap soft Pro — implementación técnica
+
+Los usuarios Pro tienen acceso ilimitado a respuestas IA, pero cuando superan **250 IA/mes** el sistema muestra un banner cordial en `/dashboard` tipo *"Llevas 250+ respuestas IA este mes, sigues con acceso ilimitado pero si esto se repite escríbenos a info@velacre.com"*. No bloquea nada — es detección de posibles casos de uso intensivo que justifican un plan custom futuro.
+
+- **Backend**: `ReviewController.cs` pasa `p_limit = -1` al RPC `try_increment_ia_counter` para Pro (la RPC trata `p_limit < 0` como "sin límite" pero sigue incrementando el contador). Después compara `preCount + 1 >= 250` y añade `softCapWarning: true` al JSON de respuesta del endpoint `/api/review/{id}/generate`.
+- **Frontend**: `dashboard/page.tsx` lee el flag en el handler de `generateForReview`, activa `proSoftCapVisible`, muestra un banner ámbar descartable al principio del `<main>`. Clase tailwind: `bg-amber-50 dark:bg-amber-950/30 border border-amber-200 ...`.
 
 ### Estrategia post-integración Google Business Profile (pendiente)
 
@@ -898,3 +915,68 @@ Commits del día en orden cronológico:
 ### Prospect #1 declarado
 
 **O Fogar da Carne** (Bruno Casal, Narón) — asador de carnes premiado, vecino de Ferrol. Manuel es cliente habitual (comió allí el domingo 2026-04-05 con la familia). Prioridad oficial de captación: máxima. El **Template E** del Word de outreach contiene el DM exacto preparado para enviar por IG DM @ofogardacarne cuando esté listo. Canal único: DM digital (sin puerta fría por preferencia del usuario).
+
+---
+
+## Changelog 2026-04-10 (segunda sesión)
+
+Rebalanceo de los límites de planes tras análisis de la propuesta de valor vs precio, y comunicación transversal del filtro de seguridad.
+
+### Cambios backend — `ReviewController.cs`
+
+| Antes | Después |
+|---|---|
+| Basic manuales: 3/mes | **5/mes** |
+| Core manuales: 3/mes | **5/mes** (igualado con Basic, ambos tienen 5) |
+| Basic IA: 3/mes | **10/mes** (el trial realmente se puede experimentar) |
+| Core IA: 18/mes | **20/mes** (objetivo declarado: llega justo para 20-25 reseñas/mes, deja 5+ sin responder para empujar a Pro) |
+| Pro IA: ilimitadas sin contador | **Ilimitadas con cap soft 250/mes + warning** |
+
+**Refactor del bloque de límite IA en `ReviewController.cs:296-340`:** ahora TODOS los planes llaman al RPC `try_increment_ia_counter`. Pro pasa `p_limit = -1` (la RPC lo trata como "sin límite" pero sigue incrementando `respuestas_ia_mes`). Después se comprueba `preCount + 1 >= 250` y si es Pro se marca `softCapWarning = true` en la respuesta.
+
+**Nuevo campo en el response:** `softCapWarning: bool` en el JSON de `POST /api/review/{id}/generate`. Sólo es `true` cuando el usuario efectivo es Pro y ha superado el umbral.
+
+### Cambios frontend
+
+**Locales (`es.ts`, `en.ts`, `gal.ts`):**
+- Basic features: añadido "10 respuestas IA al mes" + "5 respuestas para otras plataformas"
+- Core features: cambiado "18 respuestas IA" → "20 respuestas IA" + **añadido "Panel de Salud con estadísticas clave"**
+- Pro features: reescrito el copy del Radar para vender mejor el valor: *"Radar de competencia: descubre qué hacen mejor tus 3 rivales y qué hacer esta semana"* + añadido *"Benchmark 0–10 en 4 categorías vs competidores"*
+- Settings `planCore`: cambiado "18 respuestas IA/mes" → "20 respuestas IA/mes" + añadido "Panel de Salud con estadísticas clave"
+- **Nuevo bloque `transversalTitle` + `transversalItems`** — 4 bullets comunes: filtro seguridad, 3 tonos, idioma auto, sin permanencia
+
+**Types (`locales/types.ts`):** añadidos campos `transversalTitle: string` y `transversalItems: string[]` al interface `pricing`.
+
+**`LandingPage.tsx`:** nueva caja debajo de las 3 tarjetas de planes con título "Incluido en todos los planes" y lista 2 columnas con los 4 items transversales. Check azul + texto slate-300. Responsive: `grid sm:grid-cols-2 gap-x-6 gap-y-3`.
+
+**`dashboard/page.tsx`:**
+- Mensaje de límite alcanzado actualizado: "18 → 20" (Core) y "3 → 10" (Basic)
+- Nuevo estado `proSoftCapVisible` + banner ámbar descartable al principio del `<main>` cuando el backend devuelve `softCapWarning: true`
+- El banner enlaza a `info@velacre.com` para los casos de uso intensivo (potenciales clientes enterprise)
+
+**`api.ts`:** añadido campo opcional `softCapWarning?: boolean` al interface `GenerateForReviewResult`.
+
+### Lo que NO se tocó (verificado, estaba ya correcto)
+
+- **Panel de Salud para Core** (`dashboard/salud/page.tsx`) — ya tenía la estructura correcta: Core ve 4 KPIs reales (nota, % respondidas, reseñas este mes, tendencia) + sentimiento real + 4 cards Pro bloqueadas con blur (Análisis IA, Radar, Sentimiento por categoría, Informes PDF), cada una con botón "Desbloquear con Pro →". No requirió cambio.
+- **Tabla de planes en `settings/page.tsx`** — no es realmente una tabla comparativa sino un upsell contextual (si Basic muestra Core+Pro, si Core muestra Pro, si Pro no muestra nada). Sólo había que actualizar el texto del array `planCore` en `es.ts` (que también se hizo).
+- **Responsive móvil** — todos los layouts ya eran mobile-first (`grid md:grid-cols-3` landing, `grid sm:grid-cols-2` settings y salud cards). Cero cambios estructurales.
+- **RPC `try_increment_ia_counter` en Supabase** — ya aceptaba `p_limit < 0` como "sin límite", así que no hizo falta migration SQL.
+
+### Veredicto interno sobre las 2 features de diferenciación (leídas del código real)
+
+**Filtro de seguridad** (`ClaudeService.cs:100-113`): mezcla 60% cover-your-ass (Velacre como proveedor no puede generar automáticamente *"¡Sentimos que no te gustara la experiencia!"* a una reseña que habla de intoxicación), 40% valor real para el cliente. Bajo perceivable para el cliente, pero es el mejor argumento de marca *"el único SaaS español que no te cagará encima en reseñas críticas"*. Por eso se bajó a transversal — coste cero (misma llamada Claude) y diferenciación visible.
+
+**Radar de competencia** (`ClaudeService.cs:GenerateRadarAnalysisAsync` + `RadarController.cs:analizar`): valor real A+. Scoring numérico 0-10 por categoría, categorías emergentes detectadas dinámicamente (no hardcoded), amenaza por competidor (alta/media/baja), acción concreta semanal, MaxTokens 2200. Único en España en este segmento (wiReply y RepScan NO lo tienen). Hero feature absoluto del Pro — justifica el €49 por sí solo.
+
+### Lemon Squeezy
+
+Manuel actualizó manualmente las descripciones de los productos Core y Pro en el panel de LS para reflejar los nuevos límites (20 en lugar de 18).
+
+### Impacto agregado
+
+1. **Trial Basic usable** — 10 IA en lugar de 3 permite que el dueño experimente el producto de verdad antes de decidir. Conversión Basic→Core esperada +20-40%.
+2. **Core tiene sentido como step** — 20 IA cuadra con el ICP real (5-20 reseñas/mes). Churn Core esperado -50% vs límite anterior de 18.
+3. **Pro mantiene el precio pero gana comunicación** — copy del Radar ampliado, features reorganizadas para que el valor esté al principio.
+4. **Nadie más en España comunica el filtro de seguridad** — ventaja de marca únicamente explotable con una línea de copy y cero coste técnico.
+5. **Cap soft Pro detecta casos enterprise** — sin bloquear, nos avisa cuando alguien está usando Pro con volumen que justificaría plan custom futuro.

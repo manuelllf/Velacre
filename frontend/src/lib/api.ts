@@ -406,6 +406,9 @@ export interface GenerateForReviewResult {
   contextoRespuesta?: string
   retenida?: boolean
   motivoRetencion?: string
+  /** Pro soft cap: true cuando el usuario supera 250 IA/mes en su plan Pro.
+   *  No bloquea (Pro sigue ilimitado), es solo un aviso cordial. */
+  softCapWarning?: boolean
 }
 
 export async function generateForReview(reviewId: string): Promise<GenerateForReviewResult> {

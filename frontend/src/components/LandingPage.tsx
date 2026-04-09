@@ -660,6 +660,25 @@ export default function LandingPage({ locale: l }: Props) {
           </FadeInUp>
         </div>
 
+        {/* ── Features transversales incluidas en todos los planes ── */}
+        <FadeInUp>
+          <div className="max-w-4xl mx-auto mt-10 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-7">
+            <p className="text-xs font-semibold text-blue-400 uppercase tracking-widest mb-4 text-center">
+              {l.pricing.transversalTitle}
+            </p>
+            <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3">
+              {l.pricing.transversalItems.map(item => (
+                <li key={item} className="flex items-start gap-2.5 text-sm text-slate-300">
+                  <svg className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </FadeInUp>
+
         <p className="text-center text-xs text-slate-600 mt-6">{l.pricing.vatNote}</p>
       </section>
 

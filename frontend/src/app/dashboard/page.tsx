@@ -78,6 +78,9 @@ export default function DashboardPage() {
   const [upsellInfo, setUpsellInfo] = useState<{ plan: string; limit: number; used: number } | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<'core' | 'pro' | null>(null)
   const [iaUsed, setIaUsed] = useState<number>(0)
+  // Pro soft cap: banner visible cuando el usuario Pro supera 250 IA/mes.
+  // No bloquea (Pro sigue ilimitado), es solo un aviso cordial.
+  const [proSoftCapVisible, setProSoftCapVisible] = useState(false)
 
   // GBP
   const [gbpConnected, setGbpConnected] = useState(false)
@@ -195,6 +198,8 @@ export default function DashboardPage() {
       if (result.contextoCliente && result.contextoRespuesta) {
         setContextos(prev => ({ ...prev, [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! } }))
       }
+      // Pro soft cap: si el backend marca el warning (>=250 IA/mes), mostramos banner
+      if (result.softCapWarning) setProSoftCapVisible(true)
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
         const d = err.data as { plan?: string; limit?: number; used?: number } | undefined
@@ -354,6 +359,22 @@ export default function DashboardPage() {
       <SectionNav />
 
       <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-4">
+
+        {/* ── Pro soft cap warning — aviso cordial cuando Pro supera 250 IA/mes ── */}
+        {proSoftCapVisible && (
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-4 flex items-start gap-3">
+            <svg className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-amber-900 dark:text-amber-300">Llevas 250+ respuestas IA este mes</p>
+              <p className="text-xs text-amber-800/80 dark:text-amber-400/80 mt-0.5 leading-relaxed">
+                Sigues con acceso ilimitado, pero si esto se repite todos los meses escríbenos a <a href="mailto:info@velacre.com" className="underline font-medium">info@velacre.com</a> y vemos tu caso.
+              </p>
+            </div>
+            <button onClick={() => setProSoftCapVisible(false)} className="text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 text-lg leading-none shrink-0 cursor-pointer" aria-label="Cerrar aviso">×</button>
+          </div>
+        )}
 
         {/* ── Sync bar ── */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 px-5 py-4">
@@ -845,12 +866,12 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white">
-                      {isCore ? 'Tus 18 respuestas IA se acabaron' : 'Tus 3 respuestas IA se acabaron'}
+                      {isCore ? 'Tus 20 respuestas IA se acabaron' : 'Tus 10 respuestas IA se acabaron'}
                     </h3>
                     <p className="text-sm text-slate-400 mt-0.5">
                       {isCore
-                        ? 'El plan Core incluye 18 al mes. Pásate a Pro para tenerlas ilimitadas.'
-                        : 'El plan Basic incluye 3 al mes. Core amplía el límite a 18, Pro es ilimitado.'}
+                        ? 'El plan Core incluye 20 al mes. Pásate a Pro para tenerlas ilimitadas.'
+                        : 'El plan Basic incluye 10 al mes. Core amplía el límite a 20, Pro es ilimitado.'}
                     </p>
                   </div>
                 </div>
