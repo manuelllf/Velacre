@@ -1,18 +1,29 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 type InstallPromptEvent = Event & { prompt?: () => Promise<void> }
 
-// Duración del banner en milisegundos. El usuario prefiere que no sea pesado.
+// Rutas donde el banner puede aparecer. En cualquier otra ruta no existe ni en DOM.
+const ALLOWED_PATHS = new Set(['/', '/inicio'])
+
+// Duración máxima del banner visible en ms. Usuario lo considera intrusivo si está más.
 const BANNER_TTL_MS = 10_000
+
+// Clave persistente en localStorage. Si está seteada, el banner no vuelve a aparecer JAMÁS.
+// Si el usuario quisiera resetearlo, puede borrar localStorage manualmente.
+const DISMISSED_KEY = 'velacre-pwa-banner-dismissed'
 
 export default function PWAInstall() {
   const pathname = usePathname()
   const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null)
   const [showAndroid, setShowAndroid] = useState(false)
   const [showIos, setShowIos] = useState(false)
+
+  // Ref para trackear el timer de auto-hide. No está en state para evitar
+  // re-renders que reinicien el timer.
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Service Worker — siempre activo, independientemente de la ruta.
   useEffect(() => {
@@ -21,8 +32,8 @@ export default function PWAInstall() {
     }
   }, [])
 
-  // Listener global de beforeinstallprompt — el evento se dispara una única vez
-  // por sesión, así que lo capturamos siempre aunque el banner sólo se vea en /.
+  // Listener global de beforeinstallprompt — el evento se dispara una sola vez
+  // por sesión y necesitamos capturarlo aunque el banner solo se vea en algunas rutas.
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault()
@@ -32,35 +43,75 @@ export default function PWAInstall() {
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
-  // Banner sólo en la landing y sólo durante 10 segundos.
-  // Todos los setState se difieren a setTimeout para cumplir la regla
-  // react-hooks/set-state-in-effect (no setState directo en el cuerpo del efecto).
+  // Lógica de visualización: solo en rutas permitidas, solo si no ha sido
+  // descartado antes, y con auto-hide a los 10s.
   useEffect(() => {
-    const showTimer = setTimeout(() => {
-      if (pathname !== '/') {
+    // Limpiar timer pendiente de un efecto anterior
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current)
+      hideTimerRef.current = null
+    }
+
+    // Fuera de rutas permitidas: ocultar todo y salir.
+    if (!ALLOWED_PATHS.has(pathname)) {
+      const t = setTimeout(() => {
         setShowAndroid(false)
         setShowIos(false)
-        return
-      }
+      }, 0)
+      return () => clearTimeout(t)
+    }
 
-      if (prompt) setShowAndroid(true)
+    // En rutas permitidas: comprobar si ya fue descartado alguna vez.
+    let dismissed = false
+    try {
+      dismissed = localStorage.getItem(DISMISSED_KEY) === '1'
+    } catch {
+      // localStorage no disponible (modo incognito estricto, SSR...): no mostramos.
+      dismissed = true
+    }
 
+    if (dismissed) {
+      // Nunca más. Silencioso.
+      return
+    }
+
+    // Decidir qué variante mostrar en el siguiente tick
+    const showDelay = setTimeout(() => {
       const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
       const isStandalone =
         ('standalone' in navigator) &&
         (navigator as { standalone?: boolean }).standalone === true
-      const dismissed = sessionStorage.getItem('pwa-ios-dismissed')
-      if (isIos && !isStandalone && !dismissed) setShowIos(true)
-    }, 0)
 
-    const hideTimer = setTimeout(() => {
-      setShowAndroid(false)
-      setShowIos(false)
-    }, BANNER_TTL_MS)
+      let willShow = false
+
+      if (prompt) {
+        setShowAndroid(true)
+        willShow = true
+      } else if (isIos && !isStandalone) {
+        setShowIos(true)
+        willShow = true
+      }
+
+      if (willShow) {
+        // Marcamos como descartado INMEDIATAMENTE al mostrarlo —
+        // el usuario solo lo verá una vez en toda su vida en este navegador.
+        try { localStorage.setItem(DISMISSED_KEY, '1') } catch { /* noop */ }
+
+        // Auto-hide a los 10s
+        hideTimerRef.current = setTimeout(() => {
+          setShowAndroid(false)
+          setShowIos(false)
+          hideTimerRef.current = null
+        }, BANNER_TTL_MS)
+      }
+    }, 100)
 
     return () => {
-      clearTimeout(showTimer)
-      clearTimeout(hideTimer)
+      clearTimeout(showDelay)
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current)
+        hideTimerRef.current = null
+      }
     }
   }, [pathname, prompt])
 
@@ -71,13 +122,18 @@ export default function PWAInstall() {
     setPrompt(null)
   }
 
-  const dismissIos = () => {
-    sessionStorage.setItem('pwa-ios-dismissed', '1')
+  const dismiss = () => {
+    setShowAndroid(false)
     setShowIos(false)
+    try { localStorage.setItem(DISMISSED_KEY, '1') } catch { /* noop */ }
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current)
+      hideTimerRef.current = null
+    }
   }
 
-  // Hard gate: fuera de la landing nunca renderizamos nada.
-  if (pathname !== '/') return null
+  // Hard gate final: fuera de rutas permitidas no renderizamos NADA.
+  if (!ALLOWED_PATHS.has(pathname)) return null
 
   if (showAndroid) return (
     <div className="fixed bottom-4 left-4 right-4 z-50 bg-slate-900 border border-slate-700 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-3">
@@ -86,7 +142,7 @@ export default function PWAInstall() {
         <p className="text-xs text-slate-400 mt-0.5">Accede más rápido desde tu pantalla de inicio.</p>
       </div>
       <div className="flex gap-2 shrink-0">
-        <button onClick={() => setShowAndroid(false)} className="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">
+        <button onClick={dismiss} className="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">
           Ahora no
         </button>
         <button onClick={installAndroid} className="px-3 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors cursor-pointer">
@@ -107,7 +163,7 @@ export default function PWAInstall() {
             <span className="text-white font-semibold">&ldquo;Añadir a pantalla de inicio&rdquo;</span>.
           </p>
         </div>
-        <button onClick={dismissIos} className="text-slate-500 hover:text-white text-lg leading-none shrink-0 cursor-pointer">✕</button>
+        <button onClick={dismiss} className="text-slate-500 hover:text-white text-lg leading-none shrink-0 cursor-pointer">✕</button>
       </div>
     </div>
   )
