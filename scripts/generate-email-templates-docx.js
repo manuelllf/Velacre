@@ -204,20 +204,60 @@ const templateC_email = [
   'os retiro inmediatamente. No comparto ni comercializo datos con terceros.',
 ];
 
-// Template D
+// Template D — DM de vecino-cliente (tono humilde, no comercial)
+// Para usar cuando eres ya cliente del negocio o conoces algo concreto
+// de haber estado allí. Sustituye al template genérico anterior.
 const templateD_email = [
-  'Hola 👋 Soy Manuel, de Ferrol, llevo una empresa que se llama Velacre que',
-  'ayuda a restaurantes a responder sus reseñas de Google con IA.',
+  'Buenas {{nombre_duenho}} 👋',
   '',
-  'He echado un ojo a vuestras últimas reseñas y os he preparado un análisis',
-  'gratuito en PDF con lo que más destacan, lo que más se quejan, y qué hacer',
-  'con las que llevan sin responder.',
+  'Soy Manuel, de Ferrol. {{hilo_personal_como_cliente}} —',
+  '{{detalle_concreto_y_verdadero_de_haber_estado}}.',
   '',
-  'Si os interesa verlo, contestad aquí y os lo mando por email o WhatsApp —',
-  'sin compromiso ninguno, ni vais a acabar en listas ni nada raro. Solo que',
-  'creo que os puede ser útil.',
+  'Te escribo por otra cosa: llevo meses montando un pequeño programa',
+  'que ayuda a restaurantes a responder reseñas de Google con una',
+  'IA — porque vi que mucha gente no da abasto y las reseñas acaban',
+  'sin contestar, y eso al final os hace daño porque Google enseña',
+  'menos vuestra ficha cuando ve que no respondéis.',
   '',
-  'Un abrazo 🙂',
+  'He probado a analizar vuestras reseñas con mi propio programa y',
+  'me ha sacado un informe PDF con lo que más os alaban, lo que',
+  'menos, y cuáles llevan más tiempo sin respuesta. Me gustaría',
+  'pasároslo gratis, sin compromiso de nada — lo mismo os sirve,',
+  'lo mismo no.',
+  '',
+  '¿Te lo mando por aquí o prefieres al WhatsApp?',
+  '',
+  'Un abrazo,',
+  'Manuel',
+];
+
+// Template E — EJEMPLO REAL — O Fogar da Carne (Bruno Casal, Narón)
+// Este es el DM EXACTO preparado para el prospect #1 del usuario.
+// Se incluye como referencia permanente de cómo se aplica el Template D
+// cuando eres cliente del negocio.
+const templateE_email = [
+  'Buenas Bruno 👋',
+  '',
+  'Soy Manuel, de Ferrol. Este domingo comimos en vuestra casa con',
+  'la familia — el entrecot como siempre brutal. Llevamos yendo mi',
+  'novia y yo desde hace tiempo.',
+  '',
+  'Te escribo por otra cosa: llevo meses montando un pequeño programa',
+  'que ayuda a restaurantes a responder reseñas de Google con una',
+  'IA — porque vi que mucha gente no da abasto y las reseñas acaban',
+  'sin contestar, y eso al final os hace daño porque Google enseña',
+  'menos vuestra ficha cuando ve que no respondéis.',
+  '',
+  'He probado a analizar vuestras reseñas con mi propio programa y',
+  'me ha sacado un informe PDF con lo que más os alaban, lo que',
+  'menos, y cuáles llevan más tiempo sin respuesta. Me gustaría',
+  'pasároslo gratis, sin compromiso de nada — lo mismo os sirve,',
+  'lo mismo no.',
+  '',
+  '¿Te lo mando por aquí o prefieres al WhatsApp?',
+  '',
+  'Un abrazo,',
+  'Manuel',
 ];
 
 // ─── Composicion del documento ────────────────────────────────────────────
@@ -238,7 +278,7 @@ allParagraphs.push(new Paragraph({
 allParagraphs.push(new Paragraph({
   spacing: { before: 0, after: 1200 },
   alignment: AlignmentType.CENTER,
-  children: [new TextRun({ text: '4 plantillas listas para personalizar con los datos del Mini Radar', font: 'Arial', size: 22, italics: true, color: '64748B' })],
+  children: [new TextRun({ text: '4 plantillas + 1 ejemplo real — listas para personalizar con los datos del Mini Radar', font: 'Arial', size: 22, italics: true, color: '64748B' })],
 }));
 allParagraphs.push(new Paragraph({
   spacing: { before: 0, after: 120 },
@@ -256,9 +296,14 @@ allParagraphs.push(new Paragraph({
   children: [new TextRun({ text: 'C · Clínica Pardiñas (alto ticket)', font: 'Arial', size: 22, color: '0F172A' })],
 }));
 allParagraphs.push(new Paragraph({
+  spacing: { before: 0, after: 120 },
+  alignment: AlignmentType.CENTER,
+  children: [new TextRun({ text: 'D · DM de vecino-cliente (IG/WhatsApp)', font: 'Arial', size: 22, color: '0F172A' })],
+}));
+allParagraphs.push(new Paragraph({
   spacing: { before: 0, after: 600 },
   alignment: AlignmentType.CENTER,
-  children: [new TextRun({ text: 'D · Instagram DM (O Fogar, O Cabo)', font: 'Arial', size: 22, color: '0F172A' })],
+  children: [new TextRun({ text: 'E · EJEMPLO REAL — O Fogar da Carne (prospect #1)', font: 'Arial', size: 22, bold: true, color: '6366F1' })],
 }));
 allParagraphs.push(new Paragraph({
   spacing: { before: 600, after: 60 },
@@ -310,15 +355,36 @@ allParagraphs.push(Nota('"Estimado Dr. Pardinas" respeta la jerarquia profesiona
 
 // ═══ Template D ═══
 allParagraphs.push(new Paragraph({ children: [new PageBreak()] }));
-allParagraphs.push(H1('Template D — Instagram DM'));
-allParagraphs.push(Meta('Para', 'O Fogar da Carne (@ofogardacarne), O Cabo (@_ocabo)'));
-allParagraphs.push(Meta('Canal', 'Instagram Direct Message'));
-allParagraphs.push(Meta('Tono', 'Informal, breve, cero presion'));
-allParagraphs.push(Meta('Longitud', 'Maximo 6 lineas — legible en movil sin scroll'));
+allParagraphs.push(H1('Template D — DM de vecino-cliente'));
+allParagraphs.push(Meta('Para', 'Negocios donde ya eres cliente o has estado de verdad (no inventes un hilo personal que no tengas)'));
+allParagraphs.push(Meta('Canal', 'Instagram DM o WhatsApp del negocio'));
+allParagraphs.push(Meta('Tono', 'Humilde, de vecino que ha montado algo — nada de comercial ni de jerga'));
+allParagraphs.push(Meta('Longitud', 'Medio, 18-22 lineas'));
+allParagraphs.push(Meta('Regla de oro', 'Si no has estado alli como cliente, NO uses este template. Usa el A'));
 allParagraphs.push(Spacer());
 allParagraphs.push(H2('Mensaje DM'));
 allParagraphs.push(...EmailBlock(templateD_email));
-allParagraphs.push(Nota('"Soy de Ferrol" dispara un bias local inmediato para O Fogar da Carne (Naron, comarca vecina). Maximo 6 lineas porque DMs largas no se leen en el feed de notificaciones del movil. Emoji moderado (una a dos por mensaje) para tono cercano sin parecer infantil. "Contestad aqui" evita pedir email de entrada y baja la friccion a cero — la primera respuesta ya es compromiso de conversacion.'));
+allParagraphs.push(Nota('Ser cliente real del negocio es la unica carta que vale la pena jugar aqui — es prueba social irreproducible y elimina el 90% del escudo "otro comercial". NUNCA: premios, logros mediaticos, jerga SEO, multi-local, "soy fundador". SIEMPRE: "pequeno programa" (modesto), "Google ensena menos vuestra ficha" (sin tecnicismos), "lo mismo os sirve lo mismo no" (expectativas bajas = sorpresa al alza), pregunta binaria fácil al final. Obligatorio insertar un dato concreto del PDF del mini-radar antes de mandar.'));
+
+// ═══ Template E — EJEMPLO REAL ═══
+allParagraphs.push(new Paragraph({ children: [new PageBreak()] }));
+allParagraphs.push(H1('Template E — EJEMPLO REAL (prospect #1)'));
+allParagraphs.push(Meta('Para', 'Bruno Casal — O Fogar da Carne (@ofogardacarne) — Naron'));
+allParagraphs.push(Meta('Canal', 'Instagram DM'));
+allParagraphs.push(Meta('Contexto personal', 'Manuel es cliente habitual — comio alli el domingo con la familia, va con la novia desde hace tiempo'));
+allParagraphs.push(Meta('Prioridad', 'MAXIMA — prospect #1 oficial del usuario'));
+allParagraphs.push(Meta('Nota', 'Este DM es el Template D aplicado a un caso real. Sirve como referencia permanente de como se adapta.'));
+allParagraphs.push(Spacer());
+allParagraphs.push(H2('Mensaje DM exacto preparado'));
+allParagraphs.push(...EmailBlock(templateE_email));
+allParagraphs.push(Nota('Por que funciona este mensaje concreto: (1) "Este domingo comimos en vuestra casa con la familia" es prueba social real e irreproducible — Bruno ya lo conoce como cliente recurrente. (2) "El entrecot como siempre brutal" es detalle verificable y cercano, no cumplido generico. (3) "Llevo meses montando un pequeno programa" usa lenguaje modesto (no "fundador", no "SaaS B2B"). (4) "Google ensena menos vuestra ficha cuando ve que no respondeis" explica el problema sin jerga SEO. (5) "Lo mismo os sirve, lo mismo no" baja la presion comercial a cero. (6) Cero menciones a premios (Lyon, Paris, Meat Attraction) — Bruno es gente humilde y restregarselos es comerle el culo. (7) Cero menciones a multi-local — Velacre no lo soporta todavia, no hay que vender lo que no existe.'));
+allParagraphs.push(Spacer());
+allParagraphs.push(H2('Checklist antes de pulsar enviar'));
+allParagraphs.push(P('1. Ejecutar mini-radar de O Fogar da Carne (/admin/mini-radar) y leer el PDF entero antes de nada.'));
+allParagraphs.push(P('2. Insertar UN dato concreto del PDF entre los parrafos (ej: "las 3 ultimas del mes pasado siguen sin contestar, una habla de X").'));
+allParagraphs.push(P('3. Leer el mensaje en voz alta a la novia — si suena raro, reescribir.'));
+allParagraphs.push(P('4. Esperar 48-72h si no responde antes de cualquier follow-up.'));
+allParagraphs.push(P('5. Si no responde en 7 dias, NO insistir digitalmente. Mencionarlo de palabra en la proxima visita cuando lleve el entrecot.'));
 
 // ═══ Pagina final de referencia ═══
 allParagraphs.push(new Paragraph({ children: [new PageBreak()] }));
@@ -327,16 +393,16 @@ allParagraphs.push(P('Prioridad de outreach para los proximos 72h con los prospe
 allParagraphs.push(Spacer());
 
 const ordenEnvio = [
-  { p: '1', prioridad: 'Maxima', negocio: 'Clinica Pardinas', canal: 'Email gerencia@', tpl: 'C' },
-  { p: '2', prioridad: 'Alta', negocio: 'Meson O Pote', canal: 'Email info@', tpl: 'B' },
-  { p: '3', prioridad: 'Alta', negocio: 'Pablo Gallego', canal: 'Email info@', tpl: 'B' },
-  { p: '4', prioridad: 'Media', negocio: 'A Taberna do Bispo', canal: 'Email correo@', tpl: 'A' },
-  { p: '5', prioridad: 'Media', negocio: 'O Sendeiro', canal: 'Email info@', tpl: 'A' },
-  { p: '6', prioridad: 'Media', negocio: 'A Taberna de Cunqueiro', canal: 'Email info@', tpl: 'A' },
-  { p: '7', prioridad: 'Media', negocio: 'Casa do Pulpo Verin', canal: 'Email gmail personal', tpl: 'A' },
-  { p: '8', prioridad: 'Media', negocio: 'Fonte do Rei (Lugo)', canal: 'Email yahoo personal', tpl: 'A' },
-  { p: '9', prioridad: 'Media', negocio: 'O Cabo', canal: 'IG DM @_ocabo', tpl: 'D' },
-  { p: '10', prioridad: 'Media', negocio: 'O Fogar da Carne', canal: 'IG DM @ofogardacarne', tpl: 'D' },
+  { p: '1', prioridad: 'MAXIMA (declarada)', negocio: 'O Fogar da Carne (Bruno Casal)', canal: 'IG DM @ofogardacarne', tpl: 'E' },
+  { p: '2', prioridad: 'Alta', negocio: 'Clinica Pardinas', canal: 'Email gerencia@', tpl: 'C' },
+  { p: '3', prioridad: 'Alta', negocio: 'Meson O Pote', canal: 'Email info@', tpl: 'B' },
+  { p: '4', prioridad: 'Alta', negocio: 'Pablo Gallego', canal: 'Email info@', tpl: 'B' },
+  { p: '5', prioridad: 'Media', negocio: 'A Taberna do Bispo', canal: 'Email correo@', tpl: 'A' },
+  { p: '6', prioridad: 'Media', negocio: 'O Sendeiro', canal: 'Email info@', tpl: 'A' },
+  { p: '7', prioridad: 'Media', negocio: 'A Taberna de Cunqueiro', canal: 'Email info@', tpl: 'A' },
+  { p: '8', prioridad: 'Media', negocio: 'Casa do Pulpo Verin', canal: 'Email gmail personal', tpl: 'A' },
+  { p: '9', prioridad: 'Media', negocio: 'Fonte do Rei (Lugo)', canal: 'Email yahoo personal', tpl: 'A' },
+  { p: '10', prioridad: 'Media', negocio: 'O Cabo', canal: 'IG DM @_ocabo', tpl: 'D' },
 ];
 
 ordenEnvio.forEach(item => {

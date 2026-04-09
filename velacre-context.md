@@ -376,6 +376,7 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 - Retry automático (3 intentos, backoff exponencial) para `overloaded_error`.
 - Modelo configurable via `AI_MODEL` env var (default: `claude-sonnet-4-6`).
 - **Prompts sin hardcodes geográficos ni sectoriales** (2026-04-09): se eliminaron las menciones a "Galicia" y "hostelería" en los system prompts para que Velacre sirva a cualquier sector y mercado hispanohablante sin sesgo. El contexto se inyecta vía `negocio.descripcion` + `palabras_clave` + reseñas del cliente.
+- **Prompts sin jerga técnica SEO** (2026-04-10, mini-radar): el system prompt del endpoint `/api/admin/mini-radar` prohíbe expresamente términos como "SEO", "CTR", "ranking", "visibilidad orgánica", "keywords", "engagement", "KPI", "review management", "sentiment". Obligatoriamente usa lenguaje de dueño de bar gallego: "salir antes cuando alguien busca en Google", "que más gente te vea y entre a comer", "que Google enseñe menos vuestra ficha cuando no respondéis". Incluye ejemplos buenos/malos en el prompt y una regla de auto-revisión final que obliga a reescribir cualquier tecnicismo detectado.
 
 ---
 
@@ -431,9 +432,85 @@ El idioma de respuesta es el mismo que el de la reseña. Keywords SEO se incluye
 
 ## Panel Admin
 
-- Header: "Velacre · Admin" (sin enlace a dashboard)
+- Header: "Velacre · Admin" (sin enlace a dashboard) + botón azul **"Mini Radar"** que lleva a `/admin/mini-radar`
 - CRUD estado, plan, rol, pro_override, notas, place_id
 - Errores en modales con fondo rojo, hint sesión caducada si 401/403
+
+---
+
+## Mini Radar — herramienta de prospección B2B (Admin)
+
+Feature interna (solo admin) para generar informes gratuitos de análisis de reseñas de cualquier negocio de Google como lead magnet de outreach comercial. Añadida 2026-04-10.
+
+### Arquitectura
+
+- **Backend endpoint:** `POST /api/admin/mini-radar` en `AdminController.cs`
+  - Input: `MiniRadarRequest(string PlaceId, string? Nombre)`
+  - Auth: admin check (`IsAdminAsync()`)
+  - Dependencias inyectadas: `IOutscraperService`, `IReviewAiService`
+  - Flujo:
+    1. Outscraper: `GetCompetitorReviewsAsync(placeId, 30)` — últimas 30 reseñas
+    2. Stats locales: total, ratingAvg, distribución 1★-5★, % respondidas, ult30d, ult90d
+    3. Extracción de las 3 peores reseñas sin responder (≤3★, gancho emocional del pitch)
+    4. Claude (`GetClaudeMessageAsync`): genera JSON con `fortalezas[2]`, `debilidades[2]`, `accion`, `resumen`, `emailPitch` — todo en lenguaje humano sin jerga SEO
+  - Output: JSON con `stats`, `peoresSinResponder`, `analisis`, `generadoEn`
+  - **Sin persistencia, sin cache** — cada informe es fresco. Cada llamada cobra Outscraper y Claude.
+
+- **Frontend página:** `frontend/src/app/admin/mini-radar/page.tsx`
+  - Auth guard con `getMyUsuario().isAdmin`
+  - Formulario con **buscador de Google Places** (mismo patrón que onboarding): input con debounce 300ms → `searchPlaces()` → dropdown con nombre/dirección/rating → selección con card verde mostrando place_id
+  - Click-outside para cerrar dropdown
+  - Botón "Generar informe" deshabilitado hasta tener `selectedPlace`
+  - Spinner con pasos fake para UX: "Descargando reseñas" → "Analizando con IA" → "Generando PDF"
+  - Al recibir respuesta: `downloadMiniRadarPdf(result)` descarga el PDF automáticamente
+  - UI post-generación muestra: cards KPI (rating, reseñas, ult30d, % respondidas), email pitch con botón "Copiar" al portapapeles, fortalezas/debilidades, peores reseñas sin responder
+
+- **PDF generator:** `frontend/src/lib/mini-radar-pdf.ts` (client-side, jsPDF)
+  - Hermano independiente de `report-pdf.ts`, con sus propios helpers (no exporta nada del otro)
+  - 3 páginas:
+    1. Portada: header Atlantic Blue + resumen ejecutivo + 4 KPIs grid 2×2 (rating, reseñas, últimos 30d, % respondidas con tono rojo/ámbar/verde según valor) + distribución 1★-5★ con barras de progreso coloreadas
+    2. Quejas críticas sin responder — cards con banda lateral roja, autor + rating + fecha + texto literal
+    3. Diagnóstico IA: fortalezas (verde), debilidades (rojo), acción de la semana (card índigo destacada) + CTA cierre Atlantic Blue con `info@velacre.com`
+  - Colores: mismos constantes Atlantic/Indigo/Green/Red/Amber/Slate_* que `report-pdf.ts`
+  - Filename: `mini-radar-{slug_nombre}-{YYYY-MM-DD}.pdf`
+  - Descarga directa al ordenador del admin, **no se guarda en servidor**
+
+### Coste por informe
+
+| Item | Coste |
+|------|-------|
+| Outscraper (30 reseñas) | ~€0,02 |
+| Claude Sonnet 4.6 input (~7.000 tokens con 30 reseñas + prompt) | ~$0,021 |
+| Claude Sonnet 4.6 output (MaxTokens 800, uso típico 400-600) | ~$0,009 |
+| **Total** | **~€0,05 por informe** |
+
+100 informes/mes = €5. Negligible.
+
+### Prompt Claude — regla de oro: lenguaje humano
+
+El system prompt (`AdminController.cs:MiniRadar`) prohíbe expresamente jerga técnica SEO y obliga al modelo a hablar como un amigo del dueño de un bar gallego. Palabras banneadas: `SEO`, `CTR`, `ranking`, `visibilidad orgánica`, `keywords`, `engagement`, `conversion`, `call-to-action`, `KPI`, `sentiment`, `review management`. Frases obligatorias del estilo: "salir antes cuando alguien busca", "que más gente te vea y entre a comer", "que Google recomiende tu negocio", "la gente que te busca en el móvil", "lo que leen los clientes antes de reservar". Incluye ejemplos buenos/malos para la acción semanal y una regla final de auto-revisión.
+
+El `emailPitch` pedido a Claude es de "vecino que quiere echar una mano", no comercial. Firma: Manuel, Velacre.com. No menciona precios.
+
+### Workflow de uso para outreach
+
+1. Admin va a `/admin/mini-radar`
+2. Busca el negocio por nombre (mínimo 3 chars, debounce 300ms) → selecciona en el dropdown
+3. Click "Generar informe" → 5-10s → PDF descargado automáticamente
+4. Lee el PDF y copia el email pitch que ha preparado Claude (botón "Copiar")
+5. Pega en Gmail / IG DM / WhatsApp personalizando con 1 dato concreto del PDF
+6. Adjunta el PDF **solo si** el prospect lo pide en su respuesta
+
+### Herramienta hermana: Word de templates
+
+`scripts/generate-email-templates-docx.js` genera `velacre-email-templates-outreach.docx` con 5 plantillas de outreach + workflow recomendado:
+- **A** — Restaurantes dueño-operador (email genérico con stats)
+- **B** — Negocios con logros mediáticos recientes (gancho "premio vs reseñas")
+- **C** — Clínica Pardiñas (tono profesional, estudio citado)
+- **D** — DM de vecino-cliente (humilde, solo si eres cliente real)
+- **E** — EJEMPLO REAL aplicado a **O Fogar da Carne** (Bruno Casal, Narón) — prospect #1 declarado por Manuel, DM exacto preparado para enviar vía IG DM @ofogardacarne
+
+Regenerar con: `NODE_PATH="$(npm root -g)" node scripts/generate-email-templates-docx.js`
 
 ---
 
@@ -462,8 +539,14 @@ Instalado `framer-motion` como dependencia. `LandingPage.tsx` completamente rees
 ### Calculadora de paz mental
 
 - Widget posicionado **inmediatamente después de la barra de stats** (antes del DEMO IA) — máxima visibilidad/conversión
-- Inputs: reseñas/mes (stepper +/−), precio/hora (stepper +/− inline-flex, sin input nativo para evitar bug scroll+selección)
-- Cálculo: horas ahorradas = (reseñas × 4min) / 60; ahorro€ = horas × precio/hora; tiempo Velacre = reseñas × 15s
+- Inputs: reseñas/mes (slider 1-150), precio/hora (stepper +/− inline-flex, sin input nativo para evitar bug scroll+selección)
+- **Cálculos actualizados 2026-04-10 con tiempos realistas:**
+  - `minSin = resenas * 6` (6 min/reseña sin Velacre — abrir Google, leer, pensar, redactar, publicar)
+  - `minCon = Math.max(1, Math.ceil(resenas * 5 / 60))` (5 seg/reseña con Velacre — generar con IA + 1 click para publicar. Mínimo 1 min garantizado para que la UI no muestre "0 min")
+  - `ahorroMin = minSin - minCon`
+  - `ahorroEuros = Math.round((ahorroMin / 60) * precioHora)`
+- Ejemplo: 60 reseñas/mes × 20€/h → Sin Velacre 360 min (6h), Con Velacre 5 min, ahorro 355 min (~5h 55min) / ~118€
+- Antes: 4 min/reseña sin, 15 seg/reseña con — demasiado conservador en el "sin" y demasiado holgado en el "con"
 - Animación en los valores de resultado con `motion.p` + key-based re-render
 
 ### Sistema de fuentes
@@ -484,11 +567,16 @@ Instalado `framer-motion` como dependencia. `LandingPage.tsx` completamente rees
 
 ## PWA — instalable en Android e iOS
 
-- **Service Worker** (`public/sw.js`) registrado desde `layout.tsx` para cache básico + funcionamiento offline del shell
+- **Service Worker** (`public/sw.js`) registrado desde `PWAInstall.tsx` para cache básico + funcionamiento offline del shell. **Siempre activo, en todas las rutas.**
 - **`public/manifest.webmanifest`**: nombre "Velacre", `start_url: /dashboard`, `display: standalone`, theme/background `#0f172a`, iconos 192/512 + apple-touch-icon
-- **Banner de instalación Android:** componente `InstallPromptBanner.tsx` escucha `beforeinstallprompt`, muestra CTA "Instalar Velacre" en dashboard/salud. Persistencia en `localStorage` para no insistir si el usuario cierra.
-- **iOS:** detecta UA iPhone/iPad y muestra banner alternativo con instrucciones "Compartir → Añadir a pantalla de inicio" (iOS no dispara `beforeinstallprompt`).
-- **Objetivo:** presencia en home del móvil del cliente → acceso 1 tap a reseñas, más recurrencia diaria, reduce fricción vs abrir navegador.
+- **Componente `PWAInstall.tsx`** montado globalmente desde `Providers.tsx`. Lógica actualizada 2026-04-10:
+  - **Solo se muestra en las rutas `/` y `/inicio`** — hard gate al renderizar (`return null` antes de cualquier JSX). En cualquier otra ruta (auth, dashboard, settings, admin, etc.) el banner literalmente no existe en el DOM.
+  - **Solo primera vez de por vida:** persistencia en `localStorage` con clave `velacre-pwa-banner-dismissed`. Se marca el flag inmediatamente al mostrar el banner → el usuario lo ve una sola vez en este navegador.
+  - **Auto-hide a los 10s:** `setTimeout` con `BANNER_TTL_MS = 10_000`. El hideTimer vive en un `useRef` fuera del efecto para que los re-renders no lo reinicien.
+  - **Listener `beforeinstallprompt` global** (separado del gate de ruta) para capturar el evento aunque el usuario aterrice en una ruta no-landing.
+- **Android:** muestra banner con "Instalar" que lanza el prompt nativo del navegador
+- **iOS:** detecta UA iPhone/iPad + `navigator.standalone === false` y muestra banner alternativo con instrucciones "Compartir → Añadir a pantalla de inicio" (iOS no dispara `beforeinstallprompt`).
+- **Objetivo:** presencia en home del móvil del cliente → acceso 1 tap a reseñas. No intrusivo: una sola aparición, corta, en la landing donde el usuario tiene intención de conocer el producto.
 
 ---
 
@@ -782,3 +870,31 @@ Commits del día (orden cronológico):
 | `4fdeae1` | feat(pwa) | Service Worker + `manifest.webmanifest` + `InstallPromptBanner.tsx` (Android `beforeinstallprompt` + iOS instrucciones "Añadir a pantalla de inicio") → Velacre instalable como app en Android e iOS |
 
 **Impacto agregado:** con estos 4 commits Velacre tiene (1) precio Pro alineado al valor comunicado en landing, (2) IA genérica no sesgada a Galicia/hostelería lista para escalar a cualquier sector, (3) experiencia móvil con app instalable en home screen — clave para PYMEs que viven del móvil, (4) flujo de pago post-checkout pulido en móvil.
+
+---
+
+## Changelog 2026-04-10
+
+Commits del día en orden cronológico:
+
+| Hash | Tipo | Cambio |
+|------|------|--------|
+| `54a61ef` | feat(admin) | **Mini Radar v1** — endpoint `POST /api/admin/mini-radar` + página `/admin/mini-radar` + `lib/mini-radar-pdf.ts` con jsPDF. Herramienta interna de prospección que analiza las últimas 30 reseñas de cualquier place_id via Outscraper + Claude y genera un PDF descargable de 3 páginas con stats, quejas sin responder, diagnóstico IA y email pitch pre-personalizado. Coste ~€0,05 por informe. Sin persistencia. Ver sección "Mini Radar" para detalles. |
+| `728dc58` | fix(pwa) | (Primera iteración del fix del banner PWA — ver siguiente entrada) |
+| `e1cec28` | feat(mini-radar) | **Buscador Google Places** en `/admin/mini-radar` reemplazando el input manual de place_id. Reutiliza `searchPlaces()` + `PlaceResult` de onboarding: debounce 300ms, dropdown con nombre/dirección/rating, click-outside, card verde con place_id al seleccionar. Elimina fricción de copiar/pegar place_ids a mano. |
+| `d0fd099` | tweak(landing) | Calculadora de paz mental con tiempos realistas: 4 min → **6 min** sin Velacre, 15 seg → **5 seg** con Velacre. Min 1 min garantizado en el cálculo con-Velacre para que la UI nunca muestre "0 min". |
+| `99e072c` | chore(email) | **`hola@velacre.com` → `info@velacre.com`** en todos los sitios: `EmailService.cs` (fallback de `RESEND_FROM`), `mini-radar-pdf.ts` (CTA de cierre del PDF), `velacre-context.md` (tabla de stack + env vars) y `scripts/generate-email-templates-docx.js` (firmas de los 3 templates). Word regenerado. |
+| `f3e5778` | fix(pwa) | **Banner PWA reescrito tras feedback del usuario.** Gate duro a `/` y `/inicio` (nunca más en auth, dashboard, admin). Auto-hide a los 10s garantizado (hideTimer en `useRef`, no en estado). Primera vez de por vida con `localStorage.velacre-pwa-banner-dismissed`. Service Worker y listener `beforeinstallprompt` siguen globales. Resuelto también el warning `react-hooks/set-state-in-effect` preexistente. |
+| `f0db12b` | fix(mini-radar) | **Prompt Claude humanizado** — fuera jerga SEO/CTR/ranking/KPI, dentro lenguaje de dueño de bar gallego ("salir antes cuando alguien busca", "que Google enseñe vuestra ficha"). Ejemplos buenos/malos para la acción semanal y regla de auto-revisión final que obliga a reescribir cualquier tecnicismo. emailPitch ahora en tono "vecino que quiere echar una mano" no comercial. |
+
+**Impacto agregado:**
+
+1. **Herramienta de prospección lista** — Manuel puede generar informes PDF gratis de cualquier negocio de Google en ~10s desde el panel admin, con buscador Google Places y email pitch pre-redactado. Lead magnet funcional para outreach B2B.
+2. **Lenguaje del producto alineado con la audiencia** — ningún output que ve el usuario final (prospect o cliente) contiene jerga técnica. Cualquier PYME gallega entiende los informes sin necesitar un traductor.
+3. **Banner PWA no-intrusivo** — tras 2 iteraciones, cumple los 3 requisitos del usuario: solo en landing/inicio, solo primera vez, 10 segundos máximo. Ya no aparece en auth ni en el resto de la app.
+4. **Coherencia de marca** — email oficial unificado en `info@velacre.com` en todas las superficies (backend, frontend, PDFs, templates, docs).
+5. **Calculadora de landing más verosímil** — la diferencia entre "sin Velacre" y "con Velacre" está mejor calibrada sin parecer inflada.
+
+### Prospect #1 declarado
+
+**O Fogar da Carne** (Bruno Casal, Narón) — asador de carnes premiado, vecino de Ferrol. Manuel es cliente habitual (comió allí el domingo 2026-04-05 con la familia). Prioridad oficial de captación: máxima. El **Template E** del Word de outreach contiene el DM exacto preparado para enviar por IG DM @ofogardacarne cuando esté listo. Canal único: DM digital (sin puerta fría por preferencia del usuario).
