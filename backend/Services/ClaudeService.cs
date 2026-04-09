@@ -92,7 +92,7 @@ public class ClaudeService : IReviewAiService
             : "";
 
         var systemPrompt =
-            $"Eres un experto en reputación online para hostelería en Ferrol, Galicia. " +
+            $"Eres un experto en gestión de reputación online y respuesta a reseñas de clientes." +
             $"Negocio: {businessDesc}. {instructions} " +
             $"Responde SIEMPRE en el mismo idioma que la reseña (código '{reviewLanguage}'). " +
             $"Si la reseña no tiene texto, agradece la valoración basándote en las estrellas. " +
@@ -175,7 +175,7 @@ public class ClaudeService : IReviewAiService
         _logger.LogInformation("[ClaudeService] GenerateThreeResponsesWithSafeFilterAsync — modelo={Model}", _model);
 
         var systemPrompt =
-            $"Eres un experto en reputación online para hostelería en Ferrol, Galicia. " +
+            $"Eres un experto en gestión de reputación online y respuesta a reseñas de clientes." +
             $"Negocio: {businessDesc}. " +
             "IMPORTANTE — Filtro de seguridad: antes de generar respuestas evalúa si la reseña describe alguna situación crítica: " +
             "(1) intoxicación alimentaria real o enfermedad grave, " +
@@ -272,7 +272,7 @@ public class ClaudeService : IReviewAiService
             $"{{\"nombre\":\"{c.Nombre}\",\"fortaleza\":\"...\",\"debilidad\":\"...\",\"amenaza\":\"alta|media|baja\"}}"));
 
         var systemPrompt =
-            "Eres un experto en reputación online para hostelería. Analiza las reseñas reales de un negocio y sus competidores. " +
+            "Eres un experto en gestión de reputación online. Analiza las reseñas reales de un negocio y sus competidores." +
             "Sé específico, directo y accionable — nada de frases genéricas. Máximo 2 frases por campo. " +
             "Identifica las 4 categorías más relevantes que emergen de las reseñas (p.ej: comida, trato, limpieza, precio, ambiente, servicio, rapidez...). " +
             "Para cada categoría puntúa el sentimiento de 0-10 (0=muy negativo, 10=muy positivo) basándote en las reseñas reales. " +
@@ -322,7 +322,7 @@ public class ClaudeService : IReviewAiService
             System =
             [
                 new SystemMessage(
-                    $"Eres un experto en reputación online para hostelería en Ferrol, Galicia. " +
+                    $"Eres un experto en gestión de reputación online y respuesta a reseñas de clientes." +
                     $"Negocio: {businessDesc}. " +
                     $"Tono: {tone}. {toneInstructions} " +
                     $"Si la reseña no tiene texto escrito, genera igualmente una respuesta agradeciendo la valoración y basándote en la puntuación de estrellas. " +
