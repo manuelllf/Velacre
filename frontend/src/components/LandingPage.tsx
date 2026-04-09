@@ -229,8 +229,8 @@ export default function LandingPage({ locale: l }: Props) {
 
       {/* ── CALCULADORA DE PAZ MENTAL ── */}
       {(() => {
-        const minSin = calcResenas * 4
-        const minCon = Math.ceil(calcResenas * 0.25)
+        const minSin = calcResenas * 6
+        const minCon = Math.max(1, Math.ceil((calcResenas * 5) / 60))
         const ahorroMin = minSin - minCon
         const ahorroH = Math.floor(ahorroMin / 60)
         const ahorroM = Math.round(ahorroMin % 60)
@@ -272,11 +272,11 @@ export default function LandingPage({ locale: l }: Props) {
                 <div className="bg-slate-900/70 rounded-2xl p-6 border border-slate-800 flex flex-col justify-between">
                   <div className="space-y-3 mb-5">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-400">Sin Velacre <span className="text-slate-600 text-xs">(4 min/reseña)</span></span>
+                      <span className="text-sm text-slate-400">Sin Velacre <span className="text-slate-600 text-xs">(6 min/reseña)</span></span>
                       <span className="text-slate-300 font-semibold tabular-nums">{minSin} min</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-400">Con Velacre <span className="text-slate-600 text-xs">(15 seg/reseña)</span></span>
+                      <span className="text-sm text-slate-400">Con Velacre <span className="text-slate-600 text-xs">(5 seg/reseña)</span></span>
                       <span className="text-emerald-400 font-semibold tabular-nums">{minCon} min</span>
                     </div>
                     <div className="h-px bg-slate-800" />
