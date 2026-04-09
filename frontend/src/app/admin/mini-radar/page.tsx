@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   getMyUsuario,
   runMiniRadar,
+  searchPlaces,
   ApiError,
   type MiniRadarResult,
+  type PlaceResult,
 } from '@/lib/api'
 import { downloadMiniRadarPdf } from '@/lib/mini-radar-pdf'
 
@@ -25,8 +27,16 @@ const STEP_LABELS: Record<Step, string> = {
 export default function MiniRadarPage() {
   const router = useRouter()
   const [authChecked, setAuthChecked] = useState(false)
-  const [placeId, setPlaceId] = useState('')
-  const [nombre, setNombre] = useState('')
+
+  // Buscador de Google Places (mismo patrón que onboarding)
+  const [placeQuery, setPlaceQuery] = useState('')
+  const [placeResults, setPlaceResults] = useState<PlaceResult[]>([])
+  const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null)
+  const [searchingPlaces, setSearchingPlaces] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const searchContainerRef = useRef<HTMLDivElement>(null)
+
   const [step, setStep] = useState<Step>('idle')
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<MiniRadarResult | null>(null)
@@ -47,10 +57,61 @@ export default function MiniRadarPage() {
     })()
   }, [router])
 
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  function handleQueryChange(value: string) {
+    setPlaceQuery(value)
+    if (selectedPlace && value !== selectedPlace.name) setSelectedPlace(null)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (value.trim().length < 3) {
+      setPlaceResults([])
+      setDropdownOpen(false)
+      return
+    }
+    debounceRef.current = setTimeout(async () => {
+      setSearchingPlaces(true)
+      try {
+        const results = await searchPlaces(value.trim())
+        setPlaceResults(results)
+        setDropdownOpen(results.length > 0)
+      } catch {
+        setPlaceResults([])
+        setDropdownOpen(false)
+      } finally {
+        setSearchingPlaces(false)
+      }
+    }, 300)
+  }
+
+  function handleSelectPlace(place: PlaceResult) {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSearchingPlaces(false)
+    setSelectedPlace(place)
+    setPlaceQuery(place.name)
+    setPlaceResults([])
+    setDropdownOpen(false)
+  }
+
+  function clearSelection() {
+    setSelectedPlace(null)
+    setPlaceQuery('')
+    setPlaceResults([])
+    setDropdownOpen(false)
+  }
+
   async function onGenerate(e: React.FormEvent) {
     e.preventDefault()
-    if (!placeId.trim()) {
-      setError('Introduce un place_id válido de Google')
+    if (!selectedPlace) {
+      setError('Busca y selecciona un negocio de Google Places primero')
       return
     }
     setError(null)
@@ -63,7 +124,7 @@ export default function MiniRadarPage() {
       // Simulamos 2 pasos con un setTimeout para UX (el backend es 1 sola request real).
       setTimeout(() => setStep(prev => (prev === 'fetching' ? 'analyzing' : prev)), 2500)
 
-      const res = await runMiniRadar(placeId.trim(), nombre.trim() || undefined)
+      const res = await runMiniRadar(selectedPlace.placeId, selectedPlace.name)
       setResult(res)
       setStep('rendering')
 
@@ -93,8 +154,7 @@ export default function MiniRadarPage() {
   }
 
   function reset() {
-    setPlaceId('')
-    setNombre('')
+    clearSelection()
     setStep('idle')
     setError(null)
     setResult(null)
@@ -145,62 +205,99 @@ export default function MiniRadarPage() {
           </p>
 
           <form onSubmit={onGenerate} className="space-y-4">
-            <div>
+            <div ref={searchContainerRef}>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Place ID <span className="text-red-500">*</span>
+                Buscar negocio en Google <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={placeId}
-                onChange={e => setPlaceId(e.target.value)}
-                placeholder="ChIJN1t_tDeuEmsRUsoyG83frY4"
-                disabled={busy}
-                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50 font-mono text-sm"
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                Cómo obtenerlo: busca el negocio en{' '}
-                <a
-                  href="https://www.google.com/maps"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-600 dark:text-blue-400 underline"
-                >
-                  Google Maps
-                </a>
-                , copia la URL, y extrae el parámetro <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">0x...:0x...</code> o usa una herramienta como{' '}
-                <a
-                  href="https://developers.google.com/maps/documentation/places/web-service/place-id"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-600 dark:text-blue-400 underline"
-                >
-                  Place ID Finder
-                </a>
-                .
-              </p>
-            </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={placeQuery}
+                  onChange={e => handleQueryChange(e.target.value)}
+                  onFocus={() => { if (placeResults.length > 0 && !selectedPlace) setDropdownOpen(true) }}
+                  autoComplete="off"
+                  disabled={busy}
+                  placeholder="Ej: A Taberna do Bispo Santiago"
+                  className={`w-full px-3 py-2.5 pr-10 border rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50 transition-colors ${
+                    selectedPlace
+                      ? 'border-emerald-400 dark:border-emerald-700'
+                      : 'border-slate-300 dark:border-slate-700'
+                  }`}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {searchingPlaces ? (
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  ) : selectedPlace ? (
+                    <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
+                    </svg>
+                  )}
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Nombre del negocio <span className="text-slate-400 font-normal">(opcional)</span>
-              </label>
-              <input
-                type="text"
-                value={nombre}
-                onChange={e => setNombre(e.target.value)}
-                placeholder="A Taberna do Bispo"
-                disabled={busy}
-                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50 text-sm"
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                Se usa en el PDF y en el pitch de Claude. Si lo omites, pondrá &ldquo;el negocio&rdquo;.
-              </p>
+                {dropdownOpen && placeResults.length > 0 && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xl">
+                    <ul className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                      {placeResults.slice(0, 5).map(place => (
+                        <li key={place.placeId}>
+                          <button
+                            type="button"
+                            onMouseDown={e => { e.preventDefault(); handleSelectPlace(place) }}
+                            className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                          >
+                            <div className="text-sm font-medium text-slate-900 dark:text-white">{place.name}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{place.address}</div>
+                            {place.rating != null && (
+                              <div className="text-xs text-amber-500 mt-0.5">★ {place.rating.toFixed(1)}</div>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    {placeResults.length > 5 && (
+                      <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
+                        <p className="text-xs text-slate-400">Mostrando 5 de {placeResults.length} — refina la búsqueda</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {selectedPlace && (
+                <div className="mt-2 flex items-start gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                  <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-emerald-800 dark:text-emerald-200 truncate">{selectedPlace.name}</div>
+                    <div className="text-xs text-emerald-700/70 dark:text-emerald-300/70 truncate">{selectedPlace.address}</div>
+                    <div className="text-[10px] text-emerald-600/60 dark:text-emerald-400/60 font-mono mt-0.5 truncate">{selectedPlace.placeId}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearSelection}
+                    disabled={busy}
+                    className="text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-200 shrink-0 text-base leading-none disabled:opacity-40"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              {!selectedPlace && (
+                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1.5">
+                  Escribe el nombre del negocio (mínimo 3 caracteres). Usa el mismo buscador de Google Places que el onboarding.
+                </p>
+              )}
             </div>
 
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
-                disabled={busy || !placeId.trim()}
+                disabled={busy || !selectedPlace}
                 className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-lg font-medium text-sm transition-colors disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {busy && (
