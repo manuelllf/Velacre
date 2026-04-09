@@ -385,7 +385,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   doc.setTextColor(...INDIGO)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
-  doc.text(safe('hola@velacre.com | velacre.com'), ML + 8, y + 30)
+  doc.text(safe('info@velacre.com | velacre.com'), ML + 8, y + 30)
   doc.link(ML + 8, y + 26, 70, 6, { url: 'https://velacre.com' })
 
   // Footer en todas las paginas

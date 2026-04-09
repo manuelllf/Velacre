@@ -19,7 +19,7 @@ SaaS B2B para negocios de hostelería en Galicia (España). Permite gestionar y 
 | IA | Claude API (`claude-sonnet-4-6`) via Anthropic SDK v5.10.0 |
 | Pagos | Lemon Squeezy — checkout implementado, tienda pendiente activación (alta autónomo) |
 | Scraping reseñas | Outscraper API v3 |
-| Email | Resend (`hola@velacre.com`) |
+| Email | Resend (`info@velacre.com`) |
 | Deploy | Railway (backend) + Vercel (frontend) |
 
 ---
@@ -520,7 +520,7 @@ LEMONSQUEEZY_API_KEY=
 LEMON_VELACRE_API=
 LEMONSQUEEZY_WEBHOOK_SECRET=
 RESEND_API_KEY=
-RESEND_FROM=Velacre <hola@velacre.com>
+RESEND_FROM=Velacre <info@velacre.com>
 CORS_EXTRA_ORIGIN=   # preview Vercel
 FRONTEND_URL=https://www.velacre.com
 GOOGLE_CLIENT_ID=    # para GBP OAuth (pendiente activación)

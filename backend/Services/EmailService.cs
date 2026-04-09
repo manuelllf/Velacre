@@ -14,7 +14,7 @@ public class EmailService
         _http   = httpFactory.CreateClient();
         _logger = logger;
         _apiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
-        _from   = Environment.GetEnvironmentVariable("RESEND_FROM")    ?? "Velacre <hola@velacre.com>";
+        _from   = Environment.GetEnvironmentVariable("RESEND_FROM")    ?? "Velacre <info@velacre.com>";
     }
 
     public async Task SendWaitlistNotificationAsync(string userEmail, string userName, string plan, string notas)
