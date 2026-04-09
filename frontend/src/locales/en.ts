@@ -128,9 +128,9 @@ const en: LandingLocale = {
       },
       pro: {
         name: 'Pro',
-        priceMonthly: '€45',
-        priceYearly: '€449',
-        priceYearlyMonthly: '€37.42',
+        priceMonthly: '€49',
+        priceYearly: '€490',
+        priceYearlyMonthly: '€40.83',
         desc: 'For active businesses that want maximum control over their reputation.',
         features: ['Unlimited AI responses', 'Health & reputation panel', 'Sentiment analysis', 'Priority support'],
         cta: 'Choose Pro',

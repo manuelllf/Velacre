@@ -128,9 +128,9 @@ const es: LandingLocale = {
       },
       pro: {
         name: 'Pro',
-        priceMonthly: '45 €',
-        priceYearly: '449 €',
-        priceYearlyMonthly: '37,42 €',
+        priceMonthly: '49 €',
+        priceYearly: '490 €',
+        priceYearlyMonthly: '40,83 €',
         desc: 'La diferencia entre responder reseñas y entender tu reputación.',
         features: ['Panel de Salud completo', 'Respuestas IA ilimitadas', 'Radar: benchmark vs hasta 3 competidores', 'Análisis IA mensual + informes PDF'],
         cta: 'Elegir Pro',

@@ -128,9 +128,9 @@ const gal: LandingLocale = {
       },
       pro: {
         name: 'Pro',
-        priceMonthly: '45 €',
-        priceYearly: '449 €',
-        priceYearlyMonthly: '37,42 €',
+        priceMonthly: '49 €',
+        priceYearly: '490 €',
+        priceYearlyMonthly: '40,83 €',
         desc: 'Para negocios activos que queren o máximo control sobre a súa reputación.',
         features: ['Respostas IA ilimitadas', 'Panel de saúde e reputación', 'Análise de sentimento', 'Soporte prioritario'],
         cta: 'Escoller Pro',

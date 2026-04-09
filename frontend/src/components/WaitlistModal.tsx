@@ -16,7 +16,7 @@ const PLAN_INFO: Record<'core' | 'pro', { name: string; price: string; desc: str
   },
   pro: {
     name: 'Pro',
-    price: '45 €/mes',
+    price: '49 €/mes',
     desc: 'Respuestas IA ilimitadas, Radar de Competencia y acceso completo sin restricciones.',
   },
 }

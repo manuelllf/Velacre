@@ -231,7 +231,7 @@ END; $$;
 |------|---------------|-------------|------------------------|-------------------|-------------|-------|
 | Basic | Gratis | — | 3 | 3 | Teaser (nota media real + blur) | ❌ |
 | Core | €19/mes | €190/año | 3 | **18** | Completo | ❌ |
-| Pro | **€45/mes** | **€449/año** | Ilimitadas | Ilimitadas | Completo + análisis IA + Radar | ✅ |
+| Pro | **€49/mes** | **€490/año** | Ilimitadas | Ilimitadas | Completo + análisis IA + Radar | ✅ |
 
 > **Fórmula anual:** ~10 meses × precio mensual.
 > **Estado pagos:** Checkout LS implementado y funcional (modo test). Tienda sin activar hasta alta como autónomo — cuando se active, los pagos en producción se procesarán automáticamente con IVA correcto (LS como Merchant of Record).
@@ -635,7 +635,7 @@ frontend/src/
 
 + **Precios por ubicación (multi-local):**
 - Si un negocio tiene 2+ locales, paga proporcionalmente (le ahorramos el doble de tiempo).
-- Modelo: precio base primer local (ej. €45/mes Pro) + add-on por local adicional (ej. €20/mes).
+- Modelo: precio base primer local (ej. €49/mes Pro) + add-on por local adicional (ej. €20/mes).
 - Implementación: quantity en Stripe/LS o add-on de "sede adicional".
 - Gestión manual mientras no haya demanda validada (primeros clientes).
 - ⚠️ **Al implementar esta feature, revisar y actualizar la tabla de planes de pago** (sistema de planes, precios, variantes LS) para reflejar el nuevo modelo de precios.

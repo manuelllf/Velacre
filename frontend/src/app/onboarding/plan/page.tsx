@@ -157,11 +157,11 @@ export default function OnboardingPlanPage() {
             <p className="text-lg font-bold text-white">Pro</p>
             {billing === 'yearly' ? (
               <div className="mt-2">
-                <p className="text-3xl font-extrabold text-white">449 €<span className="text-base font-normal text-slate-400">/año</span></p>
-                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 37,42 €/mes · 2 meses gratis</p>
+                <p className="text-3xl font-extrabold text-white">490 €<span className="text-base font-normal text-slate-400">/año</span></p>
+                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 40,83 €/mes · 2 meses gratis</p>
               </div>
             ) : (
-              <p className="text-3xl font-extrabold text-white mt-2">45 €<span className="text-base font-normal text-slate-400">/mes</span></p>
+              <p className="text-3xl font-extrabold text-white mt-2">49 €<span className="text-base font-normal text-slate-400">/mes</span></p>
             )}
           </div>
           <ul className="space-y-2 flex-1">
