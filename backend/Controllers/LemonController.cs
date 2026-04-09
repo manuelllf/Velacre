@@ -75,7 +75,7 @@ public class LemonController : ControllerBase
             ["checkout_data"]   = checkoutData,
             ["product_options"] = new Dictionary<string, string>
             {
-                ["redirect_url"] = $"{frontendUrl}/settings"
+                ["redirect_url"] = $"{frontendUrl}/inicio"
             }
         };
 
