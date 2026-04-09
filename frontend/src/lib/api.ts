@@ -677,3 +677,52 @@ export async function runRadarAnalysis(): Promise<RadarAnalisisResult & { analis
   }
   return res.json()
 }
+
+// ─── Mini Radar (admin — prospección B2B) ────────────────────────────────────
+
+export interface MiniRadarStats {
+  total: number
+  ratingAvg: number
+  distribucion: { s5: number; s4: number; s3: number; s2: number; s1: number }
+  pctRespondidas: number
+  ult30d: number
+  ult90d: number
+}
+
+export interface MiniRadarPeorResena {
+  autor: string
+  rating: number
+  texto: string
+  fecha: string
+}
+
+export interface MiniRadarAnalisis {
+  fortalezas: string[]
+  debilidades: string[]
+  accion: string
+  resumen: string
+  emailPitch: string
+}
+
+export interface MiniRadarResult {
+  placeId: string
+  nombre?: string
+  stats: MiniRadarStats
+  peoresSinResponder: MiniRadarPeorResena[]
+  analisis: MiniRadarAnalisis | null
+  analisisRaw?: string | null
+  generadoEn: string
+}
+
+export async function runMiniRadar(placeId: string, nombre?: string): Promise<MiniRadarResult> {
+  const res = await fetch(`${API_URL}/api/admin/mini-radar`, {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ placeId, nombre }),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new ApiError(res.status, (data as { error?: string; mensaje?: string }).mensaje ?? (data as { error?: string }).error ?? `HTTP ${res.status}`, data as Record<string, unknown>)
+  }
+  return res.json()
+}
