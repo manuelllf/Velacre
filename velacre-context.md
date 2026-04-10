@@ -747,6 +747,40 @@ frontend/src/
 - Alta como autónomo → activar tienda Lemon Squeezy (payout/datos bancarios) → en producción los pagos se procesarán automáticamente con IVA correcto (LS como MoR).
 - El checkout ya está implementado y probado en modo test.
 
+### Outreach / Captación de primeros clientes
+
+Pendientes de ejecución para la fase de captación inicial. Todo lo técnico que habilita este trabajo (Mini Radar, Word de templates con A-E, análisis de competencia, ICP definido) ya está listo — falta ejecutar.
+
+1. **Prospect #1 — O Fogar da Carne (Bruno Casal, Narón)**
+   - Generar el Mini Radar de O Fogar da Carne desde `/admin/mini-radar` (buscar "O Fogar da Carne Narón" en el buscador Google Places)
+   - Leer el PDF entero antes de nada
+   - Personalizar el Template E del Word de outreach con 1 dato concreto sacado del PDF (ej: "he visto que las 3 últimas reseñas del mes pasado siguen sin contestar, una habla de X")
+   - Revisar el mensaje en voz alta con la novia antes de pulsar enviar
+   - Enviar por IG DM a @ofogardacarne
+   - Si no responde en 7 días: NO insistir por canal digital, mencionarlo de palabra en la próxima visita como cliente cuando lleve el entrecot
+
+2. **Prospects #2-#5 — cerrar 2-3 clientes reales antes de escalar**
+   - Seguir el orden de envío del Word de templates (`velacre-email-templates-outreach.docx`, última página): Pardiñas con C → Mesón O Pote con B → Pablo Gallego con B → A Taberna do Bispo con A
+   - Para cada uno: correr Mini Radar → copiar email pitch que genera Claude → pegar en el template correspondiente → personalizar 1-2 datos → enviar
+   - Meta realista primera semana: 4-5 outreach enviados → 1-2 respuestas → 1 cliente de pago cerrado
+
+3. **Warm intro vía Tía Carmiña (Inés Santiago, @inesantiagoo)**
+   - **Sólo después** de tener 2-3 clientes reales cerrados para no ir de vacío ni dependiente/desesperado
+   - Canal: Instagram DM a @inesantiagoo
+   - Propuesta: partnership con Tía Carmiña (agencia de comunicación que lleva restaurantes de Ferrol/Galicia) — modelo reseller con 20% comisión recurrente, o referidos simples con €50-100 por cliente cerrado, o co-marketing (caso de estudio conjunto)
+   - No venderle Velacre a ella como cliente — ofrecerle canal de distribución a sus clientes
+   - Nota: Inés es HIJA de los dueños de Artesa (pizzería Canido). Si se da la conversación, puede haber ruta indirecta a Pablo Santiago (Artesa) también
+
+4. **Al cerrar cada cliente nuevo**
+   - Pedir testimonio breve escrito (2-3 frases, firmado con nombre + foto del negocio si acepta)
+   - Pedir permiso para caso de estudio público ("Cómo X aumentó su rating de Y a Z en N meses con Velacre")
+   - Añadirlo a una sección futura "Clientes actuales" de la landing cuando haya 3-5 testimonios
+
+5. **Instrumentación pendiente para optimizar outreach**
+   - Tracking de aperturas de emails con Resend (si se envían emails, no DMs) — ya está integrado el SDK
+   - Dashboard admin con contador de prospects contactados / respondidos / cerrados — valorar construirlo cuando haya 10+ prospects activos
+   - Posible lead magnet público `/informe-gratis?place_id=X` que cualquiera pueda compartir (requiere desgatear el Mini Radar de admin a endpoint público con rate limit) — valorar tras 5 clientes cerrados
+
 ### Backlog inmediato (mejoras/bugs para antes o junto con GBP)
 - Revisar MVP
   
