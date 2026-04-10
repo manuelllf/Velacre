@@ -980,3 +980,7 @@ Manuel actualizó manualmente las descripciones de los productos Core y Pro en e
 3. **Pro mantiene el precio pero gana comunicación** — copy del Radar ampliado, features reorganizadas para que el valor esté al principio.
 4. **Nadie más en España comunica el filtro de seguridad** — ventaja de marca únicamente explotable con una línea de copy y cero coste técnico.
 5. **Cap soft Pro detecta casos enterprise** — sin bloquear, nos avisa cuando alguien está usando Pro con volumen que justificaría plan custom futuro.
+
+### Fix tardío — botón Mini Radar en móvil (`b20a326`)
+
+El botón "Mini Radar" que añadí al header del panel admin en `54a61ef` tenía `hidden sm:inline-flex` — invisible en móvil. Corregido para seguir el mismo patrón del botón "Actualizar" de al lado: icono SVG siempre visible, texto "Mini Radar" solo en `sm+`, padding compacto en móvil (`px-2.5 sm:px-3`), añadidos `title` y `aria-label` para accesibilidad cuando solo aparece el icono. Una línea de código, un minuto, pero el Mini Radar no se podía usar desde móvil hasta este fix.
