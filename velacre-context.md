@@ -744,8 +744,9 @@ frontend/src/
 - Revisar precios post-GBP: Core €29/mes, Pro €69/mes (incluyendo Radar como add-on integrado).
 
 ### Activar pagos
-- Alta como autónomo → activar tienda Lemon Squeezy (payout/datos bancarios) → en producción los pagos se procesarán automáticamente con IVA correcto (LS como MoR).
-- El checkout ya está implementado y probado en modo test.
+- Alta como autónomo → activar tienda Lemon Squeezy (payout/datos bancarios) → en producción los pagos se procesarán automáticamente con IVA correcto (LS como MoR). Esto ya funciona!!!!!!
+- El checkout ya está implementado y probado en modo test. Y en live mode también probado!!!!!!!
+- Descuento de 99% creado para test (tarjeta de un colega) y un descuento del 15% por si me apetece dárselo a alguien que capte (como el primer cliente PRO, o CORE venga, humildad)
 
 ### Outreach / Captación de primeros clientes
 
