@@ -443,9 +443,8 @@ export default function LandingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="flex items-center justify-between pt-2 border-t border-slate-800"
+                    className="flex items-center justify-end pt-2 border-t border-slate-800"
                   >
-                    <span className="text-xs text-slate-400">{l.demo.response.cta}</span>
                     <Link href="/auth/register"
                       className="text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors">
                       {l.nav.start} →
