@@ -1348,8 +1348,12 @@ Migración completa de todos los textos hardcodeados del frontend al sistema i18
 - Componentes: `SectionNav`, `HelpModal`, `ReportErrorModal`, `ErrorBoundary` (helpers funcionales con try/catch fallback ES), `WaitlistModal`, `ResponseCard`, `LandingPage`.
 - Pages: `dashboard/page.tsx` (~60 strings), `dashboard/salud/page.tsx` (~80 strings), `settings/page.tsx` (~25 strings), `onboarding/page.tsx`, `onboarding/plan/page.tsx`, `admin/page.tsx`, `admin/mini-radar/page.tsx`, `inicio/page.tsx`, `auth/callback/page.tsx`, `auth/login/page.tsx`, `auth/register/page.tsx`, `auth/reset-password/page.tsx`, `error.tsx`, `privacidad/page.tsx`, `terminos/page.tsx`, `contacto/page.tsx`.
 
-**LangSwitcher (selector de idioma) añadido a:**
-Landing, auth (login, register, reset-password), dashboard, salud, settings, inicio, onboarding, onboarding/plan, admin, mini-radar, privacidad, términos, contacto. Responsive: `hidden sm:flex` en headers compactos.
+**LangSwitcher (selector de idioma):**
+Rediseñado como botón flotante fijo `fixed bottom-5 left-5 z-50` (simétrico al `HelpButton` en bottom-right). Botón circular `w-10 h-10 rounded-full` con código del idioma activo (ES/GL/EN). Click abre dropdown hacia arriba con 3 opciones: Castellano, Galego, English. Click-outside cierra. Tooltip al hover. Montado globalmente desde `Providers.tsx` — quitado de los 15 headers individuales donde estaba incrustado.
+
+**LandingPage:** refactorizado de `props.locale` a `useLanguage()` — cambiar idioma actualiza la landing en tiempo real. Rutas `/es`, `/en`, `/gal` setean el locale al montar vía `useEffect`.
+
+**Traducciones landing corregidas:** hero, stats, demo, health, howto, forWho, cta en EN y GAL eran contenido diferente del español (pre-existente). Corregidas para ser traducciones fieles del mismo mensaje. GAL: "Próximo" → "Achegado" en transversalItems para consistencia.
 
 **No tocados (fallback ES por diseño):** `global-error.tsx` (sin Provider disponible).
 

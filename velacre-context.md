@@ -190,7 +190,9 @@ Service Worker + manifest. Instalable en Android (prompt nativo) e iOS (instrucc
 Siempre dark. Fondo #0f172a, acento blue. Cal Sans para headers, Geist para body.
 
 ### Multiidioma (i18n)
-3 idiomas: castellano (por defecto), gallego e inglés. Sistema basado en `LanguageProvider` con persistencia en `localStorage`. Selector de idioma (`LangSwitcher`) visible en todas las páginas — landing, auth, dashboard, salud, settings, onboarding, admin, mini radar y páginas legales. Todos los textos visibles al usuario usan el sistema i18n (locales tipados en TypeScript). Páginas de error crítico (`global-error.tsx`) mantienen fallback en español por seguridad (Provider puede no estar disponible).
+3 idiomas: castellano (por defecto), gallego e inglés. Sistema basado en `LanguageProvider` con persistencia en `localStorage`. Todos los textos visibles al usuario usan el sistema i18n (~550 claves tipadas en TypeScript). Páginas de error crítico (`global-error.tsx`) mantienen fallback en español por seguridad (Provider puede no estar disponible).
+
+**Selector de idioma:** botón flotante fijo en esquina inferior izquierda (mismo estilo que el botón de ayuda `?` en inferior derecha). Muestra el código del idioma activo (ES/GL/EN), click abre dropdown hacia arriba con los 3 idiomas (Castellano, Galego, English). Montado globalmente desde `Providers.tsx` — visible en todas las páginas sin necesidad de añadirlo a cada header. Tooltip al hover. Click-outside para cerrar.
 
 ---
 
