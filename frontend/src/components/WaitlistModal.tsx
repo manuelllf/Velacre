@@ -12,7 +12,7 @@ const PLAN_INFO: Record<'core' | 'pro', { name: string; price: string; desc: str
   core: {
     name: 'Core',
     price: '19 €/mes',
-    desc: '18 respuestas IA al mes, panel de salud completo y gestión de reseñas.',
+    desc: '20 respuestas IA al mes, panel de salud completo y gestión de reseñas.',
   },
   pro: {
     name: 'Pro',
