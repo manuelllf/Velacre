@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Models.Entities;
 using backend.Services;
 
@@ -246,8 +247,8 @@ public class LemonController : ControllerBase
             {
                 var plan = DetectPlan(dataEl);
                 await SetPlan(userGuid, plan, portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
-                if (eventName == "subscription_created" && !string.IsNullOrEmpty(userEmail))
-                    _ = _email.SendSubscriptionConfirmedAsync(userEmail, userNombre, plan);
+                // Email de confirmación de compra lo envía Lemon Squeezy (incluye factura),
+                // no duplicamos desde Velacre para no saturar al cliente.
                 break;
             }
 
@@ -261,17 +262,15 @@ public class LemonController : ControllerBase
                 break;
 
             case "subscription_cancelled":
-                // Keep access until period ends (endsAt), plan downgrade via subscription_expired
+                // Keep access until period ends (endsAt), plan downgrade via subscription_expired.
+                // Email de cancelación lo envía Lemon Squeezy, no duplicamos.
                 await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
-                if (!string.IsNullOrEmpty(userEmail))
-                    _ = _email.SendSubscriptionCancelledAsync(userEmail, userNombre, DetectPlan(dataEl), endsAt);
                 break;
 
             case "subscription_expired":
             case "subscription_paused":
+                // Email de expiración lo envía Lemon Squeezy, no duplicamos.
                 await SetPlan(userGuid, "basic", null, null, lsStatus, null, null);
-                if (eventName == "subscription_expired" && !string.IsNullOrEmpty(userEmail))
-                    _ = _email.SendSubscriptionExpiredAsync(userEmail, userNombre);
                 break;
 
             default:

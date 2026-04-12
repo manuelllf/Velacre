@@ -717,6 +717,35 @@ export interface MiniRadarResult {
   generadoEn: string
 }
 
+// ─── Error reporting ─────────────────────────────────────────────────────────
+
+import type { ReportErrorPayload } from './errorReporter'
+
+/**
+ * Envía un reporte de error al backend. Endpoint anónimo: no requiere JWT
+ * (se quiere poder reportar incluso con la sesión rota). Si el usuario tiene
+ * token lo añadimos para enriquecer el email, pero no es obligatorio.
+ */
+export async function reportError(payload: ReportErrorPayload): Promise<{ reportId: string }> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' }
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.access_token) {
+      (headers as Record<string, string>).Authorization = `Bearer ${session.access_token}`
+    }
+  } catch { /* sin sesión → se envía anónimo */ }
+
+  const res = await fetch(`${API_URL}/api/report-error`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    throw new ApiError(res.status, `report_error_failed_${res.status}`)
+  }
+  return res.json()
+}
+
 export async function runMiniRadar(placeId: string, nombre?: string): Promise<MiniRadarResult> {
   const res = await fetch(`${API_URL}/api/admin/mini-radar`, {
     method: 'POST',

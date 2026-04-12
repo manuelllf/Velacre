@@ -91,7 +91,7 @@ public class ReviewController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "[ReviewController] Error al generar respuesta manual para userId={UserId}", userId);
-            return StatusCode(500, ex.Message);
+            throw;
         }
     }
 
@@ -210,7 +210,7 @@ public class ReviewController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "[ReviewController] Error al guardar review manual para userId={UserId}", userId);
-            return StatusCode(500, ex.Message);
+            throw;
         }
     }
 
@@ -374,21 +374,35 @@ public class ReviewController : ControllerBase
             // + contexto en español para el propietario
             var lang = string.IsNullOrEmpty(review.ReviewLanguage) ? "es" : review.ReviewLanguage;
 
-            // Fallback de keywords: si el negocio no tiene configuradas, usar las más usadas por la IA
+            // Fallback de keywords: si el negocio no tiene configuradas, usar las más usadas por la IA.
+            // Antes se cargaban TODAS las reseñas del negocio en memoria para agrupar en .NET (N+1 + spike
+            // de memoria para negocios con muchas reseñas). Ahora se delega a una RPC Postgres que hace
+            // el GROUP BY con LATERAL unnest server-side y devuelve solo las 6 top keywords.
             var keywords = negocio.PalabrasClave;
             if (keywords == null || keywords.Length == 0)
             {
-                var allReviewsRes = await _supabase.From<ReviewEntity>()
-                    .Where(r => r.IdNegocio == negocio.Id)
-                    .Get();
-                var topFallback = allReviewsRes.Models
-                    .Where(r => r.KeywordsUsadas != null && r.KeywordsUsadas.Length > 0)
-                    .SelectMany(r => r.KeywordsUsadas!)
-                    .GroupBy(k => k, StringComparer.OrdinalIgnoreCase)
-                    .OrderByDescending(g => g.Count())
-                    .Take(6)
-                    .Select(g => g.Key)
-                    .ToArray();
+                string[] topFallback;
+                try
+                {
+                    var rpcRes = await _supabase.Rpc("get_top_keywords",
+                        new Dictionary<string, object>
+                        {
+                            { "p_negocio_id", negocio.Id },
+                            { "p_limit", 6 }
+                        });
+                    var rpcBody = rpcRes?.Content ?? "[]";
+                    using var rpcDoc = System.Text.Json.JsonDocument.Parse(rpcBody);
+                    topFallback = rpcDoc.RootElement.EnumerateArray()
+                        .Select(e => e.TryGetProperty("word", out var w) ? w.GetString() ?? "" : "")
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .ToArray();
+                }
+                catch (Exception rpcEx)
+                {
+                    _logger.LogWarning(rpcEx, "[ReviewController] get_top_keywords RPC falló, usando nombre del negocio");
+                    topFallback = Array.Empty<string>();
+                }
+
                 keywords = topFallback.Length > 0
                     ? topFallback
                     : new[] { negocio.Nombre };
@@ -485,7 +499,7 @@ public class ReviewController : ControllerBase
                 }
             }
 
-            return StatusCode(500, ex.Message);
+            throw;
         }
     }
 

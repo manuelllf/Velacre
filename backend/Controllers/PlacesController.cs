@@ -108,22 +108,9 @@ public class PlacesController : ControllerBase
 
         var reviews = await _outscraper.GetReviewsAsync(negocio.PlaceId, sinceDate);
 
-        // En carga inicial: eliminar reseñas de Google que ya no están en el place (negocio cambiado)
-        int staleCount = 0;
-        if (isInitialLoad && reviews.Count > 0)
-        {
-            var incomingIds = reviews.Select(r => r.ReviewId).ToHashSet();
-            var stale = allExistingResult.Models
-                .Where(r => r.GoogleReviewId != null && !incomingIds.Contains(r.GoogleReviewId!))
-                .ToList();
-
-            foreach (var old in stale)
-            {
-                await _supabase.From<ReviewEntity>().Where(r => r.Id == old.Id).Delete();
-                _logger.LogInformation("[PlacesController] Reseña obsoleta eliminada: {GoogleReviewId}", old.GoogleReviewId);
-                staleCount++;
-            }
-        }
+        // Política: Sync nunca borra reseñas preexistentes. Solo inserta nuevas y actualiza
+        // las que Google haya respondido desde la última sincronización. Si Outscraper
+        // devuelve una lista parcial (rate limit, timeout) los datos en BD quedan intactos.
 
         if (reviews.Count == 0)
         {
@@ -191,8 +178,8 @@ public class PlacesController : ControllerBase
             _logger.LogDebug("[PlacesController] Reseña insertada: {Codigo} ({ReviewId})", entity.Codigo, review.ReviewId);
         }
 
-        _logger.LogInformation("[PlacesController] Sync completado — {NewCount} nuevas, {UpdatedCount} actualizadas, {StaleCount} obsoletas, modo={Mode}, negocioId={NegocioId}",
-            newCount, updatedCount, staleCount, isInitialLoad ? "inicial" : "incremental", negocio.Id);
+        _logger.LogInformation("[PlacesController] Sync completado — {NewCount} nuevas, {UpdatedCount} actualizadas, modo={Mode}, negocioId={NegocioId}",
+            newCount, updatedCount, isInitialLoad ? "inicial" : "incremental", negocio.Id);
         return Ok(new { newReviews = newCount, updatedReviews = updatedCount });
     }
 }

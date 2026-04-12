@@ -1,9 +1,12 @@
 using DotNetEnv;
+using backend.Infrastructure;
 using backend.Interfaces;
 using backend.Services;
 using Supabase;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.IdentityModel.Tokens;
+using Polly;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +15,7 @@ Env.Load();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
+builder.Services.AddMemoryCache();
 
 // Auth JWT — Supabase usa ES256 (asimétrico), validamos via JWKS discovery
 var supabaseUrl = (Environment.GetEnvironmentVariable("SUPABASE_URL")
@@ -34,10 +38,47 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
+// HttpClient con timeout + circuit breaker para Claude.
+//
+// Timeout 90s: sin esto el SDK usa default infinito y un outage de Claude
+// puede saturar el thread pool del backend.
+//
+// Circuit breaker: si Claude empieza a fallar sostenidamente (outage real),
+// tras N fallos el circuito se abre y las siguientes llamadas fallan al instante
+// con BrokenCircuitException en vez de esperar 90s cada una. Con eso "generar
+// respuesta" devuelve 500 al usuario rápido y el resto de la app (dashboard,
+// settings, publicar, métricas) sigue funcionando porque no gastamos threads
+// esperando a Claude. Se reintentan llamadas periódicas para cerrar el circuito
+// automáticamente cuando Claude vuelve.
+builder.Services.AddHttpClient("anthropic", c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(90);
+})
+.AddResilienceHandler("claude-pipeline", pipeline =>
+{
+    // Circuit breaker: tras 50% fallos en ventana de 30s con mínimo 8 requests,
+    // abre el circuito 30s. Valores conservadores — un poco de ruido no lo abre.
+    pipeline.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+    {
+        SamplingDuration     = TimeSpan.FromSeconds(30),
+        FailureRatio         = 0.5,
+        MinimumThroughput    = 8,
+        BreakDuration        = TimeSpan.FromSeconds(30),
+    });
+
+    // Timeout por intento (más corto que el timeout global del HttpClient)
+    pipeline.AddTimeout(TimeSpan.FromSeconds(85));
+});
+
 builder.Services.AddScoped<IReviewAiService>(sp =>
-    new ClaudeService(
+{
+    var factory = sp.GetRequiredService<IHttpClientFactory>();
+    var http = factory.CreateClient("anthropic");
+    return new ClaudeService(
         Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")!,
-        sp.GetRequiredService<ILogger<ClaudeService>>()));
+        http,
+        sp.GetRequiredService<ILogger<ClaudeService>>());
+});
 
 builder.Services.AddHttpClient<IGooglePlacesService, GooglePlacesService>();
 builder.Services.AddHttpClient<IOutscraperService, OutscraperService>();
@@ -85,6 +126,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
 app.UseCors("AllowFrontend");
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 

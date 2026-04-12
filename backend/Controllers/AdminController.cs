@@ -209,7 +209,7 @@ public class AdminController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "[AdminController] SetPlaceId error negocio {NegocioId}", negocioId);
-            return StatusCode(500, ex.Message);
+            throw;
         }
     }
 
@@ -342,7 +342,7 @@ public class AdminController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "[MiniRadar] Error en Claude");
-            return StatusCode(500, new { error = "ai_error", mensaje = ex.Message });
+            return StatusCode(500, new { error = "ai_error", mensaje = "Error al analizar con IA. Inténtalo de nuevo." });
         }
 
         // Extraer JSON del texto (Claude a veces añade wrappers aunque se lo pidas)

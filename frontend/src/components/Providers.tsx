@@ -2,12 +2,15 @@
 
 import { LanguageProvider } from '@/lib/i18n'
 import PWAInstall from '@/components/PWAInstall'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <LanguageProvider>
-      {children}
-      <PWAInstall />
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        {children}
+        <PWAInstall />
+      </LanguageProvider>
+    </ErrorBoundary>
   )
 }

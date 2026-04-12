@@ -25,7 +25,9 @@ import SectionNav from '@/components/SectionNav'
 import PublishGoogleModal from '@/components/PublishGoogleModal'
 import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
+import ReportErrorModal from '@/components/ReportErrorModal'
 import { useLanguage } from '@/lib/i18n'
+import { trackLastAction, type ErrorInfoLike } from '@/lib/errorReporter'
 
 type EstadoFilter = 'pendiente' | 'respondida' | 'ignorada' | 'todas'
 
@@ -58,6 +60,11 @@ export default function DashboardPage() {
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [userPlan, setUserPlan] = useState<string>('basic')
   const [loadingInit, setLoadingInit] = useState(true)
+  const [initError, setInitError] = useState('')
+  const [initErrorInfo, setInitErrorInfo] = useState<ErrorInfoLike | null>(null)
+  const [reportModalOpen, setReportModalOpen] = useState(false)
+  const [reportModalContext, setReportModalContext] = useState<ErrorInfoLike | null>(null)
+  const [userEmailForReport, setUserEmailForReport] = useState<string | undefined>(undefined)
 
   const [reviews, setReviews] = useState<PendingReview[]>([])
   const [loadingReviews, setLoadingReviews] = useState(false)
@@ -98,8 +105,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function init() {
+      trackLastAction('dashboard:init')
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.replace('/auth/login'); return }
+      setUserEmailForReport(session.user?.email ?? undefined)
       try {
         const [u, n, gbp] = await Promise.all([getMyUsuario(), getMyNegocio(), getGbpStatus().catch(() => null)])
         if (u.isAdmin || u.rol === 'admin') { router.replace('/admin'); return }
@@ -111,7 +120,17 @@ export default function DashboardPage() {
         setNegocio(n)
         loadReviews(plan)
       } catch (err) {
-        if (err instanceof ApiError && err.status === 401) router.replace('/auth/login')
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace('/auth/login')
+        } else {
+          setInitError('Error al conectar con el servidor. Recarga la página.')
+          setInitErrorInfo({
+            source: err instanceof ApiError ? 'api' : 'network',
+            message: err instanceof Error ? err.message : String(err),
+            statusCode: err instanceof ApiError ? err.status : undefined,
+            endpoint: '/dashboard init',
+          })
+        }
       } finally {
         setLoadingInit(false)
       }
@@ -119,6 +138,11 @@ export default function DashboardPage() {
     init()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
+
+  function openReportModal(info: ErrorInfoLike) {
+    setReportModalContext(info)
+    setReportModalOpen(true)
+  }
 
   async function loadReviews(plan?: string) {
     setLoadingReviews(true)
@@ -151,6 +175,7 @@ export default function DashboardPage() {
   }
 
   async function handleSync() {
+    trackLastAction('dashboard:sync_reviews')
     setSyncLoading(true)
     setSyncMessage('')
     setSyncProgress(5)
@@ -182,6 +207,7 @@ export default function DashboardPage() {
   }
 
   async function handleGenerate(reviewId: string) {
+    trackLastAction(`dashboard:generate_review:${reviewId}`)
     setGeneratingIds(prev => new Set(prev).add(reviewId))
     try {
       const result = await generateForReview(reviewId)
@@ -321,6 +347,36 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (initError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
+        <div className="max-w-md w-full text-center space-y-5">
+          <p className="text-slate-600 dark:text-slate-400">{initError}</p>
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-5 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+            >
+              Recargar página
+            </button>
+            <button
+              onClick={() => openReportModal(initErrorInfo ?? { source: 'api', message: initError })}
+              className="px-5 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition-colors border border-slate-300 dark:border-slate-700"
+            >
+              Reportar problema
+            </button>
+          </div>
+        </div>
+        <ReportErrorModal
+          open={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          errorInfo={reportModalContext ?? { source: 'api', message: initError }}
+          userContext={{ email: userEmailForReport, plan: userPlan }}
+        />
       </div>
     )
   }

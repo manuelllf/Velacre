@@ -439,18 +439,19 @@ public class GoogleBusinessService : IGoogleBusinessService
         var accountsBody = await accountsRes.Content.ReadAsStringAsync();
         if (!accountsRes.IsSuccessStatusCode)
         {
-            _logger.LogError("[GBP] Error listando cuentas HTTP={Status} Body={Body}", (int)accountsRes.StatusCode, accountsBody);
+            _logger.LogError("[GBP] Error listando cuentas HTTP={Status}", (int)accountsRes.StatusCode);
             return locations;
         }
-
-        _logger.LogInformation("[GBP] Accounts response: {Body}", accountsBody);
 
         using var accountsDoc = JsonDocument.Parse(accountsBody);
         if (!accountsDoc.RootElement.TryGetProperty("accounts", out var accountsArr))
         {
-            _logger.LogWarning("[GBP] Respuesta de cuentas sin campo 'accounts': {Body}", accountsBody);
+            _logger.LogWarning("[GBP] Respuesta de cuentas sin campo 'accounts'");
             return locations;
         }
+
+        var accountCount = accountsArr.GetArrayLength();
+        _logger.LogInformation("[GBP] {Count} cuentas GBP recibidas", accountCount);
 
         // 2. Por cada cuenta, listar sus locales (Business Information API + fallback legacy v4)
         foreach (var account in accountsArr.EnumerateArray())
@@ -468,20 +469,25 @@ public class GoogleBusinessService : IGoogleBusinessService
 
             var locResV1  = await _http.SendAsync(locReqV1);
             var locBodyV1 = await locResV1.Content.ReadAsStringAsync();
-            _logger.LogInformation("[GBP] Locations v1 HTTP={Status} Body={Body}", (int)locResV1.StatusCode, locBodyV1);
+            _logger.LogInformation("[GBP] Locations v1 HTTP={Status} para cuenta {Account}", (int)locResV1.StatusCode, accountName);
 
             if (locResV1.IsSuccessStatusCode)
             {
                 using var locDoc = JsonDocument.Parse(locBodyV1);
                 if (locDoc.RootElement.TryGetProperty("locations", out var locsArr))
                 {
+                    var added = 0;
                     foreach (var loc in locsArr.EnumerateArray())
                     {
                         var locName  = loc.TryGetProperty("name",  out var ln) ? ln.GetString() ?? "" : "";
                         var locTitle = loc.TryGetProperty("title", out var lt) ? lt.GetString() ?? locName : locName;
                         if (!string.IsNullOrEmpty(locName))
+                        {
                             locations.Add(new GbpLocation(locName, locTitle, accountName));
+                            added++;
+                        }
                     }
+                    _logger.LogInformation("[GBP] v1 añadió {Count} locales para cuenta {Account}", added, accountName);
                     continue; // OK con v1, pasar a la siguiente cuenta
                 }
             }
@@ -494,13 +500,14 @@ public class GoogleBusinessService : IGoogleBusinessService
 
             var locResV4  = await _http.SendAsync(locReqV4);
             var locBodyV4 = await locResV4.Content.ReadAsStringAsync();
-            _logger.LogInformation("[GBP] Locations v4 HTTP={Status} Body={Body}", (int)locResV4.StatusCode, locBodyV4);
+            _logger.LogInformation("[GBP] Locations v4 HTTP={Status} para cuenta {Account}", (int)locResV4.StatusCode, accountName);
 
             if (!locResV4.IsSuccessStatusCode) continue;
 
             using var locDocV4 = JsonDocument.Parse(locBodyV4);
             if (!locDocV4.RootElement.TryGetProperty("locations", out var locsArrV4)) continue;
 
+            var addedV4 = 0;
             foreach (var loc in locsArrV4.EnumerateArray())
             {
                 // v4 usa "name" y "locationName" (objeto anidado)
@@ -514,8 +521,12 @@ public class GoogleBusinessService : IGoogleBusinessService
                     locTitle = locName;
 
                 if (!string.IsNullOrEmpty(locName))
+                {
                     locations.Add(new GbpLocation(locName, locTitle, accountName));
+                    addedV4++;
+                }
             }
+            _logger.LogInformation("[GBP] v4 añadió {Count} locales para cuenta {Account}", addedV4, accountName);
         }
 
         _logger.LogInformation("[GBP] Total locales encontrados: {Count}", locations.Count);
@@ -623,14 +634,14 @@ public class GoogleBusinessService : IGoogleBusinessService
 
     private async Task DeleteAllReviewsForNegocioAsync(Guid negocioId)
     {
-        var existing = await _supabase.From<ReviewEntity>()
+        // Bulk delete en una sola query (antes se hacía en loop, O(N) llamadas).
+        // Postgrest .Delete() sobre un Where() sin materializar la lista ejecuta
+        // un único DELETE sql-side.
+        await _supabase.From<ReviewEntity>()
             .Where(r => r.IdNegocio == negocioId)
-            .Get();
+            .Delete();
 
-        foreach (var r in existing.Models)
-            await _supabase.From<ReviewEntity>().Where(x => x.Id == r.Id).Delete();
-
-        _logger.LogInformation("[GBP] Eliminadas {Count} reseñas previas de negocioId={Id}", existing.Models.Count, negocioId);
+        _logger.LogInformation("[GBP] Reseñas previas eliminadas (bulk) para negocioId={Id}", negocioId);
     }
 
     // ─── State HMAC ───────────────────────────────────────────────────────────

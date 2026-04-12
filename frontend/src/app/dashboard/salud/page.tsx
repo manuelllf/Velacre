@@ -9,6 +9,8 @@ import SectionNav from '@/components/SectionNav'
 import WaitlistModal from '@/components/WaitlistModal'
 import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
+import ReportErrorModal from '@/components/ReportErrorModal'
+import { trackLastAction, type ErrorInfoLike } from '@/lib/errorReporter'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, computeSpeedBenchmark, type MonthMetrics, type SpeedBenchmark, type PdfTheme } from '@/lib/report-pdf'
 import { useLanguage } from '@/lib/i18n'
 
@@ -77,6 +79,9 @@ export default function SaludPage() {
   const [reviews, setReviews] = useState<PendingReview[]>([])
   const [loading, setLoading] = useState(true)
   const [initError, setInitError] = useState('')
+  const [initErrorInfo, setInitErrorInfo] = useState<ErrorInfoLike | null>(null)
+  const [reportModalOpen, setReportModalOpen] = useState(false)
+  const [userEmailForReport, setUserEmailForReport] = useState<string | undefined>(undefined)
   const [summary, setSummary] = useState<SummaryData | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -99,8 +104,10 @@ export default function SaludPage() {
 
   useEffect(() => {
     async function init() {
+      trackLastAction('salud:init')
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.replace('/auth/login'); return }
+      setUserEmailForReport(session.user?.email ?? undefined)
       try {
         // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
         const [u, n, r, m, ad] = await Promise.all([
@@ -128,6 +135,12 @@ export default function SaludPage() {
           router.replace('/auth/login')
         } else {
           setInitError('Error al conectar con el servidor. Recarga la página.')
+          setInitErrorInfo({
+            source: err instanceof ApiError ? 'api' : 'network',
+            message: err instanceof Error ? err.message : String(err),
+            statusCode: err instanceof ApiError ? err.status : undefined,
+            endpoint: '/salud init',
+          })
         }
       } finally {
         setLoading(false)
@@ -238,16 +251,30 @@ export default function SaludPage() {
 
   if (initError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="text-center space-y-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
+        <div className="max-w-md w-full text-center space-y-5">
           <p className="text-slate-600 dark:text-slate-400">{initError}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-5 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
-          >
-            {t.app.common.back}
-          </button>
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-5 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+            >
+              Recargar página
+            </button>
+            <button
+              onClick={() => setReportModalOpen(true)}
+              className="px-5 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition-colors border border-slate-300 dark:border-slate-700"
+            >
+              Reportar problema
+            </button>
+          </div>
         </div>
+        <ReportErrorModal
+          open={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          errorInfo={initErrorInfo ?? { source: 'api', message: initError }}
+          userContext={{ email: userEmailForReport, plan: userPlan }}
+        />
       </div>
     )
   }

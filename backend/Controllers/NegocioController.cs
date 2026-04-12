@@ -90,7 +90,7 @@ public class NegocioController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "[NegocioController] Error al crear negocio para userId={UserId}", userId);
-            return StatusCode(500, ex.Message);
+            throw;
         }
     }
 

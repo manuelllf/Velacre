@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Models.Entities;
 using backend.Models.Requests;
 using backend.Services;
@@ -93,7 +94,7 @@ public class UsuarioController : ControllerBase
         var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
         var usuario = result.Models.FirstOrDefault();
 
-        // Cancel Lemon Squeezy subscription if active
+        // 1. Cancel Lemon Squeezy subscription if active (external, no BD)
         if (!string.IsNullOrEmpty(usuario?.LsSubscriptionId))
         {
             try
@@ -112,30 +113,55 @@ public class UsuarioController : ControllerBase
             }
         }
 
-        // Delete reviews and negocio (personal/business data — no legal reason to keep)
-        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Get();
-        foreach (var negocio in negocioResult.Models)
+        // 2. Borrado atómico de todos los datos del usuario vía RPC Postgres.
+        // La RPC `delete_user_cascade(p_user_id uuid)` hace dentro de una única
+        // transacción: borra reviews, radar_analisis, competidores, google_connection,
+        // analisis_ia, negocios, y anonimiza el usuario. Si algo falla, rollback automático.
+        //
+        // Si la RPC aún no está pegada en Supabase, el catch hace fallback al flujo
+        // manual (comportamiento previo al refactor). Se puede retirar el fallback
+        // cuando la RPC lleve un tiempo desplegada sin incidencias.
+        bool rpcOk = false;
+        try
         {
-            await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Delete();
-            _logger.LogInformation("[UsuarioController] Reviews eliminadas para negocioId={NegocioId}", negocio.Id);
+            await _supabase.Rpc("delete_user_cascade",
+                new Dictionary<string, object> { { "p_user_id", userId } });
+            rpcOk = true;
+            _logger.LogInformation("[UsuarioController] delete_user_cascade OK para userId={UserId}", userId);
         }
-        await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Delete();
-        _logger.LogInformation("[UsuarioController] Negocio(s) eliminado(s) para userId={UserId}", userId);
+        catch (Exception rpcEx)
+        {
+            _logger.LogWarning(rpcEx, "[UsuarioController] delete_user_cascade RPC falló, usando fallback manual");
+        }
 
-        // Anonymize personal data — keep the row for billing history
-        // Note: Postgrest SDK does not support .Set() with null for string columns;
-        // set to empty string instead so the field is visibly cleared.
-        await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == userId)
-            .Set(u => u.Nombre, "[eliminado]")
-            .Set(u => u.Email, "")
-            .Set(u => u.Telefono, "")
-            .Set(u => u.Activo, false)
-            .Set(u => u.Plan, "basic")
-            .Set(u => u.LsSubscriptionId, "")
-            .Set(u => u.LsCustomerPortal, "")
-            .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
-            .Update();
+        if (!rpcOk)
+        {
+            // Fallback: pasos secuenciales (no transaccional). Idéntico al comportamiento
+            // anterior al refactor de la RPC.
+            var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Get();
+            foreach (var negocio in negocioResult.Models)
+            {
+                await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Delete();
+                _logger.LogInformation("[UsuarioController] [fallback] Reviews eliminadas para negocioId={NegocioId}", negocio.Id);
+            }
+            await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Delete();
+            _logger.LogInformation("[UsuarioController] [fallback] Negocio(s) eliminado(s) para userId={UserId}", userId);
+
+            // Anonymize personal data — keep the row for billing history
+            // Note: Postgrest SDK does not support .Set() with null for string columns;
+            // set to empty string instead so the field is visibly cleared.
+            await _supabase.From<UsuarioEntity>()
+                .Where(u => u.Id == userId)
+                .Set(u => u.Nombre, "[eliminado]")
+                .Set(u => u.Email, "")
+                .Set(u => u.Telefono, "")
+                .Set(u => u.Activo, false)
+                .Set(u => u.Plan, "basic")
+                .Set(u => u.LsSubscriptionId, "")
+                .Set(u => u.LsCustomerPortal, "")
+                .Set(u => u.ActualizadoFecha, DateTimeOffset.UtcNow)
+                .Update();
+        }
 
         // Remove from auth.users via Supabase Admin REST API (requires service role key)
         try
@@ -161,7 +187,7 @@ public class UsuarioController : ControllerBase
             // Still return OK — data is already anonymized
         }
 
-        _logger.LogInformation("[UsuarioController] Cuenta anonimizada + auth eliminada para userId={UserId}", userId);
+        _logger.LogInformation("[UsuarioController] Cuenta anonimizada + auth eliminada para userId={UserId} (modo={Mode})", userId, rpcOk ? "rpc" : "fallback");
         return Ok();
     }
 
@@ -198,14 +224,14 @@ public class UsuarioController : ControllerBase
 
             // Fire-and-forget welcome email
             if (!string.IsNullOrEmpty(email))
-                _ = _email.SendWelcomeAsync(email, request.Nombre ?? "");
+                FireAndForget.Run(_email.SendWelcomeAsync(email, request.Nombre ?? ""), _logger, "Welcome");
 
             return NoContent();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[UsuarioController] Error al crear perfil para userId={UserId}", userId);
-            return StatusCode(500, ex.Message);
+            throw;
         }
     }
 }

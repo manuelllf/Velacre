@@ -11,9 +11,12 @@ public class ClaudeService : IReviewAiService
     private readonly string _model;
     private readonly ILogger<ClaudeService> _logger;
 
-    public ClaudeService(string apiKey, ILogger<ClaudeService> logger)
+    public ClaudeService(string apiKey, HttpClient httpClient, ILogger<ClaudeService> logger)
     {
-        _client = new AnthropicClient(apiKey.Trim());
+        // Pasamos nuestro propio HttpClient al SDK de Anthropic para que respete el
+        // timeout configurado en Program.cs (90s). Sin esto, si Claude se cuelga,
+        // el request del usuario espera indefinidamente y el thread pool se satura.
+        _client = new AnthropicClient(new APIAuthentication(apiKey.Trim()), httpClient, null);
         _model = Environment.GetEnvironmentVariable("AI_MODEL") ?? "claude-sonnet-4-6";
         _logger = logger;
     }

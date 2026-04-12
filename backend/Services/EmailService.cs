@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using System.Text.Encodings.Web;
+using backend.Models.Requests;
 
 namespace backend.Services;
 
@@ -314,6 +316,80 @@ public class EmailService
             </a>
             """;
         await SendEmailAsync(toEmail, "Has cancelado tu suscripción a Velacre", EmailLayout("#64748b", content), "SubscriptionCancelled");
+    }
+
+    public async Task SendErrorReportAsync(ReportErrorRequest report, string reportId)
+    {
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            _logger.LogWarning("[EmailService] RESEND_API_KEY no configurada, omitiendo reporte de error {ReportId}", reportId);
+            return;
+        }
+
+        string E(string? v) => string.IsNullOrWhiteSpace(v) ? "—" : HtmlEncoder.Default.Encode(v);
+
+        var row = (string label, string? value) => $"""
+            <tr>
+              <td style="padding:6px 0;font-weight:600;width:140px;color:#334155;vertical-align:top;">{label}</td>
+              <td style="padding:6px 0;color:#475569;word-break:break-word;">{E(value)}</td>
+            </tr>
+            """;
+
+        var observaciones = string.IsNullOrWhiteSpace(report.Observaciones)
+            ? "<p style=\"color:#94a3b8;font-size:13px;margin:0;font-style:italic;\">Sin observaciones del usuario.</p>"
+            : $"<p style=\"color:#334155;font-size:13px;line-height:1.6;margin:0;white-space:pre-wrap;\">{E(report.Observaciones)}</p>";
+
+        var html = $"""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;margin:0;padding:0;">
+              <div style="max-width:640px;margin:40px auto;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+                <div style="background:#dc2626;padding:24px 32px;">
+                  <h1 style="color:#fff;margin:0;font-size:18px;font-weight:600;">⚠️ Velacre · Reporte de error</h1>
+                  <p style="color:#fecaca;font-size:12px;margin:4px 0 0;">{reportId}</p>
+                </div>
+                <div style="padding:28px 32px;">
+                  <h2 style="color:#0f172a;font-size:15px;font-weight:600;margin:0 0 14px;">Observaciones del usuario</h2>
+                  <div style="background:#fef2f2;border-left:3px solid #dc2626;padding:12px 16px;border-radius:0 6px 6px 0;margin:0 0 24px;">
+                    {observaciones}
+                  </div>
+
+                  <h2 style="color:#0f172a;font-size:15px;font-weight:600;margin:0 0 12px;">Contexto del error</h2>
+                  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    {row("Ocurrió", report.OccurredAt)}
+                    {row("URL", report.Url)}
+                    {row("Fuente", report.ErrorSource)}
+                    {row("Mensaje", report.ErrorMessage)}
+                    {row("Endpoint", report.Endpoint)}
+                    {row("Status HTTP", report.StatusCode?.ToString())}
+                    {row("Última acción", report.LastAction)}
+                    {row("Error ID cliente", report.ErrorId)}
+                  </table>
+
+                  <h2 style="color:#0f172a;font-size:15px;font-weight:600;margin:24px 0 12px;">Usuario</h2>
+                  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    {row("Email", report.UserEmail)}
+                    {row("Plan", report.UserPlan)}
+                  </table>
+
+                  <h2 style="color:#0f172a;font-size:15px;font-weight:600;margin:24px 0 12px;">Entorno</h2>
+                  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    {row("User-Agent", report.UserAgent)}
+                    {row("Plataforma", report.Platform)}
+                    {row("Idioma", report.Language)}
+                  </table>
+                </div>
+                <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+                  <p style="color:#94a3b8;font-size:11px;margin:0;">Velacre · Reporte automático de error · {reportId}</p>
+                </div>
+              </div>
+            </body>
+            </html>
+            """;
+
+        var subject = $"[Velacre] Error reportado {reportId}";
+        await SendEmailAsync("info@velacre.com", subject, html, "ErrorReport");
     }
 
     public async Task SendSubscriptionExpiredAsync(string toEmail, string nombre)
