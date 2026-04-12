@@ -324,15 +324,15 @@ export default function LandingPage() {
           <FadeInUp delay={0.05}>
             {/* Navigation arrows */}
             <div className="flex items-center justify-between mb-3">
-              <button onClick={() => { setReviewIdx(i => i - 1); setSelectedTone(null) }} disabled={reviewIdx === 0} className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+              <button onClick={() => { setReviewIdx(i => i - 1); setSelectedTone(null); setIsTyping(false); setTypedText('') }} disabled={reviewIdx === 0} className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div className="flex gap-1.5">
                 {l.demo.reviews.map((_, i) => (
-                  <button key={i} onClick={() => { setReviewIdx(i); setSelectedTone(null) }} className={`w-2 h-2 rounded-full transition-colors ${i === reviewIdx ? 'bg-blue-500' : 'bg-slate-700 hover:bg-slate-600'}`} />
+                  <button key={i} onClick={() => { setReviewIdx(i); setSelectedTone(null); setIsTyping(false); setTypedText('') }} className={`w-2 h-2 rounded-full transition-colors ${i === reviewIdx ? 'bg-blue-500' : 'bg-slate-700 hover:bg-slate-600'}`} />
                 ))}
               </div>
-              <button onClick={() => { setReviewIdx(i => i + 1); setSelectedTone(null) }} disabled={reviewIdx === l.demo.reviews.length - 1} className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+              <button onClick={() => { setReviewIdx(i => i + 1); setSelectedTone(null); setIsTyping(false); setTypedText('') }} disabled={reviewIdx === l.demo.reviews.length - 1} className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
@@ -377,7 +377,7 @@ export default function LandingPage() {
                 </motion.div>
                 <span className="text-sm font-semibold text-blue-300">{l.demo.response.title}</span>
                 {isTyping && (
-                  <span className="ml-auto text-xs text-blue-500 animate-pulse">Generando…</span>
+                  <span className="ml-auto text-xs text-blue-500 animate-pulse">{l.app.dashboard.generating}</span>
                 )}
               </div>
 
