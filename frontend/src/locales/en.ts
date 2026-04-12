@@ -146,7 +146,7 @@ const en: LandingLocale = {
     transversalTitle: 'Included in every plan',
     transversalItems: [
       'Safety filter: we automatically withhold critical reviews (food poisoning, legal threats, serious accusations) so you can review them before publishing',
-      '3 response tones: Professional, Friendly and Direct',
+      '6 response tones: Professional, Empathetic, Friendly, Direct, Grateful and Humorous',
       'Replies in the same language as the review',
       'No lock-in — cancel anytime',
     ],
@@ -1071,7 +1071,7 @@ const en: LandingLocale = {
         faqs: [
           { q: 'Can I try Velacre before paying?', a: 'Yes. You can register and use the service. When you want to activate your subscription, we will guide you through the process.' },
           { q: 'How are my reviews imported?', a: 'When you connect your Google Maps business, we automatically import your recent reviews. The process takes less than a minute.' },
-          { q: 'Can I change the response tone?', a: 'Yes. You can choose between Professional, Friendly and Direct from your settings profile at any time.' },
+          { q: 'Can I change the response tone?', a: 'Yes. You have 6 tones available: Professional, Empathetic, Friendly, Direct, Grateful and Humorous. You can change it from Settings at any time.' },
           { q: 'Does Velacre publish responses to Google?', a: 'Not automatically yet. Velacre generates the text and you copy and publish it from Google Business Profile. Automatic direct publishing to Google is in development and coming soon.' },
           { q: 'How do I cancel my subscription?', a: 'From your Settings panel you will find a direct link to the subscription management portal. There you can cancel, change plan or update your payment method at any time. Cancellation is effective at the end of the billing period.' },
         ],

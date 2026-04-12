@@ -1287,7 +1287,7 @@ public static class ClaimsPrincipalExtensions {
 
 - **Backend** (`ReviewController.cs`): Basic manuales 3→**5**, Core manuales 3→**5**, Basic IA 3→**10**, Core IA 18→**20**, Pro IA ilimitadas con **cap soft 250/mes**. Refactor bloque de límite: todos los planes usan `try_increment_ia_counter`. Pro pasa `p_limit = -1`. Nuevo campo respuesta: `softCapWarning: bool`.
 - **Frontend locales** (`es.ts`, `en.ts`, `gal.ts`): actualización de features por plan. Nuevos campos `transversalTitle` + `transversalItems` en `locales/types.ts`.
-- **LandingPage.tsx:** bloque "Incluido en todos los planes" con 4 items transversales (filtro seguridad, 3 tonos, idioma auto, sin permanencia). Grid `sm:grid-cols-2`.
+- **LandingPage.tsx:** bloque "Incluido en todos los planes" con 4 items transversales (filtro seguridad, 6 tonos, idioma auto, sin permanencia). Grid `sm:grid-cols-2`.
 - **dashboard/page.tsx:** mensajes de límite actualizados (10 Basic, 20 Core). Nuevo estado `proSoftCapVisible` + banner ámbar descartable para `softCapWarning`.
 - **`api.ts`:** campo `softCapWarning?: boolean` en `GenerateForReviewResult`.
 - **Verificado sin cambios necesarios:** Panel Salud Core ya tenía la estructura correcta (4 KPIs reales + 4 cards Pro con blur), settings ya usaban upsell contextual, responsive mobile-first, RPC ya aceptaba `p_limit < 0`.

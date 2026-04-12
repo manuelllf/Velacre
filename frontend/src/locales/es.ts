@@ -146,7 +146,7 @@ const es: LandingLocale = {
     transversalTitle: 'Incluido en todos los planes',
     transversalItems: [
       'Filtro de seguridad: retenemos automáticamente reseñas críticas (intoxicaciones, amenazas legales, acusaciones graves) para que las revises tú antes de publicar',
-      '3 tonos de respuesta: Profesional, Cercano y Directo',
+      '6 tonos de respuesta: Profesional, Empático, Cercano, Directo, Agradecido y Humorístico',
       'Respuestas en el mismo idioma de la reseña',
       'Sin permanencia — cancela cuando quieras',
     ],
@@ -1071,7 +1071,7 @@ const es: LandingLocale = {
         faqs: [
           { q: '\u00bfPuedo probar Velacre antes de pagar?', a: 'S\u00ed. Puedes registrarte y usar el servicio. Cuando quieras activar tu suscripci\u00f3n, te guiaremos en el proceso.' },
           { q: '\u00bfC\u00f3mo se importan mis rese\u00f1as?', a: 'Al conectar tu negocio de Google Maps, importamos autom\u00e1ticamente tus rese\u00f1as recientes. El proceso tarda menos de un minuto.' },
-          { q: '\u00bfPuedo cambiar el tono de las respuestas?', a: 'S\u00ed. Puedes elegir entre Profesional, Cercano y Directo desde tu perfil de configuraci\u00f3n en cualquier momento.' },
+          { q: '\u00bfPuedo cambiar el tono de las respuestas?', a: 'S\u00ed. Tienes 6 tonos disponibles: Profesional, Emp\u00e1tico, Cercano, Directo, Agradecido y Humor\u00edstico. Puedes cambiarlo desde Configuraci\u00f3n en cualquier momento.' },
           { q: '\u00bfVelacre publica las respuestas en Google?', a: 'Todav\u00eda no de forma autom\u00e1tica. Velacre genera el texto y t\u00fa lo copias y publicas desde Google Business Profile. La publicaci\u00f3n autom\u00e1tica directa en Google est\u00e1 en desarrollo y llegar\u00e1 pr\u00f3ximamente.' },
           { q: '\u00bfC\u00f3mo cancelo mi suscripci\u00f3n?', a: 'Desde tu panel de Configuraci\u00f3n encontrar\u00e1s un enlace directo al portal de gesti\u00f3n de suscripci\u00f3n. All\u00ed puedes cancelar, cambiar de plan o actualizar tu m\u00e9todo de pago en cualquier momento. La cancelaci\u00f3n es efectiva al final del per\u00edodo facturado.' },
         ],

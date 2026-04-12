@@ -377,7 +377,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   doc.setTextColor(226, 232, 240)
   doc.text(
     safe(
-      'Respuestas IA en 3 tonos, radar de competencia, panel de salud mensual y filtro de contenido crítico.',
+      'Respuestas IA en 6 tonos, radar de competencia, panel de salud mensual y filtro de contenido crítico.',
     ),
     ML + 8,
     y + 20,

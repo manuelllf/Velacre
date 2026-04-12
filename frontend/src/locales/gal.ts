@@ -146,7 +146,7 @@ const gal: LandingLocale = {
     transversalTitle: 'Incluído en todos os plans',
     transversalItems: [
       'Filtro de seguridade: retemos automaticamente recensións críticas (intoxicacións, ameazas legais, acusacións graves) para que as revises ti antes de publicar',
-      '3 tons de resposta: Profesional, Achegado e Directo',
+      '6 tons de resposta: Profesional, Empático, Achegado, Directo, Agradecido e Humorístico',
       'Respostas no mesmo idioma da recensión',
       'Sen permanencia — cancela cando queiras',
     ],
@@ -1071,7 +1071,7 @@ const gal: LandingLocale = {
         faqs: [
           { q: 'Podo probar Velacre antes de pagar?', a: 'Si. Podes rexistrarte e usar o servizo. Cando queiras activar a túa subscrición, guiarémoste no proceso.' },
           { q: 'Como se importan as miñas recensións?', a: 'Ao conectar o teu negocio de Google Maps, importamos automaticamente as túas recensións recentes. O proceso tarda menos dun minuto.' },
-          { q: 'Podo cambiar o tono das respostas?', a: 'Si. Podes escoller entre Profesional, Achegado e Directo desde o teu perfil de configuración en calquera momento.' },
+          { q: 'Podo cambiar o tono das respostas?', a: 'Si. Tes 6 tons dispoñibles: Profesional, Empático, Achegado, Directo, Agradecido e Humorístico. Podes cambialo desde Configuración en calquera momento.' },
           { q: 'Velacre publica as respostas en Google?', a: 'Aínda non de forma automática. Velacre xera o texto e ti cópiao e publícao desde Google Business Profile. A publicación automática directa en Google está en desenvolvemento e chegará proximamente.' },
           { q: 'Como cancelo a miña subscrición?', a: 'Desde o teu panel de Configuración atoparás unha ligazón directa ao portal de xestión de subscrición. Alí podes cancelar, cambiar de plan ou actualizar o teu método de pago en calquera momento. A cancelación é efectiva ao final do período facturado.' },
         ],
