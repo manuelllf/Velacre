@@ -71,8 +71,8 @@ function pdfFooter(doc: any, W: number, ML: number, MR: number) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(6.5)
     const dt = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
-    doc.text(`Analisis cortesia de Velacre - velacre.com - ${dt}`, ML, 291)
-    const preW = doc.getTextWidth('Analisis cortesia de Velacre - ')
+    doc.text(`Análisis cortesía de Velacre - velacre.com - ${dt}`, ML, 291)
+    const preW = doc.getTextWidth('Análisis cortesía de Velacre - ')
     const urlW = doc.getTextWidth('velacre.com')
     doc.link(ML + preW, 287, urlW, 5, { url: 'https://velacre.com' })
     doc.text(`Pag. ${p} / ${n}`, MR, 291, { align: 'right' })
@@ -153,7 +153,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   doc.setTextColor(...SLATE_900)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(24)
-  doc.text(safe('Analisis de reputacion online'), ML, y)
+  doc.text(safe('Análisis de reputación online'), ML, y)
   y += 9
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
@@ -173,14 +173,14 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   y += resumenLines.length * 5 + 8
 
   // 4 KPIs grid 2x2
-  sectionLabel(doc, 'METRICAS CLAVE', y, ML)
+  sectionLabel(doc, 'MÉTRICAS CLAVE', y, ML)
   y += 12
   const cardW = (CW - 6) / 2
   const cardH = 24
   kpiCard(doc, ML, y, cardW, cardH, 'Rating medio', `${ratingLabel} / 5`, INDIGO)
   kpiCard(doc, ML + cardW + 6, y, cardW, cardH, 'Reseñas analizadas', `${stats.total}`, GREEN)
   y += cardH + 5
-  kpiCard(doc, ML, y, cardW, cardH, 'Ultimos 30 dias', `${stats.ult30d} reseñas`, AMBER)
+  kpiCard(doc, ML, y, cardW, cardH, 'Últimos 30 días', `${stats.ult30d} reseñas`, AMBER)
   kpiCard(
     doc,
     ML + cardW + 6,
@@ -194,7 +194,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   y += cardH + 10
 
   // Distribucion estrellas (barras horizontales)
-  sectionLabel(doc, 'DISTRIBUCION 1-5 ESTRELLAS', y, ML)
+  sectionLabel(doc, 'DISTRIBUCIÓN 1-5 ESTRELLAS', y, ML)
   y += 12
   const dist = stats.distribucion
   const maxDist = Math.max(dist.s1, dist.s2, dist.s3, dist.s4, dist.s5, 1)
@@ -235,7 +235,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(8.5)
   doc.text(
-    safe('Estas reseñas negativas estan visibles en Google sin respuesta del propietario.'),
+    safe('Estas reseñas negativas están visibles en Google sin respuesta del propietario.'),
     ML,
     y,
   )
@@ -246,7 +246,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9.5)
     doc.text(
-      safe('No se han encontrado reseñas criticas sin responder en las ultimas 30. Bien hecho.'),
+      safe('No se han encontrado reseñas críticas sin responder en las últimas 30. Bien hecho.'),
       ML,
       y + 6,
     )
@@ -296,7 +296,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   // ═════════════ PAGINA 3 — DIAGNOSTICO IA ═════════════
 
   doc.addPage()
-  pdfHeader(doc, W, ML, MR, nombre, 'Mini Radar - Diagnostico IA')
+  pdfHeader(doc, W, ML, MR, nombre, 'Mini Radar - Diagnóstico IA')
   y = 45
 
   // Fortalezas
@@ -347,7 +347,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   }
 
   // Accion de la semana
-  sectionLabel(doc, 'ACCION CONCRETA PARA ESTA SEMANA', y, ML)
+  sectionLabel(doc, 'ACCIÓN CONCRETA PARA ESTA SEMANA', y, ML)
   y += 12
   const accion = analisis?.accion ?? 'Sin datos suficientes.'
   // Card destacada con accent indigo
@@ -377,7 +377,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   doc.setTextColor(226, 232, 240)
   doc.text(
     safe(
-      'Respuestas IA en 3 tonos, radar de competencia, panel de salud mensual y filtro de contenido critico.',
+      'Respuestas IA en 3 tonos, radar de competencia, panel de salud mensual y filtro de contenido crítico.',
     ),
     ML + 8,
     y + 20,
