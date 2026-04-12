@@ -43,6 +43,8 @@ public class ClaudeService : IReviewAiService
         {
             "cercano" => "Responde de forma cálida y humana, como lo haría el dueño del negocio que conoce a sus clientes. Natural, empático y genuino.",
             "directo" => "Responde de forma clara, breve y sin rodeos. Ve al grano, sin florituras, pero siempre correcto y respetuoso.",
+            "empatico" or "empático" => "Responde de forma comprensiva y validadora. Reconoce los sentimientos del cliente, muestra que entiendes su frustración. Sin ser servil ni exagerar las disculpas.",
+            "humoristico" or "humorístico" => "Responde con tono ligero y un toque de humor para conectar. Nunca ridiculices ni minimices la queja. El humor es un puente, no una barrera.",
             _ => "Responde de forma profesional y formal, transmitiendo excelencia y confianza. Tono serio, pulido y cercano a la calidad."
         };
         return GenerateSingleAsync(reviewText, businessDesc, tone, instructions);
@@ -87,6 +89,8 @@ public class ClaudeService : IReviewAiService
         {
             "cercano" => "Responde de forma cálida y humana, como lo haría el dueño del negocio que conoce a sus clientes. Natural, empático y genuino.",
             "directo" => "Responde de forma clara, breve y sin rodeos. Ve al grano, sin florituras, pero siempre correcto y respetuoso.",
+            "empatico" or "empático" => "Responde de forma comprensiva y validadora. Reconoce los sentimientos del cliente, muestra que entiendes su frustración. Sin ser servil ni exagerar las disculpas.",
+            "humoristico" or "humorístico" => "Responde con tono ligero y un toque de humor para conectar. Nunca ridiculices ni minimices la queja. El humor es un puente, no una barrera.",
             _ => "Responde de forma profesional y formal, transmitiendo excelencia y confianza. Tono serio, pulido y cercano a la calidad."
         };
 

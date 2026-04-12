@@ -19,6 +19,8 @@ export default function SettingsPage() {
     { value: 'Profesional', label: s.tonos.Profesional.label, desc: s.tonos.Profesional.desc },
     { value: 'Cercano', label: s.tonos.Cercano.label, desc: s.tonos.Cercano.desc },
     { value: 'Directo', label: s.tonos.Directo.label, desc: s.tonos.Directo.desc },
+    { value: 'Empatico', label: s.tonos.Empatico.label, desc: s.tonos.Empatico.desc },
+    { value: 'Humoristico', label: s.tonos.Humoristico.label, desc: s.tonos.Humoristico.desc },
   ]
 
   const [loading, setLoading] = useState(true)

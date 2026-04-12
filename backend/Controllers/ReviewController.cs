@@ -71,12 +71,16 @@ public class ReviewController : ControllerBase
         var negocio = negocioResult.Models.FirstOrDefault();
         if (negocio == null) return NotFound("No tienes ningún negocio registrado. Completa el onboarding primero.");
 
+        var tone = request.Tono ?? negocio.TonoPredefinido ?? "Profesional";
+
         try
         {
-            var (profesional, cercano, directo, contextoCliente, contextoRespuesta, retenida, motivoRetencion) =
-                await _aiService.GenerateThreeResponsesWithSafeFilterAsync(
+            var (respuesta, contextoCliente, contextoRespuesta, _, retenida, motivoRetencion) =
+                await _aiService.GenerateSingleResponseWithContextAsync(
                     request.ReviewText,
-                    negocio.Descripcion ?? negocio.Nombre
+                    negocio.Descripcion ?? negocio.Nombre,
+                    tone,
+                    "es"
                 );
 
             if (retenida)
@@ -85,8 +89,8 @@ public class ReviewController : ControllerBase
                 return Ok(new { retenida = true, motivoRetencion });
             }
 
-            _logger.LogInformation("[ReviewController] Respuestas manuales generadas OK (sin guardar)");
-            return Ok(new { retenida = false, motivoRetencion = (string?)null, contextoCliente, contextoRespuesta, profesional, cercano, directo });
+            _logger.LogInformation("[ReviewController] Respuesta manual generada OK (sin guardar)");
+            return Ok(new { retenida = false, motivoRetencion = (string?)null, contextoCliente, contextoRespuesta, respuesta });
         }
         catch (Exception ex)
         {
@@ -102,7 +106,8 @@ public class ReviewController : ControllerBase
             return BadRequest("La reseña no puede estar vacía.");
 
         var tonoLower = request.TonoSeleccionado.ToLower();
-        if (tonoLower != "profesional" && tonoLower != "cercano" && tonoLower != "directo")
+        if (tonoLower != "profesional" && tonoLower != "cercano" && tonoLower != "directo"
+            && tonoLower != "empatico" && tonoLower != "humoristico")
             return BadRequest("Tono inválido.");
 
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
@@ -151,9 +156,9 @@ public class ReviewController : ControllerBase
                 Codigo = "BFK" + Guid.NewGuid().ToString("N")[..7].ToUpper(),
                 IdNegocio = negocio.Id,
                 ClienteReview = request.ReviewText,
-                RespuestaProfesional = request.RespuestaProfesional,
-                RespuestaCercano = request.RespuestaCercano,
-                RespuestaDirecto = request.RespuestaDirecto,
+                RespuestaProfesional = (tonoLower == "cercano" || tonoLower == "directo") ? null : request.Respuesta,
+                RespuestaCercano = tonoLower == "cercano" ? request.Respuesta : null,
+                RespuestaDirecto = tonoLower == "directo" ? request.Respuesta : null,
                 TonoGenerado = tonoCapitalized,
                 Plataforma = "Otra",
                 Estado = estado,

@@ -20,9 +20,11 @@ export default function OnboardingPage() {
   const op = t.app.onboardingPage
 
   const TONOS = [
-    { value: 'Profesional', label: t.app.settings.tonos.Profesional.label, desc: t.app.settings.tonos.Profesional.desc },
-    { value: 'Cercano',     label: t.app.settings.tonos.Cercano.label,     desc: t.app.settings.tonos.Cercano.desc     },
-    { value: 'Directo',     label: t.app.settings.tonos.Directo.label,     desc: t.app.settings.tonos.Directo.desc     },
+    { value: 'Profesional',  label: t.app.settings.tonos.Profesional.label,  desc: t.app.settings.tonos.Profesional.desc  },
+    { value: 'Cercano',      label: t.app.settings.tonos.Cercano.label,      desc: t.app.settings.tonos.Cercano.desc      },
+    { value: 'Directo',      label: t.app.settings.tonos.Directo.label,      desc: t.app.settings.tonos.Directo.desc      },
+    { value: 'Empatico',     label: t.app.settings.tonos.Empatico.label,     desc: t.app.settings.tonos.Empatico.desc     },
+    { value: 'Humoristico',  label: t.app.settings.tonos.Humoristico.label,  desc: t.app.settings.tonos.Humoristico.desc  },
   ]
 
   // ── Business info ──

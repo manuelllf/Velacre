@@ -42,6 +42,8 @@ export interface LandingLocale {
         profesional: { label: string; text: string }
         cercano: { label: string; text: string }
         directo: { label: string; text: string }
+        empatico: { label: string; text: string }
+        humoristico: { label: string; text: string }
       }
     }
   }
@@ -456,6 +458,8 @@ export interface LandingLocale {
         Profesional: { label: string; desc: string }
         Cercano: { label: string; desc: string }
         Directo: { label: string; desc: string }
+        Empatico: { label: string; desc: string }
+        Humoristico: { label: string; desc: string }
       }
       planCurrent: string
       planThanks: string

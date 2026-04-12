@@ -4,4 +4,5 @@ public record GenerateReviewRequest
 {
     public string ReviewText { get; init; } = "";
     public string? Plataforma { get; init; }
+    public string? Tono { get; init; }
 }

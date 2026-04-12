@@ -101,7 +101,7 @@ export default function DashboardPage() {
   const [manualResponses, setManualResponses] = useState<ReviewResponses | null>(null)
   const [manualLoading, setManualLoading] = useState(false)
   const [manualError, setManualError] = useState('')
-  const [manualSelectedTone, setManualSelectedTone] = useState<'profesional' | 'cercano' | 'directo' | null>(null)
+  const [manualCopied, setManualCopied] = useState(false)
   const [manualSaving, setManualSaving] = useState(false)
   const [manualContexto, setManualContexto] = useState<{ cliente: string; respuesta: string } | null>(null)
 
@@ -260,7 +260,7 @@ export default function DashboardPage() {
     setManualResponses(null)
     setManualError('')
     setReviewText('')
-    setManualSelectedTone(null)
+    setManualCopied(false)
     setManualContexto(null)
   }
 
@@ -270,9 +270,9 @@ export default function DashboardPage() {
     setManualError('')
     setManualLoading(true)
     setManualResponses(null)
-    setManualSelectedTone(null)
+    setManualCopied(false)
     try {
-      const result = await generateResponses(reviewText)
+      const result = await generateResponses(reviewText, negocio?.tonopredefinido ?? 'Profesional')
       setManualResponses(result)
       if (result.contextoCliente || result.contextoRespuesta) {
         setManualContexto({ cliente: result.contextoCliente ?? '', respuesta: result.contextoRespuesta ?? '' })
@@ -292,16 +292,14 @@ export default function DashboardPage() {
   }
 
   async function handleSaveManual(estado: 'pendiente' | 'respondida') {
-    if (!manualSelectedTone || !manualResponses) return
+    if (!manualResponses) return
     setManualSaving(true)
     try {
       const ctx = manualContexto
       const saved = await saveManualReview({
         reviewText,
-        tonoSeleccionado: manualSelectedTone,
-        respuestaProfesional: manualResponses.profesional ?? '',
-        respuestaCercano: manualResponses.cercano ?? '',
-        respuestaDirecto: manualResponses.directo ?? '',
+        tonoSeleccionado: negocio?.tonopredefinido ?? 'Profesional',
+        respuesta: manualResponses.respuesta ?? '',
         estado,
         contextoCliente: manualContexto?.cliente,
         contextoRespuesta: manualContexto?.respuesta,
@@ -313,10 +311,7 @@ export default function DashboardPage() {
         return effectivePlan === 'basic' ? newList.slice(0, 10) : newList
       })
       // Pre-load the generated response for the new review
-      const tono = manualSelectedTone
-      const resp = tono === 'cercano' ? saved.respuestaCercano
-                 : tono === 'directo' ? saved.respuestaDirecto
-                 : saved.respuestaProfesional
+      const resp = manualResponses.respuesta
       if (resp && saved.id) {
         setGeneratedResponses(prev => ({ ...prev, [saved.id]: resp }))
       }
@@ -756,7 +751,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-semibold text-slate-900 dark:text-white">{d.manual.title}</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  {manualResponses && !manualResponses.retenida ? d.manual.toneSelect : d.manual.desc}
+                  {d.manual.desc}
                 </p>
               </div>
               <button
@@ -828,46 +823,51 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Step 2: Context card + tone selection */}
+            {/* Step 2: Context + single response */}
             {manualResponses && !manualResponses.retenida && (
               <>
-                {/* Context card */}
+                {/* Context */}
                 {manualContexto && (manualContexto.cliente || manualContexto.respuesta) && (
-                  <div className="mx-5 mt-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 space-y-1.5 shrink-0">
+                  <div className="px-5 pt-4 space-y-2 shrink-0">
                     {manualContexto.cliente && (
-                      <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">{d.context.clientSaid}</span>
-                        <span>{manualContexto.cliente}</span>
+                      <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 space-y-1.5">
+                        <p className="text-xs font-semibold text-slate-500">{d.context.clientSaid}</p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300">{manualContexto.cliente}</p>
                       </div>
                     )}
                     {manualContexto.respuesta && (
-                      <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">{d.context.youRespond}</span>
-                        <span>{manualContexto.respuesta}</span>
+                      <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 space-y-1.5">
+                        <p className="text-xs font-semibold text-slate-500">{d.context.youRespond}</p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300">{manualContexto.respuesta}</p>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Tone options — scrollable */}
-                <div className="flex-1 overflow-y-auto scroll-thin mt-3">
-                  <p className="px-5 pb-2 text-xs text-slate-500 dark:text-slate-400">{d.manual.toneSelect}</p>
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {([
-                      { key: 'profesional' as const, label: d.manual.toneNames.profesional, text: manualResponses.profesional ?? '', accent: 'blue' },
-                      { key: 'cercano'     as const, label: d.manual.toneNames.cercano,     text: manualResponses.cercano     ?? '', accent: 'emerald' },
-                      { key: 'directo'     as const, label: d.manual.toneNames.directo,     text: manualResponses.directo     ?? '', accent: 'amber' },
-                    ]).map(({ key, label, text, accent }) => (
-                      <ManualResponseRow
-                        key={key}
-                        toneKey={key}
-                        tone={label}
-                        text={text}
-                        accent={accent}
-                        selected={manualSelectedTone === key}
-                        onSelect={() => setManualSelectedTone(key)}
-                      />
-                    ))}
+                {/* Respuesta generada */}
+                <div className="flex-1 overflow-y-auto scroll-thin px-5 py-4">
+                  <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-slate-500">{negocio?.tonopredefinido ?? 'Profesional'}</span>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(manualResponses.respuesta ?? '')
+                          setManualCopied(true)
+                          setTimeout(() => setManualCopied(false), 2000)
+                        }}
+                        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                          manualCopied
+                            ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                            : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        {manualCopied ? t.app.common.copied : t.app.common.copy}
+                      </button>
+                    </div>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                      {manualResponses.respuesta}
+                    </p>
                   </div>
                 </div>
 
@@ -877,7 +877,7 @@ export default function DashboardPage() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      disabled={!manualSelectedTone || manualSaving}
+                      disabled={manualSaving}
                       onClick={() => handleSaveManual('pendiente')}
                       className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
@@ -885,19 +885,16 @@ export default function DashboardPage() {
                     </button>
                     <button
                       type="button"
-                      disabled={!manualSelectedTone || manualSaving}
+                      disabled={manualSaving}
                       onClick={() => handleSaveManual('respondida')}
                       className="flex-1 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {manualSaving ? <span className="flex items-center justify-center gap-1"><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> {d.manual.saving}</span> : `${d.manual.saveAnswered} \u2713`}
                     </button>
                   </div>
-                  {!manualSelectedTone && (
-                    <p className="text-xs text-center text-slate-400 dark:text-slate-500">{d.manual.selectTone}</p>
-                  )}
                   <button
                     type="button"
-                    onClick={() => { setManualResponses(null); setManualError(''); setManualSelectedTone(null); setManualContexto(null) }}
+                    onClick={() => { setManualResponses(null); setManualError(''); setManualCopied(false); setManualContexto(null) }}
                     className="w-full py-1.5 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   >
                     {'\u2190'} {d.manual.tryAnother}
@@ -1039,63 +1036,6 @@ export default function DashboardPage() {
         </div>
       </footer>
     </div>
-  )
-}
-
-// ── Manual response row (full-width, selectable) ────────────────────────────
-
-function ManualResponseRow({
-  toneKey, tone, text, accent, selected, onSelect,
-}: {
-  toneKey: string
-  tone: string
-  text: string
-  accent: string
-  selected: boolean
-  onSelect: () => void
-}) {
-  const { t } = useLanguage()
-  const [copied, setCopied] = useState(false)
-
-  const accentRing = accent === 'blue' ? 'ring-blue-500 border-blue-500' : accent === 'emerald' ? 'ring-emerald-500 border-emerald-500' : 'ring-amber-500 border-amber-500'
-  const accentDot  = accent === 'blue' ? 'bg-blue-600' : accent === 'emerald' ? 'bg-emerald-600' : 'bg-amber-500'
-
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={`w-full text-left px-5 py-4 space-y-3 transition-colors ${
-        selected
-          ? 'bg-blue-50 dark:bg-blue-950/30'
-          : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
-      }`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selected ? accentRing : 'border-slate-300 dark:border-slate-600'}`}>
-            {selected && <span className={`w-2 h-2 rounded-full ${accentDot}`} />}
-          </span>
-          <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{tone}</span>
-        </div>
-        <button
-          type="button"
-          onClick={async (e) => {
-            e.stopPropagation()
-            await navigator.clipboard.writeText(text)
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-          }}
-          className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-            copied
-              ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-              : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
-          }`}
-        >
-          {copied ? t.app.common.copied : t.app.common.copy}
-        </button>
-      </div>
-      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3">{text}</p>
-    </button>
   )
 }
 

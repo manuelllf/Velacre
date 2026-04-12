@@ -23,7 +23,8 @@ export interface ReviewResponses {
   motivoRetencion?: string
   contextoCliente?: string
   contextoRespuesta?: string
-  profesional?: string
+  respuesta?: string          // respuesta única (nuevo flujo manual)
+  profesional?: string        // mantener para retrocompatibilidad con landing demo
   cercano?: string
   directo?: string
 }
@@ -95,11 +96,12 @@ export async function notifyWaitlist(plan: 'core' | 'pro', notas?: string): Prom
 
 export async function generateResponses(
   reviewText: string,
+  tono?: string,
 ): Promise<ReviewResponses> {
   const res = await fetch(`${API_URL}/api/review/generate`, {
     method: 'POST',
     headers: await authHeaders(),
-    body: JSON.stringify({ reviewText }),
+    body: JSON.stringify({ reviewText, tono }),
   })
   if (!res.ok) {
     if (res.status === 429) {
@@ -114,10 +116,8 @@ export async function generateResponses(
 
 export async function saveManualReview(data: {
   reviewText: string
-  tonoSeleccionado: 'profesional' | 'cercano' | 'directo'
-  respuestaProfesional: string
-  respuestaCercano: string
-  respuestaDirecto: string
+  tonoSeleccionado: string
+  respuesta: string
   estado: 'pendiente' | 'respondida'
   contextoCliente?: string
   contextoRespuesta?: string
@@ -128,9 +128,7 @@ export async function saveManualReview(data: {
     body: JSON.stringify({
       reviewText: data.reviewText,
       tonoSeleccionado: data.tonoSeleccionado,
-      respuestaProfesional: data.respuestaProfesional,
-      respuestaCercano: data.respuestaCercano,
-      respuestaDirecto: data.respuestaDirecto,
+      respuesta: data.respuesta,
       estado: data.estado,
       contextoCliente: data.contextoCliente,
       contextoRespuesta: data.contextoRespuesta,
