@@ -509,6 +509,7 @@ const es: LandingLocale = {
       radarStepFetchingComp: 'Consultando reseñas de {name}\u2026',
       radarStepAnalyzing: 'Analizando patrones con IA\u2026',
       radarStepGenerating: 'Generando informe comparativo\u2026',
+      radarNavHint: 'Puedes navegar por la app mientras se genera. Al volver verás el resultado.',
       radarMaxCompetitors: 'Máximo 3 competidores.',
       radarAlreadyAdded: 'Este competidor ya está añadido.',
       radarRemoveError: 'Error al eliminar competidor.',

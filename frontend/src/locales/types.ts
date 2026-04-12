@@ -431,6 +431,7 @@ export interface LandingLocale {
       radarStepFetchingComp: string
       radarStepAnalyzing: string
       radarStepGenerating: string
+      radarNavHint: string
       // Radar errors
       radarMaxCompetitors: string
       radarAlreadyAdded: string

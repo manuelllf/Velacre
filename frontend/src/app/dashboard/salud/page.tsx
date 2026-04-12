@@ -208,11 +208,12 @@ export default function SaludPage() {
     setRadarError('')
 
     const nombres = radarData?.competidores.map(c => c.nombre) ?? []
+    // Outscraper ahora corre en paralelo — delays más cortos
     const stepDefs = [
       { label: sl.radarStepFetchingYours, delay: 0 },
-      ...nombres.map((n, i) => ({ label: sl.radarStepFetchingComp.replace('{name}', n), delay: 1500 + i * 4500 })),
-      { label: sl.radarStepAnalyzing, delay: 1500 + nombres.length * 4500 },
-      { label: sl.radarStepGenerating, delay: 1500 + nombres.length * 4500 + 5000 },
+      ...nombres.map((n, i) => ({ label: sl.radarStepFetchingComp.replace('{name}', n), delay: 1500 + i * 1500 })),
+      { label: sl.radarStepAnalyzing, delay: 1500 + nombres.length * 1500 },
+      { label: sl.radarStepGenerating, delay: 1500 + nombres.length * 1500 + 5000 },
     ]
 
     setRadarSteps(stepDefs.map((s, i) => ({ label: s.label, done: false, active: i === 0 })) as { label: string; done: boolean }[])
@@ -1250,6 +1251,7 @@ export default function SaludPage() {
                           </div>
                         )
                       })}
+                      <p className="text-xs text-slate-500 mt-2">{sl.radarNavHint}</p>
                     </div>
                   ) : (
                     <div className="flex items-center gap-3">

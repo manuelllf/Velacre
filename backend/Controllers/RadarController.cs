@@ -160,18 +160,19 @@ public class RadarController : ControllerBase
         if (misResenas.Count == 0)
             return BadRequest(new { error = "sin_resenas_propias" });
 
-        // 2. Reseñas de competidores via Outscraper
-        var competidoresData = new List<(string Nombre, List<string> Resenas)>();
-        foreach (var comp in competidoresRes.Models)
+        // 2. Reseñas de competidores via Outscraper (en paralelo)
+        var competidoresTasks = competidoresRes.Models.Select(async comp =>
         {
             var compResenas = await _outscraper.GetCompetitorReviewsAsync(comp.PlaceId, 20);
             var textos = compResenas
                 .Where(r => !string.IsNullOrWhiteSpace(r.Text))
                 .Select(r => $"{r.StarRating}★ {r.Text}")
                 .ToList();
-            competidoresData.Add((comp.Nombre, textos));
             _logger.LogInformation("[RadarController] Competidor {Nombre}: {Count} reseñas obtenidas", comp.Nombre, textos.Count);
-        }
+            return (comp.Nombre, textos);
+        }).ToList();
+        var competidoresResults = await Task.WhenAll(competidoresTasks);
+        var competidoresData = competidoresResults.ToList();
 
         // 3. Claude genera el análisis
         _logger.LogInformation("[RadarController] Lanzando análisis IA radar para negocio={NegocioId}", negocio!.Id);
