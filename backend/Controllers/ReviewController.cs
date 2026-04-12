@@ -107,7 +107,7 @@ public class ReviewController : ControllerBase
 
         var tonoLower = request.TonoSeleccionado.ToLower();
         if (tonoLower != "profesional" && tonoLower != "cercano" && tonoLower != "directo"
-            && tonoLower != "empatico" && tonoLower != "humoristico")
+            && tonoLower != "empatico" && tonoLower != "agradecido" && tonoLower != "humoristico")
             return BadRequest("Tono inválido.");
 
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);

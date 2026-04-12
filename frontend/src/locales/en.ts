@@ -42,9 +42,10 @@ const en: LandingLocale = {
       hint: 'Choose a tone and generate',
       tones: {
         profesional: { label: 'Professional', text: 'Dear Carlos, we sincerely apologise that your experience did not meet our standards. The waiting times you describe and the service received do not reflect the values we uphold. We have passed your feedback to the team and will take the necessary steps to prevent a recurrence. We invite you to give us another chance and will be happy to contact you directly to make it up to you.' },
+        empatico: { label: 'Empathetic', text: 'Carlos, I completely understand your frustration and you are absolutely right to feel that way. Waiting 45 minutes only for the food to arrive cold is unacceptable, and the lack of an apology makes it worse. Your experience matters and it pains us that it was so poor. We have already spoken to the team to ensure this does not happen again. If you give us another chance, I assure you the difference will be clear.' },
         cercano: { label: 'Friendly', text: 'Carlos, we\'re really sorry about this. 45 minutes is too long and cold on top of that — that\'s just not on. You\'re completely right to be unhappy. We\'ve already spoken to the team to make sure it doesn\'t happen again. If you give us another shot, we promise you\'ll notice the difference. Thanks for letting us know!' },
         directo: { label: 'Direct', text: 'Carlos, you\'re right. The service that day wasn\'t good enough. We\'ve fixed it. Come back and it\'ll be different.' },
-        empatico: { label: 'Empathetic', text: 'Carlos, I completely understand your frustration and you are absolutely right to feel that way. Waiting 45 minutes only for the food to arrive cold is unacceptable, and the lack of an apology makes it worse. Your experience matters and it pains us that it was so poor. We have already spoken to the team to ensure this does not happen again. If you give us another chance, I assure you the difference will be clear.' },
+        agradecido: { label: 'Grateful', text: 'Carlos, thank you so much for taking the time to leave us your review! We are delighted to know you enjoyed the experience. Comments like yours are what motivate us to keep caring about every detail. We look forward to welcoming you back with open arms.' },
         humoristico: { label: 'Humorous', text: 'Carlos, 45 minutes is long enough to do the shopping, come back and cook it yourself — we admit it. And cold on top of that, which really is the cherry on the cake. We promise next time the food will arrive hot and on time, or at the very least we will tell you a good joke while you wait. Jokes aside, we have taken note and fixed the issue. Come back and see for yourself.' },
       },
     },
@@ -498,9 +499,10 @@ const en: LandingLocale = {
       yearly: 'Yearly',
       tonos: {
         Profesional: { label: 'Professional', desc: 'Formal and close to excellence' },
+        Empatico: { label: 'Empathetic', desc: 'Understanding and validating, acknowledges frustration' },
         Cercano: { label: 'Friendly', desc: 'Warm and human, like a friend' },
         Directo: { label: 'Direct', desc: 'Clear, concise and to the point' },
-        Empatico: { label: 'Empathetic', desc: 'Understanding and validating, acknowledges frustration' },
+        Agradecido: { label: 'Grateful', desc: 'Genuine gratitude, ideal for positive reviews' },
         Humoristico: { label: 'Humorous', desc: 'Light and witty, without undermining seriousness' },
       },
       planCurrent: '{plan} plan active',

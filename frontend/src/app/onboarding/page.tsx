@@ -21,9 +21,10 @@ export default function OnboardingPage() {
 
   const TONOS = [
     { value: 'Profesional',  label: t.app.settings.tonos.Profesional.label,  desc: t.app.settings.tonos.Profesional.desc  },
+    { value: 'Empatico',     label: t.app.settings.tonos.Empatico.label,     desc: t.app.settings.tonos.Empatico.desc     },
     { value: 'Cercano',      label: t.app.settings.tonos.Cercano.label,      desc: t.app.settings.tonos.Cercano.desc      },
     { value: 'Directo',      label: t.app.settings.tonos.Directo.label,      desc: t.app.settings.tonos.Directo.desc      },
-    { value: 'Empatico',     label: t.app.settings.tonos.Empatico.label,     desc: t.app.settings.tonos.Empatico.desc     },
+    { value: 'Agradecido',   label: t.app.settings.tonos.Agradecido.label,   desc: t.app.settings.tonos.Agradecido.desc   },
     { value: 'Humoristico',  label: t.app.settings.tonos.Humoristico.label,  desc: t.app.settings.tonos.Humoristico.desc  },
   ]
 

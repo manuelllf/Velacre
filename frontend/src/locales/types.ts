@@ -40,9 +40,10 @@ export interface LandingLocale {
       hint: string
       tones: {
         profesional: { label: string; text: string }
+        empatico: { label: string; text: string }
         cercano: { label: string; text: string }
         directo: { label: string; text: string }
-        empatico: { label: string; text: string }
+        agradecido: { label: string; text: string }
         humoristico: { label: string; text: string }
       }
     }
@@ -456,9 +457,10 @@ export interface LandingLocale {
       yearly: string
       tonos: {
         Profesional: { label: string; desc: string }
+        Empatico: { label: string; desc: string }
         Cercano: { label: string; desc: string }
         Directo: { label: string; desc: string }
-        Empatico: { label: string; desc: string }
+        Agradecido: { label: string; desc: string }
         Humoristico: { label: string; desc: string }
       }
       planCurrent: string

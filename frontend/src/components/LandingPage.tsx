@@ -80,14 +80,14 @@ function GlowCard({
 export default function LandingPage() {
   const { t: l } = useLanguage()
   const [googleLoading, setGoogleLoading] = useState(false)
-  const [selectedTone, setSelectedTone] = useState<'profesional' | 'cercano' | 'directo' | 'empatico' | 'humoristico' | null>(null)
+  const [selectedTone, setSelectedTone] = useState<'profesional' | 'empatico' | 'cercano' | 'directo' | 'agradecido' | 'humoristico' | null>(null)
   const [typedText, setTypedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [billingYearly, setBillingYearly] = useState(false)
   const [calcResenas, setCalcResenas] = useState(25)
   const [calcPrecioHora, setCalcPrecioHora] = useState(20)
 
-  const toneKeys: Array<'profesional' | 'cercano' | 'directo' | 'empatico' | 'humoristico'> = ['profesional', 'cercano', 'directo', 'empatico', 'humoristico']
+  const toneKeys: Array<'profesional' | 'empatico' | 'cercano' | 'directo' | 'agradecido' | 'humoristico'> = ['profesional', 'empatico', 'cercano', 'directo', 'agradecido', 'humoristico']
   const currentToneText = selectedTone ? l.demo.response.tones[selectedTone].text : ''
 
   useEffect(() => {

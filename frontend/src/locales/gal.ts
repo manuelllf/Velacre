@@ -42,9 +42,10 @@ const gal: LandingLocale = {
       hint: 'Escolle un ton e xera',
       tones: {
         profesional: { label: 'Profesional', text: 'Estimado Carlos, lamentamos profundamente que a súa experiencia non estivese á altura dos nosos estándares. Os tempos de espera que describe e o servizo recibido non reflicten os valores que nos guían. Trasladamos o seu comentario ao equipo e tomaremos as medidas necesarias para que non se repita. Convidámoslle a darnos unha nova oportunidade e con moito gusto poñerémonos en contacto con vostede directamente para compensarlle.' },
+        empatico: { label: 'Empático', text: 'Carlos, entendo perfectamente a túa frustración e tes toda a razón en sentirte así. Agardar 45 minutos e que a comida chegue fría é inaceptable, e que ninguén se desculpase fano aínda peor. A túa experiencia importa e dóenos que fose así. Xa falamos co equipo para que isto non se repita. Se nos das outra oportunidade, asegúroche que a diferenza será notable.' },
         cercano: { label: 'Achegado', text: 'Carlos, sentímolo moito, de verdade. 45 minutos é demasiado tempo e enriba fría — iso non está ben. Entendemoste perfectamente e tes razón en estar molesto. Xa falamos co equipo para que non volva pasar. Se lle das outra oportunidade ao local, asegurámosche que vas notar a diferenza. Grazas por dicírnolo!' },
         directo: { label: 'Directo', text: 'Carlos, tes razón. O servizo ese día non estivo á altura. Corrixímolo. Se volves, será diferente.' },
-        empatico: { label: 'Empático', text: 'Carlos, entendo perfectamente a túa frustración e tes toda a razón en sentirte así. Agardar 45 minutos e que a comida chegue fría é inaceptable, e que ninguén se desculpase fano aínda peor. A túa experiencia importa e dóenos que fose así. Xa falamos co equipo para que isto non se repita. Se nos das outra oportunidade, asegúroche que a diferenza será notable.' },
+        agradecido: { label: 'Agradecido', text: 'Carlos, moitas grazas por tomarte o tempo de deixarnos a túa valoración! Alegrámonos de saber que gozaches da experiencia. Comentarios coma o teu son os que nos motivan a seguir coidando cada detalle. Agardámoste de volta cos brazos abertos.' },
         humoristico: { label: 'Humorístico', text: 'Carlos, 45 minutos dá tempo a ir á compra, volver e cociñar ti mesmo — recoñecémolo. E encima fría, que é o colmo. Prometemos que a próxima vez a comida chegará quente e a tempo, ou polo menos contarémosche un bo chiste mentres agardas. Broma aparte, tomamos nota e corriximos o problema. Volve e verás.' },
       },
     },
@@ -498,9 +499,10 @@ const gal: LandingLocale = {
       yearly: 'Anual',
       tonos: {
         Profesional: { label: 'Profesional', desc: 'Formal e achegado á excelencia' },
+        Empatico: { label: 'Empático', desc: 'Comprensivo e validador, recoñece a frustración' },
         Cercano: { label: 'Achegado', desc: 'Cálido e humano, coma un amigo' },
         Directo: { label: 'Directo', desc: 'Claro, breve e sen rodeos' },
-        Empatico: { label: 'Empático', desc: 'Comprensivo e validador, recoñece a frustración' },
+        Agradecido: { label: 'Agradecido', desc: 'Gratitude xenuína, ideal para recensións positivas' },
         Humoristico: { label: 'Humorístico', desc: 'Lixeiro e con graza, sen restar seriedade' },
       },
       planCurrent: 'Plan {plan} activo',

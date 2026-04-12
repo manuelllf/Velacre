@@ -17,9 +17,10 @@ export default function SettingsPage() {
 
   const TONOS = [
     { value: 'Profesional', label: s.tonos.Profesional.label, desc: s.tonos.Profesional.desc },
+    { value: 'Empatico', label: s.tonos.Empatico.label, desc: s.tonos.Empatico.desc },
     { value: 'Cercano', label: s.tonos.Cercano.label, desc: s.tonos.Cercano.desc },
     { value: 'Directo', label: s.tonos.Directo.label, desc: s.tonos.Directo.desc },
-    { value: 'Empatico', label: s.tonos.Empatico.label, desc: s.tonos.Empatico.desc },
+    { value: 'Agradecido', label: s.tonos.Agradecido.label, desc: s.tonos.Agradecido.desc },
     { value: 'Humoristico', label: s.tonos.Humoristico.label, desc: s.tonos.Humoristico.desc },
   ]
 
