@@ -105,8 +105,9 @@ public class ClaudeService : IReviewAiService
             "(2) acusaciones concretas de agresión física, malos tratos o acoso grave a un empleado o cliente, " +
             "(3) amenaza explícita de denuncia judicial o demanda legal, " +
             "(4) datos personales sensibles del cliente (nombre completo + datos médicos, datos bancarios, etc.), " +
-            "(5) acusaciones de fraude, estafa, engaño deliberado o cobro intencionado de más (no simples quejas de precio alto). " +
-            "Si detectas alguna de estas situaciones, devuelve retenida:true con motivoRetencion ('intoxicacion'|'maltrato'|'amenaza_legal'|'datos_personales'|'acusacion_fraude') y respuesta:null. " +
+            "(5) acusaciones de fraude, estafa, engaño deliberado o cobro intencionado de más (no simples quejas de precio alto), " +
+            "(6) acusaciones de discriminación por raza, etnia, nacionalidad, género, orientación sexual, religión o discapacidad. " +
+            "Si detectas alguna de estas situaciones, devuelve retenida:true con motivoRetencion ('intoxicacion'|'maltrato'|'amenaza_legal'|'datos_personales'|'acusacion_fraude'|'discriminacion') y respuesta:null. " +
             "Si no, genera la respuesta normalmente con retenida:false y motivoRetencion:null. " +
             "Devuelve ÚNICAMENTE este JSON (sin markdown):\n" +
             "{\"respuesta\":\"<máx 150 palabras, mismo idioma que la reseña, o null si retenida>\"," +
@@ -186,7 +187,8 @@ public class ClaudeService : IReviewAiService
             "(2) acusaciones de agresión física, malos tratos o acoso grave, " +
             "(3) amenaza explícita de denuncia judicial o demanda legal, " +
             "(4) datos personales sensibles (nombre + datos médicos/bancarios), " +
-            "(5) acusaciones de fraude, estafa, engaño deliberado o cobro intencionado de más (no simples quejas de precio alto). " +
+            "(5) acusaciones de fraude, estafa, engaño deliberado o cobro intencionado de más (no simples quejas de precio alto), " +
+            "(6) acusaciones de discriminación por raza, etnia, nacionalidad, género, orientación sexual, religión o discapacidad. " +
             "Si detectas alguna, devuelve retenida:true y profesional/cercano/directo:null. " +
             "Si no, genera 3 respuestas en el mismo idioma que la reseña. Máximo 150 palabras cada una. " +
             "Tono Profesional: formal y pulido. Tono Cercano: cálido y humano. Tono Directo: breve y claro. " +

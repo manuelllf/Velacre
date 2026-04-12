@@ -316,7 +316,7 @@ app.Run($"http://0.0.0.0:{PORT ?? 5146}")
   - `GenerateSingleResponseAsync` / `GenerateSingleResponseWithContextAsync`
   - `GenerateRadarAnalysisAsync`
   - `GetClaudeMessageAsync` (helper genérico)
-- **Filtro de seguridad** (retiene con `motivoRetencion`): intoxicación, maltrato, amenaza legal, datos personales sensibles, acusación de fraude/estafa.
+- **Filtro de seguridad** (retiene con `motivoRetencion`): intoxicación, maltrato, amenaza legal, datos personales sensibles, acusación de fraude/estafa, discriminación.
 - **Bug funcional**: cuando una reseña se retiene, el controller **no envía alerta al usuario** aunque `EmailService.SendRetainedReviewAlertAsync()` exista.
 - Parsing frágil: busca primer `{` y último `}` sin validar JSON.
 
