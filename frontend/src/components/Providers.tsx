@@ -2,6 +2,7 @@
 
 import { LanguageProvider } from '@/lib/i18n'
 import PWAInstall from '@/components/PWAInstall'
+import LangSwitcher from '@/components/LangSwitcher'
 import ErrorBoundary from '@/components/ErrorBoundary'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -10,6 +11,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <LanguageProvider>
         {children}
         <PWAInstall />
+        <LangSwitcher />
       </LanguageProvider>
     </ErrorBoundary>
   )

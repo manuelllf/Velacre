@@ -27,7 +27,6 @@ import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
 import ReportErrorModal from '@/components/ReportErrorModal'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 import { trackLastAction, type ErrorInfoLike } from '@/lib/errorReporter'
 
 type EstadoFilter = 'pendiente' | 'respondida' | 'ignorada' | 'todas'
@@ -407,7 +406,6 @@ export default function DashboardPage() {
             {negocio && <span className="hidden sm:inline text-sm text-slate-400 dark:text-slate-500">· {negocio.nombre}</span>}
           </div>
           <div className="flex items-center gap-3">
-            <LangSwitcher />
             <button
               onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"

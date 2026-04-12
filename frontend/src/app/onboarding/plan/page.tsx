@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getMyNegocio, getMyUsuario, getLemonCheckoutUrl } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 export default function OnboardingPlanPage() {
   const router = useRouter()
@@ -56,7 +55,6 @@ export default function OnboardingPlanPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12 relative">
-      <div className="absolute top-4 right-4"><LangSwitcher /></div>
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-white">{ob.planTitle}</h1>

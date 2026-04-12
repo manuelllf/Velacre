@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 export default function InicioPage() {
   const router = useRouter()
@@ -73,7 +72,6 @@ export default function InicioPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block">{negocioNombre}</span>
-            <LangSwitcher />
             <button
               onClick={handleLogout}
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"

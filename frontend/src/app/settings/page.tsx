@@ -9,7 +9,6 @@ import SectionNav from '@/components/SectionNav'
 import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -222,7 +221,6 @@ export default function SettingsPage() {
             {negocio && <span className="hidden sm:inline text-sm text-slate-400 dark:text-slate-500">· {negocio.nombre}</span>}
           </div>
           <div className="flex items-center gap-3">
-            <LangSwitcher />
             <button
               onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"

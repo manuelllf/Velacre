@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -71,7 +70,6 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
       <div className="w-full max-w-md">
-        <div className="flex justify-center mb-6"><LangSwitcher /></div>
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{rp.title}</h1>
           <p className="text-base text-slate-500 dark:text-slate-400 mt-2">{rp.subtitle}</p>

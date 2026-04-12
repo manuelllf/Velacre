@@ -13,7 +13,6 @@ import ReportErrorModal from '@/components/ReportErrorModal'
 import { trackLastAction, type ErrorInfoLike } from '@/lib/errorReporter'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, computeSpeedBenchmark, type MonthMetrics, type SpeedBenchmark, type PdfTheme } from '@/lib/report-pdf'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 const STOPWORDS = new Set([
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'al', 'en', 'y', 'a', 'que',
@@ -416,7 +415,6 @@ export default function SaludPage() {
             {negocio && <span className="hidden sm:inline text-sm text-slate-400 dark:text-slate-500">· {negocio.nombre}</span>}
           </div>
           <div className="flex items-center gap-3">
-            <LangSwitcher />
             <button
               onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"

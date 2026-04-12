@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 import {
   getMyUsuario,
   getAdminUsuarios,
@@ -717,7 +716,6 @@ export default function AdminPage() {
             <span className="text-xs bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full font-semibold">Admin</span>
           </div>
           <div className="flex items-center gap-2">
-            <LangSwitcher />
             <Link
               href="/admin/mini-radar"
               title="Mini Radar"

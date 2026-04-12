@@ -9,7 +9,6 @@ import {
   type PlaceResult, type GbpLocation,
 } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 type ConnectionMethod = 'none' | 'manual' | 'google'
 type GbpCallbackState = 'none' | 'connected' | 'select' | 'error'
@@ -336,7 +335,6 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12 relative">
-      <div className="absolute top-4 right-4"><LangSwitcher /></div>
       <div className="w-full max-w-lg">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block text-base font-bold text-slate-900 dark:text-white mb-3">Velacre</Link>

@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 export default function PrivacidadPage() {
   const { t } = useLanguage()
@@ -15,7 +14,6 @@ export default function PrivacidadPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-white">Velacre</Link>
           <div className="flex items-center gap-3">
-            <LangSwitcher />
             <Link href="/auth/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2">
               {l.login}
             </Link>

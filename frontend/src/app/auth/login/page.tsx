@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 function GoogleIcon() {
   return (
@@ -93,7 +92,6 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
 
         <div className="text-center mb-7">
-          <div className="flex justify-center mb-3"><LangSwitcher /></div>
           <Link href="/" className="inline-block font-bold text-2xl text-slate-900 dark:text-white mb-5">Velacre</Link>
           <h1 className="text-xl font-semibold text-slate-900 dark:text-white">{l.title}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{l.subtitle}</p>

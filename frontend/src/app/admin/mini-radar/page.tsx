@@ -13,7 +13,6 @@ import {
 } from '@/lib/api'
 import { downloadMiniRadarPdf } from '@/lib/mini-radar-pdf'
 import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 type Step = 'idle' | 'fetching' | 'analyzing' | 'rendering' | 'done' | 'error'
 
@@ -189,7 +188,6 @@ export default function MiniRadarPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <LangSwitcher />
             <Link
               href="/admin"
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
