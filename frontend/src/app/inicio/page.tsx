@@ -63,7 +63,7 @@ export default function InicioPage() {
     : t.app.inicioPage.welcome
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -82,7 +82,7 @@ export default function InicioPage() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-12">
+      <main className="flex-1 max-w-4xl mx-auto px-4 py-12">
         <div className="mb-10">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             {greeting}
