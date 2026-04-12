@@ -1019,3 +1019,114 @@ Manuel actualizó manualmente las descripciones de los productos Core y Pro en e
 ### Fix tardío — botón Mini Radar en móvil (`b20a326`)
 
 El botón "Mini Radar" que añadí al header del panel admin en `54a61ef` tenía `hidden sm:inline-flex` — invisible en móvil. Corregido para seguir el mismo patrón del botón "Actualizar" de al lado: icono SVG siempre visible, texto "Mini Radar" solo en `sm+`, padding compacto en móvil (`px-2.5 sm:px-3`), añadidos `title` y `aria-label` para accesibilidad cuando solo aparece el icono. Una línea de código, un minuto, pero el Mini Radar no se podía usar desde móvil hasta este fix.
+
+## Changelog 2026-04-12 — error handling global + hardening
+
+Sesión larga dividida en 3 fases. Punto de partida: revisión exhaustiva del proyecto (front + back + integraciones) buscando puntos donde el usuario pudiera quedarse colgado y problemas latentes de concurrencia o seguridad.
+
+### Fase 1 — `velacre-context-technical.md` (nuevo doc)
+
+Se creó `velacre-context-technical.md` (~40 KB, 18 secciones) con el retrato técnico completo del proyecto: arquitectura, 44 endpoints backend documentados, 5 servicios, flujos críticos end-to-end, seguridad transversal, matriz de 17 hallazgos de concurrencia con severidad, estado del error handling actual y propuesta de implementación. Es el doc de referencia técnica; `velacre-context.md` (este) sigue siendo el doc contextual/conceptual.
+
+### Fase 2 — Error handling global (`c7a8b6a`)
+
+**Objetivo:** que el usuario nunca vea una pantalla en blanco. Si ocurre un error real, ve mensaje amable con botón "Reportar problema" → modal con campo "Observaciones" → email a `info@velacre.com` con contexto completo **sin stack trace**.
+
+**Backend nuevo:**
+- `backend/Infrastructure/GlobalExceptionMiddleware.cs` — captura excepciones no controladas, devuelve `{error:"internal_error", mensaje, errorId}` consistente.
+- `backend/Controllers/ReportErrorController.cs` — endpoint `POST /api/report-error` **anónimo** (para permitir reportar incluso con sesión rota), rate limit in-memory 10/h por IP vía `IMemoryCache`, sanitiza campos, genera `reportId = RPT-yyyyMMdd-HHmmss-XXXX`, llama a `EmailService.SendErrorReportAsync` (nuevo).
+- `backend/Models/Requests/ReportErrorRequest.cs` — DTO del payload (URL, mensaje, status, endpoint, últimaAcción, email/plan, user-agent, observaciones).
+- `EmailService.SendErrorReportAsync` — template HTML con asunto `[Velacre] Error reportado {reportId}`, destino `info@velacre.com`.
+- `Program.cs` — registrado `AddMemoryCache()` + `UseMiddleware<GlobalExceptionMiddleware>()` tras `UseCors`.
+
+**Frontend nuevo:**
+- `frontend/src/components/ErrorBoundary.tsx` — clase React clásica con `getDerivedStateFromError` + `componentDidCatch` que muestra fallback con botón Reportar.
+- `frontend/src/app/error.tsx` — boundary por ruta del App Router con `reset()` + Reportar.
+- `frontend/src/app/global-error.tsx` — último bastión con `<html>/<body>` propios y estilos inline (por si falla el root layout).
+- `frontend/src/components/ReportErrorModal.tsx` — modal con textarea Observaciones, preview colapsable del payload, estados idle/sending/sent/error.
+- `frontend/src/lib/errorReporter.ts` — `trackLastAction(action)` + `buildErrorPayload(info, user, observaciones)`. Normaliza mensajes (filtra líneas con `at ` y `webpack-internal://` para no filtrar stacks accidentales), trunca campos.
+- `frontend/src/lib/api.ts` — función `reportError(payload)`, anónima con JWT opcional.
+- `frontend/src/components/Providers.tsx` — envuelve children con `<ErrorBoundary>`.
+- `frontend/src/app/dashboard/page.tsx` + `dashboard/salud/page.tsx` — añadido estado `initError` (en dashboard no existía), bloque UI con botón "Reportar problema", `trackLastAction` en `handleSync` y `handleGenerate`.
+
+### Fase 3 — Hardening de concurrencia y seguridad (`c7a8b6a`)
+
+10 hallazgos del análisis técnico fueron priorizados por severidad real. Tras discutir cada uno, se implementaron los que tenían impacto real sin introducir riesgo nuevo.
+
+**Implementados:**
+
+1. **Sync nunca borra reseñas preexistentes** (`PlacesController.cs`). Antes, en modo inicial, se borraban reseñas que no vinieran en la respuesta de Outscraper. Si Outscraper fallaba y devolvía lista vacía o parcial, se perdían datos. Ahora la sincronización es 100% aditiva: solo inserta nuevas y actualiza las que tienen `ownerAnswer` recién llegada. El cron ya era seguro (solo INSERT), no se tocó.
+
+2. **Logs de `GoogleBusinessService` saneados.** Se volcaban bodies completos de las respuestas de Google Accounts/Locations v1/v4 en nivel Information (`"[GBP] Accounts response: {Body}"`). Los logs de Railway son persistentes → potencial leak de nombres de cuentas e IDs. Ahora solo se loguea status HTTP + contadores (nº de cuentas, nº de locales añadidos). Los logs de error mantienen el body porque Google devuelve códigos tipo `{"error":{"code":400,"message":"..."}}` sin datos sensibles.
+
+3. **Circuit breaker en llamadas a Claude** (`Program.cs` + `ClaudeService.cs`). Añadido paquete `Microsoft.Extensions.Http.Resilience` 9.0.0. El `HttpClient` del SDK de Anthropic ahora tiene:
+   - `Timeout = 90s` (antes: infinito por defecto).
+   - `AddResilienceHandler("claude-pipeline")` con circuit breaker (ventana 30s, 50% fallos, mínimo 8 requests, break 30s) + timeout por intento 85s.
+   - Motivación: si Claude cae, antes cada request esperaba el timeout default y el thread pool se saturaba → Velacre entero caía. Ahora el circuito abre tras 8 fallos y los requests fallan al instante con `BrokenCircuitException` → solo cae "generar respuesta", el resto de la app (dashboard, settings, publicar, métricas) sigue funcionando.
+   - Se refactorizó el ctor de `ClaudeService` para aceptar `HttpClient` externamente e inyectarlo al `AnthropicClient(auth, http, null)`.
+
+4. **DeleteMe atómico vía RPC Postgres** (`UsuarioController.cs` + Supabase). Antes eran 4-5 pasos secuenciales sin transacción: si fallaba en medio, usuario quedaba con reviews borradas + negocio huérfano + auth.users no eliminado. Ahora se llama a `delete_user_cascade(p_user_id)` — función SQL con `SECURITY DEFINER` que borra dentro de una única transacción: reviews, radar_analisis, competidores, google_connection, analisis_ia, negocios y anonimiza el usuario. Si algo falla, Postgres hace rollback automático. La cancelación de Lemon Squeezy y el delete de `auth.users` quedan fuera porque son APIs externas. **Fallback manual mantenido en el .NET** por si la RPC no está desplegada.
+
+5. **N+1 keywords sustituido por RPC** (`ReviewController.cs`). El fallback de keywords cargaba **todas** las reseñas del negocio en memoria para calcular las 6 más usadas por la IA. Para negocios con miles de reseñas era un N+1 y un spike de memoria. Ahora se llama a `get_top_keywords(p_negocio_id, p_limit)` — función SQL con `CROSS JOIN LATERAL unnest(keywords_usadas)` + GROUP BY que devuelve solo las 6 top. Si la RPC falla, fallback al nombre del negocio como keyword.
+
+6. **`StatusCode(500, ex.Message)` eliminado** (7 sitios en 4 controllers). El patrón exponía internals del backend al cliente y era inconsistente con el shape esperado. Sustituidos por `throw;` para que el `GlobalExceptionMiddleware` los capture y devuelva `{error, mensaje, errorId}` estándar. El log server-side sigue conservando el stack completo. Único caso no-puro: `AdminController.MiniRadar` devolvía `{error:"ai_error", mensaje: ex.Message}` → ahora devuelve mensaje genérico.
+
+7. **Bulk delete** (`GoogleBusinessService.DeleteAllReviewsForNegocioAsync`). Era un loop `foreach` con `DELETE` individual por reseña (O(N) queries). Ahora 1 query bulk con `.Where(r => r.IdNegocio == negocioId).Delete()`.
+
+8. **Helper `FireAndForget.Run(task, logger, tag)`** (`backend/Infrastructure/FireAndForget.cs`). Sustituye al patrón `_ = _email.SendXAsync()` que descarta errores silenciosamente. Aplica `ContinueWith` con log de excepciones. Usado en `LemonController.Webhook` (hasta el siguiente punto) y en `UsuarioController.CreateProfile` (welcome email).
+
+9. **Emails redundantes eliminados del webhook LemonSqueezy** (`LemonController.cs`). Lemon Squeezy ya envía emails al cliente en cada evento de suscripción (compra con factura, cancelación, expiración). Velacre estaba enviando los suyos en paralelo → cliente recibía 2 emails casi idénticos por cada evento. Eliminadas las llamadas a `SendSubscriptionConfirmedAsync`, `SendSubscriptionCancelledAsync` y `SendSubscriptionExpiredAsync` desde el webhook. Los métodos en `EmailService.cs` se quedan definidos por si se reutilizan. **Mantenido el email de Welcome** (`SendWelcomeAsync`) en `POST /api/usuario` — es el único que Velacre envía, cubre onboarding incluso para usuarios que no pagan.
+
+**No implementados (backlog por decisión):**
+
+- **Rate limiting aplicativo** — no crítico hoy sin atacantes activos; buena práctica pero requiere tuning para no molestar a clientes.
+- **Race condition contador manual** — 99% imposible (usuario no hace 2 manuales a la vez).
+- **Supabase singleton sync init** — resuelto en infraestructura: Railway 5$/mes 24/7 sin cold start.
+- **Idempotencia webhook LS** — confirmado que no era duplicación; eran emails distintos (welcome LS + order confirmation LS + welcome Velacre + subscription confirmed Velacre). Resuelto con la eliminación de los 3 emails redundantes de Velacre (punto 9 arriba).
+- **`SendRetainedReviewAlertAsync` nunca invocado** — decidido dejar a futuro.
+
+### Nuevas RPCs en Supabase (pegadas en SQL Editor)
+
+```sql
+-- get_top_keywords(p_negocio_id uuid, p_limit int) → TABLE(word, count)
+-- Calcula server-side las keywords más usadas por la IA en el negocio.
+
+-- delete_user_cascade(p_user_id uuid) → void (SECURITY DEFINER)
+-- Borrado atómico transaccional de todos los datos del usuario:
+-- reviews → radar_analisis → competidor → google_connection → analisis_ia → negocio → usuario (anonimizado).
+```
+
+Ambas con `GRANT EXECUTE` a `authenticated, service_role`. El SQL completo está documentado en la propuesta de implementación de Fase 3 (sección interna de trabajo).
+
+### Paquetes nuevos en backend
+
+- `Microsoft.Extensions.Http.Resilience` 9.0.0 (para el circuit breaker de Claude).
+
+### Nueva carpeta `backend/Infrastructure/`
+
+Antes estaba vacía (el análisis inicial lo flagueaba como code smell). Ahora contiene:
+- `GlobalExceptionMiddleware.cs`
+- `FireAndForget.cs`
+
+### Validación
+
+- `dotnet build` → 0 errores, 22 warnings preexistentes (todos `CS8603` en controllers no tocados).
+- `tsc --noEmit` del frontend → 0 errores.
+- Lint: sin errores nuevos introducidos (los 16 warnings existentes eran preexistentes).
+
+### Qué puede ver el usuario ahora cuando algo falla
+
+| Escenario | Antes | Ahora |
+|---|---|---|
+| Component crash (error en render) | Pantalla blanca | `app/error.tsx` / `ErrorBoundary` con botón "Reportar problema" |
+| Crash del root layout | Pantalla blanca | `global-error.tsx` con `<html>/<body>` propios |
+| 500 del backend al generar | Texto raw con `ex.Message` + internals | `{error, mensaje, errorId}` consistente + botón Reportar |
+| Claude caído (outage) | Todo Velacre cae | Solo "generar respuesta" cae; resto de la app funciona |
+| Backend inalcanzable en init | Mensaje genérico | Mensaje + botón "Reportar problema" con contexto |
+| 401 / 429 / 403 | Flujos actuales (redirect login / upsell / forbid) | Idénticos, no se tocaron |
+
+### Archivos relevantes para futuras referencias
+
+- Backend: `Infrastructure/GlobalExceptionMiddleware.cs`, `Infrastructure/FireAndForget.cs`, `Controllers/ReportErrorController.cs`, `Models/Requests/ReportErrorRequest.cs`, `Services/EmailService.cs:SendErrorReportAsync`.
+- Frontend: `components/ErrorBoundary.tsx`, `components/ReportErrorModal.tsx`, `app/error.tsx`, `app/global-error.tsx`, `lib/errorReporter.ts`, `lib/api.ts:reportError`.
+- Supabase RPC: `get_top_keywords`, `delete_user_cascade`.
