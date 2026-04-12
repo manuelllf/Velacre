@@ -1297,7 +1297,7 @@ export default function SaludPage() {
                           </div>
                         )
                       })}
-                      <p className="text-xs text-slate-500 mt-2">{sl.radarNavHint}</p>
+                      {radarSteps.length > 0 && <p className="text-xs text-slate-500 mt-2">{sl.radarNavHint}</p>}
                     </div>
                   ) : (
                     <div className="flex items-center gap-3">
