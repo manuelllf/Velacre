@@ -9,14 +9,14 @@ const gal: LandingLocale = {
   },
 
   hero: {
-    badge: 'Intelixencia artificial aplicada á reputación en liña',
-    h1: 'Responde ás túas recensións',
-    h1highlight: 'con intelixencia artificial',
-    p: 'Velacre analiza cada recensión de Google e xera respostas personalizadas ao tono do teu negocio. En segundos, sen esforzo.',
+    badge: 'Acceso anticipado · Prazas limitadas',
+    h1: 'Recensións respondidas.',
+    h1highlight: 'Reputación entendida.',
+    p: 'Velacre aprende o contexto e as palabras clave do teu negocio para xerar respostas que soan de verdade. O panel de saúde diche que está fallando antes de que o note o cliente.',
     ctaGoogle: 'Comezar con Google',
     ctaGoogleLoading: 'Conectando...',
     ctaEmail: 'Crear conta con correo',
-    setup: 'Configuración en 2 minutos',
+    setup: 'Sen tarxeta · Listo en 2 minutos',
   },
 
   stats: {
@@ -24,13 +24,13 @@ const gal: LandingLocale = {
     s1label: 'máis recensións respondidas',
     s2val: '< 30 seg',
     s2label: 'por resposta xerada',
-    s3val: '3 tonos',
-    s3label: 'Profesional · Achegado · Directo',
+    s3val: '48 h',
+    s3label: 'límite para non perder posicionamento',
   },
 
   demo: {
-    h2: 'A IA que traballa por ti',
-    p: 'Pegas a recensión, seleccionas o tono e en segundos tes unha resposta lista para copiar en Google.',
+    h2: 'A IA que coñece o teu negocio',
+    p: 'Non usa modelos. Aprende as palabras clave e o contexto do teu local. Cada resposta soa como ti, non coma un robot.',
     review: {
       date: 'hai 3 días',
       text: 'A comida tardou 45 minutos e cando chegou estaba fría. O camareiro non se desculpou en ningún momento. Moi decepcionante para o prezo que cobran.',
@@ -49,8 +49,8 @@ const gal: LandingLocale = {
   },
 
   health: {
-    h2: 'Panel de saúde da túa reputación',
-    p: 'Visualiza a evolución da túa nota media, o sentimento dos clientes e as palabras que máis se repiten.',
+    h2: 'Coñece o teu negocio mellor ca os teus clientes',
+    p: 'O panel de saúde analiza todas as túas recensións con IA: nota media, sentimento, palabras que repiten e a acción concreta a tomar. Exclusivo Pro.',
     kpi1: 'Nota media',
     kpi2: 'Índice de resposta',
     kpi3: 'Recensións este mes',
@@ -78,34 +78,34 @@ const gal: LandingLocale = {
   },
 
   howto: {
-    h2: 'Tres pasos para comezar',
-    p: 'Sen instalacións, sen configuracións complexas.',
+    h2: 'En marcha en 2 minutos',
+    p: 'Sen instalacións. Sen configuracións técnicas. Conectas, configuras o tono e listo.',
     stepLabel: 'PASO',
     steps: [
       {
         title: 'Conecta o teu negocio',
-        desc: 'Busca o teu local en Google Maps e vinculámolo automaticamente. Importamos o teu nome, enderezo e recensións.',
+        desc: 'Busca o teu local en Google Maps e vinculámolo ao instante. Importamos as túas recensións automaticamente.',
       },
       {
-        title: 'Revisa as túas recensións',
-        desc: 'Sincronizamos as túas recensións de Google automaticamente. Ve dunha ollada cales necesitan resposta.',
+        title: 'A IA aprende de ti',
+        desc: 'Configuras o tono e describes o teu local brevemente. Velacre extrae as túas palabras clave para que cada resposta soe auténtica.',
       },
       {
-        title: 'Xera e publica',
-        desc: 'A IA redacta a resposta perfecta no tono do teu negocio. Cópiaa e pégaa en Google en segundos.',
+        title: 'Xera, copia e publica',
+        desc: 'Un clic para xerar. Copias a resposta e pégala en Google en segundos, sen saír da app.',
       },
     ],
   },
 
   forWho: {
-    h2: 'Pensado para negocios locais',
-    p: 'Calquera negocio con presenza en Google pode aproveitar Velacre.',
+    h2: 'Para quen coida a súa reputación',
+    p: 'Cada recensión sen resposta é unha oportunidade perdida. Velacre funciona para calquera negocio con presenza en Google.',
     sectors: ['Restaurantes', 'Hoteis', 'Cafeterías', 'Perruquerías', 'Talleres', 'Clínicas', 'Comercios', 'Bares'],
   },
 
   pricing: {
     h2: 'Plans',
-    p: 'Sen sorpresas. Cancela cando queiras.',
+    p: 'Sen permanencia. Cancela cando queiras.',
     monthly: 'Mensual',
     yearly: 'Anual',
     yearlySave: '2 meses gratis',
@@ -143,19 +143,19 @@ const gal: LandingLocale = {
     transversalTitle: 'Incluído en todos os plans',
     transversalItems: [
       'Filtro de seguridade: retemos automaticamente recensións críticas (intoxicacións, ameazas legais, acusacións graves) para que as revises ti antes de publicar',
-      '3 tons de resposta: Profesional, Próximo e Directo',
+      '3 tons de resposta: Profesional, Achegado e Directo',
       'Respostas no mesmo idioma da recensión',
       'Sen permanencia — cancela cando queiras',
     ],
   },
 
   cta: {
-    h2line1: 'Comeza hoxe.',
-    h2line2: 'Responde mañá.',
-    p: 'Configúrate en 2 minutos e comeza a responder recensións con IA desde o primeiro día.',
+    h2line1: 'A túa reputación,',
+    h2line2: 'baixo control.',
+    p: 'Dous minutos de configuración. A IA aprende o teu negocio e o panel de saúde diche exactamente que mellorar.',
     ctaGoogle: 'Comezar con Google',
     ctaGoogleLoading: 'Conectando...',
-    setup: 'Configuración en 2 minutos',
+    setup: 'Sen tarxeta · Listo en 2 minutos',
   },
 
   footer: {

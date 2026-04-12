@@ -9,14 +9,14 @@ const en: LandingLocale = {
   },
 
   hero: {
-    badge: 'Generative AI for your online reputation',
-    h1: 'Respond to your reviews',
-    h1highlight: 'with artificial intelligence',
-    p: 'Velacre analyses every Google review and generates personalised responses in your business tone. In seconds, effortlessly.',
+    badge: 'Early access · Limited spots',
+    h1: 'Reviews responded.',
+    h1highlight: 'Reputation understood.',
+    p: 'Velacre learns the context and keywords of your business to generate responses that sound real. The health panel tells you what is failing before the customer notices.',
     ctaGoogle: 'Get started with Google',
     ctaGoogleLoading: 'Connecting...',
     ctaEmail: 'Create account with email',
-    setup: '2-minute setup',
+    setup: 'No card required · Ready in 2 minutes',
   },
 
   stats: {
@@ -24,13 +24,13 @@ const en: LandingLocale = {
     s1label: 'more reviews responded to',
     s2val: '< 30 sec',
     s2label: 'per generated response',
-    s3val: '3 tones',
-    s3label: 'Professional · Friendly · Direct',
+    s3val: '48 h',
+    s3label: 'limit to avoid losing ranking',
   },
 
   demo: {
-    h2: 'The AI that works for you',
-    p: 'Paste the review, select your tone and in seconds you have a response ready to copy to Google.',
+    h2: 'The AI that knows your business',
+    p: 'No templates. It learns the keywords and context of your venue. Every response sounds like you, not a robot.',
     review: {
       date: '3 days ago',
       text: 'The food took 45 minutes and arrived cold. The waiter never apologised. Very disappointing for the price they charge.',
@@ -49,8 +49,8 @@ const en: LandingLocale = {
   },
 
   health: {
-    h2: 'Your reputation health panel',
-    p: 'Visualise the evolution of your average rating, customer sentiment and the most frequently mentioned words.',
+    h2: 'Know your business better than your customers',
+    p: 'The health panel analyses all your reviews with AI: average rating, sentiment, recurring words and a concrete action to take. Pro exclusive.',
     kpi1: 'Average rating',
     kpi2: 'Response rate',
     kpi3: 'Reviews this month',
@@ -78,34 +78,34 @@ const en: LandingLocale = {
   },
 
   howto: {
-    h2: 'Three steps to get started',
-    p: 'No installations, no complex configuration.',
+    h2: 'Up and running in 2 minutes',
+    p: 'No installations. No technical setup. Connect, set your tone and go.',
     stepLabel: 'STEP',
     steps: [
       {
         title: 'Connect your business',
-        desc: 'Search for your venue on Google Maps and we link it automatically. We import your name, address and reviews.',
+        desc: 'Search for your venue on Google Maps and we link it instantly. We import your reviews automatically.',
       },
       {
-        title: 'Review your reviews',
-        desc: 'We sync your Google reviews automatically. See at a glance which ones need a response.',
+        title: 'The AI learns from you',
+        desc: 'Set the tone and briefly describe your venue. Velacre extracts your keywords so every response sounds authentic.',
       },
       {
-        title: 'Generate and publish',
-        desc: 'AI drafts the perfect response in your business tone. Copy and paste it to Google in seconds.',
+        title: 'Generate, copy and publish',
+        desc: 'One click to generate. Copy the response and paste it on Google in seconds, without leaving the app.',
       },
     ],
   },
 
   forWho: {
-    h2: 'Built for local businesses',
-    p: 'Any business with a Google presence can benefit from Velacre.',
+    h2: 'For those who care about their reputation',
+    p: 'Every unanswered review is a missed opportunity. Velacre works for any business with a Google presence.',
     sectors: ['Restaurants', 'Hotels', 'Cafés', 'Hairdressers', 'Garages', 'Clinics', 'Shops', 'Bars'],
   },
 
   pricing: {
     h2: 'Plans',
-    p: 'No surprises. Cancel anytime.',
+    p: 'No lock-in. Cancel anytime.',
     monthly: 'Monthly',
     yearly: 'Yearly',
     yearlySave: '2 months free',
@@ -150,9 +150,9 @@ const en: LandingLocale = {
   },
 
   cta: {
-    h2line1: 'Start today.',
-    h2line2: 'Respond tomorrow.',
-    p: 'Set up in 2 minutes and start responding to reviews with AI from day one.',
+    h2line1: 'Your reputation,',
+    h2line2: 'under control.',
+    p: 'Two minutes of setup. The AI learns your business and the health panel tells you exactly what to improve.',
     ctaGoogle: 'Get started with Google',
     ctaGoogleLoading: 'Connecting...',
     setup: '2-minute setup',
