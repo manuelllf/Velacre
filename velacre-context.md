@@ -6,7 +6,7 @@
 
 ## 1. ¿Qué es Velacre?
 
-SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google con IA. Genera respuestas en 3 tonos, detecta reseñas críticas antes de contestar, y ofrece inteligencia competitiva con un Radar que analiza a los rivales del negocio.
+SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google con IA. Genera respuestas en 6 tonos, detecta reseñas críticas antes de contestar, y ofrece inteligencia competitiva con un Radar que analiza a los rivales del negocio.
 
 **Nombre legal:** Velacre · **Dominio:** velacre.com · **Email:** info@velacre.com
 
@@ -107,7 +107,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 
 ### Incluido en todos los planes (transversal)
 - Filtro de seguridad (retiene reseñas críticas)
-- 3 tonos de respuesta (Profesional, Cercano, Directo)
+- 6 tonos de respuesta (Profesional, Empático, Cercano, Directo, Agradecido, Humorístico)
 - Respuestas en el idioma de la reseña
 - Sin permanencia
 
@@ -134,7 +134,7 @@ Checkout Lemon Squeezy implementado y probado en modo test Y en live mode. Tiend
 ## 7. Features principales del producto
 
 ### Generación de respuestas IA
-- 3 tonos: Profesional, Cercano, Directo
+- 6 tonos: Profesional, Empático, Cercano, Directo, Agradecido, Humorístico
 - Idioma automático: responde en el mismo idioma de la reseña
 - Palabras clave SEO: hasta 5 por negocio, se incluyen con naturalidad en las respuestas (Claude decide cuáles encajan). Fallback: si no hay keywords, usa las 6 más frecuentes de respuestas previas; si tampoco, usa el nombre del negocio.
 - Contexto generado: "Lo que dijo el cliente" + "Lo que respondiste" para cada reseña
@@ -151,7 +151,7 @@ Detecta en la misma llamada IA (sin coste extra) reseñas que describen:
 Si detecta: retiene la reseña, no genera respuesta, hace rollback del contador IA. En el dashboard: badge ⚠ naranja, banner de aviso, botones deshabilitados.
 
 ### Generador para otras plataformas
-Modal separado para TripAdvisor, Yelp, etc. Genera 3 tonos sin asociar a reseña Google. Bottom-sheet en móvil, centrado en desktop.
+Modal separado para TripAdvisor, Yelp, etc. Genera 1 respuesta en el tono del negocio (mismo flujo que reseñas Google). Bottom-sheet en móvil, centrado en desktop.
 
 ### Panel de Salud (Core/Pro)
 - **Core:** nota media real, 4 KPIs, sentimiento, cards Pro bloqueadas con skeleton (sin datos reales bajo el blur)
@@ -276,7 +276,7 @@ Registro (Google OAuth o email)
 
 ### Producto y UX
 - **Modo oscuro forzado:** decisión estética deliberada. Velacre es una herramienta de trabajo, no un portal público. Dark reduce fatiga visual para dueños que lo usan al final del día.
-- **3 tonos (no 9):** empezar con pocos, bien calibrados. Gap vs RepScan (9 tonos) existe, pero 3 cubren el 90% de PYMEs. Pendiente añadir "Empático" y "Humorístico".
+- **6 tonos:** Profesional, Empático, Cercano, Directo, Agradecido y Humorístico. Agradecido pensado para reseñas positivas (4-5 estrellas), incluye keywords del negocio con naturalidad. Gap vs RepScan (9 tonos) reducido significativamente.
 - **Filtro seguridad transversal (no solo Pro):** coste cero (misma llamada Claude) y es el mejor argumento de marca. Desde 2026-04-10 comunicado como feature de todos los planes en la landing.
 - **GBP deshabilitado con "Próximamente":** todo el código está listo. La UI muestra badges y elementos con opacity reducida. Activación será quitar CSS, no desarrollar nada nuevo.
 - **Copy-paste como flujo interino:** mientras no haya GBP, botón "Responder en Google" abre business.google.com. Con PWA en el móvil, el flujo generar→copiar→pegar es razonable para ≤50 reseñas/mes.
@@ -323,6 +323,7 @@ Registro (Google OAuth o email)
 - **Fix RPC Pro bloqueado:** la RPC `try_increment_ia_counter` en producción devolvía `false` con `p_limit=-1`. Fix doble: RPC actualizada en Supabase + backend nunca bloquea Pro por resultado de RPC.
 - **Filtro seguridad ampliado:** 2 nuevas categorías — acusación de fraude/estafa y discriminación (6 categorías totales).
 - **i18n completo:** 3 idiomas (ES/GAL/EN), ~550 claves tipadas, selector de idioma en todas las páginas, cero textos hardcodeados visibles al usuario. 28 ficheros migrados.
+- **6 tonos de respuesta:** añadidos Empático, Agradecido y Humorístico. Modal manual simplificado: genera 1 respuesta en tono del negocio (antes generaba 3 y pedía elegir). Misma UX que reseñas Google. Menos tokens, menos fricción.
 
 ---
 
@@ -355,7 +356,6 @@ Registro (Google OAuth o email)
 
 ### Backlog técnico de alto nivel
 - **Eliminación de reseñas (Pro):** Claude genera texto de reclamación según políticas de Google → usuario copia y pega en formulario oficial. Velacre no elimina, Google decide.
-- **Más tonos:** añadir "Empático" y "Humorístico" (gap vs RepScan).
 - **Modo supervisado + auto-publicación:** supervisado es el modo por defecto (decidido). Auto-publicar requiere toggle activo en Settings + guardar. Implementar cuando GBP esté activo.
 - **Multi-ubicación:** soporte `negocio[]` por usuario, pricing por local adicional (~€20/mes).
 - **Tests:** 0% cobertura actual. Priorizar tests de integración en flujos críticos (generación IA, sync, checkout).

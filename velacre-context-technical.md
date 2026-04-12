@@ -1357,6 +1357,20 @@ Rediseñado como botón flotante fijo `fixed bottom-5 left-5 z-50` (simétrico a
 
 **No tocados (fallback ES por diseño):** `global-error.tsx` (sin Provider disponible).
 
+### 2026-04-12 — 6 tonos + simplificación modal manual
+
+**6 tonos:** Profesional, Empático, Cercano, Directo, Agradecido, Humorístico. Grid 3x2 en settings/onboarding.
+
+- `ClaudeService.cs`: switch con 6 cases (con y sin tilde para Empático/Humorístico). Agradecido orientado a reseñas positivas — incluye keywords del negocio con naturalidad.
+- `ReviewController.cs POST /generate`: ahora llama a `GenerateSingleResponseWithContextAsync` (antes `GenerateThreeResponsesWithSafeFilterAsync`). Acepta `tono` opcional en el request, fallback a `negocio.TonoPredefinido`. MaxTokens 500 (antes 1200).
+- `ReviewController.cs POST /save-manual`: acepta 1 campo `Respuesta` (antes 3). Validación incluye los 6 tonos. Mapeo BD: cercano→`RespuestaCercano`, directo→`RespuestaDirecto`, todo lo demás→`RespuestaProfesional` (compatible con lógica de lectura del dashboard).
+- `GenerateThreeResponsesWithSafeFilterAsync` no eliminado pero ya no se llama desde ningún endpoint activo.
+- Frontend: modal manual sin selección de tono — genera 1 respuesta en tono del negocio y muestra directamente. `ManualResponseRow` eliminado.
+- Locales: 6 tonos en `settings.tonos` + `demo.response.tones` en ES/EN/GAL.
+- Landing demo: 6 botones de tono.
+
+**⚠️ AVISO — bomba de relojería en modal manual:** Actualmente `handleSaveManual` envía `tonoSeleccionado: negocio.tonopredefinido` al backend. Esto funciona porque `handleGenerateManual` genera con el mismo tono. **Si en el futuro se añade un selector de tono dentro del modal manual** (para que el usuario elija un tono distinto al del negocio), el `tonoSeleccionado` que se envía al save DEBE actualizarse para reflejar el tono real usado en la generación, no el predefinido del negocio. Si no, `TonoGenerado` en BD no coincidirá con la respuesta almacenada y la lógica de lectura del dashboard (`toneLower === 'cercano' ? r.respuestaCercano : ...`) devolverá la respuesta incorrecta.
+
 ---
 
 *Fin del documento. Actualizar cuando se añadan/retiren servicios, cambie el schema de BD o se añada monitoring.*
