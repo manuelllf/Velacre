@@ -888,7 +888,7 @@ const gal: LandingLocale = {
         lastUpdated: 'Última actualización: marzo de 2026',
         s1Title: '1. Responsable do tratamento',
         s1p1: 'O responsable do tratamento dos teus datos persoais é Manuel Llao Freire, titular do servizo Velacre, con domicilio na Coruña, Galicia, España.',
-        s1p2: 'Para calquera consulta relacionada coa privacidade podes contactarnos en info@velacre.com.',
+        s1p2: 'Para calquera consulta relacionada coa privacidade podes contactarnos en privacidad@velacre.com.',
         s2Title: '2. Datos que recollemos',
         s2intro: 'En función do uso que fagas de Velacre, recollemos os seguintes datos:',
         s2items: [
@@ -939,7 +939,7 @@ const gal: LandingLocale = {
           'Oposición: opoñerte ao tratamento baseado en interese lexítimo.',
           'Retirada do consentimento: en calquera momento, sen efectos retroactivos.',
         ],
-        s6exercise: 'Para exercer calquera destes dereitos escríbenos a info@velacre.com indicando o teu nome e a solicitude concreta. Responderemos nun prazo máximo dun mes.',
+        s6exercise: 'Para exercer calquera destes dereitos escríbenos a privacidad@velacre.com indicando o teu nome e a solicitude concreta. Responderemos nun prazo máximo dun mes.',
         s6complaint: 'Se consideras que o tratamento dos teus datos non é conforme á normativa, podes presentar unha reclamación ante a Axencia Española de Protección de Datos (AEPD).',
         s7Title: '7. Cookies',
         s7text: 'Velacre utiliza unicamente cookies técnicas estritamente necesarias para o funcionamento do servizo (xestión de sesión de usuario). Non utilizamos cookies de seguimento, publicidade nin analítica de terceiros.',

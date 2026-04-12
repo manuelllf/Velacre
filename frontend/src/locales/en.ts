@@ -888,7 +888,7 @@ const en: LandingLocale = {
         lastUpdated: 'Last updated: March 2026',
         s1Title: '1. Data controller',
         s1p1: 'The data controller for your personal data is Manuel Llao Freire, owner of the Velacre service, with address in A Coru\u00f1a, Galicia, Spain.',
-        s1p2: 'For any privacy-related enquiries you can contact us at info@velacre.com.',
+        s1p2: 'For any privacy-related enquiries you can contact us at privacidad@velacre.com.',
         s2Title: '2. Data we collect',
         s2intro: 'Depending on your use of Velacre, we collect the following data:',
         s2items: [
@@ -939,7 +939,7 @@ const en: LandingLocale = {
           'Objection: object to processing based on legitimate interest.',
           'Withdrawal of consent: at any time, without retroactive effect.',
         ],
-        s6exercise: 'To exercise any of these rights, write to info@velacre.com stating your name and the specific request. We will respond within a maximum of one month.',
+        s6exercise: 'To exercise any of these rights, write to privacidad@velacre.com stating your name and the specific request. We will respond within a maximum of one month.',
         s6complaint: 'If you believe that the processing of your data does not comply with regulations, you can file a complaint with the Spanish Data Protection Agency (AEPD).',
         s7Title: '7. Cookies',
         s7text: 'Velacre only uses strictly necessary technical cookies for the operation of the service (user session management). We do not use tracking, advertising or third-party analytics cookies.',
