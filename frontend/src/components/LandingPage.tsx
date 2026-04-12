@@ -359,14 +359,14 @@ export default function LandingPage() {
               </div>
 
               {/* Tone selector */}
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {toneKeys.map(key => (
                   <motion.button
                     key={key}
                     onClick={() => setSelectedTone(key)}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className={`flex-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${
+                    className={`px-2 py-2 rounded-xl text-xs font-semibold transition-all border ${
                       selectedTone === key
                         ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/50'
                         : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
