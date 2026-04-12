@@ -1371,6 +1371,12 @@ Rediseñado como botón flotante fijo `fixed bottom-5 left-5 z-50` (simétrico a
 
 **⚠️ AVISO — bomba de relojería en modal manual:** Actualmente `handleSaveManual` envía `tonoSeleccionado: negocio.tonopredefinido` al backend. Esto funciona porque `handleGenerateManual` genera con el mismo tono. **Si en el futuro se añade un selector de tono dentro del modal manual** (para que el usuario elija un tono distinto al del negocio), el `tonoSeleccionado` que se envía al save DEBE actualizarse para reflejar el tono real usado en la generación, no el predefinido del negocio. Si no, `TonoGenerado` en BD no coincidirá con la respuesta almacenada y la lógica de lectura del dashboard (`toneLower === 'cercano' ? r.respuestaCercano : ...`) devolverá la respuesta incorrecta.
 
+### 2026-04-13 — Optimización radar + limpieza
+
+- **`RadarController.cs`**: llamadas a Outscraper paralelizadas con `Task.WhenAll` (antes `foreach` secuencial). Reduce scraping de 3 competidores de ~15-30s a ~5-10s.
+- **`dashboard/salud/page.tsx`**: polling de análisis en curso. Al lanzar el radar se guarda timestamp en `localStorage`. Si el usuario navega y vuelve, detecta el análisis en curso y muestra spinner con "Generando informe comparativo..." + polling cada 5s a `getRadar()` hasta que el resultado aparezca en BD (o timeout 2 min). Limpia el flag al completar o al expirar.
+- **Eliminado `app/health/page.tsx`**: página legacy de 439 líneas sin i18n ni enlaces, versión vieja del panel de salud.
+
 ---
 
 *Fin del documento. Actualizar cuando se añadan/retiren servicios, cambie el schema de BD o se añada monitoring.*
