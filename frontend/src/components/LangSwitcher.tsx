@@ -3,29 +3,23 @@
 import { useLanguage } from '@/lib/i18n'
 
 const LANGS = ['es', 'gal', 'en'] as const
+const LABELS: Record<string, string> = { es: 'ES', gal: 'GL', en: 'EN' }
 
 export default function LangSwitcher() {
   const { locale, setLocale } = useLanguage()
 
+  function cycle() {
+    const idx = LANGS.indexOf(locale)
+    setLocale(LANGS[(idx + 1) % LANGS.length])
+  }
+
   return (
-    <div className="flex items-center gap-0.5">
-      {LANGS.map((lang, i) => (
-        <span key={lang} className="flex items-center">
-          <button
-            onClick={() => setLocale(lang)}
-            className={`px-1.5 py-0.5 text-xs font-medium rounded transition-colors cursor-pointer ${
-              locale === lang
-                ? 'text-blue-600 dark:text-blue-400'
-                : 'text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400'
-            }`}
-          >
-            {lang.toUpperCase()}
-          </button>
-          {i < LANGS.length - 1 && (
-            <span className="text-slate-200 dark:text-slate-700 text-xs select-none">·</span>
-          )}
-        </span>
-      ))}
-    </div>
+    <button
+      onClick={cycle}
+      title={locale === 'es' ? 'Cambiar idioma' : locale === 'gal' ? 'Cambiar idioma' : 'Change language'}
+      className="w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer select-none"
+    >
+      {LABELS[locale]}
+    </button>
   )
 }

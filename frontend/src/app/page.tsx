@@ -1,6 +1,5 @@
-import es from '@/locales/es'
 import LandingPage from '@/components/LandingPage'
 
 export default function HomePage() {
-  return <LandingPage locale={es} />
+  return <LandingPage />
 }

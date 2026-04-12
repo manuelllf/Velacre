@@ -73,7 +73,7 @@ export default function InicioPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block">{negocioNombre}</span>
-            <div className="hidden sm:flex"><LangSwitcher /></div>
+            <LangSwitcher />
             <button
               onClick={handleLogout}
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
