@@ -1269,6 +1269,15 @@ export default function SaludPage() {
                 <div className="mb-4">
                   {analyzingRadar ? (
                     <div className="space-y-2 py-1">
+                      {radarSteps.length === 0 && (
+                        <div className="flex items-center gap-3 py-2">
+                          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                          <div>
+                            <p className="text-sm text-slate-200">{sl.radarStepGenerating}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{sl.radarNavHint}</p>
+                          </div>
+                        </div>
+                      )}
                       {radarSteps.map((step, i) => {
                         const isActive = !step.done && radarSteps.slice(0, i).every(s => s.done)
                         return (
