@@ -1263,6 +1263,36 @@ public static class ClaimsPrincipalExtensions {
 
 ## 19. Changelog del doc
 
+### 2026-04-09 — Pricing + prompts neutrales + PWA
+
+**Commits:** `eebac81`, `a3894b3`, `3a321ea`, `4fdeae1`
+
+- **feat(pricing):** Pro sube a **€49/mes** y **€490/año** (antes €39/€390). `LandingPage.tsx` pricing section + `es.ts`/`en.ts`/`gal.ts` locales actualizados.
+- **fix(salud):** Teasers Basic/Core en `dashboard/salud/page.tsx` — contenido correcto en móvil. Redirect post-checkout LS lleva a dashboard en lugar de quedarse en la pasarela.
+- **fix(ai):** `ClaudeService.cs` — eliminadas todas las referencias hardcodeadas a "Galicia" y "hostelería" en los system prompts. Ahora el contexto viene del `negocio.descripcion` + `palabras_clave` + reseñas del cliente. Velacre sirve a cualquier sector/mercado hispanohablante.
+- **feat(pwa):** `public/sw.js` (Service Worker cache básico) + `public/manifest.webmanifest` (start_url `/dashboard`, display standalone) + `components/PWAInstall.tsx` (banner con `beforeinstallprompt` en Android, instrucciones iOS, `localStorage` dismiss). Registrado desde `Providers.tsx`.
+
+### 2026-04-10 (sesión 1) — Mini Radar + banner PWA + calculadora
+
+**Commits:** `54a61ef`, `728dc58`, `e1cec28`, `d0fd099`, `99e072c`, `f3e5778`, `f0db12b`
+
+- **feat(admin):** **Mini Radar v1** — `POST /api/admin/mini-radar` en `AdminController.cs` + `/admin/mini-radar/page.tsx` + `lib/mini-radar-pdf.ts`. Outscraper 30 reseñas + stats locales + extracción 3 peores sin responder + Claude genera `{fortalezas[2], debilidades[2], accion, resumen, emailPitch}`. PDF 3 páginas con jsPDF. Sin persistencia. Coste ~€0.05/informe.
+- **feat(mini-radar):** Buscador Google Places reemplaza input manual de place_id. Reutiliza `searchPlaces()` de onboarding: debounce 300ms, dropdown, click-outside, card verde.
+- **tweak(landing):** Calculadora: 4 min → **6 min** sin Velacre, 15 seg → **5 seg** con Velacre. `Math.max(1, Math.ceil(resenas * 5 / 60))` garantiza mínimo 1 min.
+- **chore(email):** `hola@velacre.com` → `info@velacre.com` en `EmailService.cs`, `mini-radar-pdf.ts`, `velacre-context.md`, `generate-email-templates-docx.js`.
+- **fix(pwa):** Banner reescrito tras feedback: gate duro a `/` y `/inicio` (`return null` en otras rutas), auto-hide 10s (`useRef` para el timer), primera vez de por vida (`localStorage.velacre-pwa-banner-dismissed`). Fix `react-hooks/set-state-in-effect`.
+- **fix(mini-radar):** Prompt Claude humanizado — fuera jerga SEO/CTR/ranking. Dentro: lenguaje de dueño de bar gallego. Ejemplos buenos/malos + regla auto-revisión. `emailPitch` tono "vecino".
+
+### 2026-04-10 (sesión 2) — Rebalanceo de planes + filtro transversal
+
+- **Backend** (`ReviewController.cs`): Basic manuales 3→**5**, Core manuales 3→**5**, Basic IA 3→**10**, Core IA 18→**20**, Pro IA ilimitadas con **cap soft 250/mes**. Refactor bloque de límite: todos los planes usan `try_increment_ia_counter`. Pro pasa `p_limit = -1`. Nuevo campo respuesta: `softCapWarning: bool`.
+- **Frontend locales** (`es.ts`, `en.ts`, `gal.ts`): actualización de features por plan. Nuevos campos `transversalTitle` + `transversalItems` en `locales/types.ts`.
+- **LandingPage.tsx:** bloque "Incluido en todos los planes" con 4 items transversales (filtro seguridad, 3 tonos, idioma auto, sin permanencia). Grid `sm:grid-cols-2`.
+- **dashboard/page.tsx:** mensajes de límite actualizados (10 Basic, 20 Core). Nuevo estado `proSoftCapVisible` + banner ámbar descartable para `softCapWarning`.
+- **`api.ts`:** campo `softCapWarning?: boolean` en `GenerateForReviewResult`.
+- **Verificado sin cambios necesarios:** Panel Salud Core ya tenía la estructura correcta (4 KPIs reales + 4 cards Pro con blur), settings ya usaban upsell contextual, responsive mobile-first, RPC ya aceptaba `p_limit < 0`.
+- **Fix tardío** (`b20a326`): botón Mini Radar en admin header tenía `hidden sm:inline-flex` → invisible en móvil. Corregido: icono siempre visible, texto solo en `sm+`.
+
 ### 2026-04-12 — Implementación Fase 2 + Fase 3
 
 - **Fase 2 (error handling global):** creado `backend/Infrastructure/GlobalExceptionMiddleware.cs` + `backend/Controllers/ReportErrorController.cs` + `backend/Models/Requests/ReportErrorRequest.cs` + `EmailService.SendErrorReportAsync`. Frontend: `components/ErrorBoundary.tsx` + `app/error.tsx` + `app/global-error.tsx` + `components/ReportErrorModal.tsx` + `lib/errorReporter.ts` + `reportError` en `lib/api.ts`. Providers envuelve con ErrorBoundary. Botón "Reportar problema" añadido a los bloques `initError` de dashboard y salud con `trackLastAction` en sync y generate.
@@ -1282,6 +1312,22 @@ public static class ClaimsPrincipalExtensions {
 - **Backend package:** añadido `Microsoft.Extensions.Http.Resilience 9.0.0`.
 - **Build:** backend 0 errores, frontend 0 errores TS, 0 errores ESLint nuevos.
 - **Commit:** `c7a8b6a` — feat(resilience): error handling global + hardening de concurrencia y seguridad
+
+### 2026-04-12 (hotfix) — RPC parsing + upsell modal
+
+**Bug crítico descubierto en producción:** usuarios Pro (con `plan=pro` y `respuestas_ia_mes=0`) recibían 429 "limit_reached" al generar respuesta IA. Causa raíz: `rpcResult?.Content?.Trim() == "true"` en `ReviewController.cs:321` era case-sensitive y no manejaba posibles comillas o variaciones del formato de retorno de supabase-csharp `Rpc()`. El log mostraba `plan=pro` pero el RPC devolvía un valor que no matcheaba la comparación estricta.
+
+**Fixes:**
+
+1. **`ReviewController.cs`** — parsing RPC robusto:
+   - `.Trim('"').Equals("true", StringComparison.OrdinalIgnoreCase)` en vez de `== "true"`.
+   - Try-catch en la llamada RPC: si falla, Pro sigue adelante (contador es informativo), non-Pro se bloquea por seguridad.
+   - Log mejorado: incluye `rpcContent` exacto e `iaLimit` para diagnosticar.
+
+2. **`dashboard/page.tsx`** — modal upsell:
+   - Si el 429 viene con `plan: "pro"` (error temporal), muestra "Error temporal al generar" + botón "Cerrar e intentar de nuevo" en vez del checkout upsell.
+   - Fix textos hardcodeados desactualizados: "Core — 18 al mes" → "Core — 20 al mes".
+   - Barra de uso IA: `18 : 3` → `20 : 10` (alineados con los límites reales del backend).
 
 ---
 
