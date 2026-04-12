@@ -29,22 +29,33 @@ export interface LandingLocale {
   demo: {
     h2: string
     p: string
-    review: {
+    reviews: Array<{
+      author: string
       date: string
       text: string
-      negativeBadge: string
-    }
+      stars: number
+      badge: string
+      badgeType: 'negative' | 'positive' | 'neutral'
+      tones: {
+        profesional: string
+        empatico: string
+        cercano: string
+        directo: string
+        agradecido: string
+        humoristico: string
+      }
+    }>
     response: {
       title: string
       cta: string
       hint: string
-      tones: {
-        profesional: { label: string; text: string }
-        empatico: { label: string; text: string }
-        cercano: { label: string; text: string }
-        directo: { label: string; text: string }
-        agradecido: { label: string; text: string }
-        humoristico: { label: string; text: string }
+      toneLabels: {
+        profesional: string
+        empatico: string
+        cercano: string
+        directo: string
+        agradecido: string
+        humoristico: string
       }
     }
   }

@@ -83,12 +83,14 @@ export default function LandingPage() {
   const [selectedTone, setSelectedTone] = useState<'profesional' | 'empatico' | 'cercano' | 'directo' | 'agradecido' | 'humoristico' | null>(null)
   const [typedText, setTypedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [reviewIdx, setReviewIdx] = useState(0)
   const [billingYearly, setBillingYearly] = useState(false)
   const [calcResenas, setCalcResenas] = useState(25)
   const [calcPrecioHora, setCalcPrecioHora] = useState(20)
 
   const toneKeys: Array<'profesional' | 'empatico' | 'cercano' | 'directo' | 'agradecido' | 'humoristico'> = ['profesional', 'empatico', 'cercano', 'directo', 'agradecido', 'humoristico']
-  const currentToneText = selectedTone ? l.demo.response.tones[selectedTone].text : ''
+  const currentReview = l.demo.reviews[reviewIdx]
+  const currentToneText = selectedTone ? currentReview.tones[selectedTone] : ''
 
   useEffect(() => {
     if (!selectedTone) return
@@ -104,7 +106,7 @@ export default function LandingPage() {
       }
     }, 14)
     return () => clearInterval(interval)
-  }, [selectedTone]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedTone, reviewIdx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleGoogleSignup() {
     setGoogleLoading(true)
@@ -320,21 +322,42 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-2 gap-6 items-start">
           {/* Review card */}
           <FadeInUp delay={0.05}>
+            {/* Navigation arrows */}
+            <div className="flex items-center justify-between mb-3">
+              <button onClick={() => { setReviewIdx(i => i - 1); setSelectedTone(null) }} disabled={reviewIdx === 0} className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <div className="flex gap-1.5">
+                {l.demo.reviews.map((_, i) => (
+                  <button key={i} onClick={() => { setReviewIdx(i); setSelectedTone(null) }} className={`w-2 h-2 rounded-full transition-colors ${i === reviewIdx ? 'bg-blue-500' : 'bg-slate-700 hover:bg-slate-600'}`} />
+                ))}
+              </div>
+              <button onClick={() => { setReviewIdx(i => i + 1); setSelectedTone(null) }} disabled={reviewIdx === l.demo.reviews.length - 1} className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+
             <GlowCard className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-sm font-bold text-slate-300">C</div>
+                  <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-sm font-bold text-slate-300">{currentReview.author.charAt(0)}</div>
                   <div>
-                    <div className="text-sm font-semibold text-white">Carlos M.</div>
-                    <div className="text-xs text-slate-500">{l.demo.review.date}</div>
+                    <div className="text-sm font-semibold text-white">{currentReview.author}</div>
+                    <div className="text-xs text-slate-500">{currentReview.date}</div>
                   </div>
                 </div>
-                <div className="flex text-amber-400 text-sm">★★☆☆☆</div>
+                <div className="flex text-amber-400 text-sm">
+                  {Array.from({ length: 5 }, (_, i) => i < currentReview.stars ? '\u2605' : '\u2606').join('')}
+                </div>
               </div>
-              <p className="text-sm text-slate-300 leading-relaxed">{l.demo.review.text}</p>
+              <p className="text-sm text-slate-300 leading-relaxed">{currentReview.text}</p>
               <div className="mt-4 flex items-center gap-2">
                 <span className="text-xs bg-slate-800 text-slate-500 px-2 py-1 rounded-full">Google Maps</span>
-                <span className="text-xs bg-red-950 text-red-400 border border-red-900 px-2 py-1 rounded-full">{l.demo.review.negativeBadge}</span>
+                <span className={`text-xs px-2 py-1 rounded-full border ${
+                  currentReview.badgeType === 'negative' ? 'bg-red-950 text-red-400 border-red-900' :
+                  currentReview.badgeType === 'positive' ? 'bg-green-950 text-green-400 border-green-900' :
+                  'bg-amber-950 text-amber-400 border-amber-900'
+                }`}>{currentReview.badge}</span>
               </div>
             </GlowCard>
           </FadeInUp>
@@ -372,7 +395,7 @@ export default function LandingPage() {
                         : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
                     }`}
                   >
-                    {l.demo.response.tones[key].label}
+                    {l.demo.response.toneLabels[key]}
                   </motion.button>
                 ))}
               </div>
@@ -396,7 +419,7 @@ export default function LandingPage() {
                     </motion.div>
                   ) : (
                     <motion.p
-                      key={selectedTone}
+                      key={`${reviewIdx}-${selectedTone}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
