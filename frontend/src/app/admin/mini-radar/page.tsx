@@ -12,19 +12,23 @@ import {
   type PlaceResult,
 } from '@/lib/api'
 import { downloadMiniRadarPdf } from '@/lib/mini-radar-pdf'
+import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 type Step = 'idle' | 'fetching' | 'analyzing' | 'rendering' | 'done' | 'error'
 
-const STEP_LABELS: Record<Step, string> = {
-  idle: '',
-  fetching: 'Descargando reseñas de Google...',
-  analyzing: 'Analizando con IA...',
-  rendering: 'Generando PDF...',
-  done: 'Informe listo',
-  error: 'Error',
-}
-
 export default function MiniRadarPage() {
+  const { t } = useLanguage()
+  const mr = t.app.miniRadar
+
+  const STEP_LABELS: Record<Step, string> = {
+    idle: '',
+    fetching: mr.stepFetching,
+    analyzing: mr.stepAnalyzing,
+    rendering: mr.stepRendering,
+    done: mr.stepDone,
+    error: mr.stepError,
+  }
   const router = useRouter()
   const [authChecked, setAuthChecked] = useState(false)
 
@@ -111,7 +115,7 @@ export default function MiniRadarPage() {
   async function onGenerate(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedPlace) {
-      setError('Busca y selecciona un negocio de Google Places primero')
+      setError(mr.selectFirst)
       return
     }
     setError(null)
@@ -137,7 +141,7 @@ export default function MiniRadarPage() {
       } else if (err instanceof Error) {
         setError(err.message)
       } else {
-        setError('Error desconocido')
+        setError(mr.unknownError)
       }
     }
   }
@@ -164,7 +168,7 @@ export default function MiniRadarPage() {
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <div className="text-slate-500 dark:text-slate-400 text-sm">Cargando...</div>
+        <div className="text-slate-500 dark:text-slate-400 text-sm">{mr.loading}</div>
       </div>
     )
   }
@@ -178,18 +182,21 @@ export default function MiniRadarPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-base font-bold text-slate-900 dark:text-white">
-              Velacre · Admin · Mini Radar
+              {mr.headerTitle}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Genera informes gratis de cualquier negocio de Google para prospección
+              {mr.headerSubtitle}
             </p>
           </div>
-          <Link
-            href="/admin"
-            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-          >
-            ← Admin
-          </Link>
+          <div className="flex items-center gap-3">
+            <LangSwitcher />
+            <Link
+              href="/admin"
+              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              {mr.backAdmin}
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -197,17 +204,16 @@ export default function MiniRadarPage() {
         {/* Formulario */}
         <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-            Generar informe
+            {mr.generateReport}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
-            El informe descargará un PDF con análisis de las últimas 30 reseñas + pitch de email
-            personalizado. Coste aproximado: ~€0,03 (Outscraper + Claude).
+            {mr.reportDesc}
           </p>
 
           <form onSubmit={onGenerate} className="space-y-4">
             <div ref={searchContainerRef}>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Buscar negocio en Google <span className="text-red-500">*</span>
+                {mr.searchLabel} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -217,7 +223,7 @@ export default function MiniRadarPage() {
                   onFocus={() => { if (placeResults.length > 0 && !selectedPlace) setDropdownOpen(true) }}
                   autoComplete="off"
                   disabled={busy}
-                  placeholder="Ej: A Taberna do Bispo Santiago"
+                  placeholder={mr.searchPlaceholder}
                   className={`w-full px-3 py-2.5 pr-10 border rounded-lg text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50 transition-colors ${
                     selectedPlace
                       ? 'border-emerald-400 dark:border-emerald-700'
@@ -259,7 +265,7 @@ export default function MiniRadarPage() {
                     </ul>
                     {placeResults.length > 5 && (
                       <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
-                        <p className="text-xs text-slate-400">Mostrando 5 de {placeResults.length} — refina la búsqueda</p>
+                        <p className="text-xs text-slate-400">{mr.showingNofM.replace('{total}', String(placeResults.length))}</p>
                       </div>
                     )}
                   </div>
@@ -289,7 +295,7 @@ export default function MiniRadarPage() {
 
               {!selectedPlace && (
                 <p className="text-xs text-slate-500 dark:text-slate-500 mt-1.5">
-                  Escribe el nombre del negocio (mínimo 3 caracteres). Usa el mismo buscador de Google Places que el onboarding.
+                  {mr.searchHint}
                 </p>
               )}
             </div>
@@ -306,7 +312,7 @@ export default function MiniRadarPage() {
                     <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor" className="opacity-75" />
                   </svg>
                 )}
-                {busy ? 'Generando...' : 'Generar informe'}
+                {busy ? mr.generating : mr.generateBtn}
               </button>
               {(result || error) && !busy && (
                 <button
@@ -314,7 +320,7 @@ export default function MiniRadarPage() {
                   onClick={reset}
                   className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium text-sm transition-colors"
                 >
-                  Nuevo informe
+                  {mr.newReport}
                 </button>
               )}
             </div>
@@ -329,7 +335,7 @@ export default function MiniRadarPage() {
 
           {error && (
             <div className="mt-5 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg">
-              <p className="text-sm text-red-900 dark:text-red-300 font-medium">Error</p>
+              <p className="text-sm text-red-900 dark:text-red-300 font-medium">{mr.errorTitle}</p>
               <p className="text-sm text-red-700 dark:text-red-400 mt-1">{error}</p>
             </div>
           )}
@@ -341,18 +347,18 @@ export default function MiniRadarPage() {
             {/* Resumen + stats */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-                {result.nombre ?? 'Negocio analizado'}
+                {result.nombre ?? mr.analyzedBusiness}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-mono">
                 {result.placeId}
               </p>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-                <KpiBox label="Rating" value={`${result.stats.ratingAvg.toFixed(2)}`} suffix="/5" />
-                <KpiBox label="Reseñas analizadas" value={`${result.stats.total}`} />
-                <KpiBox label="Últimos 30 días" value={`${result.stats.ult30d}`} />
+                <KpiBox label={mr.ratingLabel} value={`${result.stats.ratingAvg.toFixed(2)}`} suffix="/5" />
+                <KpiBox label={mr.reviewsAnalyzed} value={`${result.stats.total}`} />
+                <KpiBox label={mr.last30d} value={`${result.stats.ult30d}`} />
                 <KpiBox
-                  label="% Respondidas"
+                  label={mr.pctResponded}
                   value={`${result.stats.pctRespondidas}%`}
                   tone={
                     result.stats.pctRespondidas < 40
@@ -377,18 +383,17 @@ export default function MiniRadarPage() {
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                      Email pitch listo para enviar
+                      {mr.emailPitchTitle}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      Copiado al portapapeles → pegar en Gmail → enviar. Personalizado por Claude
-                      con hallazgos de las reseñas.
+                      {mr.emailPitchDesc}
                     </p>
                   </div>
                   <button
                     onClick={copyEmail}
                     className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
                   >
-                    {emailCopied ? '✓ Copiado' : 'Copiar'}
+                    {emailCopied ? mr.copied : mr.copy}
                   </button>
                 </div>
                 <pre className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg whitespace-pre-wrap font-sans leading-relaxed border border-slate-200 dark:border-slate-700">
@@ -402,7 +407,7 @@ export default function MiniRadarPage() {
               <div className="grid md:grid-cols-2 gap-5">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
                   <h3 className="text-sm font-bold text-green-700 dark:text-green-400 mb-3 flex items-center gap-2">
-                    <span className="text-base">+</span> Lo que más destacan
+                    <span className="text-base">+</span> {mr.strengthsTitle}
                   </h3>
                   <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
                     {(result.analisis.fortalezas ?? []).map((f, i) => (
@@ -415,7 +420,7 @@ export default function MiniRadarPage() {
                 </div>
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
                   <h3 className="text-sm font-bold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2">
-                    <span className="text-base">−</span> Lo que más se quejan
+                    <span className="text-base">−</span> {mr.weaknessesTitle}
                   </h3>
                   <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
                     {(result.analisis.debilidades ?? []).map((d, i) => (
@@ -433,7 +438,7 @@ export default function MiniRadarPage() {
             {result.peoresSinResponder.length > 0 && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">
-                  Quejas críticas sin responder
+                  {mr.complaintsTitle}
                 </h3>
                 <div className="space-y-3">
                   {result.peoresSinResponder.map((r, i) => (
@@ -471,7 +476,7 @@ export default function MiniRadarPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <p className="text-sm text-green-900 dark:text-green-300">
-                PDF descargado a tu carpeta <code className="bg-green-100 dark:bg-green-900/40 px-1 rounded">Descargas</code>. Si no ha empezado la descarga, revisa los permisos del navegador.
+                {mr.pdfDownloaded} {mr.pdfDownloadHint}
               </p>
             </div>
           </section>

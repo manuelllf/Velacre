@@ -197,6 +197,104 @@ export interface LandingLocale {
         pendiente: string
         suspendido: string
       }
+      filters: {
+        pending: string
+        answered: string
+        ignored: string
+        all: string
+      }
+      reviewCount: string
+      backToList: string
+      selectReview: string
+      selectReviewDesc: string
+      iaBar: {
+        title: string
+        limitReached: string
+        limitBasic: string
+        limitCore: string
+        viewPlans: string
+      }
+      defaultBusinessName: string
+      softCap: {
+        title: string
+        desc: string
+      }
+      empty: {
+        allDone: string
+        noMatch: string
+        allDoneDesc: string
+        noMatchDesc: string
+      }
+      retention: {
+        title: string
+        desc: string
+        intoxicacion: string
+        maltrato: string
+        amenaza_legal: string
+        datos_personales: string
+        acusacion_fraude: string
+        discriminacion: string
+        unknown: string
+      }
+      manual: {
+        title: string
+        desc: string
+        placeholder: string
+        toneSelect: string
+        toneNames: {
+          profesional: string
+          cercano: string
+          directo: string
+        }
+        savePending: string
+        saveAnswered: string
+        saving: string
+        selectTone: string
+        tryAnother: string
+      }
+      context: {
+        clientSaid: string
+        youRespond: string
+      }
+      upsell: {
+        titleBasic: string
+        titleCore: string
+        titlePro: string
+        descBasic: string
+        descCore: string
+        descPro: string
+        pendingMsg: string
+        pendingDesc: string
+        btnPro: string
+        btnCore: string
+        btnClose: string
+        keepLimit: string
+      }
+      actions: {
+        generateIA: string
+        generating: string
+        copyResponse: string
+        copied: string
+        publishGoogle: string
+        publishGoogleDisabled: string
+        respondGoogle: string
+        respondGoogleTitle: string
+        comingSoon: string
+        otherPlatform: string
+        sync: string
+        answered: string
+        reopen: string
+      }
+      states: {
+        answeredGoogle: string
+        answeredIA: string
+        loadResponse: string
+        noResponse: string
+        retainedBadge: string
+        retainedTitle: string
+        retainedDesc: string
+        otherPlatformBadge: string
+      }
     }
 
     salud: {
@@ -219,6 +317,118 @@ export interface LandingLocale {
       generateAnalysis: string
       generatingAnalysis: string
       noAnalysis: string
+      // Panel headers
+      panelTitle: string
+      panelTitleFull: string
+      panelTitleFullProOnly: string
+      yourAvgRating: string
+      globalAvgRating: string
+      avgRating: string
+      basedOnNReviews: string
+      thisMonth: string
+      reviewsThisMonth: string
+      responded: string
+      notResponded: string
+      viewPending: string
+      trend: string
+      sentimentDistribution: string
+      sentimentTooltip: string
+      positiveLabel: string
+      neutralLabel: string
+      negativeLabel: string
+      newReviews: string
+      nReviews: string
+      responseRateLabel: string
+      ofTotal: string
+      vsLastMonth: string
+      noPriorData: string
+      // Teaser (basic/core)
+      nReviewsNotResponded: string
+      analysisIATellsYou: string
+      fullPanelDesc: string
+      lockedAnalysisIA: string
+      lockedRadar: string
+      lockedSentimentCategory: string
+      lockedPdfReports: string
+      unlockWithPro: string
+      upgradeToPro: string
+      // Impacto Velacre
+      impactTitle: string
+      impactTooltip: string
+      reviewsResponded: string
+      timeSavedLabel: string
+      seoOptimization: string
+      seoTooltip: string
+      vsManual: string
+      keywordUsesInResponses: string
+      keywordsUsedInAIResponses: string
+      withIA: string
+      // Velocidad de respuesta
+      responseSpeed: string
+      responseSpeedTooltip: string
+      avgResponse: string
+      respondedIn48h: string
+      respondedIn24h: string
+      betweenReviewAndResponse: string
+      googleMapsThreshold: string
+      ofNResponded: string
+      // Evolución
+      thisMonthVsLast: string
+      noVariation: string
+      monthlyEvolution: string
+      tableMonth: string
+      tableReviews: string
+      tableRating: string
+      tablePositive: string
+      tableNegative: string
+      tableResponded: string
+      currentLabel: string
+      pctPositive: string
+      pctNegative: string
+      // Análisis IA Pro
+      aiLimitReached: string
+      generating: string
+      // Radar
+      radarTitle: string
+      radarTooltip: string
+      radarSubtitle: string
+      noCompetitorsAdded: string
+      searchBusinessPlaceholder: string
+      deleteLabel: string
+      reAnalyze: string
+      analyzeNow: string
+      nextAnalysisAvailable: string
+      yourStrength: string
+      yourWeakness: string
+      competitorHeader: string
+      strengthHeader: string
+      weaknessHeader: string
+      threatHeader: string
+      opportunities: string
+      actionThisWeek: string
+      sentimentByCategory: string
+      categoryHeader: string
+      youHeader: string
+      insightHeader: string
+      strategicAction: string
+      compLabel: string
+      // Radar steps
+      radarStepFetchingYours: string
+      radarStepFetchingComp: string
+      radarStepAnalyzing: string
+      radarStepGenerating: string
+      // Radar errors
+      radarMaxCompetitors: string
+      radarAlreadyAdded: string
+      radarRemoveError: string
+      radarNoCompetitors: string
+      radarNoOwnReviews: string
+      radarAlreadyAnalyzed: string
+      radarAnalyzeError: string
+      // PDF
+      pdfMonth: string
+      pdfYear: string
+      pdfGenerating: string
     }
 
     settings: {
@@ -256,6 +466,47 @@ export interface LandingLocale {
       planRedirecting: string
       planChooseCore: string
       planChoosePro: string
+      planStartCore: string
+      planStartPro: string
+      loadError: string
+      saveError: string
+      checkoutError: string
+      seoLabel: string
+      seoDesc: string
+      seoPlaceholder: string
+      manageSub: string
+      manageSubDesc: string
+      statusCancelled: string
+      statusPastDue: string
+      statusActive: string
+      nextRenewal: string
+      upgradeToProTitle: string
+      upgradeToProDesc: string
+      gbpComingSoon: string
+      gbpConnectedMsg: string
+      gbpLocationError: string
+      gbpOauthError: string
+      gbpConnectError: string
+      gbpDisconnectedMsg: string
+      gbpDisconnectError: string
+      gbpFinalizeError: string
+      gbpDisconnectTitle: string
+      gbpDisconnectWarning: string
+      gbpDisconnectWarningDesc: string
+      gbpDisconnectConfirmMsg: string
+      gbpDisconnectCancel: string
+      gbpDisconnectConfirm: string
+      gbpDisconnecting: string
+      gbpConnecting: string
+      gbpConnectBtn: string
+      gbpConnectedLabel: string
+      gbpConnectedSub: string
+      gbpNotConnectedLabel: string
+      gbpOutscraperNote: string
+      gbpLocationTitle: string
+      gbpLocationDesc: string
+      gbpLocationConfirm: string
+      gbpLocationConnecting: string
       dangerZone: {
         title: string
         cancelSub: string
@@ -309,6 +560,7 @@ export interface LandingLocale {
         registerBtn: string
         registerLoading: string
         error: string
+        errorAlreadyRegistered: string
         googleBtn: string
         googleLoading: string
         orDivider: string
@@ -316,6 +568,19 @@ export interface LandingLocale {
         login: string
         privacyNote: string
         privacyLink: string
+      }
+      resetPassword: {
+        title: string
+        subtitle: string
+        newPasswordLabel: string
+        repeatPasswordLabel: string
+        placeholder: string
+        saveBtn: string
+        savingBtn: string
+        passwordMismatch: string
+        updateError: string
+        successTitle: string
+        successRedirecting: string
       }
     }
 
@@ -346,6 +611,290 @@ export interface LandingLocale {
       planRecommended: string
       planChooseCore: string
       planChoosePro: string
+    }
+
+    help: {
+      title: string
+      tooltip: string
+      steps: Array<{ title: string; body: string }>
+      prev: string
+      next: string
+      done: string
+    }
+
+    report: {
+      title: string
+      desc: string
+      successTitle: string
+      successDesc: string
+      reference: string
+      close: string
+      observationsLabel: string
+      observationsPlaceholder: string
+      showDetails: string
+      hideDetails: string
+      sourceLabel: string
+      messageLabel: string
+      statusLabel: string
+      endpointLabel: string
+      errorIdLabel: string
+      attachNote: string
+      send: string
+      sending: string
+    }
+
+    errors: {
+      pageTitle: string
+      pageDesc: string
+      appTitle: string
+      appDesc: string
+      reload: string
+      reportBtn: string
+      retry: string
+      serverError: string
+    }
+
+    sectionNav: {
+      reviews: string
+      health: string
+      settings: string
+    }
+
+    waitlistModal: {
+      coreDesc: string
+      proDesc: string
+      upgradeTo: string
+      notNow: string
+      redirecting: string
+      activate: string
+      paymentError: string
+    }
+
+    callback: {
+      loggingIn: string
+      error: string
+      backToLogin: string
+    }
+
+    onboardingPage: {
+      loadLocalesError: string
+      oauthAccessDenied: string
+      oauthNoLocations: string
+      oauthStateInvalid: string
+      oauthGenericError: string
+      writeBusinessName: string
+      googleConnected: string
+      importingReviews: string
+      selectYourLocal: string
+      multipleLocalsFound: string
+      loadingLocals: string
+      backToOnboarding: string
+      connectThisLocal: string
+      connecting: string
+      seoLabel: string
+      seoOptional: string
+      seoHint: string
+      seoPlaceholder: string
+      chooseConnection: string
+      comingSoon: string
+      googleBusiness: string
+      googleBusinessDesc: string
+      manualSearch: string
+      manualSearchDesc: string
+      change: string
+      googleBusinessLabel: string
+      manualLabel: string
+      businessNameLabel: string
+      businessNamePlaceholder: string
+      googlePermissionNote: string
+      connectGoogleBusiness: string
+      finalizeError: string
+      showingNofM: string
+      refineSearch: string
+    }
+
+    planPage: {
+      paymentError: string
+      free: string
+      noCard: string
+      featuresBasic: string[]
+      continueFree: string
+      coreYearlyNote: string
+      proYearlyNote: string
+      startCore: string
+      startPro: string
+    }
+
+    admin: {
+      badgeActivo: string
+      badgePrueba: string
+      badgePruebaExp: string
+      badgeSuspendido: string
+      optActivo: string
+      optPrueba: string
+      optSuspendido: string
+      trialDays: string
+      days: string
+      custom: string
+      expires: string
+      error401: string
+      saving: string
+      confirmChange: string
+      confirm: string
+      activate: string
+      deactivate: string
+      noLimit: string
+      withExpiry: string
+      overrideActiveUntil: string
+      notesPlaceholder: string
+      notesAdminOnly: string
+      saveNotes: string
+      noBusinessAssociated: string
+      searchGooglePlaces: string
+      confirmBusinessChange: string
+      currentBusiness: string
+      businessNamePlaceholder: string
+      selectFromList: string
+      moreResults: string
+      headerTitle: string
+      kpiActivos: string
+      kpiPrueba: string
+      kpiSuspendidos: string
+      kpiPro: string
+      kpiCore: string
+      kpiTotal: string
+      users: string
+      searchPlaceholder: string
+      filterAll: string
+      filterActivos: string
+      filterPrueba: string
+      filterSuspendidos: string
+      noResults: string
+      noUsers: string
+      updating: string
+      update: string
+      exit: string
+      loadError: string
+      updateError: string
+      registro: string
+      trialUntil: string
+      overrideUntil: string
+      noName: string
+      noBusiness: string
+      btnEstado: string
+      btnProOverride: string
+      btnPlan: string
+      btnNotas: string
+      btnPlaceId: string
+    }
+
+    miniRadar: {
+      stepFetching: string
+      stepAnalyzing: string
+      stepRendering: string
+      stepDone: string
+      stepError: string
+      headerTitle: string
+      headerSubtitle: string
+      backAdmin: string
+      generateReport: string
+      reportDesc: string
+      searchLabel: string
+      searchPlaceholder: string
+      searchHint: string
+      showingNofM: string
+      refineSearch: string
+      generating: string
+      generateBtn: string
+      newReport: string
+      errorTitle: string
+      unknownError: string
+      selectFirst: string
+      ratingLabel: string
+      reviewsAnalyzed: string
+      last30d: string
+      pctResponded: string
+      analyzedBusiness: string
+      emailPitchTitle: string
+      emailPitchDesc: string
+      copy: string
+      copied: string
+      strengthsTitle: string
+      weaknessesTitle: string
+      complaintsTitle: string
+      pdfDownloaded: string
+      pdfDownloadHint: string
+      loading: string
+    }
+
+    legal: {
+      privacy: {
+        title: string
+        lastUpdated: string
+        s1Title: string
+        s1p1: string
+        s1p2: string
+        s2Title: string
+        s2intro: string
+        s2items: string[]
+        s2note: string
+        s3Title: string
+        s3headers: [string, string]
+        s3rows: [string, string][]
+        s4Title: string
+        s4intro: string
+        s4items: string[]
+        s4note: string
+        s5Title: string
+        s5intro: string
+        s5items: string[]
+        s6Title: string
+        s6intro: string
+        s6rights: string[]
+        s6exercise: string
+        s6complaint: string
+        s7Title: string
+        s7text: string
+        s8Title: string
+        s8text: string
+        s9Title: string
+        s9text: string
+      }
+      terms: {
+        title: string
+        lastUpdated: string
+        sections: Array<{
+          title: string
+          paragraphs: string[]
+          items?: string[]
+        }>
+      }
+      contact: {
+        title: string
+        subtitle: string
+        generalEmail: string
+        generalEmailDesc: string
+        generalEmailNote: string
+        privacyEmail: string
+        privacyEmailDesc: string
+        locationTitle: string
+        locationAddress: string
+        faqTitle: string
+        faqs: Array<{ q: string; a: string }>
+      }
+      login: string
+      start: string
+      footerRights: string
+      footerPrivacy: string
+      footerTerms: string
+      footerContact: string
+    }
+
+    inicioPage: {
+      planBasic: string
+      planCore: string
+      planPro: string
+      welcome: string
     }
   }
 }

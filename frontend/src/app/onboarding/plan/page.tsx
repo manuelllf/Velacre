@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getMyNegocio, getMyUsuario, getLemonCheckoutUrl } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 export default function OnboardingPlanPage() {
   const router = useRouter()
   const { t } = useLanguage()
   const ob = t.app.onboarding
+  const pp = t.app.planPage
 
   const FEATURES_CORE = t.app.settings.planCore
   const FEATURES_PRO = t.app.settings.planPro
@@ -41,7 +43,7 @@ export default function OnboardingPlanPage() {
       const url = await getLemonCheckoutUrl(p, billing)
       window.location.href = url
     } catch {
-      setCheckoutError('No se pudo iniciar el pago. Inténtalo de nuevo.')
+      setCheckoutError(pp.paymentError)
       setCheckoutLoading(null)
     }
   }
@@ -53,7 +55,8 @@ export default function OnboardingPlanPage() {
   )
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12 relative">
+      <div className="absolute top-4 right-4"><LangSwitcher /></div>
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-white">{ob.planTitle}</h1>
@@ -94,11 +97,11 @@ export default function OnboardingPlanPage() {
         <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col gap-4">
           <div>
             <p className="text-lg font-bold text-white">Basic</p>
-            <p className="text-3xl font-extrabold text-white mt-2">Gratis</p>
-            <p className="text-xs text-slate-500 mt-1">Sin tarjeta</p>
+            <p className="text-3xl font-extrabold text-white mt-2">{pp.free}</p>
+            <p className="text-xs text-slate-500 mt-1">{pp.noCard}</p>
           </div>
           <ul className="space-y-2 flex-1">
-            {['10 respuestas IA/mes', 'Sincronización Google', 'Otras plataformas'].map(f => (
+            {pp.featuresBasic.map(f => (
               <li key={f} className="flex items-start gap-2 text-sm text-slate-400">
                 <svg className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -111,7 +114,7 @@ export default function OnboardingPlanPage() {
             onClick={() => router.replace('/inicio')}
             className="w-full py-3 rounded-xl border border-slate-600 text-slate-400 font-semibold text-sm hover:bg-slate-700 transition-colors cursor-pointer"
           >
-            Continuar gratis
+            {pp.continueFree}
           </button>
         </div>
 
@@ -122,7 +125,7 @@ export default function OnboardingPlanPage() {
             {billing === 'yearly' ? (
               <div className="mt-2">
                 <p className="text-3xl font-extrabold text-white">190 €<span className="text-base font-normal text-slate-400">/año</span></p>
-                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 15,83 €/mes · 2 meses gratis</p>
+                <p className="text-sm text-emerald-400 font-medium mt-0.5">{pp.coreYearlyNote}</p>
               </div>
             ) : (
               <p className="text-3xl font-extrabold text-white mt-2">19 €<span className="text-base font-normal text-slate-400">/mes</span></p>
@@ -144,7 +147,7 @@ export default function OnboardingPlanPage() {
             className="w-full py-3 rounded-xl border-2 border-blue-500 text-blue-400 font-semibold text-sm hover:bg-blue-500/10 transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {checkoutLoading === 'core' ? <span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> : null}
-            Empezar con Core →
+            {pp.startCore}
           </button>
         </div>
 
@@ -158,7 +161,7 @@ export default function OnboardingPlanPage() {
             {billing === 'yearly' ? (
               <div className="mt-2">
                 <p className="text-3xl font-extrabold text-white">490 €<span className="text-base font-normal text-slate-400">/año</span></p>
-                <p className="text-sm text-emerald-400 font-medium mt-0.5">≈ 40,83 €/mes · 2 meses gratis</p>
+                <p className="text-sm text-emerald-400 font-medium mt-0.5">{pp.proYearlyNote}</p>
               </div>
             ) : (
               <p className="text-3xl font-extrabold text-white mt-2">49 €<span className="text-base font-normal text-slate-400">/mes</span></p>
@@ -180,7 +183,7 @@ export default function OnboardingPlanPage() {
             className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {checkoutLoading === 'pro' ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
-            Empezar con Pro →
+            {pp.startPro}
           </button>
         </div>
       </div>

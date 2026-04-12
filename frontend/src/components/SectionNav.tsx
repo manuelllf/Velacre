@@ -25,7 +25,7 @@ const TABS = [
   },
   {
     href: '/settings',
-    labelKey: 'config' as const,
+    labelKey: 'settings' as const,
     icon: (
       <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -35,15 +35,10 @@ const TABS = [
   },
 ]
 
-const TAB_LABELS: Record<string, { es: string; en: string; gal: string }> = {
-  reviews: { es: 'Reseñas',       en: 'Reviews',  gal: 'Recensións'   },
-  health:  { es: 'Salud',         en: 'Health',   gal: 'Saúde'        },
-  config:  { es: 'Configuración', en: 'Settings', gal: 'Configuración' },
-}
-
 export default function SectionNav() {
   const pathname = usePathname()
-  const { locale } = useLanguage()
+  const { t } = useLanguage()
+  const nav = t.app.sectionNav
 
   return (
     <div className="sticky top-14 z-40 flex justify-center py-3 pointer-events-none">
@@ -61,7 +56,7 @@ export default function SectionNav() {
               }`}
             >
               {tab.icon}
-              <span className="hidden sm:inline">{TAB_LABELS[tab.labelKey][locale]}</span>
+              <span className="hidden sm:inline">{nav[tab.labelKey]}</span>
             </Link>
           )
         })}

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 import {
   getMyUsuario,
   getAdminUsuarios,
@@ -29,11 +31,13 @@ function fmtDate(d?: string) {
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
 function EstadoBadge({ estado }: { estado: EstadoUsuario }) {
+  const { t } = useLanguage()
+  const adm = t.app.admin
   const map: Record<EstadoUsuario, { label: string; cls: string; dot: string }> = {
-    activo:          { label: 'Activo',       cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
-    prueba:          { label: 'Prueba',        cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400',                dot: 'bg-sky-500' },
-    prueba_expirada: { label: 'Prueba exp.',   cls: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',    dot: 'bg-orange-500' },
-    baneado:         { label: 'Suspendido',    cls: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',               dot: 'bg-red-500' },
+    activo:          { label: adm.badgeActivo,      cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
+    prueba:          { label: adm.badgePrueba,       cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400',                dot: 'bg-sky-500' },
+    prueba_expirada: { label: adm.badgePruebaExp,    cls: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',    dot: 'bg-orange-500' },
+    baneado:         { label: adm.badgeSuspendido,   cls: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',               dot: 'bg-red-500' },
   }
   const { label, cls, dot } = map[estado] ?? map.baneado
   return (
@@ -96,6 +100,8 @@ function NumericStepper({ value, onChange, min = 1, max = 365 }: { value: number
 // ─── Modal: Estado ────────────────────────────────────────────────────────────
 
 function EstadoModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
+  const { t } = useLanguage()
+  const adm = t.app.admin
   const [estado, setEstado] = useState<EstadoUsuario>(
     (usuario.estado === 'prueba_expirada' ? 'prueba' : usuario.estado) as EstadoUsuario
   )
@@ -129,14 +135,14 @@ function EstadoModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onCl
                   : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-slate-400'
               }`}
             >
-              {e === 'activo' ? 'Activo' : e === 'prueba' ? 'Prueba' : 'Suspendido'}
+              {e === 'activo' ? adm.optActivo : e === 'prueba' ? adm.optPrueba : adm.optSuspendido}
             </button>
           ))}
         </div>
 
         {estado === 'prueba' && (
           <div className="space-y-2">
-            <label className="text-xs text-slate-500 dark:text-slate-400 font-medium block">Días de prueba</label>
+            <label className="text-xs text-slate-500 dark:text-slate-400 font-medium block">{adm.trialDays}</label>
             <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
               {[7, 14, 30].map(d => (
                 <button key={d} type="button" onClick={() => setDias(d)}
@@ -145,14 +151,14 @@ function EstadoModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onCl
                       ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 shadow-sm'
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                   }`}
-                >{d} días</button>
+                >{d} {adm.days}</button>
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">Personalizado:</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{adm.custom}</span>
               <NumericStepper value={dias} onChange={setDias} max={365} />
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500">Expira: {new Date(Date.now() + dias * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">{adm.expires} {new Date(Date.now() + dias * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </div>
         )}
 
@@ -160,7 +166,7 @@ function EstadoModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onCl
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2.5 text-sm text-red-700 dark:text-red-400">
             {err}
             {(err.includes('401') || err.includes('403') || err.toLowerCase().includes('unauthorized') || err.toLowerCase().includes('forbidden')) && (
-              <p className="text-xs mt-1 text-red-500 dark:text-red-500">La sesión puede haber caducado. Recarga la página para refrescar el token.</p>
+              <p className="text-xs mt-1 text-red-500 dark:text-red-500">{adm.error401}</p>
             )}
           </div>
         )}
@@ -168,7 +174,7 @@ function EstadoModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onCl
         <button onClick={handleSave} disabled={loading}
           className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Guardando...' : 'Confirmar cambio'}
+          {loading ? adm.saving : adm.confirmChange}
         </button>
       </div>
     </Modal>
@@ -178,6 +184,8 @@ function EstadoModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onCl
 // ─── Modal: Pro Override ──────────────────────────────────────────────────────
 
 function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
+  const { t } = useLanguage()
+  const adm = t.app.admin
   const [activo, setActivo] = useState(usuario.proOverride)
   const [conCaducidad, setConCaducidad] = useState(!!usuario.proOverrideHasta)
   const [dias, setDias] = useState(30)
@@ -211,7 +219,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
-            Activar
+            {adm.activate}
           </button>
           <button
             type="button"
@@ -222,7 +230,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
-            Desactivar
+            {adm.deactivate}
           </button>
         </div>
 
@@ -239,7 +247,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}
               >
-                Sin límite
+                {adm.noLimit}
               </button>
               <button
                 type="button"
@@ -250,7 +258,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}
               >
-                Con caducidad
+                {adm.withExpiry}
               </button>
             </div>
 
@@ -264,15 +272,15 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
                           ? 'bg-white dark:bg-slate-700 text-violet-600 dark:text-violet-300 shadow-sm'
                           : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                       }`}
-                    >{d} días</button>
+                    >{d} {adm.days}</button>
                   ))}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">Personalizado:</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{adm.custom}</span>
                   <NumericStepper value={dias} onChange={setDias} />
                 </div>
                 <p className="text-xs text-slate-400 dark:text-slate-500">
-                  Expira: {new Date(Date.now() + dias * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {adm.expires} {new Date(Date.now() + dias * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
               </div>
             )}
@@ -282,7 +290,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
         {/* Estado actual */}
         {usuario.proOverrideHasta && (
           <p className="text-xs text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 rounded-lg px-3 py-2">
-            Override activo hasta: {fmtDate(usuario.proOverrideHasta)}
+            {adm.overrideActiveUntil} {fmtDate(usuario.proOverrideHasta)}
           </p>
         )}
 
@@ -290,7 +298,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2.5 text-sm text-red-700 dark:text-red-400">
             {err}
             {(err.includes('401') || err.includes('403') || err.toLowerCase().includes('unauthorized') || err.toLowerCase().includes('forbidden')) && (
-              <p className="text-xs mt-1 text-red-500 dark:text-red-500">La sesión puede haber caducado. Recarga la página para refrescar el token.</p>
+              <p className="text-xs mt-1 text-red-500 dark:text-red-500">{adm.error401}</p>
             )}
           </div>
         )}
@@ -298,7 +306,7 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
         <button onClick={handleSave} disabled={loading}
           className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Guardando...' : 'Confirmar'}
+          {loading ? adm.saving : adm.confirm}
         </button>
       </div>
     </Modal>
@@ -308,6 +316,8 @@ function ProOverrideModal({ usuario, onClose, onDone }: { usuario: AdminUsuario;
 // ─── Modal: Notas ─────────────────────────────────────────────────────────────
 
 function NotasModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
+  const { t } = useLanguage()
+  const adm = t.app.admin
   const [notas, setNotas] = useState(usuario.notasAdmin ?? '')
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
@@ -331,22 +341,22 @@ function NotasModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClo
           value={notas}
           onChange={e => setNotas(e.target.value)}
           rows={5}
-          placeholder="Incidencias, contexto, acuerdos especiales..."
+          placeholder={adm.notesPlaceholder}
           className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
         />
-        <p className="text-xs text-slate-400">Solo visible para admins.</p>
+        <p className="text-xs text-slate-400">{adm.notesAdminOnly}</p>
         {err && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2.5 text-sm text-red-700 dark:text-red-400">
             {err}
             {(err.includes('401') || err.includes('403') || err.toLowerCase().includes('unauthorized') || err.toLowerCase().includes('forbidden')) && (
-              <p className="text-xs mt-1 text-red-500 dark:text-red-500">La sesión puede haber caducado. Recarga la página para refrescar el token.</p>
+              <p className="text-xs mt-1 text-red-500 dark:text-red-500">{adm.error401}</p>
             )}
           </div>
         )}
         <button onClick={handleSave} disabled={loading}
           className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Guardando...' : 'Guardar notas'}
+          {loading ? adm.saving : adm.saveNotes}
         </button>
       </div>
     </Modal>
@@ -356,6 +366,8 @@ function NotasModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClo
 // ─── Modal: Plan ──────────────────────────────────────────────────────────────
 
 function PlanModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
+  const { t } = useLanguage()
+  const adm = t.app.admin
   const [plan, setPlan] = useState<'basic' | 'core' | 'pro'>(
     (usuario.plan === 'basic' || usuario.plan === 'core' || usuario.plan === 'pro') ? usuario.plan : 'basic'
   )
@@ -386,14 +398,14 @@ function PlanModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClos
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2.5 text-sm text-red-700 dark:text-red-400">
             {err}
             {(err.includes('401') || err.includes('403') || err.toLowerCase().includes('unauthorized') || err.toLowerCase().includes('forbidden')) && (
-              <p className="text-xs mt-1 text-red-500 dark:text-red-500">La sesión puede haber caducado. Recarga la página para refrescar el token.</p>
+              <p className="text-xs mt-1 text-red-500 dark:text-red-500">{adm.error401}</p>
             )}
           </div>
         )}
         <button onClick={handleSave} disabled={loading}
           className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Guardando...' : 'Confirmar'}
+          {loading ? adm.saving : adm.confirm}
         </button>
       </div>
     </Modal>
@@ -403,6 +415,8 @@ function PlanModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClos
 // ─── Modal: Place ID ──────────────────────────────────────────────────────────
 
 function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onClose: () => void; onDone: () => void }) {
+  const { t } = useLanguage()
+  const adm = t.app.admin
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PlaceResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -435,8 +449,8 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
   }
 
   async function handleSave() {
-    if (!negocioActual?.id) { setErr('Sin negocio asociado'); return }
-    if (!selected) { setErr('Selecciona un negocio de la lista'); return }
+    if (!negocioActual?.id) { setErr(adm.noBusinessAssociated); return }
+    if (!selected) { setErr(adm.selectFromList); return }
     setLoading(true); setErr('')
     try {
       await setAdminPlaceId(negocioActual.id, selected.placeId)
@@ -452,7 +466,7 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
     <Modal title={`Negocio Google · ${usuario.nombre ?? usuario.email}`} onClose={onClose}>
       <div className="space-y-4">
         <div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">Negocio actual</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">{adm.currentBusiness}</p>
           {negocioActual ? (
             <div className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
               <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
@@ -463,19 +477,19 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
             </div>
           ) : (
             <div className="px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-400">
-              Sin negocio asociado
+              {adm.noBusinessAssociated}
             </div>
           )}
         </div>
 
         <div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">Buscar en Google Places</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">{adm.searchGooglePlaces}</p>
           <div className="relative">
             <input
               type="text"
               value={query}
               onChange={e => handleQueryChange(e.target.value)}
-              placeholder="Nombre del negocio, dirección..."
+              placeholder={adm.businessNamePlaceholder}
               className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 pr-8"
             />
             {searching && (
@@ -498,7 +512,7 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
               </div>
               {results.length > 5 && (
                 <div className="px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
-                  <p className="text-xs text-slate-400">+{results.length - 5} resultados — refina la búsqueda</p>
+                  <p className="text-xs text-slate-400">{adm.moreResults.replace('{n}', String(results.length - 5))}</p>
                 </div>
               )}
             </div>
@@ -520,7 +534,7 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2.5 text-sm text-red-700 dark:text-red-400">
             {err}
             {(err.includes('401') || err.includes('403') || err.toLowerCase().includes('unauthorized') || err.toLowerCase().includes('forbidden')) && (
-              <p className="text-xs mt-1 text-red-500 dark:text-red-500">La sesión puede haber caducado. Recarga la página para refrescar el token.</p>
+              <p className="text-xs mt-1 text-red-500 dark:text-red-500">{adm.error401}</p>
             )}
           </div>
         )}
@@ -528,7 +542,7 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
         <button onClick={handleSave} disabled={loading || !selected}
           className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
         >
-          {loading ? 'Guardando...' : 'Confirmar cambio de negocio'}
+          {loading ? adm.saving : adm.confirmBusinessChange}
         </button>
       </div>
     </Modal>
@@ -548,6 +562,8 @@ function UsuarioRow({
   isAdmin: boolean
   onAction: (u: AdminUsuario, modal: ModalType) => void
 }) {
+  const { t } = useLanguage()
+  const adm = t.app.admin
   return (
     <div className="px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -589,17 +605,17 @@ function UsuarioRow({
         <div className="flex gap-1.5 mt-3 flex-wrap">
           <button onClick={() => onAction(usuario, 'estado')}
             className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer font-medium"
-          >Estado</button>
+          >{adm.btnEstado}</button>
           <button onClick={() => onAction(usuario, 'override')}
             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors cursor-pointer font-medium ${
               usuario.proOverride
                 ? 'border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30'
                 : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
-          >Pro Override</button>
+          >{adm.btnProOverride}</button>
           <button onClick={() => onAction(usuario, 'plan')}
             className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer font-medium"
-          >Plan</button>
+          >{adm.btnPlan}</button>
           <button onClick={() => onAction(usuario, 'notas')}
             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors cursor-pointer font-medium ${
               usuario.notasAdmin
@@ -622,6 +638,8 @@ function UsuarioRow({
 
 export default function AdminPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const adm = t.app.admin
   const [usuarios, setUsuarios] = useState<AdminUsuario[]>([])
   const [loadingInit, setLoadingInit] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -646,7 +664,7 @@ export default function AdminPage() {
         setAdminId(u.id)
         await load()
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar')
+        setError(err instanceof Error ? err.message : adm.loadError)
       } finally {
         setLoadingInit(false)
       }
@@ -699,6 +717,7 @@ export default function AdminPage() {
             <span className="text-xs bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full font-semibold">Admin</span>
           </div>
           <div className="flex items-center gap-2">
+            <LangSwitcher />
             <Link
               href="/admin/mini-radar"
               title="Mini Radar"
@@ -711,16 +730,16 @@ export default function AdminPage() {
               <span className="hidden sm:inline">Mini Radar</span>
             </Link>
             <button
-              onClick={async () => { setRefreshing(true); setError(''); try { await load() } catch (e) { setError(e instanceof Error ? e.message : 'Error al actualizar') } finally { setRefreshing(false) } }}
+              onClick={async () => { setRefreshing(true); setError(''); try { await load() } catch (e) { setError(e instanceof Error ? e.message : adm.updateError) } finally { setRefreshing(false) } }}
               disabled={refreshing}
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
             >
               <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              <span className="hidden sm:inline">{refreshing ? 'Actualizando...' : 'Actualizar'}</span>
+              <span className="hidden sm:inline">{refreshing ? adm.updating : adm.update}</span>
             </button>
             <button onClick={() => supabase.auth.signOut().then(() => router.replace('/'))}
               className="text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            >Salir</button>
+            >{adm.exit}</button>
           </div>
         </div>
       </header>
@@ -730,12 +749,12 @@ export default function AdminPage() {
         {/* KPI Strip */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {[
-            { label: 'Activos',     val: kpis.activos,  cls: 'text-emerald-600 dark:text-emerald-400' },
-            { label: 'Prueba',      val: kpis.prueba,   cls: 'text-sky-600 dark:text-sky-400' },
-            { label: 'Suspendidos', val: kpis.baneados, cls: 'text-red-600 dark:text-red-400' },
-            { label: 'Pro',         val: kpis.pro,      cls: 'text-blue-600 dark:text-blue-400' },
-            { label: 'Core',        val: kpis.core,     cls: 'text-violet-600 dark:text-violet-400' },
-            { label: 'Total',       val: kpis.total,    cls: 'text-slate-700 dark:text-slate-300' },
+            { label: adm.kpiActivos,     val: kpis.activos,  cls: 'text-emerald-600 dark:text-emerald-400' },
+            { label: adm.kpiPrueba,      val: kpis.prueba,   cls: 'text-sky-600 dark:text-sky-400' },
+            { label: adm.kpiSuspendidos, val: kpis.baneados, cls: 'text-red-600 dark:text-red-400' },
+            { label: adm.kpiPro,         val: kpis.pro,      cls: 'text-blue-600 dark:text-blue-400' },
+            { label: adm.kpiCore,        val: kpis.core,     cls: 'text-violet-600 dark:text-violet-400' },
+            { label: adm.kpiTotal,       val: kpis.total,    cls: 'text-slate-700 dark:text-slate-300' },
           ].map(({ label, val, cls }) => (
             <div key={label} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 text-center">
               <div className={`text-2xl font-bold ${cls}`}>{val}</div>
@@ -776,7 +795,7 @@ export default function AdminPage() {
                       : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400'
                   }`}
                 >
-                  {f === 'todos' ? 'Todos' : f === 'activo' ? 'Activos' : f === 'prueba' ? 'Prueba' : 'Suspendidos'}
+                  {f === 'todos' ? adm.filterAll : f === 'activo' ? adm.filterActivos : f === 'prueba' ? adm.filterPrueba : adm.filterSuspendidos}
                 </button>
               ))}
             </div>
@@ -784,7 +803,7 @@ export default function AdminPage() {
 
           {filtered.length === 0 ? (
             <div className="text-center py-12 text-slate-400 dark:text-slate-500 text-sm">
-              {search || filterEstado !== 'todos' ? 'Sin resultados' : 'No hay usuarios registrados'}
+              {search || filterEstado !== 'todos' ? adm.noResults : adm.noUsers}
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-700">

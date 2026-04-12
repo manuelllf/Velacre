@@ -27,6 +27,7 @@ import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
 import ReportErrorModal from '@/components/ReportErrorModal'
 import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 import { trackLastAction, type ErrorInfoLike } from '@/lib/errorReporter'
 
 type EstadoFilter = 'pendiente' | 'respondida' | 'ignorada' | 'todas'
@@ -43,12 +44,7 @@ function formatDate(dateStr?: string) {
   catch { return dateStr }
 }
 
-const FILTER_LABELS: Record<EstadoFilter, string> = {
-  pendiente: 'Pendientes',
-  respondida: 'Respondidas',
-  ignorada: 'Ignoradas',
-  todas: 'Todas',
-}
+// FILTER_LABELS moved inside component to use i18n — see filterLabels below
 
 const FILTER_ORDER: EstadoFilter[] = ['pendiente', 'respondida', 'ignorada', 'todas']
 
@@ -56,6 +52,13 @@ export default function DashboardPage() {
   const router = useRouter()
   const { t } = useLanguage()
   const d = t.app.dashboard
+
+  const filterLabels: Record<EstadoFilter, string> = {
+    pendiente: d.filters.pending,
+    respondida: d.filters.answered,
+    ignorada: d.filters.ignored,
+    todas: d.filters.all,
+  }
 
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [userPlan, setUserPlan] = useState<string>('basic')
@@ -123,7 +126,7 @@ export default function DashboardPage() {
         if (err instanceof ApiError && err.status === 401) {
           router.replace('/auth/login')
         } else {
-          setInitError('Error al conectar con el servidor. Recarga la página.')
+          setInitError(t.app.errors.serverError)
           setInitErrorInfo({
             source: err instanceof ApiError ? 'api' : 'network',
             message: err instanceof Error ? err.message : String(err),
@@ -361,13 +364,13 @@ export default function DashboardPage() {
               onClick={() => window.location.reload()}
               className="px-5 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
             >
-              Recargar página
+              {t.app.errors.reload}
             </button>
             <button
               onClick={() => openReportModal(initErrorInfo ?? { source: 'api', message: initError })}
               className="px-5 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition-colors border border-slate-300 dark:border-slate-700"
             >
-              Reportar problema
+              {t.app.errors.reportBtn}
             </button>
           </div>
         </div>
@@ -403,12 +406,15 @@ export default function DashboardPage() {
             <Link href="/inicio" className="font-bold text-base text-slate-900 dark:text-white">Velacre</Link>
             {negocio && <span className="hidden sm:inline text-sm text-slate-400 dark:text-slate-500">· {negocio.nombre}</span>}
           </div>
-          <button
-            onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
-            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-          >
-            {t.app.common.logout}
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex"><LangSwitcher /></div>
+            <button
+              onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
+              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+            >
+              {t.app.common.logout}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -423,12 +429,12 @@ export default function DashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-amber-900 dark:text-amber-300">Llevas 250+ respuestas IA este mes</p>
+              <p className="text-sm font-bold text-amber-900 dark:text-amber-300">{d.softCap.title}</p>
               <p className="text-xs text-amber-800/80 dark:text-amber-400/80 mt-0.5 leading-relaxed">
-                Sigues con acceso ilimitado, pero si esto se repite todos los meses escríbenos a <a href="mailto:info@velacre.com" className="underline font-medium">info@velacre.com</a> y vemos tu caso.
+                {d.softCap.desc.split('info@velacre.com')[0]}<a href="mailto:info@velacre.com" className="underline font-medium">info@velacre.com</a>{d.softCap.desc.split('info@velacre.com')[1]}
               </p>
             </div>
-            <button onClick={() => setProSoftCapVisible(false)} className="text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 text-lg leading-none shrink-0 cursor-pointer" aria-label="Cerrar aviso">×</button>
+            <button onClick={() => setProSoftCapVisible(false)} className="text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 text-lg leading-none shrink-0 cursor-pointer" aria-label={t.app.common.cancel}>×</button>
           </div>
         )}
 
@@ -439,7 +445,7 @@ export default function DashboardPage() {
               {syncLoading ? (
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Sincronizando con Google...</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{d.syncLoading}</span>
                     <span className="text-xs font-medium text-blue-600 dark:text-blue-400">{syncProgress}%</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -454,13 +460,13 @@ export default function DashboardPage() {
               ) : (
                 <div>
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                    {negocio?.nombre ?? 'Tu negocio'}
+                    {negocio?.nombre ?? d.defaultBusinessName}
                     {negocio?.tonopredefinido && (
                       <span className="ml-2 text-xs font-normal text-slate-400">· {negocio.tonopredefinido}</span>
                     )}
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                    {counts.pendiente} pendiente{counts.pendiente !== 1 ? 's' : ''} · {counts.respondida} respondida{counts.respondida !== 1 ? 's' : ''}
+                    {d.reviewCount.replace('{pending}', String(counts.pendiente)).replace('{answered}', String(counts.respondida))}
                   </p>
                 </div>
               )}
@@ -469,7 +475,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => loadReviews()}
                 disabled={loadingReviews || syncLoading}
-                title="Actualizar"
+                title={d.syncBtn}
                 className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
               >
                 <svg className={`w-4 h-4 ${loadingReviews ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -478,13 +484,13 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={() => setManualModalOpen(true)}
-                title="Generar respuesta para reseña de otra plataforma"
+                title={d.actions.otherPlatform}
                 className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                <span className="hidden sm:inline">Otra plataforma</span>
+                <span className="hidden sm:inline">{d.actions.otherPlatform}</span>
               </button>
               <button
                 onClick={handleSync}
@@ -494,7 +500,7 @@ export default function DashboardPage() {
                 <svg className={`w-3.5 h-3.5 ${syncLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                {syncLoading ? 'Sincronizando...' : 'Sincronizar'}
+                {syncLoading ? d.syncLoading : d.syncBtn}
               </button>
             </div>
           </div>
@@ -518,12 +524,12 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-2 gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className={`flex items-center gap-1.5 text-xs font-semibold ${atLimit ? 'text-red-400' : nearLimit ? 'text-amber-400' : 'text-slate-400'}`}>
-                    Respuestas IA este mes
-                    <Tooltip text="Cuántas respuestas automáticas has generado este mes. Se renueva cada mes." />
+                    {d.iaBar.title}
+                    <Tooltip text={d.iaBar.title} />
                   </span>
                   {atLimit && (
                     <span className="text-xs font-bold text-red-400 bg-red-900/40 border border-red-800/50 px-2 py-0.5 rounded-full shrink-0">
-                      Límite alcanzado
+                      {d.iaBar.limitReached}
                     </span>
                   )}
                 </div>
@@ -540,10 +546,10 @@ export default function DashboardPage() {
               {atLimit && (
                 <p className="text-xs text-red-400/80 mt-2">
                   {userPlan === 'core'
-                    ? 'Sin respuestas IA hasta el próximo mes. Pásate a Pro y genera sin límite.'
-                    : 'Sin respuestas IA hasta el próximo mes. Pásate a Core o Pro para seguir respondiendo.'}
+                    ? d.iaBar.limitCore
+                    : d.iaBar.limitBasic}
                   {' '}
-                  <a href="/settings" className="underline font-semibold hover:text-red-300">Ver planes →</a>
+                  <a href="/settings" className="underline font-semibold hover:text-red-300">{d.iaBar.viewPlans}</a>
                 </p>
               )}
             </div>
@@ -571,7 +577,7 @@ export default function DashboardPage() {
                   <span className={`text-sm font-bold mb-0.5 ${
                     estadoFilter === f ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300'
                   }`}>{counts[f]}</span>
-                  <span className="leading-none truncate w-full text-center">{FILTER_LABELS[f]}</span>
+                  <span className="leading-none truncate w-full text-center">{filterLabels[f]}</span>
                 </button>
               ))}
             </div>
@@ -595,10 +601,10 @@ export default function DashboardPage() {
             ) : filtered.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 py-10 px-5 text-center">
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  {estadoFilter === 'pendiente' ? 'Todo al día' : `Nada en "${FILTER_LABELS[estadoFilter]}"`}
+                  {estadoFilter === 'pendiente' ? d.empty.allDone : d.empty.noMatch}
                 </p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                  {estadoFilter === 'pendiente' ? 'Cuando lleguen nuevas, aparecerán aquí.' : 'Cambia el filtro.'}
+                  {estadoFilter === 'pendiente' ? d.empty.allDoneDesc : d.empty.noMatchDesc}
                 </p>
               </div>
             ) : (
@@ -628,43 +634,43 @@ export default function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-0.5">
                             <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                              {review.authorName ?? 'Cliente anónimo'}
+                              {review.authorName ?? d.anonymous}
                             </span>
                             <StarRating rating={review.starRating} />
                           </div>
                           <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                            {review.clientereview || <span className="italic">Sin comentario</span>}
+                            {review.clientereview || <span className="italic">{d.noText}</span>}
                           </p>
                           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                             <span className="text-[10px] text-slate-400 dark:text-slate-500">{formatDate(review.reviewDate)}</span>
                             {isNegative && (
                               <span className="text-[10px] font-bold uppercase tracking-wide bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded">
-                                Urgente
+                                {d.urgent}
                               </span>
                             )}
                             {estado === 'respondida' && (
                               <span className="text-[10px] font-semibold uppercase tracking-wide bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded-full">
-                                Respondida
+                                {d.actions.answered}
                               </span>
                             )}
                             {estado === 'ignorada' && (
                               <span className="text-[10px] font-semibold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full">
-                                Ignorada
+                                {d.filters.ignored}
                               </span>
                             )}
                             {hasGenerated && (
                               <span className="text-[10px] font-semibold uppercase tracking-wide bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-full">
-                                IA lista
+                                {d.states.answeredIA}
                               </span>
                             )}
                             {review.retenida && (
                               <span className="text-[10px] font-bold uppercase tracking-wide bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-1.5 py-0.5 rounded-full">
-                                ⚠ Revisión
+                                {'\u26a0'} {d.states.retainedBadge}
                               </span>
                             )}
                             {review.plataforma === 'Otra' && (
                               <span className="text-[10px] font-semibold uppercase tracking-wide bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-1.5 py-0.5 rounded-full">
-                                Otra plataforma
+                                {d.states.otherPlatformBadge}
                               </span>
                             )}
                           </div>
@@ -690,7 +696,7 @@ export default function DashboardPage() {
                   className="lg:hidden sticky top-14 z-30 flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-white bg-slate-950/95 backdrop-blur-md -mx-4 px-4 py-2.5 mb-4 border-b border-slate-800/60 w-[calc(100%+2rem)]"
                 >
                   <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                  Volver a reseñas
+                  {d.backToList}
                 </button>
               <DetailPanel
                 review={selectedReview}
@@ -730,8 +736,8 @@ export default function DashboardPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                   </div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Selecciona una reseña</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">para ver el detalle y generar respuesta</p>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{d.selectReview}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{d.selectReviewDesc}</p>
                 </div>
               </div>
             )}
@@ -750,9 +756,9 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">Otra plataforma</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">{d.manual.title}</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  {manualResponses && !manualResponses.retenida ? 'Elige el tono y guarda la respuesta' : 'Tripadvisor, Booking, Yelp… pega la reseña y genera una respuesta'}
+                  {manualResponses && !manualResponses.retenida ? d.manual.toneSelect : d.manual.desc}
                 </p>
               </div>
               <button
@@ -776,7 +782,7 @@ export default function DashboardPage() {
                   onChange={e => setReviewText(e.target.value)}
                   autoFocus
                   className="flex-1 w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none scroll-thin"
-                  placeholder="Pega aquí el texto de la reseña…"
+                  placeholder={d.manual.placeholder}
                 />
                 {manualError && <p className="text-xs text-red-600 dark:text-red-400">{manualError}</p>}
                 <button
@@ -785,8 +791,8 @@ export default function DashboardPage() {
                   className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
                   {manualLoading
-                    ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando…</>
-                    : 'Generar respuesta'}
+                    ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {d.generating}</>
+                    : d.generateBtn}
                 </button>
               </form>
             )}
@@ -798,18 +804,18 @@ export default function DashboardPage() {
                   <div className="flex items-start gap-3">
                     <span className="text-lg shrink-0">⚠️</span>
                     <div>
-                      <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">Reseña retenida por seguridad</p>
+                      <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">{d.states.retainedTitle}</p>
                       <p className="text-xs text-orange-700 dark:text-orange-400 mt-1">
-                        {manualResponses.motivoRetencion === 'intoxicacion' && 'Posible intoxicación alimentaria o enfermedad grave'}
-                        {manualResponses.motivoRetencion === 'maltrato' && 'Acusaciones de malos tratos o agresión'}
-                        {manualResponses.motivoRetencion === 'amenaza_legal' && 'Amenaza de denuncia o demanda judicial'}
-                        {manualResponses.motivoRetencion === 'datos_personales' && 'Datos personales sensibles del cliente'}
-                        {manualResponses.motivoRetencion === 'acusacion_fraude' && 'Acusaciones de fraude, estafa o engaño deliberado'}
-                        {manualResponses.motivoRetencion === 'discriminacion' && 'Acusaciones de discriminación'}
-                        {!manualResponses.motivoRetencion && 'Contenido que requiere revisión manual'}
+                        {manualResponses.motivoRetencion === 'intoxicacion' && d.retention.intoxicacion}
+                        {manualResponses.motivoRetencion === 'maltrato' && d.retention.maltrato}
+                        {manualResponses.motivoRetencion === 'amenaza_legal' && d.retention.amenaza_legal}
+                        {manualResponses.motivoRetencion === 'datos_personales' && d.retention.datos_personales}
+                        {manualResponses.motivoRetencion === 'acusacion_fraude' && d.retention.acusacion_fraude}
+                        {manualResponses.motivoRetencion === 'discriminacion' && d.retention.discriminacion}
+                        {!manualResponses.motivoRetencion && d.retention.unknown}
                       </p>
                       <p className="text-xs text-orange-600/80 dark:text-orange-500 mt-2">
-                        Esta reseña requiere atención personal antes de responder. No se ha generado respuesta automática.
+                        {d.states.retainedDesc}
                       </p>
                     </div>
                   </div>
@@ -819,7 +825,7 @@ export default function DashboardPage() {
                   onClick={() => { setManualResponses(null); setManualError(''); setManualContexto(null) }}
                   className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                 >
-                  ← Probar con otra reseña
+                  {'\u2190'} {d.manual.tryAnother}
                 </button>
               </div>
             )}
@@ -832,13 +838,13 @@ export default function DashboardPage() {
                   <div className="mx-5 mt-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 space-y-1.5 shrink-0">
                     {manualContexto.cliente && (
                       <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">Cliente dijo</span>
+                        <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">{d.context.clientSaid}</span>
                         <span>{manualContexto.cliente}</span>
                       </div>
                     )}
                     {manualContexto.respuesta && (
                       <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">Tú respondes</span>
+                        <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">{d.context.youRespond}</span>
                         <span>{manualContexto.respuesta}</span>
                       </div>
                     )}
@@ -847,12 +853,12 @@ export default function DashboardPage() {
 
                 {/* Tone options — scrollable */}
                 <div className="flex-1 overflow-y-auto scroll-thin mt-3">
-                  <p className="px-5 pb-2 text-xs text-slate-500 dark:text-slate-400">Selecciona el tono que quieras guardar:</p>
+                  <p className="px-5 pb-2 text-xs text-slate-500 dark:text-slate-400">{d.manual.toneSelect}</p>
                   <div className="divide-y divide-slate-100 dark:divide-slate-800">
                     {([
-                      { key: 'profesional' as const, label: 'Profesional', text: manualResponses.profesional ?? '', accent: 'blue' },
-                      { key: 'cercano'     as const, label: 'Cercano',     text: manualResponses.cercano     ?? '', accent: 'emerald' },
-                      { key: 'directo'     as const, label: 'Directo',     text: manualResponses.directo     ?? '', accent: 'amber' },
+                      { key: 'profesional' as const, label: d.manual.toneNames.profesional, text: manualResponses.profesional ?? '', accent: 'blue' },
+                      { key: 'cercano'     as const, label: d.manual.toneNames.cercano,     text: manualResponses.cercano     ?? '', accent: 'emerald' },
+                      { key: 'directo'     as const, label: d.manual.toneNames.directo,     text: manualResponses.directo     ?? '', accent: 'amber' },
                     ]).map(({ key, label, text, accent }) => (
                       <ManualResponseRow
                         key={key}
@@ -877,7 +883,7 @@ export default function DashboardPage() {
                       onClick={() => handleSaveManual('pendiente')}
                       className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      {manualSaving ? <span className="flex items-center justify-center gap-1"><span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /> Guardando…</span> : 'Guardar pendiente'}
+                      {manualSaving ? <span className="flex items-center justify-center gap-1"><span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /> {d.manual.saving}</span> : d.manual.savePending}
                     </button>
                     <button
                       type="button"
@@ -885,18 +891,18 @@ export default function DashboardPage() {
                       onClick={() => handleSaveManual('respondida')}
                       className="flex-1 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      {manualSaving ? <span className="flex items-center justify-center gap-1"><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando…</span> : 'Ya la he publicado ✓'}
+                      {manualSaving ? <span className="flex items-center justify-center gap-1"><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> {d.manual.saving}</span> : `${d.manual.saveAnswered} \u2713`}
                     </button>
                   </div>
                   {!manualSelectedTone && (
-                    <p className="text-xs text-center text-slate-400 dark:text-slate-500">Selecciona un tono para guardar</p>
+                    <p className="text-xs text-center text-slate-400 dark:text-slate-500">{d.manual.selectTone}</p>
                   )}
                   <button
                     type="button"
                     onClick={() => { setManualResponses(null); setManualError(''); setManualSelectedTone(null); setManualContexto(null) }}
                     className="w-full py-1.5 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   >
-                    ← Probar con otra reseña
+                    {'\u2190'} {d.manual.tryAnother}
                   </button>
                 </div>
               </>
@@ -925,14 +931,14 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white">
-                      {isPro ? 'Error temporal al generar' : isCore ? 'Tus 20 respuestas IA se acabaron' : 'Tus 10 respuestas IA se acabaron'}
+                      {isPro ? d.upsell.titlePro : isCore ? d.upsell.titleCore : d.upsell.titleBasic}
                     </h3>
                     <p className="text-sm text-slate-400 mt-0.5">
                       {isPro
-                        ? 'Hubo un problema al procesar tu solicitud. Inténtalo de nuevo en unos segundos.'
+                        ? d.upsell.descPro
                         : isCore
-                          ? 'El plan Core incluye 20 al mes. Pásate a Pro para tenerlas ilimitadas.'
-                          : 'El plan Basic incluye 10 al mes. Core amplía el límite a 20, Pro es ilimitado.'}
+                          ? d.upsell.descCore
+                          : d.upsell.descBasic}
                     </p>
                   </div>
                 </div>
@@ -940,10 +946,10 @@ export default function DashboardPage() {
                 {pendingCount > 0 && (
                   <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl px-4 py-3">
                     <p className="text-sm text-amber-300 font-medium">
-                      Tienes <span className="font-bold">{pendingCount} reseña{pendingCount !== 1 ? 's' : ''} sin responder</span> ahora mismo.
+                      {d.upsell.pendingMsg.replace('{count}', String(pendingCount))}
                     </p>
                     <p className="text-xs text-amber-500 mt-0.5">
-                      Cada día sin respuesta es un cliente que duda.
+                      {d.upsell.pendingDesc}
                     </p>
                   </div>
                 )}
@@ -953,7 +959,7 @@ export default function DashboardPage() {
                     <button
                       onClick={() => setShowUpsell(false)}
                       className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors">
-                      Cerrar e intentar de nuevo
+                      {d.upsell.btnClose}
                     </button>
                   ) : isCore ? (
                     <button
@@ -964,7 +970,7 @@ export default function DashboardPage() {
                       }}
                       disabled={checkoutLoading !== null}
                       className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-bold rounded-xl transition-colors">
-                      {checkoutLoading === 'pro' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Redirigiendo...</> : 'Pasarme a Pro — respuestas ilimitadas →'}
+                      {checkoutLoading === 'pro' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{t.app.settings.planRedirecting}</> : `${d.upsell.btnPro} \u2192`}
                     </button>
                   ) : (
                     <>
@@ -976,7 +982,7 @@ export default function DashboardPage() {
                         }}
                         disabled={checkoutLoading !== null}
                         className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-bold rounded-xl transition-colors">
-                        {checkoutLoading === 'pro' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Redirigiendo...</> : 'Pro — ilimitadas →'}
+                        {checkoutLoading === 'pro' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{t.app.settings.planRedirecting}</> : `${d.upsell.btnPro} \u2192`}
                       </button>
                       <button
                         onClick={async () => {
@@ -986,7 +992,7 @@ export default function DashboardPage() {
                         }}
                         disabled={checkoutLoading !== null}
                         className="flex items-center justify-center gap-2 w-full py-2.5 border border-slate-700 hover:bg-slate-800 disabled:opacity-60 text-slate-300 text-sm font-semibold rounded-xl transition-colors">
-                        {checkoutLoading === 'core' ? <><span className="w-4 h-4 border-2 border-slate-400/40 border-t-slate-300 rounded-full animate-spin" />Redirigiendo...</> : 'Core — 20 al mes · 19 €/mes'}
+                        {checkoutLoading === 'core' ? <><span className="w-4 h-4 border-2 border-slate-400/40 border-t-slate-300 rounded-full animate-spin" />{t.app.settings.planRedirecting}</> : d.upsell.btnCore}
                       </button>
                     </>
                   )}
@@ -995,7 +1001,7 @@ export default function DashboardPage() {
                       onClick={() => setShowUpsell(false)}
                       className="block w-full py-2 text-xs text-slate-600 hover:text-slate-400 transition-colors"
                     >
-                      Seguir con el límite
+                      {d.upsell.keepLimit}
                     </button>
                   )}
                 </div>
@@ -1028,9 +1034,9 @@ export default function DashboardPage() {
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
           <span>© {new Date().getFullYear()} Velacre </span>
           <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Privacidad</Link>
-            <Link href="/terminos" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Términos</Link>
-            <Link href="/contacto" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Contacto</Link>
+            <Link href="/privacidad" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">{t.footer.privacy}</Link>
+            <Link href="/terminos" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">{t.footer.terms}</Link>
+            <Link href="/contacto" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">{t.footer.contact}</Link>
           </div>
         </div>
       </footer>
@@ -1050,6 +1056,7 @@ function ManualResponseRow({
   selected: boolean
   onSelect: () => void
 }) {
+  const { t } = useLanguage()
   const [copied, setCopied] = useState(false)
 
   const accentRing = accent === 'blue' ? 'ring-blue-500 border-blue-500' : accent === 'emerald' ? 'ring-emerald-500 border-emerald-500' : 'ring-amber-500 border-amber-500'
@@ -1086,7 +1093,7 @@ function ManualResponseRow({
               : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
           }`}
         >
-          {copied ? '¡Copiado!' : 'Copiar'}
+          {copied ? t.app.common.copied : t.app.common.copy}
         </button>
       </div>
       <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3">{text}</p>
@@ -1116,21 +1123,23 @@ interface DetailPanelProps {
   commonError: string
 }
 
-const MOTIVO_LABELS: Record<string, string> = {
-  intoxicacion:     'Posible intoxicación alimentaria o enfermedad grave',
-  maltrato:         'Acusaciones de malos tratos o agresión',
-  amenaza_legal:    'Amenaza de denuncia o demanda judicial',
-  datos_personales: 'Datos personales sensibles del cliente',
-  acusacion_fraude: 'Acusaciones de fraude, estafa o engaño deliberado',
-  discriminacion:   'Acusaciones de discriminación',
-}
-
 function DetailPanel({
   review, generated, generatedError, contexto,
   isGenerating, isUpdating, copiedId,
   gbpConnected, userPlan, isOtraPlatforma,
   onGenerate, onLoad, onSetEstado, onCopy, onPublish, onRetry,
 }: DetailPanelProps) {
+  const { t } = useLanguage()
+  const d = t.app.dashboard
+
+  const MOTIVO_LABELS: Record<string, string> = {
+    intoxicacion:     d.retention.intoxicacion,
+    maltrato:         d.retention.maltrato,
+    amenaza_legal:    d.retention.amenaza_legal,
+    datos_personales: d.retention.datos_personales,
+    acusacion_fraude: d.retention.acusacion_fraude,
+    discriminacion:   d.retention.discriminacion,
+  }
   const estado = review.estado ?? 'pendiente'
   const isNegative = (review.starRating ?? 5) <= 2
   const hasGenerated = !!generated
@@ -1153,11 +1162,11 @@ function DetailPanel({
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-base font-semibold text-slate-900 dark:text-white">
-                  {review.authorName ?? 'Cliente anónimo'}
+                  {review.authorName ?? d.anonymous}
                 </span>
                 {isNegative && (
                   <span className="text-[10px] font-bold uppercase tracking-wide bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded">
-                    Urgente
+                    {d.urgent}
                   </span>
                 )}
               </div>
@@ -1170,12 +1179,12 @@ function DetailPanel({
             <span className="text-lg font-semibold text-amber-500">{'★'.repeat(review.starRating ?? 0)}{'☆'.repeat(5 - (review.starRating ?? 0))}</span>
             {estado === 'respondida' && (
               <span className="text-[10px] font-semibold uppercase tracking-wide bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">
-                Respondida
+                {d.actions.answered}
               </span>
             )}
             {estado === 'ignorada' && (
               <span className="text-[10px] font-semibold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">
-                Ignorada
+                {d.filters.ignored}
               </span>
             )}
           </div>
@@ -1183,7 +1192,7 @@ function DetailPanel({
 
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-3">
           <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-            {review.clientereview || <span className="italic text-slate-400">Sin comentario escrito</span>}
+            {review.clientereview || <span className="italic text-slate-400">{d.noText}</span>}
           </p>
         </div>
       </div>
@@ -1192,11 +1201,11 @@ function DetailPanel({
       {hasGenerated && contexto && (
         <div className="mx-6 mb-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 space-y-1.5">
           <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">Cliente dijo</span>
+            <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">{d.context.clientSaid}</span>
             <span>{contexto.cliente}</span>
           </div>
           <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">Tú respondes</span>
+            <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">{d.context.youRespond}</span>
             <span>{contexto.respuesta}</span>
           </div>
         </div>
@@ -1214,15 +1223,15 @@ function DetailPanel({
               className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
             >
               {copiedId === review.id ? (
-                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg> Copiado</>
+                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg> {d.actions.copied}</>
               ) : (
-                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> Copiar respuesta</>
+                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> {d.actions.copyResponse}</>
               )}
             </button>
 
             {/* Publicar en Google — Próximamente / No aplica para otra plataforma */}
             <span
-              title={isOtraPlatforma ? 'No disponible para reseñas de otras plataformas' : 'Próximamente'}
+              title={isOtraPlatforma ? d.actions.publishGoogleDisabled : d.actions.comingSoon}
               className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 rounded-xl opacity-50 cursor-not-allowed select-none"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0">
@@ -1231,33 +1240,33 @@ function DetailPanel({
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Publicar en Google
-              {!isOtraPlatforma && <span className="text-[9px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">Próximamente</span>}
+              {d.actions.publishGoogle}
+              {!isOtraPlatforma && <span className="text-[9px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{d.actions.comingSoon}</span>}
             </span>
 
             {/* Abrir panel de reseñas para copiar y pegar manualmente */}
             {isOtraPlatforma ? (
               <span
-                title="No disponible para reseñas de otras plataformas"
+                title={d.actions.publishGoogleDisabled}
                 className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 rounded-xl opacity-50 cursor-not-allowed select-none"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
-                Responder en Google
+                {d.actions.respondGoogle}
               </span>
             ) : (
               <a
                 href="https://business.google.com/reviews"
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Abre tu panel de reseñas de Google Business para responder manualmente"
+                title={d.actions.respondGoogleTitle}
                 className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
-                Responder en Google
+                {d.actions.respondGoogle}
               </a>
             )}
           </div>
@@ -1279,14 +1288,14 @@ function DetailPanel({
           <div className="flex items-start gap-3">
             <span className="text-lg shrink-0">⚠️</span>
             <div>
-              <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">Retenida por seguridad — Requiere revisión manual</p>
+              <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">{d.retention.title}</p>
               {review.motivoRetencion && (
                 <p className="text-xs text-orange-700 dark:text-orange-400 mt-1">
                   {MOTIVO_LABELS[review.motivoRetencion] ?? review.motivoRetencion}
                 </p>
               )}
               <p className="text-xs text-orange-600/80 dark:text-orange-500 mt-2">
-                Velacre no ha generado respuesta automática. Responde manualmente desde Google Business.
+                {d.retention.desc}
               </p>
             </div>
           </div>
@@ -1299,11 +1308,10 @@ function DetailPanel({
           {!isRetenida && !hasGenerated && !hasError && estado === 'respondida' && (
             review.tonoGenerado === 'google' ? (
               <p className="text-xs text-slate-400 dark:text-slate-500">
-                Respondida directamente en Google.{' '}
+                {d.states.answeredGoogle}{' '}
                 <button onClick={() => onSetEstado('pendiente')} className="underline hover:text-slate-600 dark:hover:text-slate-300">
-                  Reabre
-                </button>{' '}
-                para generar una con Velacre.
+                  {d.actions.reopen}
+                </button>
               </p>
             ) : review.tonoGenerado ? (
               <button
@@ -1311,15 +1319,14 @@ function DetailPanel({
                 className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-sm font-semibold transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                Cargar respuesta
+                {d.states.loadResponse}
               </button>
             ) : (
               <p className="text-xs text-slate-400 dark:text-slate-500">
-                Sin respuesta generada.{' '}
+                {d.states.noResponse}{' '}
                 <button onClick={() => onSetEstado('pendiente')} className="underline hover:text-slate-600 dark:hover:text-slate-300">
-                  Reabre
-                </button>{' '}
-                para generarla.
+                  {d.actions.reopen}
+                </button>
               </p>
             )
           )}
@@ -1330,15 +1337,15 @@ function DetailPanel({
               className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
             >
               {isGenerating ? (
-                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</>
+                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {d.actions.generating}</>
               ) : (
-                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Generar respuesta IA</>
+                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> {d.actions.generateIA}</>
               )}
             </button>
           )}
           {!isRetenida && hasError && (
             <button onClick={onRetry} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              Reintentar
+              {t.app.errors.retry}
             </button>
           )}
         </div>
@@ -1350,7 +1357,7 @@ function DetailPanel({
               disabled={isUpdating}
               className="text-sm px-3 py-2 rounded-xl border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50 font-medium"
             >
-              ✓ Respondida
+              {'\u2713'} {d.actions.answered}
             </button>
           )}
           {estado !== 'ignorada' && (
@@ -1359,7 +1366,7 @@ function DetailPanel({
               disabled={isUpdating}
               className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium"
             >
-              Ignorar
+              {d.ignore}
             </button>
           )}
           {estado !== 'pendiente' && (
@@ -1368,7 +1375,7 @@ function DetailPanel({
               disabled={isUpdating}
               className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium"
             >
-              Reabrir
+              {d.actions.reopen}
             </button>
           )}
         </div>

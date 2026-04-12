@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 export default function InicioPage() {
   const router = useRouter()
@@ -51,7 +52,7 @@ export default function InicioPage() {
     )
   }
 
-  const planLabel = plan === 'pro' ? 'Pro' : plan === 'core' ? 'Core' : 'Básico'
+  const planLabel = plan === 'pro' ? t.app.inicioPage.planPro : plan === 'core' ? t.app.inicioPage.planCore : t.app.inicioPage.planBasic
   const planColor = plan === 'pro'
     ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
     : plan === 'core'
@@ -60,7 +61,7 @@ export default function InicioPage() {
 
   const greeting = nombre
     ? t.app.inicio.greeting.replace('{name}', nombre.split(' ')[0])
-    : 'Bienvenido'
+    : t.app.inicioPage.welcome
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -72,6 +73,7 @@ export default function InicioPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block">{negocioNombre}</span>
+            <div className="hidden sm:flex"><LangSwitcher /></div>
             <button
               onClick={handleLogout}
               className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"

@@ -9,6 +9,7 @@ import {
   type PlaceResult, type GbpLocation,
 } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 type ConnectionMethod = 'none' | 'manual' | 'google'
 type GbpCallbackState = 'none' | 'connected' | 'select' | 'error'
@@ -17,6 +18,7 @@ export default function OnboardingPage() {
   const router = useRouter()
   const { t } = useLanguage()
   const ob = t.app.onboarding
+  const op = t.app.onboardingPage
 
   const TONOS = [
     { value: 'Profesional', label: t.app.settings.tonos.Profesional.label, desc: t.app.settings.tonos.Profesional.desc },
@@ -78,17 +80,17 @@ export default function OnboardingPage() {
       setLoadingGbp(true)
       getGbpLocations()
         .then(locs => { setGbpLocations(locs); setLoadingGbp(false) })
-        .catch(() => { setGbpErrMsg('No se pudieron cargar los locales. Intenta de nuevo.'); setLoadingGbp(false) })
+        .catch(() => { setGbpErrMsg(op.loadLocalesError); setLoadingGbp(false) })
       return
     }
 
     if (gbp === 'error') {
       setGbpCallbackState('error')
       setGbpErrMsg(
-        msg === 'access_denied'   ? 'Rechazaste el permiso de Google. Puedes usar la búsqueda manual.' :
-        msg === 'no_locations'    ? 'No encontramos locales de Google Business en tu cuenta.' :
-        msg === 'state_invalid'   ? 'El enlace expiró. Vuelve a intentarlo.' :
-        'No se pudo conectar con Google. Intenta de nuevo.'
+        msg === 'access_denied'   ? op.oauthAccessDenied :
+        msg === 'no_locations'    ? op.oauthNoLocations :
+        msg === 'state_invalid'   ? op.oauthStateInvalid :
+        op.oauthGenericError
       )
       return
     }
@@ -174,7 +176,7 @@ export default function OnboardingPage() {
 
   // ── Submit: Google Business path ──
   async function handleConnectGbp() {
-    if (!nombreGbp.trim()) { setError('Escribe el nombre de tu negocio antes de conectar.'); return }
+    if (!nombreGbp.trim()) { setError(op.writeBusinessName); return }
     setError('')
     setLoading(true)
     try {
@@ -203,7 +205,7 @@ export default function OnboardingPage() {
       await finalizeGbpConnection(selectedLocation.locationName, selectedLocation.displayName)
       router.replace('/onboarding/plan')
     } catch {
-      setGbpErrMsg('No se pudo finalizar la conexión. Intenta de nuevo.')
+      setGbpErrMsg(op.finalizeError)
       setLoadingGbp(false)
     }
   }
@@ -259,8 +261,8 @@ export default function OnboardingPage() {
           <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">¡Google conectado!</h2>
-          <p className="text-slate-400 text-sm">Importando tus reseñas...</p>
+          <h2 className="text-xl font-semibold text-white mb-2">{op.googleConnected}</h2>
+          <p className="text-slate-400 text-sm">{op.importingReviews}</p>
           <div className="mt-4 flex justify-center"><div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /></div>
         </div>
       </div>
@@ -274,19 +276,19 @@ export default function OnboardingPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
             <Link href="/" className="inline-block text-base font-bold text-white mb-3">Velacre</Link>
-            <h1 className="text-xl font-semibold text-white">Selecciona tu local</h1>
-            <p className="text-sm text-slate-400 mt-1">Encontramos varios locales en tu cuenta de Google</p>
+            <h1 className="text-xl font-semibold text-white">{op.selectYourLocal}</h1>
+            <p className="text-sm text-slate-400 mt-1">{op.multipleLocalsFound}</p>
           </div>
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6">
             {loadingGbp ? (
               <div className="flex items-center justify-center py-8 gap-3 text-slate-400">
                 <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                Cargando locales...
+                {op.loadingLocals}
               </div>
             ) : gbpErrMsg ? (
               <div className="text-center py-6">
                 <p className="text-red-400 text-sm mb-4">{gbpErrMsg}</p>
-                <button onClick={() => { setGbpCallbackState('none'); setConnectionMethod('none'); setGbpErrMsg(null) }} className="text-sm text-blue-400 hover:text-blue-300 underline">Volver al onboarding</button>
+                <button onClick={() => { setGbpCallbackState('none'); setConnectionMethod('none'); setGbpErrMsg(null) }} className="text-sm text-blue-400 hover:text-blue-300 underline">{op.backToOnboarding}</button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -318,7 +320,7 @@ export default function OnboardingPage() {
                   disabled={!selectedLocation || loadingGbp}
                   className="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
                 >
-                  {loadingGbp ? 'Conectando...' : 'Conectar este local'}
+                  {loadingGbp ? op.connecting : op.connectThisLocal}
                 </button>
               </div>
             )}
@@ -333,7 +335,8 @@ export default function OnboardingPage() {
   const canConnectGoogle = connectionMethod === 'google' && nombreGbp.trim().length > 0
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12 relative">
+      <div className="absolute top-4 right-4"><LangSwitcher /></div>
       <div className="w-full max-w-lg">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block text-base font-bold text-slate-900 dark:text-white mb-3">Velacre</Link>
@@ -379,9 +382,9 @@ export default function OnboardingPage() {
             {/* Palabras clave SEO */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Palabras clave SEO <span className="text-slate-400 dark:text-slate-500 font-normal">(opcional)</span>
+                {op.seoLabel} <span className="text-slate-400 dark:text-slate-500 font-normal">{op.seoOptional}</span>
               </label>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">Hasta 5. La IA las incluirá con naturalidad en las respuestas.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">{op.seoHint}</p>
               {palabrasClave.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {palabrasClave.map(kw => (
@@ -403,7 +406,7 @@ export default function OnboardingPage() {
                         setKwInput('')
                       }
                     }}
-                    placeholder="cocina gallega, marisquería..."
+                    placeholder={op.seoPlaceholder}
                     className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <button type="button" onClick={() => { const kw = kwInput.trim(); if (kw && !palabrasClave.includes(kw)) setPalabrasClave(p => [...p, kw]); setKwInput('') }}
@@ -418,7 +421,7 @@ export default function OnboardingPage() {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 {ob.placeLabel} <span className="text-red-500">*</span>
               </label>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Elige cómo conectar tu local de Google</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{op.chooseConnection}</p>
 
               {/* Selector método — solo si no hay método elegido (o si fue error de GBP) */}
               {connectionMethod === 'none' && (
@@ -434,10 +437,10 @@ export default function OnboardingPage() {
                           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                         </svg>
                       </div>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">Google Business</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">{op.googleBusiness}</span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Acceso nativo y directo. Sin Outscraper. Publica respuestas sin salir de Velacre.</p>
-                    <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full">Próximamente</span>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{op.googleBusinessDesc}</p>
+                    <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full">{op.comingSoon}</span>
                   </div>
 
                   {/* Manual */}
@@ -449,9 +452,9 @@ export default function OnboardingPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                       </div>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">Búsqueda manual</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">{op.manualSearch}</span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Busca tu local por nombre. Importación vía Outscraper.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{op.manualSearchDesc}</p>
                   </button>
                 </div>
               )}
@@ -460,10 +463,10 @@ export default function OnboardingPage() {
               {connectionMethod !== 'none' && (
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                    {connectionMethod === 'google' ? '🔗 Google Business' : '🔍 Búsqueda manual'}
+                    {connectionMethod === 'google' ? op.googleBusinessLabel : op.manualLabel}
                   </span>
                   <button type="button" onClick={() => { setConnectionMethod('none'); setSelectedPlace(null); setPlaceQuery(''); setNombreGbp('') }}
-                    className="text-xs text-blue-500 hover:text-blue-400 underline">Cambiar</button>
+                    className="text-xs text-blue-500 hover:text-blue-400 underline">{op.change}</button>
                 </div>
               )}
 
@@ -471,14 +474,14 @@ export default function OnboardingPage() {
               {connectionMethod === 'google' && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">Nombre de tu negocio</label>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">{op.businessNameLabel}</label>
                     <input type="text" value={nombreGbp} onChange={e => setNombreGbp(e.target.value)}
-                      placeholder="Restaurante A Marinela"
+                      placeholder={op.businessNamePlaceholder}
                       className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div className="p-3 bg-amber-900/20 border border-amber-700/30 rounded-xl text-amber-300/80 text-xs">
-                    <strong>Nota:</strong> Google te pedirá permiso para gestionar tu negocio. Es un segundo permiso independiente de tu login — es necesario para que Velacre pueda importar y publicar respuestas en tu nombre.
+                    <strong>{op.googlePermissionNote.split(':')[0]}:</strong> {op.googlePermissionNote.split(': ').slice(1).join(': ')}
                   </div>
                 </div>
               )}
@@ -517,7 +520,7 @@ export default function OnboardingPage() {
                         </ul>
                         {placeResults.length > 5 && (
                           <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
-                            <p className="text-xs text-slate-400">Mostrando 5 de {placeResults.length} — refina la búsqueda</p>
+                            <p className="text-xs text-slate-400">{op.showingNofM.replace('{total}', String(placeResults.length))}</p>
                           </div>
                         )}
                       </div>
@@ -556,13 +559,13 @@ export default function OnboardingPage() {
                 disabled={!canConnectGoogle || loading}
                 className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? (
-                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Conectando...</>
+                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{op.connecting}</>
                 ) : (
                   <>
                     <svg viewBox="0 0 24 24" className="w-4 h-4">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#ffffff"/>
                     </svg>
-                    Conectar con Google Business
+                    {op.connectGoogleBusiness}
                   </>
                 )}
               </button>

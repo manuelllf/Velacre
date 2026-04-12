@@ -9,6 +9,7 @@ import SectionNav from '@/components/SectionNav'
 import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
 import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -85,19 +86,19 @@ export default function SettingsPage() {
         if (gbpParam === 'connected') {
           const fresh = await getGbpStatus().catch(() => null)
           if (fresh) setGbpStatus(fresh)
-          setGbpMsg({ type: 'ok', text: '¡Google Business conectado correctamente!' })
+          setGbpMsg({ type: 'ok', text: s.gbpConnectedMsg })
           window.history.replaceState({}, '', '/settings')
         } else if (gbpParam === 'select') {
           const locs = await getGbpLocations().catch(() => [])
           if (locs.length > 0) { setGbpSelectLocations(locs); setShowLocationModal(true) }
-          else setGbpMsg({ type: 'err', text: 'No se pudieron cargar los locales. Intenta de nuevo.' })
+          else setGbpMsg({ type: 'err', text: s.gbpLocationError })
           window.history.replaceState({}, '', '/settings')
         } else if (gbpParam === 'error') {
-          setGbpMsg({ type: 'err', text: 'No se pudo conectar con Google. Intenta de nuevo.' })
+          setGbpMsg({ type: 'err', text: s.gbpOauthError })
           window.history.replaceState({}, '', '/settings')
         }
       } catch {
-        setError('No se pudieron cargar los datos.')
+        setError(s.loadError)
       } finally {
         setLoading(false)
       }
@@ -115,7 +116,7 @@ export default function SettingsPage() {
       const url = await getGbpAuthUrl(negocio.id, 'settings')
       window.location.href = url
     } catch {
-      setGbpMsg({ type: 'err', text: 'No se pudo iniciar la conexión con Google. Intenta de nuevo.' })
+      setGbpMsg({ type: 'err', text: s.gbpConnectError })
       setConnectingGbp(false)
     }
   }
@@ -126,9 +127,9 @@ export default function SettingsPage() {
       await disconnectGbp()
       setGbpStatus({ connected: false })
       setShowDisconnectModal(false)
-      setGbpMsg({ type: 'ok', text: 'Google Business desconectado. Las reseñas han sido eliminadas.' })
+      setGbpMsg({ type: 'ok', text: s.gbpDisconnectedMsg })
     } catch {
-      setGbpMsg({ type: 'err', text: 'Error al desconectar. Intenta de nuevo.' })
+      setGbpMsg({ type: 'err', text: s.gbpDisconnectError })
     } finally {
       setDisconnecting(false)
     }
@@ -142,9 +143,9 @@ export default function SettingsPage() {
       const fresh = await getGbpStatus().catch(() => null)
       if (fresh) setGbpStatus(fresh)
       setShowLocationModal(false)
-      setGbpMsg({ type: 'ok', text: `¡Google Business conectado: ${gbpSelectedLoc.displayName}!` })
+      setGbpMsg({ type: 'ok', text: `${s.gbpConnectedMsg} ${gbpSelectedLoc.displayName}` })
     } catch {
-      setGbpMsg({ type: 'err', text: 'Error al finalizar la conexión. Intenta de nuevo.' })
+      setGbpMsg({ type: 'err', text: s.gbpFinalizeError })
     } finally {
       setFinalizingLocation(false)
     }
@@ -168,7 +169,7 @@ export default function SettingsPage() {
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch {
-      setError('No se pudieron guardar los cambios.')
+      setError(s.saveError)
     } finally {
       setSaving(false)
     }
@@ -194,7 +195,7 @@ export default function SettingsPage() {
       const url = await getLemonCheckoutUrl(p, billing)
       window.location.href = url
     } catch {
-      setError('No se pudo iniciar el pago. Inténtalo de nuevo.')
+      setError(s.checkoutError)
       setCheckoutLoading(null)
     }
   }
@@ -220,12 +221,15 @@ export default function SettingsPage() {
             <Link href="/inicio" className="font-bold text-base text-slate-900 dark:text-white">Velacre</Link>
             {negocio && <span className="hidden sm:inline text-sm text-slate-400 dark:text-slate-500">· {negocio.nombre}</span>}
           </div>
-          <button
-            onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
-            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-          >
-            {t.app.common.logout}
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex"><LangSwitcher /></div>
+            <button
+              onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
+              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+            >
+              {t.app.common.logout}
+            </button>
+          </div>
         </div>
       </header>
       <SectionNav />
@@ -284,7 +288,7 @@ export default function SettingsPage() {
                     className="w-full py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {checkoutLoading === 'core' ? <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : null}
-                    Empezar con Core →
+                    {s.planStartCore}
                   </button>
                 </div>
 
@@ -322,7 +326,7 @@ export default function SettingsPage() {
                     className="w-full py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {checkoutLoading === 'pro' ? <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
-                    Empezar con Pro →
+                    {s.planStartPro}
                   </button>
                 </div>
               </div>
@@ -340,23 +344,23 @@ export default function SettingsPage() {
                   <div>
                     <p className="text-sm font-semibold text-slate-900 dark:text-white capitalize">Plan {plan}</p>
                     {lsStatus === 'cancelled' ? (
-                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Cancelado · acceso hasta {fmtDate(lsEndsAt)}</p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">{s.statusCancelled} {'\u00b7'} {fmtDate(lsEndsAt)}</p>
                     ) : lsStatus === 'past_due' ? (
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">Pago pendiente</p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{s.statusPastDue}</p>
                     ) : (
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {lsRenewsAt ? `Próxima renovación: ${fmtDate(lsRenewsAt)}` : s.planThanks}
+                        {lsRenewsAt ? s.nextRenewal.replace('{date}', fmtDate(lsRenewsAt)) : s.planThanks}
                       </p>
                     )}
                   </div>
                 </div>
                 {lsStatus === 'cancelled' ? (
                   <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
-                    Cancelado
+                    {s.statusCancelled}
                   </span>
                 ) : (
                   <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
-                    Activo
+                    {s.statusActive}
                   </span>
                 )}
               </div>
@@ -370,8 +374,8 @@ export default function SettingsPage() {
                   className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-600/30 rounded-xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-blue-400">Pasarme a Pro →</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Respuestas ilimitadas + panel de salud y análisis IA</p>
+                    <p className="text-sm font-semibold text-blue-400">{s.upgradeToProTitle}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{s.upgradeToProDesc}</p>
                   </div>
                   {checkoutLoading === 'pro'
                     ? <span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0" />
@@ -395,7 +399,7 @@ export default function SettingsPage() {
               <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.googleSection}</h2>
-                  <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">Próximamente</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">{s.gbpComingSoon}</span>
                 </div>
                 <div className="p-5 space-y-4 opacity-40 pointer-events-none select-none">
                   {gbpMsg && (
@@ -410,8 +414,8 @@ export default function SettingsPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         <div className="min-w-0">
-                          <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium truncate">{gbpStatus.displayName ?? 'Local conectado'}</p>
-                          <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">Conectado · Reseñas nativas · Publicación directa</p>
+                          <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium truncate">{gbpStatus.displayName ?? s.gbpConnectedSub}</p>
+                          <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">{s.gbpConnectedLabel}</p>
                         </div>
                       </div>
                       <button
@@ -419,7 +423,7 @@ export default function SettingsPage() {
                         onClick={() => setShowDisconnectModal(true)}
                         className="w-full px-4 py-2 text-xs font-semibold border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       >
-                        Desconectar Google Business
+                        {s.gbpDisconnectTitle}
                       </button>
                     </div>
                   ) : (
@@ -428,7 +432,7 @@ export default function SettingsPage() {
                         <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span className="text-sm text-amber-700 dark:text-amber-300">No conectado — usas importación vía Outscraper</span>
+                        <span className="text-sm text-amber-700 dark:text-amber-300">{s.gbpNotConnectedLabel}</span>
                       </div>
                       <button
                         type="button"
@@ -448,9 +452,9 @@ export default function SettingsPage() {
                             </svg>
                           </div>
                         )}
-                        {connectingGbp ? 'Conectando...' : 'Conectar Google Business'}
+                        {connectingGbp ? s.gbpConnecting : s.gbpConnectBtn}
                       </button>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 text-center">Reemplaza Outscraper. Activa la publicación directa en Google.</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 text-center">{s.gbpOutscraperNote}</p>
                     </div>
                   )}
                 </div>
@@ -500,10 +504,10 @@ export default function SettingsPage() {
                   {/* Palabras clave SEO */}
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      Palabras clave SEO
-                      <Tooltip text="Palabras que quieres que aparezcan en tus respuestas. Ayudan a que Google te encuentre cuando alguien busca esos términos. Ej: 'terraza', 'menú del día'." />
+                      {s.seoLabel}
+                      <Tooltip text={s.seoLabel} />
                     </label>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">Hasta 5. La IA las incluirá con naturalidad en las respuestas para mejorar tu posicionamiento.</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">{s.seoDesc}</p>
                     {palabrasClave.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-2">
                         {palabrasClave.map(kw => (
@@ -528,7 +532,7 @@ export default function SettingsPage() {
                               setKwInput('')
                             }
                           }}
-                          placeholder="cocina gallega, marisquería..."
+                          placeholder={s.seoPlaceholder}
                           className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         <button
@@ -609,8 +613,8 @@ export default function SettingsPage() {
             {plan !== 'basic' && lsCustomerPortal && (
               <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">Gestionar suscripción</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Cancela, cambia de plan o actualiza tu método de pago.</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{s.manageSub}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.manageSubDesc}</p>
                 </div>
                 <a
                   href={lsCustomerPortal}
@@ -618,7 +622,7 @@ export default function SettingsPage() {
                   rel="noopener noreferrer"
                   className="shrink-0 px-4 py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-center"
                 >
-                  Gestionar suscripción →
+                  {s.manageSub} {'\u2192'}
                 </a>
               </div>
             )}
@@ -647,21 +651,21 @@ export default function SettingsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => { if (!disconnecting) setShowDisconnectModal(false) }} />
           <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">Desconectar Google Business</h3>
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">{s.gbpDisconnectTitle}</h3>
             <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-              <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">⚠️ Se borrarán todas tus reseñas importadas</p>
-              <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-1">Si quieres volver a usarlas, tendrás que reconectar Google o hacer un nuevo sync manual con Outscraper.</p>
+              <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">{s.gbpDisconnectWarning}</p>
+              <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-1">{s.gbpDisconnectWarningDesc}</p>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">¿Estás seguro de que quieres desconectar tu cuenta de Google Business?</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{s.gbpDisconnectConfirmMsg}</p>
             <div className="flex gap-3">
               <button type="button" onClick={() => setShowDisconnectModal(false)} disabled={disconnecting}
                 className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
-                Cancelar
+                {s.gbpDisconnectCancel}
               </button>
               <button type="button" onClick={handleDisconnectGbp} disabled={disconnecting}
                 className="flex-1 py-2.5 text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
                 {disconnecting && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                {disconnecting ? 'Desconectando...' : 'Sí, desconectar'}
+                {disconnecting ? s.gbpDisconnecting : s.gbpDisconnectConfirm}
               </button>
             </div>
           </div>
@@ -673,8 +677,8 @@ export default function SettingsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">Selecciona tu local</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Encontramos varios locales en tu cuenta de Google</p>
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">{s.gbpLocationTitle}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{s.gbpLocationDesc}</p>
             <div className="space-y-2">
               {gbpSelectLocations.map(loc => (
                 <button key={loc.locationName} type="button" onClick={() => setGbpSelectedLoc(loc)}
@@ -687,7 +691,7 @@ export default function SettingsPage() {
             <button type="button" onClick={handleFinalizeLocation} disabled={!gbpSelectedLoc || finalizingLocation}
               className="w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
               {finalizingLocation && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-              {finalizingLocation ? 'Conectando...' : 'Conectar este local'}
+              {finalizingLocation ? s.gbpLocationConnecting : s.gbpLocationConfirm}
             </button>
           </div>
         </div>

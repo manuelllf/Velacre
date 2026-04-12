@@ -1329,6 +1329,30 @@ public static class ClaimsPrincipalExtensions {
    - Fix textos hardcodeados desactualizados: "Core — 18 al mes" → "Core — 20 al mes".
    - Barra de uso IA: `18 : 3` → `20 : 10` (alineados con los límites reales del backend).
 
+### 2026-04-12 (hotfix 2) — RPC Pro + filtro seguridad ampliado
+
+- **`ReviewController.cs`**: Pro nunca bloqueado por resultado de RPC — `allowed = esProEfectivo || rpcAllowed`. Try-catch con fallback: Pro sigue, non-Pro bloquea.
+- **RPC `try_increment_ia_counter` actualizada en Supabase**: versión antigua no tenía `p_limit < 0 = sin límite`. Nueva versión con `FOR UPDATE`, `INTERVAL '1 month'` reset, y check `p_limit >= 0` antes de devolver FALSE.
+- **`ClaudeService.cs`**: 2 nuevas categorías en filtro de seguridad — `acusacion_fraude` (fraude, estafa, engaño deliberado, cobro intencionado de más — no quejas de precio) y `discriminacion` (raza, etnia, nacionalidad, género, orientación sexual, religión, discapacidad). Añadidas en ambos prompts (single + three responses).
+- **`dashboard/page.tsx`**: `MOTIVO_LABELS` y bloque manual ampliados con las 2 nuevas categorías. Modal upsell: detecta `plan=pro` → "Error temporal" en vez de upsell checkout. Barra IA: `18:3` → `20:10`.
+
+### 2026-04-12 — i18n completo (ES/GAL/EN)
+
+Migración completa de todos los textos hardcodeados del frontend al sistema i18n. 28 ficheros modificados, +3323/-937 líneas. Cero cambios funcionales — solo sustitución de strings por `t.xxx`.
+
+**Locales expandidos:**
+- `types.ts`: ~550 claves tipadas (antes ~150). Nuevas secciones: `dashboard.filters`, `dashboard.iaBar`, `dashboard.softCap`, `dashboard.empty`, `dashboard.retention` (6 categorías), `dashboard.manual`, `dashboard.context`, `dashboard.upsell`, `dashboard.actions`, `dashboard.states`, `help` (8 pasos), `report` (modal completo), `errors` (fallbacks), `sectionNav`, `waitlistModal`, `callback`, `admin` (panel completo), `miniRadar` (completo), `salud` (~80 claves: KPIs, radar, PDF, tooltips), `legal` (3 páginas completas), `auth.resetPassword`.
+- `es.ts`, `en.ts`, `gal.ts`: traducciones completas en los 3 idiomas.
+
+**Componentes migrados (solo strings, sin cambios de lógica/CSS):**
+- Componentes: `SectionNav`, `HelpModal`, `ReportErrorModal`, `ErrorBoundary` (helpers funcionales con try/catch fallback ES), `WaitlistModal`, `ResponseCard`, `LandingPage`.
+- Pages: `dashboard/page.tsx` (~60 strings), `dashboard/salud/page.tsx` (~80 strings), `settings/page.tsx` (~25 strings), `onboarding/page.tsx`, `onboarding/plan/page.tsx`, `admin/page.tsx`, `admin/mini-radar/page.tsx`, `inicio/page.tsx`, `auth/callback/page.tsx`, `auth/login/page.tsx`, `auth/register/page.tsx`, `auth/reset-password/page.tsx`, `error.tsx`, `privacidad/page.tsx`, `terminos/page.tsx`, `contacto/page.tsx`.
+
+**LangSwitcher (selector de idioma) añadido a:**
+Landing, auth (login, register, reset-password), dashboard, salud, settings, inicio, onboarding, onboarding/plan, admin, mini-radar, privacidad, términos, contacto. Responsive: `hidden sm:flex` en headers compactos.
+
+**No tocados (fallback ES por diseño):** `global-error.tsx` (sin Provider disponible).
+
 ---
 
 *Fin del documento. Actualizar cuando se añadan/retiren servicios, cambie el schema de BD o se añada monitoring.*

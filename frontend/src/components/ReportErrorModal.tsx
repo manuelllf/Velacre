@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { reportError } from '@/lib/api'
 import { buildErrorPayload, type ErrorInfoLike, type UserContextLike } from '@/lib/errorReporter'
+import { useLanguage } from '@/lib/i18n'
 
 export interface ReportErrorModalProps {
   open: boolean
@@ -28,6 +29,9 @@ export default function ReportErrorModal({
   const [sendError, setSendError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
 
+  const { t } = useLanguage()
+  const r = t.app.report
+
   if (!open) return null
 
   async function handleSend() {
@@ -39,7 +43,7 @@ export default function ReportErrorModal({
       const result = await reportError(payload)
       setSent({ reportId: result.reportId })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'No se pudo enviar el reporte'
+      const msg = err instanceof Error ? err.message : t.app.common.error
       setSendError(msg)
     } finally {
       setSending(false)
@@ -65,10 +69,10 @@ export default function ReportErrorModal({
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="px-6 pt-6 pb-4 border-b border-slate-800">
           <h2 id="report-error-title" className="text-lg font-semibold text-slate-100">
-            Reportar problema
+            {r.title}
           </h2>
           <p className="text-sm text-slate-400 mt-1">
-            Se va a enviar un reporte a <span className="text-slate-200">info@velacre.com</span> con los detalles del error para que podamos solucionarlo.
+            {r.desc}
           </p>
         </div>
 
@@ -80,27 +84,27 @@ export default function ReportErrorModal({
               </svg>
             </div>
             <div className="space-y-1">
-              <p className="text-slate-100 font-medium">Reporte enviado. Gracias.</p>
-              <p className="text-xs text-slate-500">Referencia: <span className="font-mono text-slate-400">{sent.reportId}</span></p>
+              <p className="text-slate-100 font-medium">{r.successTitle}</p>
+              <p className="text-xs text-slate-500">{r.successDesc} <span className="font-mono text-slate-400">{sent.reportId}</span></p>
             </div>
             <button
               onClick={handleClose}
               className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium transition-colors"
             >
-              Cerrar
+              {r.close}
             </button>
           </div>
         ) : (
           <div className="px-6 py-5 space-y-4">
             <div>
               <label htmlFor="report-observaciones" className="block text-sm font-medium text-slate-300 mb-2">
-                Observaciones <span className="text-slate-500 font-normal">(opcional)</span>
+                {r.observationsLabel} <span className="text-slate-500 font-normal">(opcional)</span>
               </label>
               <textarea
                 id="report-observaciones"
                 value={observaciones}
                 onChange={e => setObservaciones(e.target.value)}
-                placeholder="¿Qué estabas haciendo cuando ocurrió? ¿Algo más que nos ayude a reproducirlo?"
+                placeholder={r.observationsPlaceholder}
                 rows={4}
                 maxLength={3500}
                 disabled={sending}
@@ -113,24 +117,24 @@ export default function ReportErrorModal({
               onClick={() => setShowDetails(v => !v)}
               className="text-xs text-slate-400 hover:text-slate-300 transition-colors"
             >
-              {showDetails ? '▾ Ocultar detalles técnicos' : '▸ Ver detalles técnicos que se enviarán'}
+              {showDetails ? `▾ ${r.hideDetails}` : `▸ ${r.showDetails}`}
             </button>
 
             {showDetails && (
               <div className="text-xs text-slate-400 space-y-1 bg-slate-950/60 border border-slate-800 rounded-lg p-3 font-mono">
-                <div><span className="text-slate-500">Fuente:</span> {errorInfo.source}</div>
-                <div><span className="text-slate-500">Mensaje:</span> <span className="break-all">{errorInfo.message}</span></div>
+                <div><span className="text-slate-500">{r.sourceLabel}</span> {errorInfo.source}</div>
+                <div><span className="text-slate-500">{r.messageLabel}</span> <span className="break-all">{errorInfo.message}</span></div>
                 {errorInfo.statusCode !== undefined && (
-                  <div><span className="text-slate-500">Status:</span> {errorInfo.statusCode}</div>
+                  <div><span className="text-slate-500">{r.statusLabel}</span> {errorInfo.statusCode}</div>
                 )}
                 {errorInfo.endpoint && (
-                  <div><span className="text-slate-500">Endpoint:</span> <span className="break-all">{errorInfo.endpoint}</span></div>
+                  <div><span className="text-slate-500">{r.endpointLabel}</span> <span className="break-all">{errorInfo.endpoint}</span></div>
                 )}
                 {errorInfo.errorId && (
-                  <div><span className="text-slate-500">Error ID:</span> {errorInfo.errorId}</div>
+                  <div><span className="text-slate-500">{r.errorIdLabel}</span> {errorInfo.errorId}</div>
                 )}
                 <div className="pt-1 text-slate-500">
-                  Se adjuntan también: URL, hora, email/plan del usuario, navegador y última acción. No se envía stack trace.
+                  {r.attachNote}
                 </div>
               </div>
             )}
@@ -147,7 +151,7 @@ export default function ReportErrorModal({
                 disabled={sending}
                 className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors disabled:opacity-50"
               >
-                Cancelar
+                {t.app.common.cancel}
               </button>
               <button
                 onClick={handleSend}
@@ -157,7 +161,7 @@ export default function ReportErrorModal({
                 {sending && (
                   <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                 )}
-                {sending ? 'Enviando…' : 'Enviar reporte'}
+                {sending ? r.sending : r.send}
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useLanguage } from '@/lib/i18n'
 
 interface ResponseCardProps {
   tone: string
@@ -28,6 +29,7 @@ const colorMap = {
 
 export default function ResponseCard({ tone, text, color }: ResponseCardProps) {
   const [copied, setCopied] = useState(false)
+  const { t } = useLanguage()
   const c = colorMap[color]
 
   async function handleCopy() {
@@ -51,7 +53,7 @@ export default function ResponseCard({ tone, text, color }: ResponseCardProps) {
             copied ? c.copied + ' !text-current' : c.button
           }`}
         >
-          {copied ? '¡Copiado!' : 'Copiar respuesta'}
+          {copied ? t.app.common.copied : t.app.dashboard.copyBtn}
         </button>
       </div>
     </div>

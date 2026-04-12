@@ -189,6 +189,9 @@ Service Worker + manifest. Instalable en Android (prompt nativo) e iOS (instrucc
 ### Modo oscuro forzado
 Siempre dark. Fondo #0f172a, acento blue. Cal Sans para headers, Geist para body.
 
+### Multiidioma (i18n)
+3 idiomas: castellano (por defecto), gallego e inglés. Sistema basado en `LanguageProvider` con persistencia en `localStorage`. Selector de idioma (`LangSwitcher`) visible en todas las páginas — landing, auth, dashboard, salud, settings, onboarding, admin, mini radar y páginas legales. Todos los textos visibles al usuario usan el sistema i18n (locales tipados en TypeScript). Páginas de error crítico (`global-error.tsx`) mantienen fallback en español por seguridad (Provider puede no estar disponible).
+
 ---
 
 ## 8. Flujo de usuario
@@ -313,6 +316,9 @@ Registro (Google OAuth o email)
 - **Doc técnico exhaustivo:** `velacre-context-technical.md` como retrato técnico completo del proyecto.
 - **Error handling global:** middleware backend + ErrorBoundary frontend + modal "Reportar problema" + email a admin.
 - **Hardening:** sync nunca borra reseñas, logs saneados, circuit breaker en Claude, delete-me atómico, N+1 keywords resuelto, bulk delete, fire-and-forget con logging.
+- **Fix RPC Pro bloqueado:** la RPC `try_increment_ia_counter` en producción devolvía `false` con `p_limit=-1`. Fix doble: RPC actualizada en Supabase + backend nunca bloquea Pro por resultado de RPC.
+- **Filtro seguridad ampliado:** 2 nuevas categorías — acusación de fraude/estafa y discriminación (6 categorías totales).
+- **i18n completo:** 3 idiomas (ES/GAL/EN), ~550 claves tipadas, selector de idioma en todas las páginas, cero textos hardcodeados visibles al usuario. 28 ficheros migrados.
 
 ---
 

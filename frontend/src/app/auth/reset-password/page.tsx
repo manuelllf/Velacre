@@ -3,9 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useLanguage } from '@/lib/i18n'
+import LangSwitcher from '@/components/LangSwitcher'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const rp = t.app.auth.resetPassword
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
@@ -31,7 +35,7 @@ export default function ResetPasswordPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (password !== confirm) {
-      setError('Las contraseñas no coinciden.')
+      setError(rp.passwordMismatch)
       return
     }
     setError('')
@@ -41,7 +45,7 @@ export default function ResetPasswordPage() {
 
     setLoading(false)
     if (error) {
-      setError('No se pudo actualizar la contraseña. El enlace puede haber caducado.')
+      setError(rp.updateError)
     } else {
       setDone(true)
       setTimeout(() => router.replace('/dashboard'), 2500)
@@ -57,8 +61,8 @@ export default function ResetPasswordPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-lg font-semibold text-slate-900 dark:text-white">Contraseña actualizada</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Redirigiendo al panel...</p>
+          <p className="text-lg font-semibold text-slate-900 dark:text-white">{rp.successTitle}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{rp.successRedirecting}</p>
         </div>
       </div>
     )
@@ -67,9 +71,10 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
       <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6"><LangSwitcher /></div>
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Nueva contraseña</h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">Elige una contraseña segura para tu cuenta</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{rp.title}</h1>
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">{rp.subtitle}</p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
@@ -81,7 +86,7 @@ export default function ResetPasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  Nueva contraseña
+                  {rp.newPasswordLabel}
                 </label>
                 <input
                   type="password"
@@ -90,13 +95,13 @@ export default function ResetPasswordPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="••••••••"
+                  placeholder={rp.placeholder}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  Repite la contraseña
+                  {rp.repeatPasswordLabel}
                 </label>
                 <input
                   type="password"
@@ -105,7 +110,7 @@ export default function ResetPasswordPage() {
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}
                   className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="••••••••"
+                  placeholder={rp.placeholder}
                 />
               </div>
 
@@ -118,7 +123,7 @@ export default function ResetPasswordPage() {
                 disabled={loading}
                 className="w-full bg-blue-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Guardando...' : 'Guardar contraseña'}
+                {loading ? rp.savingBtn : rp.saveBtn}
               </button>
             </form>
           )}

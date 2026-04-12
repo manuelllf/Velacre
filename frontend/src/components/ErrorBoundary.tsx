@@ -3,6 +3,45 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import ReportErrorModal from './ReportErrorModal'
 import type { ErrorInfoLike } from '@/lib/errorReporter'
+import { useLanguage } from '@/lib/i18n'
+
+// Helper functional components to use the i18n hook inside a class component
+function ErrorBoundaryText() {
+  try {
+    const { t } = useLanguage()
+    return (
+      <div className="space-y-2">
+        <h1 className="text-xl font-semibold text-slate-100">{t.app.errors.appTitle}</h1>
+        <p className="text-sm text-slate-400">{t.app.errors.appDesc}</p>
+      </div>
+    )
+  } catch {
+    return (
+      <div className="space-y-2">
+        <h1 className="text-xl font-semibold text-slate-100">Algo ha fallado</h1>
+        <p className="text-sm text-slate-400">Ha ocurrido un error inesperado. Puedes recargar la p\u00e1gina o reportarnos el problema para que lo arreglemos.</p>
+      </div>
+    )
+  }
+}
+
+function ErrorBoundaryReloadLabel() {
+  try {
+    const { t } = useLanguage()
+    return <>{t.app.errors.reload}</>
+  } catch {
+    return <>Recargar p\u00e1gina</>
+  }
+}
+
+function ErrorBoundaryReportLabel() {
+  try {
+    const { t } = useLanguage()
+    return <>{t.app.errors.reportBtn}</>
+  } catch {
+    return <>Reportar problema</>
+  }
+}
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -70,24 +109,19 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <div className="space-y-2">
-            <h1 className="text-xl font-semibold text-slate-100">Algo ha fallado</h1>
-            <p className="text-sm text-slate-400">
-              Ha ocurrido un error inesperado. Puedes recargar la página o reportarnos el problema para que lo arreglemos.
-            </p>
-          </div>
+          <ErrorBoundaryText />
           <div className="flex items-center justify-center gap-2 pt-2">
             <button
               onClick={this.handleReload}
               className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-colors"
             >
-              Recargar página
+              <ErrorBoundaryReloadLabel />
             </button>
             <button
               onClick={this.handleOpenModal}
               className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-sm font-medium transition-colors border border-slate-700"
             >
-              Reportar problema
+              <ErrorBoundaryReportLabel />
             </button>
           </div>
         </div>

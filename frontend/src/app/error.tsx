@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import ReportErrorModal from '@/components/ReportErrorModal'
 import type { ErrorInfoLike } from '@/lib/errorReporter'
+import { useLanguage } from '@/lib/i18n'
 
 /**
  * Error boundary por ruta (Next.js App Router). Se monta cuando algo lanza
@@ -17,6 +18,13 @@ export default function RouteError({
   reset: () => void
 }) {
   const [modalOpen, setModalOpen] = useState(false)
+  let errTexts: { pageTitle: string; pageDesc: string; retry: string; reportBtn: string }
+  try {
+    const { t } = useLanguage()
+    errTexts = t.app.errors
+  } catch {
+    errTexts = { pageTitle: 'Esta p\u00e1gina ha fallado', pageDesc: 'Ha ocurrido un error al cargar esta secci\u00f3n. Puedes reintentar o reportarnos el problema.', retry: 'Reintentar', reportBtn: 'Reportar problema' }
+  }
 
   useEffect(() => {
     if (typeof console !== 'undefined') {
@@ -41,9 +49,9 @@ export default function RouteError({
           </svg>
         </div>
         <div className="space-y-2">
-          <h1 className="text-xl font-semibold text-slate-100">Esta página ha fallado</h1>
+          <h1 className="text-xl font-semibold text-slate-100">{errTexts.pageTitle}</h1>
           <p className="text-sm text-slate-400">
-            Ha ocurrido un error al cargar esta sección. Puedes reintentar o reportarnos el problema.
+            {errTexts.pageDesc}
           </p>
         </div>
         <div className="flex items-center justify-center gap-2 pt-2">
@@ -51,13 +59,13 @@ export default function RouteError({
             onClick={() => reset()}
             className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-colors"
           >
-            Reintentar
+            {errTexts.retry}
           </button>
           <button
             onClick={() => setModalOpen(true)}
             className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-sm font-medium transition-colors border border-slate-700"
           >
-            Reportar problema
+            {errTexts.reportBtn}
           </button>
         </div>
       </div>

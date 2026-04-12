@@ -1,55 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-
-const STEPS = [
-  {
-    icon: '📥',
-    title: 'Sincroniza tus reseñas de Google',
-    body: 'Pulsa "Sincronizar" para importar tus reseñas de Google. Velacre las trae automáticamente y las organiza por estado: pendientes, respondidas e ignoradas.',
-  },
-  {
-    icon: '⚡',
-    title: 'Genera una respuesta con IA',
-    body: 'Selecciona una reseña y pulsa "Generar respuesta IA". La IA analiza el contenido y crea una respuesta personalizada en el tono de tu negocio. Tienes un límite mensual según tu plan.',
-  },
-  {
-    icon: '✍️',
-    title: 'Elige el tono y copia',
-    body: 'Verás la respuesta generada. Cópiala con un clic y pégala directamente en Google Business o en la plataforma que uses.',
-  },
-  {
-    icon: '📋',
-    title: 'Reseñas de otras plataformas',
-    body: 'Pulsa "Otra plataforma" para responder reseñas de Booking, TripAdvisor, Yelp u otras. Pega el texto, genera las respuestas, elige un tono y guárdala en tu historial.',
-  },
-  {
-    icon: '⚠️',
-    title: 'Reseñas retenidas por seguridad',
-    body: 'Si una reseña menciona intoxicaciones, denuncias o agresiones, Velacre la marca como "Revisión" y no genera respuesta automática. Necesita atención personal tuya.',
-  },
-  {
-    icon: '📊',
-    title: 'Panel Salud',
-    body: 'En "Salud" verás métricas de tu reputación: nota media, palabras clave mencionadas, tiempo ahorrado y evolución mensual. Disponible en plan Core y Pro.',
-  },
-  {
-    icon: '🎯',
-    title: 'Radar de competencia',
-    body: 'Con el plan Pro puedes añadir hasta 3 competidores y obtener un análisis comparativo de reputación cada mes. Ve a "Salud" y baja hasta la sección Radar.',
-  },
-  {
-    icon: '⚙️',
-    title: 'Ajusta tu negocio',
-    body: 'En "Configuración" puedes cambiar el tono de respuesta, añadir palabras clave SEO que quieres que aparezcan en tus respuestas, y gestionar tu plan.',
-  },
-]
+import { useLanguage } from '@/lib/i18n'
 
 interface HelpModalProps {
   onClose: () => void
 }
 
 export default function HelpModal({ onClose }: HelpModalProps) {
+  const { t } = useLanguage()
+  const h = t.app.help
+  const STEPS = h.steps
   const [step, setStep] = useState(0)
   const current = STEPS[step]
 
@@ -70,7 +31,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
         <div className="p-6 space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{current.icon}</span>
+              <span className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-sm font-bold shrink-0">{step + 1}</span>
               <h2 className="text-base font-bold text-white leading-tight">{current.title}</h2>
             </div>
             <button
@@ -91,7 +52,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
               disabled={step === 0}
               className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white disabled:opacity-30 transition-colors"
             >
-              ← Anterior
+              &larr; {h.prev}
             </button>
 
             {/* Dots */}
@@ -112,14 +73,14 @@ export default function HelpModal({ onClose }: HelpModalProps) {
                 onClick={() => setStep(s => s + 1)}
                 className="px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors"
               >
-                Siguiente →
+                {h.next} &rarr;
               </button>
             ) : (
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-colors"
               >
-                ¡Entendido!
+                {h.done}
               </button>
             )}
           </div>
@@ -133,12 +94,13 @@ export default function HelpModal({ onClose }: HelpModalProps) {
 
 export function HelpButton() {
   const [open, setOpen] = useState(false)
+  const { t } = useLanguage()
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        title="Ayuda — ¿cómo funciona Velacre?"
-        aria-label="Abrir ayuda"
+        title={t.app.help.tooltip}
+        aria-label={t.app.help.title}
         className="fixed bottom-5 right-5 z-50 w-10 h-10 rounded-full bg-slate-800 border border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white shadow-lg flex items-center justify-center transition-colors text-sm font-bold"
       >
         ?

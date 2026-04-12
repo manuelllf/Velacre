@@ -2,29 +2,29 @@
 
 import { useState } from 'react'
 import { getLemonCheckoutUrl } from '@/lib/api'
+import { useLanguage } from '@/lib/i18n'
 
 interface Props {
   plan: 'core' | 'pro'
   onClose: () => void
 }
 
-const PLAN_INFO: Record<'core' | 'pro', { name: string; price: string; desc: string }> = {
-  core: {
-    name: 'Core',
-    price: '19 €/mes',
-    desc: '20 respuestas IA al mes, panel de salud completo y gestión de reseñas.',
-  },
-  pro: {
-    name: 'Pro',
-    price: '49 €/mes',
-    desc: 'Respuestas IA ilimitadas, Radar de Competencia y acceso completo sin restricciones.',
-  },
+const PLAN_PRICES: Record<'core' | 'pro', string> = {
+  core: '19 \u20ac/mes',
+  pro: '49 \u20ac/mes',
 }
 
 export default function WaitlistModal({ plan, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const info = PLAN_INFO[plan]
+  const { t } = useLanguage()
+  const w = t.app.waitlistModal
+  const planName = plan === 'pro' ? 'Pro' : 'Core'
+  const info = {
+    name: planName,
+    price: PLAN_PRICES[plan],
+    desc: plan === 'pro' ? w.proDesc : w.coreDesc,
+  }
 
   async function handleCheckout() {
     setLoading(true)
@@ -33,7 +33,7 @@ export default function WaitlistModal({ plan, onClose }: Props) {
       const url = await getLemonCheckoutUrl(plan, 'monthly')
       window.location.href = url
     } catch {
-      setError('No se pudo iniciar el pago. Inténtalo de nuevo.')
+      setError(w.paymentError)
       setLoading(false)
     }
   }
@@ -55,7 +55,7 @@ export default function WaitlistModal({ plan, onClose }: Props) {
                 }`}>{info.name}</span>
                 <span className="text-sm font-semibold text-slate-900 dark:text-white">{info.price}</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Pásate a {info.name}</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{w.upgradeTo.replace('{plan}', info.name)}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{info.desc}</p>
             </div>
             <button type="button" onClick={onClose}
@@ -77,12 +77,12 @@ export default function WaitlistModal({ plan, onClose }: Props) {
           <div className="flex gap-3">
             <button type="button" onClick={onClose}
               className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              Ahora no
+              {w.notNow}
             </button>
             <button type="button" onClick={handleCheckout} disabled={loading}
               className="flex-1 py-2.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
               {loading && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-              {loading ? 'Redirigiendo...' : `Activar ${info.name} →`}
+              {loading ? w.redirecting : `${w.activate.replace('{plan}', info.name)} \u2192`}
             </button>
           </div>
         </div>
