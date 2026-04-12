@@ -203,9 +203,44 @@ export default function SaludPage() {
     } catch { setRadarError(sl.radarRemoveError) }
   }
 
+  // Al montar, detectar si hay un análisis en curso (lanzado antes de navegar)
+  useEffect(() => {
+    const started = localStorage.getItem('velacre_radar_started')
+    if (!started) return
+    const ts = parseInt(started, 10)
+    const elapsed = Date.now() - ts
+    // Si hace menos de 2 minutos y aún no hay resultado nuevo, mostrar "en curso"
+    if (elapsed < 120_000 && radarData) {
+      const lastAnalysis = radarData.ultimoAnalisis?.createdAt
+      if (!lastAnalysis || new Date(lastAnalysis).getTime() < ts) {
+        setAnalyzingRadar(true)
+        // Polling: cada 5s comprobar si el resultado ya llegó
+        const poll = setInterval(async () => {
+          try {
+            const rd = await getRadar()
+            const newAnalysis = rd.ultimoAnalisis?.createdAt
+            if (newAnalysis && new Date(newAnalysis).getTime() > ts) {
+              setRadarData(rd)
+              setAnalyzingRadar(false)
+              localStorage.removeItem('velacre_radar_started')
+              clearInterval(poll)
+            }
+          } catch { /* silencio */ }
+        }, 5000)
+        return () => clearInterval(poll)
+      } else {
+        // Ya hay resultado posterior al lanzamiento — limpiar
+        localStorage.removeItem('velacre_radar_started')
+      }
+    } else if (elapsed >= 120_000) {
+      localStorage.removeItem('velacre_radar_started')
+    }
+  }, [radarData]) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleRunRadar() {
     setAnalyzingRadar(true)
     setRadarError('')
+    localStorage.setItem('velacre_radar_started', String(Date.now()))
 
     const nombres = radarData?.competidores.map(c => c.nombre) ?? []
     // Outscraper ahora corre en paralelo — delays más cortos
@@ -226,10 +261,12 @@ export default function SaludPage() {
 
     try {
       const result = await runRadarAnalysis()
+      localStorage.removeItem('velacre_radar_started')
       setRadarData(prev => prev
         ? { ...prev, ultimoAnalisis: result, analisisEsteMes: result.analisisEsteMes }
         : { competidores: [], ultimoAnalisis: result, analisisEsteMes: result.analisisEsteMes })
     } catch (err) {
+      localStorage.removeItem('velacre_radar_started')
       const msg = err instanceof Error ? err.message : sl.radarAnalyzeError
       if (msg.includes('sin_competidores')) setRadarError(sl.radarNoCompetitors)
       else if (msg.includes('sin_resenas_propias')) setRadarError(sl.radarNoOwnReviews)
