@@ -1025,9 +1025,9 @@ export default function DashboardPage() {
 
       <HelpButton />
 
-      <footer className="mt-8 border-t border-slate-800 py-4">
+      <footer className="mt-8 border-t border-slate-800 py-5">
         <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
-          <span>© {new Date().getFullYear()} Velacre </span>
+          <span>© {new Date().getFullYear()} Velacre · {t.footer.rights.replace('© 2026 Velacre. ', '')}</span>
           <div className="flex gap-4">
             <Link href="/privacidad" className="hover:text-slate-300 transition-colors">{t.footer.privacy}</Link>
             <Link href="/terminos" className="hover:text-slate-300 transition-colors">{t.footer.terms}</Link>
