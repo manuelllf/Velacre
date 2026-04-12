@@ -804,6 +804,7 @@ export default function DashboardPage() {
                         {manualResponses.motivoRetencion === 'maltrato' && 'Acusaciones de malos tratos o agresión'}
                         {manualResponses.motivoRetencion === 'amenaza_legal' && 'Amenaza de denuncia o demanda judicial'}
                         {manualResponses.motivoRetencion === 'datos_personales' && 'Datos personales sensibles del cliente'}
+                        {manualResponses.motivoRetencion === 'acusacion_fraude' && 'Acusaciones de fraude, estafa o engaño deliberado'}
                         {!manualResponses.motivoRetencion && 'Contenido que requiere revisión manual'}
                       </p>
                       <p className="text-xs text-orange-600/80 dark:text-orange-500 mt-2">
@@ -1119,6 +1120,7 @@ const MOTIVO_LABELS: Record<string, string> = {
   maltrato:         'Acusaciones de malos tratos o agresión',
   amenaza_legal:    'Amenaza de denuncia o demanda judicial',
   datos_personales: 'Datos personales sensibles del cliente',
+  acusacion_fraude: 'Acusaciones de fraude, estafa o engaño deliberado',
 }
 
 function DetailPanel({

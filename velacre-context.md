@@ -145,6 +145,7 @@ Detecta en la misma llamada IA (sin coste extra) reseñas que describen:
 - Acusaciones de agresión, malos tratos o acoso
 - Amenaza explícita de denuncia judicial
 - Datos personales sensibles
+- Acusaciones de fraude, estafa o engaño deliberado (no simples quejas de precio)
 
 Si detecta: retiene la reseña, no genera respuesta, hace rollback del contador IA. En el dashboard: badge ⚠ naranja, banner de aviso, botones deshabilitados.
 
