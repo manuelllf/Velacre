@@ -708,8 +708,8 @@ export default function LandingPage() {
       {/* ── FOOTER ── */}
       <footer className="border-t border-slate-800 py-8">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-slate-500 text-sm">{l.footer.rights}</span>
-          <div className="flex items-center gap-6 text-sm text-slate-500">
+          <span className="text-slate-400 text-sm">{l.footer.rights}</span>
+          <div className="flex items-center gap-6 text-sm text-slate-400">
             <Link href="/privacidad" className="hover:text-slate-300 transition-colors">{l.footer.privacy}</Link>
             <Link href="/terminos" className="hover:text-slate-300 transition-colors">{l.footer.terms}</Link>
             <Link href="/contacto" className="hover:text-slate-300 transition-colors">{l.footer.contact}</Link>
