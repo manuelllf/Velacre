@@ -180,6 +180,8 @@ Backend completo: OAuth flow, listar locales, publicar respuestas directamente e
 
 **Bloqueante:** aprobación "Application for Basic API Access" de Google (enviada, plazo 7-10 días hábiles).
 
+**Modo de publicación (diseño decidido, pendiente de implementar):** por defecto, modo supervisado — el usuario revisa y aprueba cada respuesta antes de publicar en Google. Para activar auto-publicación, el usuario debe marcar un toggle en Settings y guardar cambios. Esto es deliberado: los dueños de negocio tienen miedo a que la IA publique sin su control. El modo supervisado es el estándar, auto-publicar es opt-in explícito.
+
 ### Mini Radar — herramienta de prospección B2B (admin)
 Herramienta interna para generar informes gratuitos de cualquier negocio como lead magnet de outreach. Busca por Google Places, scraping 30 reseñas + Claude genera diagnóstico + email pitch en lenguaje humano (sin jerga SEO). PDF de 3 páginas descargable. Coste ~€0.05 por informe. Sin persistencia. Incluye regla de auto-revisión que prohíbe tecnicismos ("SEO", "CTR", "ranking", etc.) y obliga a lenguaje de "vecino que quiere echar una mano".
 
@@ -354,7 +356,7 @@ Registro (Google OAuth o email)
 ### Backlog técnico de alto nivel
 - **Eliminación de reseñas (Pro):** Claude genera texto de reclamación según políticas de Google → usuario copia y pega en formulario oficial. Velacre no elimina, Google decide.
 - **Más tonos:** añadir "Empático" y "Humorístico" (gap vs RepScan).
-- **Modo supervisado:** toggle para aprobar antes de publicar (cuando GBP esté activo).
+- **Modo supervisado + auto-publicación:** supervisado es el modo por defecto (decidido). Auto-publicar requiere toggle activo en Settings + guardar. Implementar cuando GBP esté activo.
 - **Multi-ubicación:** soporte `negocio[]` por usuario, pricing por local adicional (~€20/mes).
 - **Tests:** 0% cobertura actual. Priorizar tests de integración en flujos críticos (generación IA, sync, checkout).
 - **Rate limiting aplicativo:** no crítico sin atacantes, buena práctica para producción.
