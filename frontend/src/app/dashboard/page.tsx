@@ -1028,13 +1028,13 @@ export default function DashboardPage() {
 
       <HelpButton />
 
-      <footer className="mt-8 border-t border-slate-100 dark:border-slate-800 py-4">
-        <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-600">
+      <footer className="mt-8 border-t border-slate-800 py-4">
+        <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
           <span>© {new Date().getFullYear()} Velacre </span>
           <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">{t.footer.privacy}</Link>
-            <Link href="/terminos" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">{t.footer.terms}</Link>
-            <Link href="/contacto" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">{t.footer.contact}</Link>
+            <Link href="/privacidad" className="hover:text-slate-300 transition-colors">{t.footer.privacy}</Link>
+            <Link href="/terminos" className="hover:text-slate-300 transition-colors">{t.footer.terms}</Link>
+            <Link href="/contacto" className="hover:text-slate-300 transition-colors">{t.footer.contact}</Link>
           </div>
         </div>
       </footer>
