@@ -502,7 +502,7 @@ export default function DashboardPage() {
 
         {/* ── Barra de uso IA — solo Basic y Core ── */}
         {(userPlan === 'basic' || userPlan === 'core') && (() => {
-          const limit = userPlan === 'core' ? 18 : 3
+          const limit = userPlan === 'core' ? 20 : 10
           const used = Math.min(iaUsed, limit)
           const pct = Math.round((used / limit) * 100)
           const atLimit = used >= limit
@@ -906,6 +906,7 @@ export default function DashboardPage() {
       {/* Upsell modal — límite IA alcanzado */}
       {showUpsell && (() => {
         const pendingCount = reviews.filter(r => !r.tonoGenerado && r.estado !== 'ignorada').length
+        const isPro = upsellInfo?.plan === 'pro'
         const isCore = upsellInfo?.plan === 'core'
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -922,12 +923,14 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white">
-                      {isCore ? 'Tus 20 respuestas IA se acabaron' : 'Tus 10 respuestas IA se acabaron'}
+                      {isPro ? 'Error temporal al generar' : isCore ? 'Tus 20 respuestas IA se acabaron' : 'Tus 10 respuestas IA se acabaron'}
                     </h3>
                     <p className="text-sm text-slate-400 mt-0.5">
-                      {isCore
-                        ? 'El plan Core incluye 20 al mes. Pásate a Pro para tenerlas ilimitadas.'
-                        : 'El plan Basic incluye 10 al mes. Core amplía el límite a 20, Pro es ilimitado.'}
+                      {isPro
+                        ? 'Hubo un problema al procesar tu solicitud. Inténtalo de nuevo en unos segundos.'
+                        : isCore
+                          ? 'El plan Core incluye 20 al mes. Pásate a Pro para tenerlas ilimitadas.'
+                          : 'El plan Basic incluye 10 al mes. Core amplía el límite a 20, Pro es ilimitado.'}
                     </p>
                   </div>
                 </div>
@@ -944,7 +947,13 @@ export default function DashboardPage() {
                 )}
 
                 <div className="space-y-2 pt-1">
-                  {isCore ? (
+                  {isPro ? (
+                    <button
+                      onClick={() => setShowUpsell(false)}
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors">
+                      Cerrar e intentar de nuevo
+                    </button>
+                  ) : isCore ? (
                     <button
                       onClick={async () => {
                         setCheckoutLoading('pro')
@@ -975,16 +984,18 @@ export default function DashboardPage() {
                         }}
                         disabled={checkoutLoading !== null}
                         className="flex items-center justify-center gap-2 w-full py-2.5 border border-slate-700 hover:bg-slate-800 disabled:opacity-60 text-slate-300 text-sm font-semibold rounded-xl transition-colors">
-                        {checkoutLoading === 'core' ? <><span className="w-4 h-4 border-2 border-slate-400/40 border-t-slate-300 rounded-full animate-spin" />Redirigiendo...</> : 'Core — 18 al mes · 19 €/mes'}
+                        {checkoutLoading === 'core' ? <><span className="w-4 h-4 border-2 border-slate-400/40 border-t-slate-300 rounded-full animate-spin" />Redirigiendo...</> : 'Core — 20 al mes · 19 €/mes'}
                       </button>
                     </>
                   )}
-                  <button
-                    onClick={() => setShowUpsell(false)}
-                    className="block w-full py-2 text-xs text-slate-600 hover:text-slate-400 transition-colors"
-                  >
-                    Seguir con el límite
-                  </button>
+                  {!isPro && (
+                    <button
+                      onClick={() => setShowUpsell(false)}
+                      className="block w-full py-2 text-xs text-slate-600 hover:text-slate-400 transition-colors"
+                    >
+                      Seguir con el límite
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

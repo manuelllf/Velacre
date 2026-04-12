@@ -316,13 +316,38 @@ public class ReviewController : ControllerBase
 
             // Incremento atómico: comprueba el límite e incrementa en una sola operación SQL.
             // La RPC trata p_limit < 0 como "sin límite" (siempre permite e incrementa).
-            var rpcResult = await _supabase.Rpc("try_increment_ia_counter",
-                new Dictionary<string, object> { { "p_user_id", userId }, { "p_limit", iaLimit } });
-            var allowed = rpcResult?.Content?.Trim() == "true";
+            bool allowed;
+            try
+            {
+                var rpcResult = await _supabase.Rpc("try_increment_ia_counter",
+                    new Dictionary<string, object> { { "p_user_id", userId }, { "p_limit", iaLimit } });
+                var rpcContent = rpcResult?.Content?.Trim().Trim('"') ?? "";
+                allowed = rpcContent.Equals("true", StringComparison.OrdinalIgnoreCase);
+
+                if (!allowed)
+                {
+                    _logger.LogWarning("[ReviewController] IA limit: userId={UserId} plan={Plan} iaLimit={Limit} rpcContent=\"{RpcContent}\"",
+                        userId, usuario.Plan, iaLimit, rpcContent);
+                }
+            }
+            catch (Exception rpcEx)
+            {
+                // Si la RPC falla, Pro sigue adelante (el contador es informativo).
+                // Non-Pro se bloquea por seguridad para no superar el límite.
+                if (esProEfectivo)
+                {
+                    _logger.LogWarning(rpcEx, "[ReviewController] RPC try_increment_ia_counter falló para Pro userId={UserId}, permitiendo", userId);
+                    allowed = true;
+                }
+                else
+                {
+                    _logger.LogError(rpcEx, "[ReviewController] RPC try_increment_ia_counter falló para userId={UserId} plan={Plan}", userId, usuario.Plan);
+                    allowed = false;
+                }
+            }
 
             if (!allowed)
             {
-                _logger.LogWarning("[ReviewController] IA limit alcanzado para userId={UserId} plan={Plan}", userId, usuario.Plan);
                 return StatusCode(429, new { error = "limit_reached", plan = usuario.Plan, limit = iaLimit, used = iaLimit });
             }
             incrementedCounter = true;
