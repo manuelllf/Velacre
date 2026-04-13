@@ -1124,11 +1124,11 @@ type ReportErrorPayload = {
 - ~~**0 tests**~~ **✅ Resuelto 2026-04-14** — 18 tests (ClaudeService + NegocioController + UsuarioController).
 - ~~**Sin capa DAL propia**~~ **✅ Resuelto 2026-04-13** — 7 repositorios con interfaces.
 - **Duplicación de plan check** en varios controllers: `usuario.Plan == "pro" || (usuario.ProOverride && ...)`. Debería ser método helper.
-- **Duplicación de extracción de userId**: `Guid.Parse(User.FindFirst("sub")!.Value)` en todos los controllers.
-- **`Stripe.net` referenciado** pero no usado.
+- ~~**Duplicación de extracción de userId**~~ **✅ Resuelto 2026-04-14** — `User.GetUserId()` extension method en `Infrastructure/ClaimsPrincipalExtensions.cs`. 33 ocurrencias reemplazadas en 10 controllers.
+- ~~**`Stripe.net` referenciado** pero no usado~~ **✅ Resuelto 2026-04-14** — eliminado del csproj.
 - **Warnings sobre CreateNegocio**: workaround con GET adicional (posible bug SDK Supabase).
 - **Hardcode orígenes CORS** en `Program.cs`. No escala a nuevos entornos.
-- **Mini-radar** tiene system prompt hardcodeado en el controller (debería estar en ClaudeService).
+- ~~**Mini-radar** tiene system prompt hardcodeado en el controller~~ **✅ Resuelto 2026-04-14** — movido a `ClaudeService.GenerateMiniRadarAnalysisAsync()`.
 - **LemonController** tiene mapeo manual variant_id (plan, billing) — debería estar en config.
 - `NotifyController` sin dedupe de waitlist.
 - `GoogleBusinessService.PublishReplyAsync` construye URL manualmente sin encoding.
@@ -1141,7 +1141,7 @@ type ReportErrorPayload = {
 - ~~**Sin React Query / SWR**~~ **✅ Resuelto 2026-04-13** — React Query + 5 hooks.
 - `localStorage` para i18n: `lib/i18n.tsx:43`.
 - `NEXT_PUBLIC_API_URL ?? 'http://localhost:5146'` — el fallback solo debería existir en dev.
-- `<html lang="es">` hardcodeado aunque hay i18n.
+- ~~`<html lang="es">` hardcodeado aunque hay i18n~~ **✅ Resuelto 2026-04-14** — `document.documentElement.lang` sincronizado con locale en `LanguageProvider`.
 - Rutas hardcodeadas en string literals (no enum/const central).
 
 ### 13.3 PWA
@@ -1149,14 +1149,17 @@ type ReportErrorPayload = {
 - Service Worker es **network-first pass-through** (4 líneas). No hay cache, no hay offline, no hay fallback cuando falla red. Se gana el prompt de instalación pero casi nada más.
 - Manifest mínimo (name, icons, colors, display).
 
-### 13.4 Patrón repetido — extracción de userId
+### 13.4 ~~Patrón repetido — extracción de userId~~ ✅ Resuelto 2026-04-14
 
-En cada controller:
+~~En cada controller:~~
 ```csharp
+// ANTES (33 ocurrencias):
 var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+// AHORA:
+var userId = User.GetUserId();
 ```
-Problemas:
-1. NPE si `sub` no existe (raro pero posible con JWT malformado).
+~~Problemas:~~
+1. ~~NPE si `sub` no existe (raro pero posible con JWT malformado)~~ → ahora lanza `InvalidOperationException` con mensaje claro.
 2. `FormatException` si `sub` no es GUID (Supabase lo genera como UUID, pero teóricamente podría cambiar).
 3. Duplicación en 11 controllers.
 
@@ -1431,6 +1434,14 @@ Refactorización completa en 6 grupos, 10 de 11 puntos ejecutados. Rama `202604_
 **Pospuestos:**
 - R3 (eliminar proxy CRUD) — depende de migrar a anon key, no urgente.
 - R10 (cola emails) — tolerable en MVP, implementar con volumen.
+
+### 2026-04-14 — CI/CD + limpieza backlog
+
+- **GitHub Actions CI**: `.github/workflows/ci.yml` ejecuta `dotnet build` + `dotnet test` (18) + `npm test` (35) + `tsc --noEmit` en cada push a main y PRs. Deploy bloqueado si falla.
+- **`<html lang>` dinámico**: `LanguageProvider` sincroniza `document.documentElement.lang` con el idioma seleccionado (es/gal/en) via `useEffect`.
+- **Stripe.net eliminado**: dependencia muerta, 0 imports en el código.
+- **`User.GetUserId()` extension**: `Infrastructure/ClaimsPrincipalExtensions.cs`. Reemplaza 33 ocurrencias de `Guid.Parse(User.FindFirst("sub")!.Value)` en 10 controllers. Error claro (`InvalidOperationException`) si falta el claim.
+- **Mini-radar prompt → ClaudeService**: system prompt movido de `AdminController` a `ClaudeService.GenerateMiniRadarAnalysisAsync()`. Controller reducido ~50 líneas.
 
 ---
 

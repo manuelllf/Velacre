@@ -336,6 +336,10 @@ Registro (Google OAuth o email)
 - **Tests:** 25→53 (backend: +9 controllers, frontend: +19 api modules + hooks).
 - **Pospuestos:** R3 (eliminar proxy CRUD — depende de migrar a anon key), R10 (cola emails — tolerable en MVP).
 
+### 2026-04-14 — CI/CD + limpieza backlog
+- **GitHub Actions CI:** tests automáticos en cada push (18 backend + 35 frontend + tsc). Deploy bloqueado si fallan.
+- **Limpieza:** `html lang` dinámico (accesibilidad), Stripe.net eliminado, `GetUserId()` helper (33 repeticiones eliminadas), prompt mini-radar movido a ClaudeService.
+
 ---
 
 ## 13. Pendiente estratégico y técnico
