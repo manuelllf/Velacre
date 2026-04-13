@@ -6,6 +6,50 @@
 
 ---
 
+## Puntuación actual (post-refactor)
+
+| Eje | Antes | Ahora | Notas |
+|-----|-------|-------|-------|
+| Testeabilidad | 3/10 | 7/10 | 53 tests, controllers mockeables via repos |
+| Seguridad BD | 2/10 | 7/10 | RLS en 7 tablas, 22 policies, defense-in-depth |
+| Mantenibilidad backend | 4/10 | 8/10 | Repos + FluentValidation + .NET 10 |
+| Mantenibilidad frontend | 4/10 | 8/10 | React Query, api modular, componentes <300 líneas |
+| Protección de rutas | 3/10 | 8/10 | proxy.ts SSR con @supabase/ssr, sin flashing |
+| Validación de input | 3/10 | 8/10 | FluentValidation auto-pipeline |
+| **Media** | **3.2/10** | **7.7/10** | |
+
+---
+
+## Estado de ejecución
+
+| Punto | Grupo | Estado | Commit | Fecha |
+|-------|-------|--------|--------|-------|
+| R1 · Repos backend | Grupo 1 | **DONE** | `4f120fc` | 2026-04-13 |
+| R4 · FluentValidation | Grupo 1 | **DONE** | `4f120fc` | 2026-04-13 |
+| R5 · React Query | Grupo 3 | **DONE** | `9fde768` | 2026-04-13 |
+| R8 · api.ts modular | Grupo 3 | **DONE** | `9fde768` | 2026-04-13 |
+| R6 · God components | Grupo 4 | **DONE** | `5a5f46a` | 2026-04-13 |
+| R9 · proxy.ts SSR | Grupo 6 | **DONE** | `a67b098` | 2026-04-14 |
+| R11 · .NET 9→10 | Grupo 6 | **DONE** | `a67b098` | 2026-04-14 |
+| R7 · Tests (53) | Grupo 5 | **DONE** | `65ceb48` | 2026-04-14 |
+| R2 · RLS policies | Grupo 2 | **DONE** | `bfb1529` | 2026-04-14 |
+| R3 · Eliminar proxy CRUD | Grupo 2 | POSPUESTO | — | — |
+| R10 · Cola emails/retry | Grupo 6 | POSPUESTO | — | — |
+
+### Puntos pospuestos
+
+**R3 · Eliminar proxy CRUD innecesario**
+- El backend sigue usando service_role para todo. Migrar endpoints de CRUD puro a acceso directo frontend→Supabase con anon key requiere evaluar caso por caso y cambiar el modelo de autenticación del frontend.
+- Las RLS (R2) ya están puestas para cuando se decida hacer.
+- Se reevaluará cuando haya un motivo concreto (latencia, coste, simplificación).
+
+**R10 · Cola de emails / retry**
+- Emails se envían fire-and-forget. Si Resend falla, se pierden.
+- Peligro 2, prioridad 1 — tolerable en MVP con pocos usuarios.
+- Cuando haya 50+ clientes activos, crear tabla `email_queue` + cron de reintento.
+
+---
+
 ## Criterios de ordenación
 
 Cada punto se evalúa en 3 ejes (1-5):
@@ -15,249 +59,134 @@ Cada punto se evalúa en 3 ejes (1-5):
 
 ---
 
-## R1 · Capa de repositorios en backend
+## R1 · Capa de repositorios en backend — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 4 | 5 | 3 |
 
-**Problema:** los 11 controllers llaman directamente a `Supabase.Client` con queries fluent (`From<T>().Where(...).Get()`). Esto:
-- Hace **imposible testear** controllers (no se puede mockear `Supabase.Client` fácilmente)
-- Mezcla lógica de negocio con acceso a datos en el mismo método
-- Repite patrones idénticos (buscar usuario, buscar negocio, verificar plan) en múltiples controllers
-- Un typo en un `.Where()` es un bug silencioso en producción
+**Problema:** los 11 controllers llaman directamente a `Supabase.Client` con queries fluent. Imposible testear, mezcla de responsabilidades, queries duplicados.
 
-**Solución:** extraer interfaces de repositorio (`IUsuarioRepository`, `INegocioRepository`, `IReviewRepository`, etc.) con implementaciones que encapsulan Supabase. Los controllers reciben repos por DI.
-
-**Relacionado con:** R7 (tests de controllers), R2 (RLS)
-
-**Resultado esperado:** controllers testeables, queries centralizados, un solo sitio donde tocar si cambia el acceso a BD.
+**Solución implementada:** 7 interfaces + 7 implementaciones en `backend/Interfaces/` y `backend/Repositories/`. Los 11 controllers y `GoogleBusinessService` migrados a usar repos por DI.
 
 ---
 
-## R2 · RLS policies en Supabase + dejar de usar service key para todo
+## R2 · RLS policies en Supabase — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 5 | 4 | 4 |
 
-**Problema:** el backend usa `SUPABASE_SERVICE_KEY` (bypass total de Row Level Security) para todas las operaciones. Si un endpoint tiene un bug de autorización (ej: no valida que el userId del JWT coincida con el recurso), no hay red de seguridad — se puede leer/escribir cualquier dato de cualquier usuario.
+**Problema:** el backend usa `SUPABASE_SERVICE_KEY` (bypass total de RLS) para todo. Sin red de seguridad si un endpoint tiene un bug de autorización.
 
-**Solución:** crear RLS policies por tabla que restrinjan acceso por `auth.uid()`. El backend pasa el JWT del usuario a Supabase en lugar de la service key para operaciones normales. Service key solo para: admin, cron, webhooks.
+**Solución implementada:** RLS activado en las 7 tablas. 22 policies creadas:
+- `usuario`: SELECT/UPDATE/INSERT — `id = auth.uid()`
+- `negocio`: SELECT/INSERT/UPDATE — `idusuario = auth.uid()`
+- Tablas hijas (review, google_connection, competidor, radar_analisis, analisis_ia): CRUD restringido al negocio del usuario via subquery.
 
-**Relacionado con:** R1 (los repos encapsularían la lógica de qué client usar)
-
-**Resultado esperado:** si un controller tiene un bug, la BD se protege sola. Defense in depth.
-
-**Nota:** requiere decisión sobre si el frontend debería hablar directo con Supabase para CRUD simple (ver R3).
+El backend sigue usando service_role (bypassa RLS), así que no hay cambio funcional. Es defense-in-depth. SQL en `supabase/migrations/003_rls_policies.sql`.
 
 ---
 
-## R3 · Eliminar proxy CRUD innecesario en .NET
+## R3 · Eliminar proxy CRUD innecesario — POSPUESTO
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 2 | 4 | 3 |
 
-**Problema:** muchas operaciones son un proxy transparente: `Next.js → .NET → Supabase`. Ejemplos:
-- `GET /api/negocio/me` → lee de Supabase y devuelve
-- `GET /api/review/all` → lee de Supabase y devuelve
-- `PUT /api/usuario/me` → update nombre en Supabase
+**Problema:** muchas operaciones son un proxy transparente: `Next.js → .NET → Supabase` sin lógica de negocio.
 
-El backend no añade lógica en estos casos. Es latencia extra y código extra.
-
-**Opciones:**
-- **Opción A — Frontend → Supabase directo para CRUD:** el frontend usa `supabase-js` para leer/escribir datos simples (con RLS). .NET solo para lógica de negocio (IA, scraping, webhooks, validaciones complejas). Menos latencia, menos endpoints.
-- **Opción B — Mantener .NET como gateway único:** todos los datos pasan por .NET. Más control centralizado, pero más código boilerplate.
-
-**Relacionado con:** R2 (sin RLS no se puede hacer Opción A), R1 (afecta qué repos se necesitan)
-
-**DECISIÓN (2026-04-13):** de momento todo sigue por .NET. Cuando R2 (RLS) esté listo, reevaluamos qué CRUD mover al frontend.
+**Decisión:** pospuesto. El backend funciona bien como gateway único. Cuando las RLS estén probadas en producción y haya motivo para reducir latencia, se reevaluará qué endpoints mover a acceso directo frontend→Supabase.
 
 ---
 
-## R4 · Validación de input formal en backend
+## R4 · Validación de input (FluentValidation) — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 4 | 3 | 2 |
 
-**Problema:** no hay FluentValidation ni data annotations. Cada controller valida manualmente con `if (string.IsNullOrEmpty(...))`. Hay validaciones que faltan o son inconsistentes. Un campo inesperado o malformado puede causar un 500 en vez de un 400.
-
-**Solución:** añadir FluentValidation. Un validator por request DTO, registrado por DI, ejecutado automáticamente por el pipeline de ASP.NET. Los controllers dejan de tener `if` de validación.
-
-**Relacionado con:** R1 (validators van junto a la reestructuración de controllers)
-
-**Resultado esperado:** errores 400 claros y consistentes. Menos código en controllers.
+**Solución implementada:** 7 validators en `backend/Validators/`, registrados con auto-validation en el pipeline MVC. Validación manual eliminada de controllers.
 
 ---
 
-## R5 · Estado global frontend (React Query)
+## R5 · React Query — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 2 | 5 | 3 |
 
-**Problema:** cada página hace fetch al montar sin cache. No hay React Query, no hay SWR, no hay context de usuario/negocio. Consecuencias:
-- Refetches innecesarios al navegar (usuario, negocio se piden N veces)
-- Sin loading states compartidos
-- Sin optimistic updates
-- `dashboard/page.tsx` tiene ~15 `useState` porque todo es local
-- Sin retry automático en errores transitorios
-
-**Solución:** añadir TanStack Query (React Query). Crear custom hooks por dominio (`useUsuario()`, `useNegocio()`, `useReviews()`, `useRadar()`). Cache inteligente, invalidación tras mutaciones, retry automático.
-
-**Relacionado con:** R6 (romper god components), R8 (romper api.ts)
-
-**Resultado esperado:** navegación instantánea con cache, menos código en páginas, loading/error states consistentes.
+**Solución implementada:** `@tanstack/react-query` con `QueryClientProvider` en `Providers.tsx`. 5 hooks por dominio en `frontend/src/hooks/`: useUsuario, useNegocio, useReviews (query + 3 mutations), useRadar (query + 3 mutations), useMetrics.
 
 ---
 
-## R6 · Romper god components
+## R6 · Romper god components — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 1 | 4 | 3 |
 
-**Problema:**
-- `dashboard/page.tsx` — **1307 líneas**, ~15 useState, modales inline, filtros, sync, generación IA, todo mezclado
-- `LandingPage.tsx` — **1000+ líneas**, hero + features + pricing + footer en un componente
-
-**Solución:** extraer en componentes con responsabilidad única:
-- Dashboard: `ReviewList`, `ReviewFilters`, `ReviewDetail`, `GenerateModal`, `SyncProgress`
-- Landing: `Hero`, `Features`, `Pricing`, `Testimonials`, `Footer`
-
-**Relacionado con:** R5 (React Query reduce useState en dashboard), R8 (hooks por dominio)
-
-**Resultado esperado:** componentes de <200 líneas, fáciles de leer y testear.
+**Solución implementada:**
+- `dashboard/page.tsx`: 1324 → 555 líneas. 6 componentes extraídos en `components/dashboard/`: DetailPanel, ReviewList, SyncBar, IaUsageBar, ManualReviewModal, UpsellModal.
+- `LandingPage.tsx`: 744 → 227 líneas. 4 componentes extraídos en `components/landing/`: HeroSection, DemoSection, PricingSection, CalculatorSection + shared helpers.
+- Cero cambios visuales.
 
 ---
 
-## R7 · Ampliar cobertura de tests
+## R7 · Tests — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 3 | 3 | 3 |
 
-**Problema:** ~5-7% de cobertura (25 tests). Solo cubre ClaudeService, API client, y 2 componentes. Cero tests de controllers, cero tests de flujos end-to-end.
-
-**Solución:** tras R1 (repos), los controllers se pueden testear fácilmente con mocks de interfaces. Priorizar:
-1. ReviewController (el más crítico — generación, límites, filtro seguridad)
-2. LemonController (webhook — dinero)
-3. UsuarioController (eliminación de cuenta — destructivo)
-4. Frontend: hooks de React Query (tras R5)
-
-**Relacionado con:** R1 (prerequisito para tests de controllers)
-
-**Resultado esperado:** 30-40% cobertura en flujos críticos.
+**Solución implementada:** de 25 a 53 tests.
+- Backend (18): ClaudeService (9), NegocioController (5), UsuarioController (4)
+- Frontend (35): API client (8), ResponseCard (4), Tooltip (4), api modules negocio/usuario/radar/reviews (14), useReviews hook (5)
+- Cobertura estimada: ~12-15%
 
 ---
 
-## R8 · Romper `lib/api.ts` monolítico
+## R8 · api.ts modular — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 1 | 3 | 2 |
 
-**Problema:** 759 líneas, 100+ funciones, todo en un archivo. Cada función repite `fetch + authHeaders + if (!res.ok)`. Sin separación por dominio.
-
-**Solución:** 
-- Helper genérico: `fetchApi<T>(method, path, body?)` que centralice auth + error handling
-- Separar por dominio: `api/reviews.ts`, `api/radar.ts`, `api/admin.ts`, `api/auth.ts`, `api/negocio.ts`
-- Si se implementa R5, estos se convierten en la base de los React Query hooks
-
-**Relacionado con:** R5 (React Query hooks consumen estos módulos), R6 (imports más limpios)
-
-**Resultado esperado:** archivos de <100 líneas, DRY, fácil de encontrar qué toca cada dominio.
+**Solución implementada:** `lib/api.ts` (759 líneas) → 8 módulos en `lib/api/`: client.ts, types.ts, reviews.ts, negocio.ts, usuario.ts, radar.ts, google.ts, admin.ts + barrel index.ts. Helper `fetchApi<T>` centraliza auth + error handling.
 
 ---
 
-## R9 · Next.js — usar correctamente o migrar
+## R9 · Next.js proxy.ts SSR — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 1 | 2 | 4 |
 
-**Problema:** Next.js 16 con App Router se usa como SPA puro. Todo es `'use client'`, no hay `middleware.ts`, no hay Server Components reales, no hay SSR. La protección de rutas es client-side (useEffect + getSession → flashing). Estamos pagando la complejidad de Next.js sin sus beneficios.
-
-**Opciones:**
-- **Opción A — Usar Next.js bien:** añadir `middleware.ts` para protección server-side, usar RSC donde tenga sentido (layout autenticado), eliminar flashing.
-- **Opción B — Migrar a Vite + React Router:** build más rápido, bundle más pequeño, sin la complejidad del App Router. Misma funcionalidad para una SPA autenticada.
-
-**DECISIÓN (2026-04-13):** Opción A — usar Next.js correctamente. Añadir middleware.ts, RSC donde tenga sentido, eliminar flashing.
-
-**Relacionado con:** R5, R6
+**Solución implementada:**
+- `@supabase/ssr` instalado. Browser client migrado de `createClient` a `createBrowserClient` (sesión en cookies HTTP en vez de localStorage).
+- `proxy.ts` creado (Next.js 16 renombra middleware→proxy). Protege `/dashboard`, `/settings`, `/inicio`, `/onboarding`, `/admin` — redirect instantáneo sin flashing. Usuarios logueados redirigidos de `/auth/*` a `/inicio`.
+- Política de privacidad ya cubría cookies técnicas (§7 en las 3 traducciones).
 
 ---
 
-## R10 · Cola de emails / retry
+## R10 · Cola de emails / retry — POSPUESTO
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 2 | 1 | 2 |
 
-**Problema:** emails enviados con fire-and-forget. Si Resend falla, se loguea y el email se pierde. Para un MVP es tolerable, pero con clientes reales un email de bienvenida que no llega es malo.
-
-**Solución:** tabla `email_queue` en Supabase + cron que reintente los fallidos. O usar Resend webhooks para detectar fallos y reenviar.
-
-**Resultado esperado:** 0 emails perdidos silenciosamente.
+**Decisión:** tolerable en MVP. Implementar cuando haya volumen de usuarios (50+). Solución futura: tabla `email_queue` + cron de reintento.
 
 ---
 
-## Mapa de dependencias entre puntos
-
-```
-R2 (RLS) ──────────┐
-                    ├──→ R3 (eliminar proxy CRUD) 
-R1 (repos) ────────┤
-    │               └──→ R7 (tests controllers)
-    │
-    └──→ R4 (validación)
-
-R5 (React Query) ──┬──→ R6 (romper god components)
-                    └──→ R8 (romper api.ts)
-
-R9 (Next.js) ── decisión independiente pero afecta a R5/R6
-
-R10 (emails) ── independiente
-```
-
-### Grupos de ataque recomendados
-
-| Grupo | Puntos | Por qué juntos |
-|-------|--------|-----------------|
-| **Grupo 1 — Backend core** | R1 + R4 | Repos + validación van de la mano, se tocan los mismos archivos |
-| **Grupo 2 — Seguridad BD** | R2 + R3 (parcial) | RLS habilita decisiones sobre proxy vs directo |
-| **Grupo 3 — Frontend core** | R5 + R8 | React Query necesita api.ts reorganizado primero |
-| **Grupo 4 — Frontend UI** | R6 | Romper god components con los hooks de R5 ya listos |
-| **Grupo 5 — Tests** | R7 | Con repos (R1) ya se pueden testear controllers |
-| **Grupo 6 — Independientes** | R9, R10 | Se pueden hacer en cualquier momento |
-
----
-
-## Orden de ejecución sugerido
-
-1. **Grupo 1** (R1+R4) — desbloquea tests y limpia backend
-2. **Grupo 2** (R2+R3) — seguridad, requiere decisión arquitectónica
-3. **Grupo 3** (R5+R8) — moderniza frontend, reduce código
-4. **Grupo 4** (R6) — rompe god components con herramientas ya listas
-5. **Grupo 5** (R7) — amplía tests con la nueva arquitectura
-6. **Grupo 6** (R9, R10) — cuando haya hueco
-
----
-
-## R11 · Subir de .NET 9 a .NET 10
+## R11 · .NET 9 → 10 — DONE
 
 | Peligro | Prioridad | Dificultad |
 |---------|-----------|------------|
 | 1 | 2 | 1 |
 
-**Problema:** .NET 9 no es LTS. .NET 10 (LTS) trae mejoras de rendimiento y soporte a largo plazo.
-
-**Solución:** actualizar `TargetFramework` en csproj + actualizar NuGet packages (JwtBearer, Resilience, etc.) + verificar breaking changes.
-
-**Relacionado con:** independiente, se puede hacer en cualquier momento.
+**Solución implementada:** SDK 10.0.201 instalado. `TargetFramework` actualizado a `net10.0` en backend y backend.Tests. Paquetes Microsoft.AspNetCore.* actualizados a v10. Cero breaking changes.
 
 ---
 
-*Este documento se irá actualizando con decisiones tomadas y progreso.*
+*Refactorización completada 2026-04-14. 10 de 11 puntos ejecutados, 2 pospuestos por diseño.*

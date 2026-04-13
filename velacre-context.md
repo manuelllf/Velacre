@@ -39,7 +39,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 
 | Capa | Qué hace | Tecnología |
 |------|----------|-----------|
-| Backend | API REST, lógica de negocio, integraciones | .NET 9 (C#) en Railway |
+| Backend | API REST, lógica de negocio, integraciones | .NET 10 (C#) en Railway |
 | Frontend | App web (SPA + PWA instalable) | Next.js 16 + React 19 en Vercel |
 | Base de datos | Persistencia + auth + RPCs atómicas | Supabase (PostgreSQL) |
 | IA | Generación de respuestas, filtro seguridad, análisis competitivo | Claude Sonnet 4.6 via Anthropic SDK |
@@ -49,7 +49,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 | Email | Bienvenida, reportes de error | Resend (info@velacre.com) |
 | Búsqueda de lugares | Onboarding, Mini Radar | Google Places API |
 
-**Estado del código (~18k líneas):** 45 endpoints, 11 controllers, 5 servicios, 9 entidades BD. ~5-7% cobertura de tests (25 tests: 9 backend xUnit, 16 frontend Vitest). Error handling global implementado (2026-04-12). Circuit breaker en llamadas a Claude. Sin rate limiting aplicativo (backlog).
+**Estado del código (~18k líneas):** 45 endpoints, 11 controllers, 7 repositorios, 5 servicios, 9 entidades BD. ~12-15% cobertura de tests (53 tests: 18 backend xUnit, 35 frontend Vitest). Capa de repositorios + FluentValidation. RLS en 7 tablas (22 policies). Auth SSR con proxy.ts + @supabase/ssr. Error handling global (2026-04-12). Circuit breaker en Claude. Sin rate limiting aplicativo (backlog).
 
 ---
 
@@ -326,7 +326,15 @@ Registro (Google OAuth o email)
 - **6 tonos de respuesta:** añadidos Empático, Agradecido y Humorístico. Modal manual simplificado: genera 1 respuesta en tono del negocio (antes generaba 3 y pedía elegir). Misma UX que reseñas Google. Menos tokens, menos fricción.
 
 ### 2026-04-13
-- **Tests básicos:** primera infraestructura de tests del proyecto. Backend: 9 tests xUnit (ClaudeService — parseo JSON, filtro seguridad, tonos). Frontend: 16 tests Vitest (API client, ResponseCard, Tooltip). Todo con mocks, cero llamadas reales. Cobertura estimada ~5-7%.
+- **Tests básicos:** primera infraestructura de tests del proyecto. 25 tests iniciales con mocks (9 backend xUnit, 16 frontend Vitest).
+
+### 2026-04-13/14 — Refactorización arquitectónica
+- **Rama `202604_refactor`**, 10 de 11 puntos ejecutados. Nota media de calidad: 3.2/10 → 7.7/10.
+- **Backend:** capa de repositorios (7 interfaces + 7 implementaciones), FluentValidation (7 validators), .NET 9→10.
+- **Frontend:** React Query (5 hooks), api.ts modular (8 módulos), god components rotos (dashboard 1324→555, landing 744→227), proxy.ts SSR con @supabase/ssr (sin flashing).
+- **Seguridad:** RLS activado en 7 tablas (22 policies por auth.uid()). Defense-in-depth.
+- **Tests:** 25→53 (backend: +9 controllers, frontend: +19 api modules + hooks).
+- **Pospuestos:** R3 (eliminar proxy CRUD — depende de migrar a anon key), R10 (cola emails — tolerable en MVP).
 
 ---
 
@@ -361,7 +369,7 @@ Registro (Google OAuth o email)
 - **Eliminación de reseñas (Pro):** Claude genera texto de reclamación según políticas de Google → usuario copia y pega en formulario oficial. Velacre no elimina, Google decide.
 - **Modo supervisado + auto-publicación:** supervisado es el modo por defecto (decidido). Auto-publicar requiere toggle activo en Settings + guardar. Implementar cuando GBP esté activo.
 - **Multi-ubicación:** soporte `negocio[]` por usuario, pricing por local adicional (~€20/mes).
-- **Tests:** ~5-7% cobertura (25 tests con mocks, 2026-04-13). Backend: ClaudeService (parseo JSON, filtro seguridad, tonos). Frontend: API client, ResponseCard, Tooltip. Priorizar ampliar a flujos de sync, checkout y ReviewController.
+- **Tests:** ~12-15% cobertura (53 tests, 2026-04-14). Backend: ClaudeService + NegocioController + UsuarioController. Frontend: API client + modules + hooks + componentes. Próximos: ReviewController, LemonController, flujos e2e.
 - **Rate limiting aplicativo:** no crítico sin atacantes, buena práctica para producción.
 
 ### Ideas futuras (post-tracción)

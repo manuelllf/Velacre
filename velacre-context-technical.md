@@ -13,8 +13,8 @@ Documento técnico exhaustivo del proyecto **Velacre (ReviewShield)**. Retrato d
 Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, genera respuestas con IA (Claude), permite publicarlas en Google Business Profile, y ofrece un módulo "Radar" de análisis comparativo con competidores para el plan Pro. Stack:
 
 - **Frontend**: Next.js 16 (App Router) + React 19 + Tailwind 4, TypeScript strict. PWA básica.
-- **Backend**: .NET 9 (ASP.NET Core) con DI, Postgrest SDK sobre Supabase, sin EF Core.
-- **Persistencia**: Supabase (Postgres + Auth). El backend usa **service key**.
+- **Backend**: .NET 10 (ASP.NET Core) con DI, Postgrest SDK sobre Supabase, sin EF Core. Capa de repositorios + FluentValidation.
+- **Persistencia**: Supabase (Postgres + Auth). RLS activado en 7 tablas (22 policies). El backend usa **service key** (bypassa RLS).
 - **Auth**: Supabase Auth (JWT ES256). Backend valida vía JWKS discovery.
 - **IA**: Anthropic Claude (`claude-sonnet-4-6`) vía `Anthropic.SDK` v5.
 - **Reseñas**: OAuth Google Business Profile (nativo) + Outscraper (fallback / competidores).
@@ -25,7 +25,7 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 **Estado del código**:
 - ~5.000 líneas backend, ~12.800 líneas frontend (incluidos locales i18n).
 - 44 endpoints API, 11 controllers, 5 servicios, 9 entidades de BD.
-- **~5-7% cobertura de tests** (25 tests con mocks, 2026-04-13): backend 9 tests xUnit (ClaudeService), frontend 16 tests Vitest (API client, ResponseCard, Tooltip).
+- **~12-15% cobertura de tests** (53 tests con mocks, 2026-04-14): backend 18 tests xUnit (ClaudeService + NegocioController + UsuarioController), frontend 35 tests Vitest (API client + modules, ResponseCard, Tooltip, useReviews hook).
 - ~~**Sin error boundary** global en frontend, **sin middleware global** de errores en backend.~~ **✅ Resuelto 2026-04-12**.
 - **Sin rate limiting** aplicativo, sin circuit breakers, sin monitoring (Sentry u otro).
 
@@ -33,7 +33,7 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 1. ~~Exposición de `ex.Message` al cliente en endpoints backend (500)~~ **✅ Resuelto 2026-04-12** — middleware global + `throw;` en los 7 sitios.
 2. ~~Log de bodies completos de APIs Google en `GoogleBusinessService`~~ **✅ Resuelto 2026-04-12** — logs saneados, solo contadores en éxito.
 3. Race condition en contadores manuales (`RespuestasManualesMes`). **Backlog** (99% imposible en uso real).
-4. `dashboard/page.tsx` es un god component de **1307 líneas**. **Backlog**.
+4. ~~`dashboard/page.tsx` es un god component de **1307 líneas**~~ **✅ Resuelto 2026-04-13** — 1324→555 líneas, 6 componentes extraídos.
 5. ~~Cascade failure posible: sin circuit breaker a Claude~~ **✅ Resuelto 2026-04-12** — Polly circuit breaker en HttpClient de Anthropic.
 6. Ausencia de idempotencia en webhook LemonSqueezy. **Revisado 2026-04-12**: confirmado que no hay duplicación técnica; los "duplicados" eran 4 emails distintos (LS welcome + LS order + Velacre welcome + Velacre confirmation). Resuelto por eliminación de los 3 emails redundantes de Velacre.
 7. `SendRetainedReviewAlertAsync()` definido pero **nunca invocado**. **Dejado a futuro por decisión**.
@@ -49,8 +49,8 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 | UI | Tailwind CSS | 4.x | Custom UI (sin shadcn, sin Radix) |
 | Animaciones | framer-motion | 12.38 | Usado en landing |
 | PDF | jspdf | 4.2.1 | Usado en panel salud |
-| Backend | ASP.NET Core | .NET 9 | Controllers + DI |
-| JWT | Microsoft.AspNetCore.Authentication.JwtBearer | 9.0 | JWKS discovery |
+| Backend | ASP.NET Core | .NET 10 | Controllers + DI + Repos + FluentValidation |
+| JWT | Microsoft.AspNetCore.Authentication.JwtBearer | 10.0 | JWKS discovery |
 | BD SDK | supabase-csharp | 0.16.2 | Postgrest, sin EF Core |
 | IA | Anthropic.SDK | 5.10.0 | Claude Sonnet 4.6 |
 | JSON | Newtonsoft.Json | 13.0.4 | |
@@ -113,11 +113,9 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 
 ### 2.3 Protección de rutas (frontend)
 
-**No hay `middleware.ts`** en `frontend/src/`. La protección es **puramente cliente**: cada página protegida hace `useEffect` + `supabase.auth.getSession()` y redirige si no hay sesión. Implicaciones:
+**`proxy.ts`** (Next.js 16, antes `middleware.ts`) protege rutas server-side con `@supabase/ssr`. Sesión en cookies HTTP (no localStorage). Rutas protegidas: `/dashboard`, `/settings`, `/inicio`, `/onboarding`, `/admin` — redirect instantáneo a `/auth/login` sin flashing. Usuarios ya logueados redirigidos de `/auth/*` a `/inicio`.
 
-- Flashing de contenido antes del redirect.
-- SEO irrelevante porque es una app autenticada, pero las páginas `/dashboard`, `/settings`, etc. responden 200 con HTML vacío a cualquier request (el JS hace el gating).
-- Sin riesgo de datos filtrados en el HTML inicial porque el fetch ocurre post-hidratación.
+~~**No hay `middleware.ts`** en `frontend/src/`. La protección es **puramente cliente**: cada página protegida hace `useEffect` + `supabase.auth.getSession()` y redirige si no hay sesión.~~ **✅ Resuelto 2026-04-14.**
 
 ---
 
@@ -535,21 +533,23 @@ Ver §8 para los diagramas secuenciales completos (generación de respuesta, syn
 - 1 solo `eslint-disable-next-line react-hooks/exhaustive-deps` en `dashboard/page.tsx:120` (dependency router).
 - ESLint config en `eslint.config.mjs`.
 
-### 4.10 Tests (2026-04-13)
+### 4.10 Tests (actualizado 2026-04-14)
 
-**Backend** (`backend.Tests/`): xUnit + Moq. 9 tests unitarios.
-- `Services/ClaudeServiceTests.cs` — parseo JSON de respuestas Claude, filtro seguridad (retención por intoxicación/discriminación), fallback texto raw, mapeo de 6 tonos.
-- Mock: `FakeHttpMessageHandler` que devuelve JSON simulado de la API Anthropic. Cero llamadas reales.
+**Backend** (`backend.Tests/`): xUnit + Moq. **18 tests unitarios.**
+- `Services/ClaudeServiceTests.cs` (9) — parseo JSON de respuestas Claude, filtro seguridad (retención por intoxicación/discriminación), fallback texto raw, mapeo de 6 tonos. Mock: `FakeHttpMessageHandler`.
+- `Controllers/NegocioControllerTests.cs` (5) — GetMyNegocio OK/404, CreateNegocio success, UpdateNegocio OK/404. Mock de `INegocioRepository` + `ClaimsPrincipal`.
+- `Controllers/UsuarioControllerTests.cs` (4) — GetMe OK/404, admin role detection, pro override effective plan. Mock de `IUsuarioRepository`.
 - Ejecutar: `dotnet test backend.Tests/`
 
-**Frontend** (`frontend/src/test/`): Vitest + @testing-library/react + jsdom. 16 tests.
-- `lib/api.test.ts` — ApiError, generateResponses (200/429/500/auth header), saveManualReview (200/429). Mock de `fetch` + `@/lib/supabase`.
-- `components/ResponseCard.test.tsx` — renderizado, copy to clipboard, estado "copiado". Mock de `useLanguage`.
-- `components/Tooltip.test.tsx` — renderizado, hover show/hide, focus.
-- Config: `vitest.config.ts`, setup en `src/test/setup.ts`.
+**Frontend** (`frontend/src/test/`): Vitest + @testing-library/react + jsdom. **35 tests.**
+- `lib/api.test.ts` (8) — ApiError, generateResponses (200/429/500/auth header), saveManualReview (200/429).
+- `lib/api-modules.test.ts` (14) — negocio (5: null 404, success, error 500, create, sync), usuario (3: get, create with token, error), radar (3: get, add, error), reviews (3: getAll, setEstado, getMetrics).
+- `components/ResponseCard.test.tsx` (4) — renderizado, clipboard, estado copiado.
+- `components/Tooltip.test.tsx` (4) — renderizado, hover show/hide, focus.
+- `hooks/useReviews.test.ts` (5) — useReviews fetch/error, useGenerateForReview, useSetReviewEstado, useSyncReviews.
 - Ejecutar: `cd frontend && npm test`
 
-**Cobertura estimada: ~5-7%** del código total. Cubre el servicio más crítico (IA) y componentes clave del frontend.
+**Cobertura estimada: ~12-15%.** Cubre IA, controllers principales, API modules, hooks, y componentes clave.
 
 ---
 
@@ -644,10 +644,10 @@ Sin herramienta de migraciones en el repo. Asumido: cambios de schema a mano ví
 | ~~`500` expone `ex.Message` al cliente~~ **✅ Resuelto 2026-04-12** | Middleware global + `throw;` en los 7 sitios | — |
 | CORS `AllowAnyMethod` + `AllowAnyHeader` + `AllowCredentials` | `Program.cs:76-78` | Permisivo. Origen sí está restringido, pero cualquier método/header pasa |
 | Sin rate limiting | Todo el backend | DoS trivial; enumeración admin |
-| Sin validación centralizada | Validación manual dispersa en cada endpoint | Fácil olvidar validaciones |
+| ~~Sin validación centralizada~~ **✅ Resuelto 2026-04-13** | FluentValidation auto-pipeline | — |
 | Admin por env var única | `ADMIN_USER_ID` | No escala a varios admins sin code change |
 | Cron secret con `==` | `CronController` | Timing attack teórico (bajo riesgo) |
-| Protección de rutas frontend solo client-side | Sin `middleware.ts` | Flashing, no defense-in-depth |
+| ~~Protección de rutas frontend solo client-side~~ **✅ Resuelto 2026-04-14** | `proxy.ts` con `@supabase/ssr` | — |
 | `User.FindFirst("sub")!.Value` | Todos los controllers | NPE si el claim falta (500 feo) |
 | CORS con credentials + allowAnyOrigin si `CORS_EXTRA_ORIGIN` mal configurado | `Program.cs:72-74` | Si alguien mete `*` en esa env var, se abre todo |
 | Sin Sentry / monitoring | Frontend y backend | Errores prod invisibles |
@@ -1398,6 +1398,40 @@ Rediseñado como botón flotante fijo `fixed bottom-5 left-5 z-50` (simétrico a
 - **Backend tests** (`backend.Tests/`): nuevo proyecto xUnit + Moq. `ClaudeServiceTests.cs` con 9 tests: parseo JSON válido, filtro seguridad (intoxicación, discriminación), fallback texto raw, mapeo de 6 tonos. `FakeHttpMessageHandler` simula API Anthropic sin llamadas reales.
 - **Frontend tests** (`frontend/src/test/`): Vitest + @testing-library/react + jsdom. 16 tests en 3 archivos: `api.test.ts` (ApiError, generateResponses, saveManualReview con mock de fetch + supabase), `ResponseCard.test.tsx` (renderizado, clipboard, estado copiado), `Tooltip.test.tsx` (hover, focus, hide). Config: `vitest.config.ts`, `src/test/setup.ts`.
 - **Cobertura estimada: ~5-7%** (~25 tests, cero llamadas a APIs reales).
+
+---
+
+### 2026-04-13/14 — Refactorización arquitectónica (rama `202604_refactor`)
+
+Refactorización completa en 6 grupos, 10 de 11 puntos ejecutados. Rama `202604_refactor`.
+
+**Grupo 1 (R1+R4) — Backend core:**
+- 7 interfaces + 7 repositorios en `backend/Interfaces/` y `backend/Repositories/`. Los 11 controllers y `GoogleBusinessService` migrados de `Supabase.Client` directo a repos por DI.
+- FluentValidation con 7 validators en `backend/Validators/`, auto-validation en pipeline MVC.
+
+**Grupo 3 (R5+R8) — Frontend core:**
+- `@tanstack/react-query` con `QueryClientProvider`. 5 hooks por dominio en `frontend/src/hooks/`.
+- `lib/api.ts` (759 líneas) → 8 módulos en `lib/api/` + barrel `index.ts`.
+
+**Grupo 4 (R6) — God components:**
+- `dashboard/page.tsx`: 1324→555 líneas. 6 componentes en `components/dashboard/`.
+- `LandingPage.tsx`: 744→227 líneas. 4 componentes en `components/landing/` + `shared.tsx`.
+- Cero cambios visuales.
+
+**Grupo 6 (R9+R11) — Independientes:**
+- .NET 9→10 (SDK 10.0.201, paquetes Microsoft.AspNetCore.* v10).
+- `@supabase/ssr` + `proxy.ts` (Next.js 16). Auth server-side con cookies HTTP. Rutas protegidas sin flashing.
+
+**Grupo 5 (R7) — Tests:**
+- 25→53 tests. Backend: +9 (NegocioController, UsuarioController). Frontend: +19 (api modules, useReviews hook).
+
+**Grupo 2 (R2) — Seguridad BD:**
+- RLS activado en 7 tablas, 22 policies por `auth.uid()` / negocio del usuario. SQL en `supabase/migrations/003_rls_policies.sql`.
+- Backend usa service_role (bypassa RLS). Es defense-in-depth.
+
+**Pospuestos:**
+- R3 (eliminar proxy CRUD) — depende de migrar a anon key, no urgente.
+- R10 (cola emails) — tolerable en MVP, implementar con volumen.
 
 ---
 
