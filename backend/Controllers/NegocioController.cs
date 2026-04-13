@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 using backend.Models.Entities;
 using backend.Models.Requests;
@@ -22,12 +23,12 @@ public class NegocioController : ControllerBase
         _adminUserId = Guid.Parse(Environment.GetEnvironmentVariable("ADMIN_USER_ID") ?? "00000000-0000-0000-0000-000000000000");
     }
 
-    private bool IsAdmin() => Guid.Parse(User.FindFirst("sub")!.Value) == _adminUserId;
+    private bool IsAdmin() => User.GetUserId() == _adminUserId;
 
     [HttpGet("me")]
     public async Task<IActionResult> GetMyNegocio()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogDebug("[NegocioController] GET /me — userId={UserId}", userId);
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
@@ -45,7 +46,7 @@ public class NegocioController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateNegocio([FromBody] CreateNegocioRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[NegocioController] POST / — userId={UserId}, nombre={Nombre}", userId, request.Nombre);
 
         var entity = new NegocioEntity
@@ -86,7 +87,7 @@ public class NegocioController : ControllerBase
     [HttpPut("me")]
     public async Task<IActionResult> UpdateNegocio([FromBody] UpdateNegocioRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[NegocioController] PUT /me — userId={UserId}", userId);
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);

@@ -37,6 +37,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Sync <html lang="..."> with current locale
+  useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
+
   function setLocale(lang: Lang) {
     setLocaleState(lang)
     try {

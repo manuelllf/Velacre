@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 
 namespace backend.Controllers;
@@ -25,7 +26,7 @@ public class HealthController : ControllerBase
     [HttpPost("analysis")]
     public async Task<IActionResult> GetAnalysis()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[HealthController] POST /analysis — userId={UserId}", userId);
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);

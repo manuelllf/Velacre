@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 using backend.Services;
 
@@ -52,7 +53,7 @@ public class LemonController : ControllerBase
         if (string.IsNullOrEmpty(variantId) || string.IsNullOrEmpty(storeId))
             return StatusCode(503, "Checkout not configured yet");
 
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return NotFound("Usuario no encontrado");
 
@@ -115,7 +116,7 @@ public class LemonController : ControllerBase
     [HttpPost("cancelar")]
     public async Task<IActionResult> Cancelar()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return NotFound();

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 using backend.Models.Entities;
 using System.Text.Json;
@@ -188,7 +189,7 @@ public class RadarController : ControllerBase
 
     private async Task<(NegocioEntity? Negocio, IActionResult? Error)> GetNegocioAndCheckPlanAsync()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return (null, Unauthorized());

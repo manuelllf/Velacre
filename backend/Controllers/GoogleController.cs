@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 
 namespace backend.Controllers;
@@ -23,7 +24,7 @@ public class GoogleController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAuthUrl([FromQuery] string negocioId, [FromQuery] string returnTo = "onboarding")
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         if (!Guid.TryParse(negocioId, out var negocioGuid))
             return BadRequest("negocioId inválido");
@@ -65,7 +66,7 @@ public class GoogleController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetStatus()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
@@ -85,7 +86,7 @@ public class GoogleController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetLocations()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
@@ -106,7 +107,7 @@ public class GoogleController : ControllerBase
     [Authorize]
     public async Task<IActionResult> FinalizeConnection([FromBody] FinalizeRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
@@ -125,7 +126,7 @@ public class GoogleController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Disconnect()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound("Negocio no encontrado");

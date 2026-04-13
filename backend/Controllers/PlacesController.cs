@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 using backend.Models.Entities;
 
@@ -39,7 +40,7 @@ public class PlacesController : ControllerBase
         if (string.IsNullOrWhiteSpace(q))
             return BadRequest("El parámetro 'q' es obligatorio.");
 
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[PlacesController] GET /search — userId={UserId}, q={Query}", userId, q);
 
         var results = await _placesService.SearchPlacesAsync(q);
@@ -49,7 +50,7 @@ public class PlacesController : ControllerBase
     [HttpPost("sync")]
     public async Task<IActionResult> SyncReviews()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[PlacesController] POST /sync — userId={UserId}", userId);
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);

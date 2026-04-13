@@ -41,7 +41,7 @@ public class UsuarioController : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return NotFound();
         var isAdmin = userId == _adminUserId || usuario.Rol == "admin";
@@ -73,7 +73,7 @@ public class UsuarioController : ControllerBase
     [HttpPut("me")]
     public async Task<IActionResult> UpdateMe([FromBody] CreateUsuarioRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return NotFound();
 
@@ -85,7 +85,7 @@ public class UsuarioController : ControllerBase
     [HttpDelete("me")]
     public async Task<IActionResult> DeleteMe()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
 
@@ -161,7 +161,7 @@ public class UsuarioController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateProfile([FromBody] CreateUsuarioRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         var email = User.FindFirst("email")?.Value;
         _logger.LogInformation("[UsuarioController] POST / — userId={UserId}, nombre={Nombre}", userId, request.Nombre);
 

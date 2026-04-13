@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 using backend.Models.Entities;
 using backend.Models.Requests;
@@ -41,7 +42,7 @@ public class ReviewController : ControllerBase
     [HttpPost("generate")]
     public async Task<IActionResult> GenerateResponse([FromBody] GenerateReviewRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[ReviewController] POST /generate — userId={UserId}", userId);
 
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
@@ -110,7 +111,7 @@ public class ReviewController : ControllerBase
     [HttpPost("save-manual")]
     public async Task<IActionResult> SaveManualReview([FromBody] SaveManualReviewRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[ReviewController] POST /save-manual — userId={UserId}, tono={Tono}", userId, request.TonoSeleccionado);
 
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
@@ -217,7 +218,7 @@ public class ReviewController : ControllerBase
     [HttpGet("pending")]
     public async Task<IActionResult> GetPendingReviews()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[ReviewController] GET /pending — userId={UserId}", userId);
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
@@ -257,7 +258,7 @@ public class ReviewController : ControllerBase
     [HttpPost("{id}/generate")]
     public async Task<IActionResult> GenerateForReview(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[ReviewController] POST /{ReviewId}/generate — userId={UserId}", id, userId);
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
@@ -485,7 +486,7 @@ public class ReviewController : ControllerBase
     [HttpGet("all")]
     public async Task<IActionResult> GetAllReviews()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
@@ -527,7 +528,7 @@ public class ReviewController : ControllerBase
     [HttpPost("{id}/translate")]
     public async Task<IActionResult> TranslateReview(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
@@ -559,7 +560,7 @@ public class ReviewController : ControllerBase
     [HttpPost("{id}/translate-response")]
     public async Task<IActionResult> TranslateResponse(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
@@ -601,7 +602,7 @@ public class ReviewController : ControllerBase
     [HttpGet("metrics")]
     public async Task<IActionResult> GetMetrics()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
@@ -651,7 +652,7 @@ public class ReviewController : ControllerBase
     [HttpGet("analysis")]
     public async Task<IActionResult> GetAnalysis()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
@@ -675,7 +676,7 @@ public class ReviewController : ControllerBase
     [HttpPost("analysis")]
     public async Task<IActionResult> GenerateAnalysis()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
@@ -748,7 +749,7 @@ public class ReviewController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.RespuestaEditada))
             return BadRequest("La respuesta no puede estar vacía.");
 
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         _logger.LogInformation("[ReviewController] POST /{ReviewId}/publish-google — userId={UserId}", id, userId);
 
         // Verificar plan Core/Pro
@@ -795,7 +796,7 @@ public class ReviewController : ControllerBase
         if (request.Estado != "pendiente" && request.Estado != "respondida" && request.Estado != "ignorada")
             return BadRequest("Estado inválido");
 
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
 

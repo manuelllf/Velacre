@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 using backend.Services;
 
@@ -28,7 +29,7 @@ public class NotifyController : ControllerBase
             (request.Plan != "core" && request.Plan != "pro"))
             return BadRequest("Plan inválido.");
 
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
 
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
 

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Infrastructure;
 using backend.Interfaces;
 
 namespace backend.Controllers;
@@ -34,7 +35,7 @@ public class AdminController : ControllerBase
 
     private async Task<bool> IsAdminAsync()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var userId = User.GetUserId();
         if (userId == _adminUserId) return true;
         var usuario = await _usuarioRepo.GetByIdAsync(userId);
         return usuario?.Rol == "admin";
@@ -264,30 +265,12 @@ public class AdminController : ControllerBase
         }));
 
         var nombreDisplay = string.IsNullOrWhiteSpace(request.Nombre) ? "el negocio" : request.Nombre;
-        var systemPrompt =
-            "Eres un asesor de confianza que ayuda a dueños de bares, restaurantes, hoteles y clínicas pequeñas a entender qué dicen sus clientes en Google. " +
-            "IMPORTANTE — Lenguaje: tu audiencia son dueños de negocio de PYMEs gallegas que NO son técnicos. NO uses NUNCA jerga como 'SEO', 'CTR', 'ranking', 'visibilidad orgánica', 'posicionamiento web', 'keywords', 'engagement', 'conversion', 'call-to-action', 'KPI', 'sentiment', 'review management'. " +
-            "En lugar de eso, habla como hablaría un amigo del dueño: 'salir antes cuando alguien busca en Google', 'que más gente te vea y entre a comer', 'aparecer arriba del todo cuando buscan restaurantes en tu zona', 'que Google recomiende tu negocio', 'la gente que te busca en el móvil', 'la primera impresión que dan las estrellas', 'lo que leen los clientes antes de reservar'. " +
-            "Frases cortas. Palabras normales. Como le hablarías a alguien en la barra del bar. Puedes usar expresiones gallegas naturales si encajan pero sin forzar. " +
-            "Analiza las reseñas proporcionadas y devuelve ÚNICAMENTE un JSON válido (sin markdown, sin prefijo) con esta estructura EXACTA:\n" +
-            "{\n" +
-            "  \"fortalezas\": [\"breve fortaleza 1 en lenguaje humano (max 90 chars)\", \"breve fortaleza 2\"],\n" +
-            "  \"debilidades\": [\"breve debilidad 1 en lenguaje humano (max 90 chars)\", \"breve debilidad 2\"],\n" +
-            "  \"accion\": \"una acción concreta y accionable para esta semana, en lenguaje de dueño de bar (max 140 chars). Ejemplo bueno: 'Responded a las 5 últimas reseñas negativas hoy mismo — cada respuesta que ponéis hace que Google os enseñe a más gente'. Ejemplo malo: 'Optimizar CTR mediante respuestas proactivas para mejorar SEO local'.\",\n" +
-            "  \"resumen\": \"3 frases resumen del estado actual, en lenguaje humano sin tecnicismos (max 300 chars). Habla de estrellas, de qué dicen los clientes, y de qué está pasando con las respuestas — nada de 'reputación online' ni 'presencia digital'.\",\n" +
-            "  \"emailPitch\": \"2 párrafos cortos de mensaje dirigido al dueño, como si fuera un vecino que ha notado algo y quiere echarle una mano. Menciona 1 hallazgo concreto de las reseñas. Propón mandarle el informe PDF gratis sin compromiso. Firma: Manuel, Velacre.com. NO menciones precios. NO uses jerga. NO seas comercial estándar — sé cercano y honesto.\"\n" +
-            "}\n" +
-            "Reglas duras: (1) No inventes datos que no estén en las reseñas. (2) No uses comillas dobles dentro de los valores de los strings JSON, usa apóstrofes si necesitas. (3) Si encuentras la palabra 'SEO' o 'ranking' o 'CTR' en tu borrador, reescríbelo en lenguaje humano antes de devolverlo.";
-
-        var userPrompt =
-            $"Negocio: {nombreDisplay}\n" +
-            $"Stats: rating medio {ratingAvg:F2}/5, {pctRespondidas}% respondidas, {ult30d} reseñas últimos 30 días, {ult90d} reseñas últimos 90 días.\n\n" +
-            $"Últimas {total} reseñas (más recientes primero):\n{resenasText}";
 
         string analisisRaw;
         try
         {
-            analisisRaw = await _aiService.GetClaudeMessageAsync(userPrompt, systemPrompt);
+            analisisRaw = await _aiService.GenerateMiniRadarAnalysisAsync(
+                nombreDisplay, resenasText, ratingAvg, pctRespondidas, ult30d, ult90d);
         }
         catch (Exception ex)
         {

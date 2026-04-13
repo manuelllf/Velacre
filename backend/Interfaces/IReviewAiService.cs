@@ -31,4 +31,11 @@ public interface IReviewAiService
         string miNegocioNombre,
         List<string> misResenas,
         List<(string Nombre, List<string> Resenas)> competidores);
+
+    /// <summary>
+    /// Genera un análisis rápido para el mini-radar (admin/prospección).
+    /// Devuelve JSON con fortalezas, debilidades, accion, resumen, emailPitch.
+    /// </summary>
+    Task<string> GenerateMiniRadarAnalysisAsync(string nombreNegocio, string resenasText,
+        double ratingAvg, int pctRespondidas, int ult30d, int ult90d);
 }
