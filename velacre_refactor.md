@@ -6,17 +6,27 @@
 
 ---
 
-## Puntuación actual (post-refactor)
+## Resumen brutal — Antes vs Después
 
-| Eje | Antes | Ahora | Notas |
-|-----|-------|-------|-------|
-| Testeabilidad | 3/10 | 7/10 | 53 tests, controllers mockeables via repos |
-| Seguridad BD | 2/10 | 7/10 | RLS en 7 tablas, 22 policies, defense-in-depth |
-| Mantenibilidad backend | 4/10 | 8/10 | Repos + FluentValidation + .NET 10 |
-| Mantenibilidad frontend | 4/10 | 8/10 | React Query, api modular, componentes <300 líneas |
-| Protección de rutas | 3/10 | 8/10 | proxy.ts SSR con @supabase/ssr, sin flashing |
-| Validación de input | 3/10 | 8/10 | FluentValidation auto-pipeline |
-| **Media** | **3.2/10** | **7.7/10** | |
+| Aspecto | Antes | Ahora | Comentario |
+|---------|-------|-------|------------|
+| Elección de stack | 7/10 | 7/10 | Pragmático para MVP, pero Next.js sobra. Sin cambio (no se migra stack). |
+| Arquitectura backend | 5/10 | 8/10 | Repos + FluentValidation + .NET 10. Controllers limpios, testeables, DI completa. |
+| Arquitectura frontend | 5/10 | 8/10 | React Query (5 hooks), api modular (8 módulos), componentes <300 líneas. |
+| Auth/seguridad | 7/10 | 9/10 | RLS en 7 tablas (22 policies), proxy.ts SSR sin flashing, cookies httpOnly. |
+| Deploy/infra | 8/10 | 8/10 | Railway+Vercel+Supabase sigue limpio y barato. Dockerfile actualizado a .NET 10. |
+| Coste operativo | 9/10 | 9/10 | Sin cambio. Muy bajo para lo que hace. |
+| Mantenibilidad a largo plazo | 4/10 | 8/10 | 53 tests, god components rotos, validación formal, repos centralizados. |
+| **Media** | **6.4/10** | **8.1/10** | |
+
+### Detalle de lo que subió cada nota
+
+| Aspecto | De → A | Qué se hizo |
+|---------|--------|-------------|
+| Arquitectura backend | 5→8 | R1 (7 repos), R4 (FluentValidation), R11 (.NET 10) |
+| Arquitectura frontend | 5→8 | R5 (React Query), R8 (api modular), R6 (god components rotos) |
+| Auth/seguridad | 7→9 | R2 (RLS 22 policies), R9 (proxy.ts SSR + @supabase/ssr) |
+| Mantenibilidad largo plazo | 4→8 | R7 (25→53 tests), R6 (dashboard 1324→555, landing 744→227), R1+R4 (backend limpio) |
 
 ---
 
