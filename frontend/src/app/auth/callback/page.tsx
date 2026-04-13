@@ -15,17 +15,23 @@ export default function AuthCallback() {
   useEffect(() => {
     async function handleCallback() {
       try {
-        // Intercambiar el code de OAuth (flujo PKCE) por una sesión
-        const code = new URLSearchParams(window.location.search).get('code')
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-          if (exchangeError) throw exchangeError
-        }
-
+        // Con @supabase/ssr (createBrowserClient), el PKCE code se intercambia
+        // automáticamente al detectar ?code= en la URL (detectSessionInUrl: true).
+        // Solo necesitamos esperar a que la sesión esté lista.
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
-          router.replace('/auth/login')
-          return
+          // Si no hay sesión, puede que el auto-exchange aún no terminó.
+          // Intentamos exchangeCodeForSession como fallback.
+          const code = new URLSearchParams(window.location.search).get('code')
+          if (code) {
+            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+            if (exchangeError) throw exchangeError
+          }
+          const { data: { session: retrySession } } = await supabase.auth.getSession()
+          if (!retrySession) {
+            router.replace('/auth/login')
+            return
+          }
         }
 
         // Intentar obtener perfil existente
@@ -35,12 +41,13 @@ export default function AuthCallback() {
           else router.replace('/inicio')
         } catch {
           // Usuario nuevo — crear perfil con nombre de Google si está disponible
+          const { data: { session: s } } = await supabase.auth.getSession()
           const fullName =
-            session.user.user_metadata?.full_name ??
-            session.user.user_metadata?.name ??
+            s?.user.user_metadata?.full_name ??
+            s?.user.user_metadata?.name ??
             ''
           try {
-            await createUsuario({ nombre: fullName }, session.access_token)
+            await createUsuario({ nombre: fullName }, s?.access_token)
           } catch {
             // Si ya existe (carrera) ignoramos el error
           }
