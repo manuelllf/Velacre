@@ -14,9 +14,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - run: dotnet restore backend/backend.csproj
-      - run: dotnet build backend/ --no-restore
-      - run: dotnet test backend.Tests/ --no-build --verbosity normal
+      - run: dotnet build backend/
+      - run: dotnet test backend.Tests/ --verbosity normal
 
   frontend:
     runs-on: ubuntu-latest
