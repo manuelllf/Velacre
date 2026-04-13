@@ -1443,6 +1443,11 @@ Refactorización completa en 6 grupos, 10 de 11 puntos ejecutados. Rama `202604_
 - **`User.GetUserId()` extension**: `Infrastructure/ClaimsPrincipalExtensions.cs`. Reemplaza 33 ocurrencias de `Guid.Parse(User.FindFirst("sub")!.Value)` en 10 controllers. Error claro (`InvalidOperationException`) si falta el claim.
 - **Mini-radar prompt → ClaudeService**: system prompt movido de `AdminController` a `ClaudeService.GenerateMiniRadarAnalysisAsync()`. Controller reducido ~50 líneas.
 
+### 2026-04-14 — Fix auth callback + @supabase/ssr
+
+- **Bug**: `createBrowserClient` (`@supabase/ssr`) tiene `detectSessionInUrl: true` por defecto — consume automáticamente el code PKCE del OAuth callback. El `useEffect` del callback intentaba `exchangeCodeForSession()` después, pero el code ya estaba consumido → error "Error al iniciar sesión" aunque la sesión sí existía.
+- **Fix**: `auth/callback/page.tsx` ahora primero comprueba si ya hay sesión (auto-exchange), y solo usa `exchangeCodeForSession` como fallback. No se detectó en tests porque el flujo OAuth real requiere Google (no mockeable en unit tests).
+
 ---
 
 *Fin del documento. Actualizar cuando se añadan/retiren servicios, cambie el schema de BD o se añada monitoring.*
