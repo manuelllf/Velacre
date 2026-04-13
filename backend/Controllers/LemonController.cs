@@ -3,8 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using backend.Infrastructure;
-using backend.Models.Entities;
+using backend.Interfaces;
 using backend.Services;
 
 namespace backend.Controllers;
@@ -13,26 +12,22 @@ namespace backend.Controllers;
 [Route("api/lemonsqueezy")]
 public class LemonController : ControllerBase
 {
-    private readonly Supabase.Client _supabase;
+    private readonly IUsuarioRepository _usuarioRepo;
     private readonly ILogger<LemonController> _logger;
     private readonly IHttpClientFactory _httpFactory;
     private readonly EmailService _email;
 
     public LemonController(
-        Supabase.Client supabase,
+        IUsuarioRepository usuarioRepo,
         ILogger<LemonController> logger,
         IHttpClientFactory httpFactory,
         EmailService email)
     {
-        _supabase    = supabase;
+        _usuarioRepo = usuarioRepo;
         _logger      = logger;
         _httpFactory = httpFactory;
         _email       = email;
     }
-
-    // ─── GET /api/lemon/checkout ─────────────────────────────────────────────
-    // Creates a Lemon Squeezy checkout session and returns the URL.
-    // Called from the settings page when the user clicks "Upgrade to Pro".
 
     [HttpGet("checkout")]
     [Authorize]
@@ -58,12 +53,9 @@ public class LemonController : ControllerBase
             return StatusCode(503, "Checkout not configured yet");
 
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
-        var userResult = await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == userId).Limit(1).Get();
-        var usuario = userResult.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return NotFound("Usuario no encontrado");
 
-        // Build the JSON:API payload for Lemon Squeezy
         var checkoutData = new Dictionary<string, object>
         {
             ["custom"] = new Dictionary<string, string> { { "user_id", userId.ToString() } },
@@ -120,17 +112,12 @@ public class LemonController : ControllerBase
         return Ok(new { url });
     }
 
-    // ─── POST /api/lemonsqueezy/cancelar ────────────────────────────────────────
-    // Cancels the active LS subscription for the authenticated user.
-
     [HttpPost("cancelar")]
     public async Task<IActionResult> Cancelar()
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
 
-        var result  = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
-        var usuario = result.Models.FirstOrDefault();
-
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return NotFound();
         _logger.LogInformation("[Cancelar] userId={UserId} plan={Plan} lsSubId={SubId}", userId, usuario.Plan, usuario.LsSubscriptionId ?? "NULL");
         if (string.IsNullOrEmpty(usuario.LsSubscriptionId))
@@ -152,29 +139,19 @@ public class LemonController : ControllerBase
             return StatusCode(502, new { error = "Error al cancelar en Lemon Squeezy" });
         }
 
-        // Extract ends_at from response so we can show the user when access expires
         DateTimeOffset? endsAt = null;
         try
         {
             using var doc = JsonDocument.Parse(body);
             endsAt = ParseDate(doc.RootElement.GetProperty("data").GetProperty("attributes"), "ends_at");
         }
-        catch { /* non-critical */ }
+        catch { }
 
-        // Mark as cancelled locally — webhook will confirm later
-        await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == userId)
-            .Set(u => u.LsStatus, "cancelled")
-            .Set(u => u.LsEndsAt, endsAt)
-            .Update();
+        await _usuarioRepo.UpdateLsCancelAsync(userId, usuario.Plan, "cancelled", endsAt);
 
         _logger.LogInformation("[Cancelar] Sub {SubId} cancelada para userId={UserId}, ends={Ends}", usuario.LsSubscriptionId, userId, endsAt);
         return Ok(new { endsAt });
     }
-
-    // ─── POST /api/lemon/webhook ─────────────────────────────────────────────
-    // Receives Lemon Squeezy subscription events and updates usuario.plan.
-    // No JWT auth — verified via HMAC-SHA256 signature on raw body.
 
     [HttpPost("webhook")]
     [AllowAnonymous]
@@ -182,12 +159,10 @@ public class LemonController : ControllerBase
     {
         var secret = Environment.GetEnvironmentVariable("LEMONSQUEEZY_WEBHOOK_SECRET") ?? "";
 
-        // Read raw body (EnableBuffering is registered in Program.cs)
         Request.Body.Seek(0, SeekOrigin.Begin);
         using var sr      = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true);
         var       rawBody = await sr.ReadToEndAsync();
 
-        // Verify signature
         if (!Request.Headers.TryGetValue("X-Signature", out var sigHeader) ||
             string.IsNullOrEmpty(sigHeader))
             return Unauthorized("Missing X-Signature");
@@ -210,7 +185,6 @@ public class LemonController : ControllerBase
 
         _logger.LogInformation("Lemon webhook event: {Event}", eventName);
 
-        // Extract our user_id from custom_data
         string? userId = null;
         if (root.TryGetProperty("meta", out var meta) &&
             meta.TryGetProperty("custom_data", out var cd) &&
@@ -222,7 +196,7 @@ public class LemonController : ControllerBase
         if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
         {
             _logger.LogWarning("Lemon webhook {Event}: no valid user_id in custom_data", eventName);
-            return Ok(); // Return 200 so LS doesn't retry forever
+            return Ok();
         }
 
         var dataEl = root.GetProperty("data");
@@ -234,12 +208,6 @@ public class LemonController : ControllerBase
         var renewsAt       = ParseDate(attrs, "renews_at");
         var endsAt         = ParseDate(attrs, "ends_at");
 
-        // Fetch user for email notifications (best-effort)
-        var userRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userGuid).Limit(1).Get();
-        var usuario = userRes.Models.FirstOrDefault();
-        var userEmail  = usuario?.Email  ?? "";
-        var userNombre = usuario?.Nombre ?? "";
-
         switch (eventName)
         {
             case "subscription_created":
@@ -247,14 +215,10 @@ public class LemonController : ControllerBase
             {
                 var plan = DetectPlan(dataEl);
                 await SetPlan(userGuid, plan, portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
-                // Email de confirmación de compra lo envía Lemon Squeezy (incluye factura),
-                // no duplicamos desde Velacre para no saturar al cliente.
                 break;
             }
 
             case "subscription_updated":
-                // "cancelled" = usuario canceló pero sigue en período pagado → mantener plan
-                // Solo bajar a basic si está paused o en otro estado no válido
                 if (lsStatus is "active" or "past_due" or "cancelled")
                     await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
                 else
@@ -262,14 +226,11 @@ public class LemonController : ControllerBase
                 break;
 
             case "subscription_cancelled":
-                // Keep access until period ends (endsAt), plan downgrade via subscription_expired.
-                // Email de cancelación lo envía Lemon Squeezy, no duplicamos.
                 await SetPlan(userGuid, DetectPlan(dataEl), portalUrl, subscriptionId, lsStatus, renewsAt, endsAt);
                 break;
 
             case "subscription_expired":
             case "subscription_paused":
-                // Email de expiración lo envía Lemon Squeezy, no duplicamos.
                 await SetPlan(userGuid, "basic", null, null, lsStatus, null, null);
                 break;
 
@@ -281,31 +242,20 @@ public class LemonController : ControllerBase
         return Ok();
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
-
     private async Task SetPlan(Guid userId, string plan, string? portalUrl, string? subscriptionId,
         string? lsStatus, DateTimeOffset? renewsAt, DateTimeOffset? endsAt)
     {
-        var result  = await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == userId).Limit(1).Get();
-        if (result.Models.FirstOrDefault() == null)
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
+        if (usuario == null)
         {
             _logger.LogWarning("SetPlan: user {UserId} not found", userId);
             return;
         }
 
-        var query = _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == userId)
-            .Set(u => u.Plan, plan);
+        await _usuarioRepo.UpdateLsSubscriptionAsync(userId, plan, portalUrl,
+            plan == "basic" && subscriptionId == null ? null : subscriptionId,
+            lsStatus, renewsAt, endsAt);
 
-        if (portalUrl != null)      query = query.Set(u => u.LsCustomerPortal, portalUrl);
-        if (subscriptionId != null) query = query.Set(u => u.LsSubscriptionId, subscriptionId);
-        else if (plan == "basic")   query = query.Set(u => u.LsSubscriptionId, (string?)null);
-        if (lsStatus != null)       query = query.Set(u => u.LsStatus, lsStatus);
-        query = query.Set(u => u.LsRenewsAt, renewsAt);
-        query = query.Set(u => u.LsEndsAt,   endsAt);
-
-        await query.Update();
         _logger.LogInformation("SetPlan: {UserId} → {Plan} / {Status} renews={Renews} ends={Ends}", userId, plan, lsStatus, renewsAt, endsAt);
     }
 
@@ -316,7 +266,7 @@ public class LemonController : ControllerBase
             if (attrs.TryGetProperty(key, out var el) && el.ValueKind != JsonValueKind.Null)
                 if (DateTimeOffset.TryParse(el.GetString(), out var dt)) return dt;
         }
-        catch { /* ignore */ }
+        catch { }
         return null;
     }
 
@@ -331,7 +281,7 @@ public class LemonController : ControllerBase
                 return portal.GetString();
             }
         }
-        catch { /* ignore */ }
+        catch { }
         return null;
     }
 

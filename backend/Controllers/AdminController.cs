@@ -2,7 +2,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Interfaces;
-using backend.Models.Entities;
 
 namespace backend.Controllers;
 
@@ -11,19 +10,22 @@ namespace backend.Controllers;
 [Authorize]
 public class AdminController : ControllerBase
 {
-    private readonly Supabase.Client _supabase;
+    private readonly IUsuarioRepository _usuarioRepo;
+    private readonly INegocioRepository _negocioRepo;
     private readonly ILogger<AdminController> _logger;
     private readonly IOutscraperService _outscraper;
     private readonly IReviewAiService _aiService;
     private readonly Guid _adminUserId;
 
     public AdminController(
-        Supabase.Client supabase,
+        IUsuarioRepository usuarioRepo,
+        INegocioRepository negocioRepo,
         ILogger<AdminController> logger,
         IOutscraperService outscraper,
         IReviewAiService aiService)
     {
-        _supabase = supabase;
+        _usuarioRepo = usuarioRepo;
+        _negocioRepo = negocioRepo;
         _logger = logger;
         _outscraper = outscraper;
         _aiService = aiService;
@@ -34,28 +36,24 @@ public class AdminController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         if (userId == _adminUserId) return true;
-        var r = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
-        return r.Models.FirstOrDefault()?.Rol == "admin";
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
+        return usuario?.Rol == "admin";
     }
-
-    // ─── Usuarios ────────────────────────────────────────────────────────────
 
     [HttpGet("usuarios")]
     public async Task<IActionResult> GetUsuarios()
     {
         if (!await IsAdminAsync()) return Forbid();
 
-        var usuariosResult = await _supabase.From<UsuarioEntity>().Get();
-        var negociosResult = await _supabase.From<NegocioEntity>().Get();
-
-        var negocios = negociosResult.Models
+        var usuarios = await _usuarioRepo.GetAllAsync();
+        var negocios = (await _negocioRepo.GetAllAsync())
             .Where(n => n.IdUsuario.HasValue)
             .GroupBy(n => n.IdUsuario!.Value)
             .ToDictionary(g => g.Key, g => g.First());
 
         var now = DateTimeOffset.UtcNow;
 
-        var data = usuariosResult.Models
+        var data = usuarios
             .OrderBy(u => u.CreadoFecha)
             .Select(u =>
             {
@@ -91,8 +89,6 @@ public class AdminController : ControllerBase
         return Ok(data);
     }
 
-    // ─── Cambiar estado ───────────────────────────────────────────────────────
-
     [HttpPost("usuarios/{id}/estado")]
     public async Task<IActionResult> CambiarEstado(Guid id, [FromBody] CambiarEstadoRequest request)
     {
@@ -100,8 +96,7 @@ public class AdminController : ControllerBase
         if (request.Estado != "activo" && request.Estado != "baneado" && request.Estado != "prueba")
             return BadRequest("Estado inválido. Valores: activo, baneado, prueba");
 
-        var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
-        var usuario = result.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(id);
         if (usuario == null) return NotFound();
 
         var now = DateTimeOffset.UtcNow;
@@ -111,60 +106,39 @@ public class AdminController : ControllerBase
         var pruebaHasta = request.Estado == "prueba"
             ? now.AddDays(request.DiasPrueba ?? 14) : usuario.PruebaHasta;
 
-        await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == id)
-            .Set(u => u.Estado, request.Estado)
-            .Set(u => u.Activo, activo)
-            .Set(u => u.ActivoDesde, activoDesde)
-            .Set(u => u.PruebaHasta, pruebaHasta)
-            .Update();
+        await _usuarioRepo.UpdateEstadoAsync(id, request.Estado, activo, activoDesde, pruebaHasta);
         _logger.LogInformation("[AdminController] Usuario {UserId} estado → {Estado}", id, request.Estado);
         return Ok(new { estado = request.Estado, pruebaHasta });
     }
-
-    // ─── Pro Override ─────────────────────────────────────────────────────────
 
     [HttpPost("usuarios/{id}/pro-override")]
     public async Task<IActionResult> ProOverride(Guid id, [FromBody] ProOverrideRequest request)
     {
         if (!await IsAdminAsync()) return Forbid();
 
-        var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
-        var usuario = result.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(id);
         if (usuario == null) return NotFound();
 
         var proOverrideHasta = request.Activo && request.DiasExpira.HasValue
             ? DateTimeOffset.UtcNow.AddDays(request.DiasExpira.Value)
             : (DateTimeOffset?)null;
 
-        await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == id)
-            .Set(u => u.ProOverride, request.Activo)
-            .Set(u => u.ProOverrideHasta, proOverrideHasta)
-            .Update();
+        await _usuarioRepo.UpdateProOverrideAsync(id, request.Activo, proOverrideHasta);
         _logger.LogInformation("[AdminController] Usuario {UserId} ProOverride={Override}", id, request.Activo);
         return Ok(new { proOverride = request.Activo, proOverrideHasta });
     }
-
-    // ─── Notas admin ──────────────────────────────────────────────────────────
 
     [HttpPut("usuarios/{id}/notas")]
     public async Task<IActionResult> ActualizarNotas(Guid id, [FromBody] NotasAdminRequest request)
     {
         if (!await IsAdminAsync()) return Forbid();
 
-        var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
-        var usuario = result.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(id);
         if (usuario == null) return NotFound();
 
-        await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == id)
-            .Set(u => u.NotasAdmin, request.Notas)
-            .Update();
+        await _usuarioRepo.UpdateNotasAsync(id, request.Notas);
         return Ok();
     }
-
-    // ─── Plan ─────────────────────────────────────────────────────────────────
 
     [HttpPost("usuarios/{id}/plan")]
     public async Task<IActionResult> CambiarPlan(Guid id, [FromBody] CambiarPlanRequest request)
@@ -173,18 +147,13 @@ public class AdminController : ControllerBase
         if (request.Plan != "basic" && request.Plan != "core" && request.Plan != "pro")
             return BadRequest("Plan inválido. Valores: basic, core, pro");
 
-        var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
-        if (result.Models.FirstOrDefault() == null) return NotFound();
+        var usuario = await _usuarioRepo.GetByIdAsync(id);
+        if (usuario == null) return NotFound();
 
-        await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == id)
-            .Set(u => u.Plan, request.Plan)
-            .Update();
+        await _usuarioRepo.UpdatePlanAsync(id, request.Plan);
         _logger.LogInformation("[AdminController] Usuario {UserId} plan → {Plan}", id, request.Plan);
         return Ok();
     }
-
-    // ─── Place ID ─────────────────────────────────────────────────────────────
 
     [HttpPut("negocios/{negocioId}/place")]
     public async Task<IActionResult> SetPlaceId(Guid negocioId, [FromBody] SetPlaceIdRequest request)
@@ -194,14 +163,13 @@ public class AdminController : ControllerBase
 
         try
         {
-            var result = await _supabase.From<NegocioEntity>().Where(n => n.Id == negocioId).Limit(1).Get();
-            var negocio = result.Models.FirstOrDefault();
+            var negocio = await _negocioRepo.GetByIdAsync(negocioId);
             if (negocio == null) return NotFound($"Negocio {negocioId} no encontrado");
 
             var old = negocio.PlaceId;
             negocio.PlaceId = request.PlaceId;
             negocio.ActualizadoFecha = DateTimeOffset.UtcNow;
-            await _supabase.From<NegocioEntity>().Update(negocio);
+            await _negocioRepo.UpdateAsync(negocio);
 
             _logger.LogInformation("[AdminController] SetPlaceId: negocio {NegocioId} {Old} → {New}", negocioId, old, request.PlaceId);
             return Ok(new { negocioId, old, placeId = request.PlaceId });
@@ -212,8 +180,6 @@ public class AdminController : ControllerBase
             throw;
         }
     }
-
-    // ─── Legacy compat ────────────────────────────────────────────────────────
 
     [HttpPost("usuarios/{id}/activar")]
     public async Task<IActionResult> Activar(Guid id)
@@ -229,8 +195,6 @@ public class AdminController : ControllerBase
         return await CambiarEstado(id, new CambiarEstadoRequest("baneado", null));
     }
 
-    // ─── Asignar Rol ──────────────────────────────────────────────────────────
-
     [HttpPut("usuarios/{id}/rol")]
     public async Task<IActionResult> AsignarRol(Guid id, [FromBody] AsignarRolRequest request)
     {
@@ -238,23 +202,13 @@ public class AdminController : ControllerBase
         if (request.Rol != "cliente" && request.Rol != "admin")
             return BadRequest("Rol inválido. Valores: cliente, admin");
 
-        var result = await _supabase.From<UsuarioEntity>().Where(u => u.Id == id).Limit(1).Get();
-        var usuario = result.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(id);
         if (usuario == null) return NotFound();
 
-        await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == id)
-            .Set(u => u.Rol, request.Rol)
-            .Update();
+        await _usuarioRepo.UpdateRolAsync(id, request.Rol);
         _logger.LogInformation("[AdminController] Usuario {UserId} rol → {Rol}", id, request.Rol);
         return Ok(new { rol = request.Rol });
     }
-
-    // ─── Mini Radar (prospección) ─────────────────────────────────────────────
-    // Genera un análisis rápido de reseñas de un Place ID arbitrario (sin tenerlo
-    // registrado como negocio). Pensado para prospección B2B: sacas las últimas
-    // 30 reseñas + análisis IA + email pitch pre-redactado, el frontend genera
-    // un PDF descargable. No persiste nada, no cachea.
 
     [HttpPost("mini-radar")]
     public async Task<IActionResult> MiniRadar([FromBody] MiniRadarRequest request)
@@ -266,12 +220,10 @@ public class AdminController : ControllerBase
         _logger.LogInformation("[MiniRadar] Analizando placeId={PlaceId} nombre={Nombre}",
             request.PlaceId, request.Nombre ?? "(sin nombre)");
 
-        // 1. Outscraper: últimas 30 reseñas del place
         var resenas = await _outscraper.GetCompetitorReviewsAsync(request.PlaceId, 30);
         if (resenas.Count == 0)
             return NotFound(new { error = "no_reviews_found", mensaje = "No se pudieron obtener reseñas para este place_id" });
 
-        // 2. Stats locales
         var total = resenas.Count;
         var ratingAvg = resenas.Average(r => r.StarRating);
         var respondidas = resenas.Count(r => !string.IsNullOrEmpty(r.OwnerAnswer));
@@ -290,7 +242,6 @@ public class AdminController : ControllerBase
         var ult30d = resenas.Count(r => r.PublishedAt >= hoy.AddDays(-30));
         var ult90d = resenas.Count(r => r.PublishedAt >= hoy.AddDays(-90));
 
-        // 3. Las 3 peores reseñas sin responder (gancho emocional del pitch)
         var peoresSinResponder = resenas
             .Where(r => string.IsNullOrEmpty(r.OwnerAnswer) && r.StarRating <= 3 && !string.IsNullOrEmpty(r.Text))
             .OrderBy(r => r.StarRating)
@@ -305,7 +256,6 @@ public class AdminController : ControllerBase
             })
             .ToList();
 
-        // 4. Análisis con Claude
         var resenasText = string.Join("\n", resenas.Take(30).Select(r =>
         {
             var textCorto = r.Text.Length > 200 ? r.Text[..200] : r.Text;
@@ -345,7 +295,6 @@ public class AdminController : ControllerBase
             return StatusCode(500, new { error = "ai_error", mensaje = "Error al analizar con IA. Inténtalo de nuevo." });
         }
 
-        // Extraer JSON del texto (Claude a veces añade wrappers aunque se lo pidas)
         var jsonStart = analisisRaw.IndexOf('{');
         var jsonEnd = analisisRaw.LastIndexOf('}');
         var analisisLimpio = jsonStart >= 0 && jsonEnd > jsonStart
@@ -386,8 +335,6 @@ public class AdminController : ControllerBase
         });
     }
 }
-
-// ─── Request records ─────────────────────────────────────────────────────────
 
 public record CambiarEstadoRequest(string Estado, int? DiasPrueba);
 public record ProOverrideRequest(bool Activo, int? DiasExpira);

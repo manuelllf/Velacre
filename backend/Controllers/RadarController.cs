@@ -11,7 +11,11 @@ namespace backend.Controllers;
 [Authorize]
 public class RadarController : ControllerBase
 {
-    private readonly Supabase.Client _supabase;
+    private readonly IUsuarioRepository _usuarioRepo;
+    private readonly INegocioRepository _negocioRepo;
+    private readonly IReviewRepository _reviewRepo;
+    private readonly ICompetidorRepository _competidorRepo;
+    private readonly IRadarAnalisisRepository _radarRepo;
     private readonly IOutscraperService _outscraper;
     private readonly IReviewAiService _aiService;
     private readonly ILogger<RadarController> _logger;
@@ -19,41 +23,42 @@ public class RadarController : ControllerBase
     private const int MaxCompetidores = 3;
 
     public RadarController(
-        Supabase.Client supabase,
+        IUsuarioRepository usuarioRepo,
+        INegocioRepository negocioRepo,
+        IReviewRepository reviewRepo,
+        ICompetidorRepository competidorRepo,
+        IRadarAnalisisRepository radarRepo,
         IOutscraperService outscraper,
         IReviewAiService aiService,
         ILogger<RadarController> logger)
     {
-        _supabase   = supabase;
-        _outscraper = outscraper;
-        _aiService  = aiService;
-        _logger     = logger;
+        _usuarioRepo    = usuarioRepo;
+        _negocioRepo    = negocioRepo;
+        _reviewRepo     = reviewRepo;
+        _competidorRepo = competidorRepo;
+        _radarRepo      = radarRepo;
+        _outscraper     = outscraper;
+        _aiService      = aiService;
+        _logger         = logger;
     }
 
-    // ─── GET /api/radar ──────────────────────────────────────────────────────
-    /// <summary>Devuelve los competidores del negocio + último análisis (si existe).</summary>
     [HttpGet]
     public async Task<IActionResult> GetRadar()
     {
         var (negocio, errorResult) = await GetNegocioAndCheckPlanAsync();
         if (errorResult != null) return errorResult;
 
-        var competidoresRes = await _supabase.From<CompetidorEntity>()
-            .Where(c => c.NegocioId == negocio!.Id).Get();
-
-        var analisisRes = await _supabase.From<RadarAnalisisEntity>()
-            .Where(a => a.NegocioId == negocio!.Id)
-            .Order(a => a.CreatedAt, Postgrest.Constants.Ordering.Descending)
-            .Get();
+        var competidores = await _competidorRepo.GetByNegocioIdAsync(negocio!.Id);
+        var analisis = await _radarRepo.GetByNegocioIdOrderedAsync(negocio.Id);
 
         var utcNow2 = DateTimeOffset.UtcNow;
-        var analisisEsteMes = analisisRes.Models
+        var analisisEsteMes = analisis
             .Count(a => a.CreatedAt.Year == utcNow2.Year && a.CreatedAt.Month == utcNow2.Month);
-        var ultimoAnalisis = analisisRes.Models.FirstOrDefault();
+        var ultimoAnalisis = analisis.FirstOrDefault();
 
         return Ok(new
         {
-            competidores = competidoresRes.Models.Select(c => new
+            competidores = competidores.Select(c => new
             {
                 id        = c.Id,
                 placeId   = c.PlaceId,
@@ -70,89 +75,67 @@ public class RadarController : ControllerBase
         });
     }
 
-    // ─── POST /api/radar/competidores ─────────────────────────────────────────
     [HttpPost("competidores")]
     public async Task<IActionResult> AddCompetidor([FromBody] AddCompetidorRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.PlaceId) || string.IsNullOrWhiteSpace(request.Nombre))
-            return BadRequest("placeId y nombre son obligatorios.");
-
         var (negocio, errorResult) = await GetNegocioAndCheckPlanAsync();
         if (errorResult != null) return errorResult;
 
-        var existingRes = await _supabase.From<CompetidorEntity>()
-            .Where(c => c.NegocioId == negocio!.Id).Get();
+        var existing = await _competidorRepo.GetByNegocioIdAsync(negocio!.Id);
 
-        if (existingRes.Models.Count >= MaxCompetidores)
+        if (existing.Count >= MaxCompetidores)
             return BadRequest(new { error = "max_competidores", max = MaxCompetidores });
 
-        if (existingRes.Models.Any(c => c.PlaceId == request.PlaceId))
+        if (existing.Any(c => c.PlaceId == request.PlaceId))
             return BadRequest(new { error = "ya_existe" });
 
         var nuevo = new CompetidorEntity
         {
             Id         = Guid.NewGuid(),
-            NegocioId  = negocio!.Id,
+            NegocioId  = negocio.Id,
             PlaceId    = request.PlaceId,
             Nombre     = request.Nombre.Trim(),
             CreatedAt  = DateTimeOffset.UtcNow,
         };
 
-        await _supabase.From<CompetidorEntity>().Insert(nuevo);
+        await _competidorRepo.InsertAsync(nuevo);
         _logger.LogInformation("[RadarController] Competidor añadido: {Nombre} para negocio={NegocioId}", nuevo.Nombre, negocio.Id);
 
         return Ok(new { id = nuevo.Id, placeId = nuevo.PlaceId, nombre = nuevo.Nombre, createdAt = nuevo.CreatedAt });
     }
 
-    // ─── DELETE /api/radar/competidores/{id} ──────────────────────────────────
     [HttpDelete("competidores/{id:guid}")]
     public async Task<IActionResult> RemoveCompetidor(Guid id)
     {
         var (negocio, errorResult) = await GetNegocioAndCheckPlanAsync();
         if (errorResult != null) return errorResult;
 
-        await _supabase.From<CompetidorEntity>()
-            .Where(c => c.Id == id && c.NegocioId == negocio!.Id)
-            .Delete();
-
+        await _competidorRepo.DeleteAsync(id, negocio!.Id);
         return NoContent();
     }
 
-    // ─── POST /api/radar/analizar ─────────────────────────────────────────────
-    /// <summary>
-    /// Lanza el análisis comparativo: scrapea competidores + llama Claude.
-    /// Coste: 1 llamada Outscraper por competidor + 1 llamada Claude.
-    /// </summary>
     [HttpPost("analizar")]
     public async Task<IActionResult> Analizar()
     {
-        var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         var (negocio, errorResult) = await GetNegocioAndCheckPlanAsync();
         if (errorResult != null) return errorResult;
 
-        var competidoresRes = await _supabase.From<CompetidorEntity>()
-            .Where(c => c.NegocioId == negocio!.Id).Get();
+        var competidores = await _competidorRepo.GetByNegocioIdAsync(negocio!.Id);
 
-        if (competidoresRes.Models.Count == 0)
+        if (competidores.Count == 0)
             return BadRequest(new { error = "sin_competidores" });
 
         // Límite: 2 análisis por mes
         var utcNow = DateTimeOffset.UtcNow;
-        var allAnalysisRes = await _supabase.From<RadarAnalisisEntity>()
-            .Where(a => a.NegocioId == negocio!.Id)
-            .Get();
-        var thisMonthCount = allAnalysisRes.Models
+        var allAnalysis = await _radarRepo.GetByNegocioIdOrderedAsync(negocio.Id);
+        var thisMonthCount = allAnalysis
             .Count(a => a.CreatedAt.Year == utcNow.Year && a.CreatedAt.Month == utcNow.Month);
         if (thisMonthCount >= 2)
             return StatusCode(429, new { error = "ya_analizado_este_mes" });
 
-        // 1. Reseñas propias desde BD (sin coste)
-        var misResenasRes = await _supabase.From<ReviewEntity>()
-            .Where(r => r.IdNegocio == negocio!.Id)
-            .Order(r => r.ReviewDate, Postgrest.Constants.Ordering.Descending)
-            .Limit(30).Get();
-
-        var misResenas = misResenasRes.Models
+        // 1. Reseñas propias desde BD
+        var misResenasEntities = await _reviewRepo.GetByNegocioIdOrderedAsync(negocio.Id, 30);
+        var misResenas = misResenasEntities
             .Where(r => !string.IsNullOrWhiteSpace(r.ClienteReview))
             .Select(r => $"{r.StarRating}★ {r.ClienteReview}")
             .ToList();
@@ -161,7 +144,7 @@ public class RadarController : ControllerBase
             return BadRequest(new { error = "sin_resenas_propias" });
 
         // 2. Reseñas de competidores via Outscraper (en paralelo)
-        var competidoresTasks = competidoresRes.Models.Select(async comp =>
+        var competidoresTasks = competidores.Select(async comp =>
         {
             var compResenas = await _outscraper.GetCompetitorReviewsAsync(comp.PlaceId, 20);
             var textos = compResenas
@@ -175,7 +158,7 @@ public class RadarController : ControllerBase
         var competidoresData = competidoresResults.ToList();
 
         // 3. Claude genera el análisis
-        _logger.LogInformation("[RadarController] Lanzando análisis IA radar para negocio={NegocioId}", negocio!.Id);
+        _logger.LogInformation("[RadarController] Lanzando análisis IA radar para negocio={NegocioId}", negocio.Id);
         var resultJson = await _aiService.GenerateRadarAnalysisAsync(negocio.Nombre, misResenas, competidoresData);
 
         // 4. Guardar (conserva los 2 más recientes, borra el resto)
@@ -186,14 +169,11 @@ public class RadarController : ControllerBase
             ResultadoJson = resultJson,
             CreatedAt     = DateTimeOffset.UtcNow,
         };
-        await _supabase.From<RadarAnalisisEntity>().Insert(nuevo);
+        await _radarRepo.InsertAsync(nuevo);
 
-        var allAfterInsert = await _supabase.From<RadarAnalisisEntity>()
-            .Where(a => a.NegocioId == negocio.Id)
-            .Order(a => a.CreatedAt, Postgrest.Constants.Ordering.Descending)
-            .Get();
-        foreach (var old in allAfterInsert.Models.Skip(2))
-            await _supabase.From<RadarAnalisisEntity>().Where(a => a.Id == old.Id).Delete();
+        var allAfterInsert = await _radarRepo.GetByNegocioIdOrderedAsync(negocio.Id);
+        foreach (var old in allAfterInsert.Skip(2))
+            await _radarRepo.DeleteAsync(old.Id);
 
         _logger.LogInformation("[RadarController] Análisis radar guardado para negocio={NegocioId}", negocio.Id);
 
@@ -206,14 +186,11 @@ public class RadarController : ControllerBase
         });
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
-
     private async Task<(NegocioEntity? Negocio, IActionResult? Error)> GetNegocioAndCheckPlanAsync()
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
 
-        var usuarioRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
-        var usuario    = usuarioRes.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return (null, Unauthorized());
 
         var now = DateTimeOffset.UtcNow;
@@ -223,8 +200,7 @@ public class RadarController : ControllerBase
         if (!esProEfectivo)
             return (null, StatusCode(403, new { error = "plan_required", requiredPlan = "pro" }));
 
-        var negocioRes = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio    = negocioRes.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return (null, NotFound("Negocio no encontrado."));
 
         return (negocio, null);
@@ -236,7 +212,7 @@ public class RadarController : ControllerBase
         try
         {
             using var doc = JsonDocument.Parse(json);
-            return doc.RootElement.Clone();   // Clone sobrevive al Dispose del doc
+            return doc.RootElement.Clone();
         }
         catch { return null; }
     }

@@ -1,0 +1,285 @@
+'use client'
+
+import { useLanguage } from '@/lib/i18n'
+import type { PendingReview } from '@/lib/api'
+
+export interface DetailPanelProps {
+  review: PendingReview
+  generated?: string
+  generatedError?: string
+  contexto?: { cliente: string; respuesta: string }
+  isGenerating: boolean
+  isUpdating: boolean
+  copiedId: string | null
+  gbpConnected: boolean
+  userPlan: string
+  isOtraPlatforma: boolean
+  onGenerate: () => void
+  onLoad: () => void
+  onSetEstado: (e: 'pendiente' | 'respondida' | 'ignorada') => void
+  onCopy: (text: string) => void
+  onPublish: (texto: string) => void
+  onRetry: () => void
+  commonError: string
+}
+
+export default function DetailPanel({
+  review, generated, generatedError, contexto,
+  isGenerating, isUpdating, copiedId,
+  gbpConnected, userPlan, isOtraPlatforma,
+  onGenerate, onLoad, onSetEstado, onCopy, onPublish, onRetry,
+}: DetailPanelProps) {
+  const { t } = useLanguage()
+  const d = t.app.dashboard
+
+  const MOTIVO_LABELS: Record<string, string> = {
+    intoxicacion:     d.retention.intoxicacion,
+    maltrato:         d.retention.maltrato,
+    amenaza_legal:    d.retention.amenaza_legal,
+    datos_personales: d.retention.datos_personales,
+    acusacion_fraude: d.retention.acusacion_fraude,
+    discriminacion:   d.retention.discriminacion,
+  }
+  const estado = review.estado ?? 'pendiente'
+  const isNegative = (review.starRating ?? 5) <= 2
+  const hasGenerated = !!generated
+  const hasError = !!generatedError
+  const isRetenida = !!review.retenida
+
+  return (
+    <div className={`bg-white dark:bg-slate-900 rounded-2xl border ${
+      isNegative
+        ? 'border-l-4 border-red-200 dark:border-red-900/50 border-l-red-400'
+        : 'border-slate-200 dark:border-slate-800'
+    }`}>
+      {/* Header */}
+      <div className="px-6 pt-5 pb-4">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-base font-bold text-slate-600 dark:text-slate-300">
+              {(review.authorName ?? '?')[0].toUpperCase()}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-base font-semibold text-slate-900 dark:text-white">
+                  {review.authorName ?? d.anonymous}
+                </span>
+                {isNegative && (
+                  <span className="text-[10px] font-bold uppercase tracking-wide bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded">
+                    {d.urgent}
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-slate-400 dark:text-slate-500">{
+                new Date(review.reviewDate ?? '').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+              }</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-lg font-semibold text-amber-500">{'★'.repeat(review.starRating ?? 0)}{'☆'.repeat(5 - (review.starRating ?? 0))}</span>
+            {estado === 'respondida' && (
+              <span className="text-[10px] font-semibold uppercase tracking-wide bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">
+                {d.actions.answered}
+              </span>
+            )}
+            {estado === 'ignorada' && (
+              <span className="text-[10px] font-semibold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">
+                {d.filters.ignored}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-3">
+          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+            {review.clientereview || <span className="italic text-slate-400">{d.noText}</span>}
+          </p>
+        </div>
+      </div>
+
+      {/* Context summary */}
+      {hasGenerated && contexto && (
+        <div className="mx-6 mb-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 space-y-1.5">
+          <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">{d.context.clientSaid}</span>
+            <span>{contexto.cliente}</span>
+          </div>
+          <div className="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <span className="shrink-0 w-24 font-medium text-slate-400 dark:text-slate-500">{d.context.youRespond}</span>
+            <span>{contexto.respuesta}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Generated response */}
+      {hasGenerated && (
+        <div className="mx-6 mb-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-5">
+          <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-4 whitespace-pre-wrap">
+            {generated}
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => onCopy(generated!)}
+              className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
+            >
+              {copiedId === review.id ? (
+                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg> {d.actions.copied}</>
+              ) : (
+                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> {d.actions.copyResponse}</>
+              )}
+            </button>
+
+            {/* Publicar en Google — Próximamente / No aplica para otra plataforma */}
+            <span
+              title={isOtraPlatforma ? d.actions.publishGoogleDisabled : d.actions.comingSoon}
+              className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 rounded-xl opacity-50 cursor-not-allowed select-none"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              {d.actions.publishGoogle}
+              {!isOtraPlatforma && <span className="text-[9px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{d.actions.comingSoon}</span>}
+            </span>
+
+            {/* Abrir panel de reseñas para copiar y pegar manualmente */}
+            {isOtraPlatforma ? (
+              <span
+                title={d.actions.publishGoogleDisabled}
+                className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 rounded-xl opacity-50 cursor-not-allowed select-none"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                {d.actions.respondGoogle}
+              </span>
+            ) : (
+              <a
+                href="https://business.google.com/reviews"
+                target="_blank"
+                rel="noopener noreferrer"
+                title={d.actions.respondGoogleTitle}
+                className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                {d.actions.respondGoogle}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {hasError && (
+        <div className="mx-6 mb-4">
+          <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-xl">
+            {generatedError}
+          </p>
+        </div>
+      )}
+
+      {/* Retained review warning */}
+      {isRetenida && (
+        <div className="mx-6 mb-4 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-lg shrink-0">⚠️</span>
+            <div>
+              <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">{d.retention.title}</p>
+              {review.motivoRetencion && (
+                <p className="text-xs text-orange-700 dark:text-orange-400 mt-1">
+                  {MOTIVO_LABELS[review.motivoRetencion] ?? review.motivoRetencion}
+                </p>
+              )}
+              <p className="text-xs text-orange-600/80 dark:text-orange-500 mt-2">
+                {d.retention.desc}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Actions footer */}
+      <div className="px-6 pb-5 flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          {!isRetenida && !hasGenerated && !hasError && estado === 'respondida' && (
+            review.tonoGenerado === 'google' ? (
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                {d.states.answeredGoogle}{' '}
+                <button onClick={() => onSetEstado('pendiente')} className="underline hover:text-slate-600 dark:hover:text-slate-300">
+                  {d.actions.reopen}
+                </button>
+              </p>
+            ) : review.tonoGenerado ? (
+              <button
+                onClick={onLoad}
+                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-sm font-semibold transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                {d.states.loadResponse}
+              </button>
+            ) : (
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                {d.states.noResponse}{' '}
+                <button onClick={() => onSetEstado('pendiente')} className="underline hover:text-slate-600 dark:hover:text-slate-300">
+                  {d.actions.reopen}
+                </button>
+              </p>
+            )
+          )}
+          {!isRetenida && !hasGenerated && !hasError && estado !== 'respondida' && (
+            <button
+              onClick={onGenerate}
+              disabled={isGenerating}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+            >
+              {isGenerating ? (
+                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {d.actions.generating}</>
+              ) : (
+                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> {d.actions.generateIA}</>
+              )}
+            </button>
+          )}
+          {!isRetenida && hasError && (
+            <button onClick={onRetry} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+              {t.app.errors.retry}
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {estado !== 'respondida' && (
+            <button
+              onClick={() => onSetEstado('respondida')}
+              disabled={isUpdating}
+              className="text-sm px-3 py-2 rounded-xl border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50 font-medium"
+            >
+              {'\u2713'} {d.actions.answered}
+            </button>
+          )}
+          {estado !== 'ignorada' && (
+            <button
+              onClick={() => onSetEstado('ignorada')}
+              disabled={isUpdating}
+              className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium"
+            >
+              {d.ignore}
+            </button>
+          )}
+          {estado !== 'pendiente' && (
+            <button
+              onClick={() => onSetEstado('pendiente')}
+              disabled={isUpdating}
+              className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium"
+            >
+              {d.actions.reopen}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
