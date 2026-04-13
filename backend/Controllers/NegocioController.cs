@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Interfaces;
 using backend.Models.Entities;
 using backend.Models.Requests;
 
@@ -10,14 +11,13 @@ namespace backend.Controllers;
 [Authorize]
 public class NegocioController : ControllerBase
 {
-    private readonly Supabase.Client _supabase;
+    private readonly INegocioRepository _negocioRepo;
     private readonly ILogger<NegocioController> _logger;
-
     private readonly Guid _adminUserId;
 
-    public NegocioController(Supabase.Client supabase, ILogger<NegocioController> logger)
+    public NegocioController(INegocioRepository negocioRepo, ILogger<NegocioController> logger)
     {
-        _supabase = supabase;
+        _negocioRepo = negocioRepo;
         _logger = logger;
         _adminUserId = Guid.Parse(Environment.GetEnvironmentVariable("ADMIN_USER_ID") ?? "00000000-0000-0000-0000-000000000000");
     }
@@ -30,12 +30,7 @@ public class NegocioController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogDebug("[NegocioController] GET /me — userId={UserId}", userId);
 
-        var result = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId)
-            .Limit(1)
-            .Get();
-
-        var negocio = result.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
 
         if (negocio == null)
         {
@@ -69,15 +64,9 @@ public class NegocioController : ControllerBase
 
         try
         {
-            await _supabase.From<NegocioEntity>().Insert(entity);
+            await _negocioRepo.InsertAsync(entity);
 
-            // Supabase a veces devuelve Models vacío aunque el INSERT fue correcto — hacemos GET para obtener el registro
-            var fetched = await _supabase.From<NegocioEntity>()
-                .Where(n => n.IdUsuario == userId)
-                .Limit(1)
-                .Get();
-
-            var created = fetched.Models.FirstOrDefault();
+            var created = await _negocioRepo.GetByUserIdAsync(userId);
             if (created == null)
             {
                 _logger.LogError("[NegocioController] No se encontró el negocio tras INSERT para userId={UserId}", userId);
@@ -100,12 +89,7 @@ public class NegocioController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[NegocioController] PUT /me — userId={UserId}", userId);
 
-        var updateResult = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId)
-            .Limit(1)
-            .Get();
-
-        var negocio = updateResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
 
         if (negocio == null)
         {
@@ -120,8 +104,6 @@ public class NegocioController : ControllerBase
         negocio.TonoPredefinido = request.TonoPredefinido ?? negocio.TonoPredefinido;
         if (request.PalabrasClave != null) negocio.PalabrasClave = request.PalabrasClave;
 
-        // place_id queda bloqueado tras el registro inicial.
-        // Solo se puede cambiar si aún no está establecido (onboarding) o si el usuario es admin.
         if (request.PlaceId != null)
         {
             if (negocio.PlaceId != null && !IsAdmin())
@@ -135,9 +117,7 @@ public class NegocioController : ControllerBase
         negocio.ActualizadoPor = userId;
         negocio.ActualizadoFecha = DateTimeOffset.UtcNow;
 
-        await _supabase.From<NegocioEntity>()
-            .Where(n => n.Id == negocio.Id)
-            .Update(negocio);
+        await _negocioRepo.UpdateAsync(negocio);
 
         _logger.LogInformation("[NegocioController] Negocio actualizado: {NegocioId}", negocio.Id);
         return Ok(ToDto(negocio));

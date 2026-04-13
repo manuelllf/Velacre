@@ -72,7 +72,7 @@ El backend no añade lógica en estos casos. Es latencia extra y código extra.
 
 **Relacionado con:** R2 (sin RLS no se puede hacer Opción A), R1 (afecta qué repos se necesitan)
 
-**⚠️ REQUIERE DECISIÓN antes de implementar.**
+**DECISIÓN (2026-04-13):** de momento todo sigue por .NET. Cuando R2 (RLS) esté listo, reevaluamos qué CRUD mover al frontend.
 
 ---
 
@@ -184,9 +184,9 @@ El backend no añade lógica en estos casos. Es latencia extra y código extra.
 - **Opción A — Usar Next.js bien:** añadir `middleware.ts` para protección server-side, usar RSC donde tenga sentido (layout autenticado), eliminar flashing.
 - **Opción B — Migrar a Vite + React Router:** build más rápido, bundle más pequeño, sin la complejidad del App Router. Misma funcionalidad para una SPA autenticada.
 
-**⚠️ REQUIERE DECISIÓN.** Opción A es más conservadora y menor esfuerzo. Opción B es más limpia pero es una migración grande.
+**DECISIÓN (2026-04-13):** Opción A — usar Next.js correctamente. Añadir middleware.ts, RSC donde tenga sentido, eliminar flashing.
 
-**Relacionado con:** R5, R6 (si migramos, hay que mover todo junto)
+**Relacionado con:** R5, R6
 
 ---
 
@@ -243,6 +243,20 @@ R10 (emails) ── independiente
 4. **Grupo 4** (R6) — rompe god components con herramientas ya listas
 5. **Grupo 5** (R7) — amplía tests con la nueva arquitectura
 6. **Grupo 6** (R9, R10) — cuando haya hueco
+
+---
+
+## R11 · Subir de .NET 9 a .NET 10
+
+| Peligro | Prioridad | Dificultad |
+|---------|-----------|------------|
+| 1 | 2 | 1 |
+
+**Problema:** .NET 9 no es LTS. .NET 10 (LTS) trae mejoras de rendimiento y soporte a largo plazo.
+
+**Solución:** actualizar `TargetFramework` en csproj + actualizar NuGet packages (JwtBearer, Resilience, etc.) + verificar breaking changes.
+
+**Relacionado con:** independiente, se puede hacer en cualquier momento.
 
 ---
 

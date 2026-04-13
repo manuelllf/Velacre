@@ -11,7 +11,8 @@ namespace backend.Services;
 public class GoogleBusinessService : IGoogleBusinessService
 {
     private readonly HttpClient _http;
-    private readonly Supabase.Client _supabase;
+    private readonly IGoogleConnectionRepository _googleConnectionRepo;
+    private readonly IReviewRepository _reviewRepo;
     private readonly ILogger<GoogleBusinessService> _logger;
 
     private readonly string _clientId;
@@ -29,12 +30,14 @@ public class GoogleBusinessService : IGoogleBusinessService
 
     public GoogleBusinessService(
         HttpClient http,
-        Supabase.Client supabase,
+        IGoogleConnectionRepository googleConnectionRepo,
+        IReviewRepository reviewRepo,
         ILogger<GoogleBusinessService> logger)
     {
-        _http      = http;
-        _supabase  = supabase;
-        _logger    = logger;
+        _http                 = http;
+        _googleConnectionRepo = googleConnectionRepo;
+        _reviewRepo           = reviewRepo;
+        _logger               = logger;
         _clientId     = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID")     ?? throw new InvalidOperationException("GOOGLE_OAUTH_CLIENT_ID no configurado");
         _clientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET") ?? throw new InvalidOperationException("GOOGLE_OAUTH_CLIENT_SECRET no configurado");
         _redirectUri  = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_REDIRECT_URI")  ?? throw new InvalidOperationException("GOOGLE_OAUTH_REDIRECT_URI no configurado");
@@ -143,9 +146,7 @@ public class GoogleBusinessService : IGoogleBusinessService
         conn.DisplayName     = displayName;
         conn.IsActive        = true;
 
-        await _supabase.From<GoogleConnectionEntity>()
-            .Where(c => c.NegocioId == negocioId)
-            .Update(conn);
+        await _googleConnectionRepo.UpdateAsync(conn);
 
         _logger.LogInformation("[GBP] Conexión finalizada: local='{Name}' negocioId={Id}", displayName, negocioId);
 
@@ -177,9 +178,7 @@ public class GoogleBusinessService : IGoogleBusinessService
         await DeleteAllReviewsForNegocioAsync(negocioId);
 
         // Borrar la conexión
-        await _supabase.From<GoogleConnectionEntity>()
-            .Where(c => c.NegocioId == negocioId)
-            .Delete();
+        await _googleConnectionRepo.DeleteByNegocioIdAsync(negocioId);
 
         _logger.LogInformation("[GBP] Desconectado y reseñas eliminadas para negocioId={Id}", negocioId);
     }
@@ -188,20 +187,12 @@ public class GoogleBusinessService : IGoogleBusinessService
 
     public async Task<GoogleConnectionEntity?> GetConnectionAsync(Guid negocioId)
     {
-        var result = await _supabase.From<GoogleConnectionEntity>()
-            .Where(c => c.NegocioId == negocioId && c.IsActive == true)
-            .Limit(1)
-            .Get();
-        return result.Models.FirstOrDefault();
+        return await _googleConnectionRepo.GetActiveByNegocioIdAsync(negocioId);
     }
 
     private async Task<GoogleConnectionEntity?> GetConnectionRawAsync(Guid negocioId)
     {
-        var result = await _supabase.From<GoogleConnectionEntity>()
-            .Where(c => c.NegocioId == negocioId)
-            .Limit(1)
-            .Get();
-        return result.Models.FirstOrDefault();
+        return await _googleConnectionRepo.GetByNegocioIdAsync(negocioId);
     }
 
     // ─── Sync reseñas ─────────────────────────────────────────────────────────
@@ -223,15 +214,13 @@ public class GoogleBusinessService : IGoogleBusinessService
         }
 
         // Reseñas existentes en BD para detectar duplicados y actualizaciones
-        var existingResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.IdNegocio == negocioId)
-            .Get();
-        var existingByGoogleId = existingResult.Models
+        var existingReviews = await _reviewRepo.GetByNegocioIdAsync(negocioId);
+        var existingByGoogleId = existingReviews
             .Where(r => !string.IsNullOrEmpty(r.GoogleReviewId))
             .ToDictionary(r => r.GoogleReviewId!, r => r);
 
         // Determinar modo: inicial (sin reseñas) o incremental
-        bool isInitial = existingResult.Models.Count == 0;
+        bool isInitial = existingReviews.Count == 0;
 
         var gbpReviews = await FetchReviewsAsync(accessToken, conn.LocationName);
         _logger.LogInformation("[GBP] Sync {Mode}: {Count} reseñas obtenidas de GBP para negocioId={Id}",
@@ -254,7 +243,7 @@ public class GoogleBusinessService : IGoogleBusinessService
                     existing.Estado               = "respondida";
                     existing.ActualizadoPor       = userId;
                     existing.ActualizadoFecha     = DateTimeOffset.UtcNow;
-                    await _supabase.From<ReviewEntity>().Where(r => r.Id == existing.Id).Update(existing);
+                    await _reviewRepo.UpdateAsync(existing);
                     updatedCount++;
                 }
                 continue;
@@ -282,7 +271,7 @@ public class GoogleBusinessService : IGoogleBusinessService
                 CreadoFecha          = DateTimeOffset.UtcNow
             };
 
-            await _supabase.From<ReviewEntity>().Insert(entity);
+            await _reviewRepo.InsertAsync(entity);
             newCount++;
         }
 
@@ -295,11 +284,7 @@ public class GoogleBusinessService : IGoogleBusinessService
     public async Task<(bool Ok, string? Error)> PublishReplyAsync(Guid reviewId, Guid userId, string replyText)
     {
         // Obtener la reseña y el negocio
-        var reviewResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.Id == reviewId)
-            .Limit(1)
-            .Get();
-        var review = reviewResult.Models.FirstOrDefault();
+        var review = await _reviewRepo.GetByIdAsync(reviewId);
         if (review == null) return (false, "review_not_found");
         if (string.IsNullOrEmpty(review.GoogleReviewId)) return (false, "no_google_review_id");
 
@@ -346,7 +331,7 @@ public class GoogleBusinessService : IGoogleBusinessService
         review.ActualizadoPor   = userId;
         review.ActualizadoFecha = DateTimeOffset.UtcNow;
 
-        await _supabase.From<ReviewEntity>().Where(r => r.Id == reviewId).Update(review);
+        await _reviewRepo.UpdateAsync(review);
         _logger.LogInformation("[GBP] Reply publicado en Google para reviewId={Id}", reviewId);
 
         return (true, null);
@@ -414,9 +399,7 @@ public class GoogleBusinessService : IGoogleBusinessService
             var newExpiry = DateTimeOffset.UtcNow.AddSeconds(tokens.ExpiresIn - 60);
             conn.AccessToken  = tokens.AccessToken;
             conn.TokenExpiry  = newExpiry;
-            await _supabase.From<GoogleConnectionEntity>()
-                .Where(c => c.NegocioId == conn.NegocioId)
-                .Update(conn);
+            await _googleConnectionRepo.UpdateAsync(conn);
 
             return tokens.AccessToken;
         }
@@ -610,9 +593,7 @@ public class GoogleBusinessService : IGoogleBusinessService
             existing.TokenExpiry     = expiry;
             existing.IsActive        = isActive;
             existing.ConnectedAt     = DateTimeOffset.UtcNow;
-            await _supabase.From<GoogleConnectionEntity>()
-                .Where(c => c.NegocioId == negocioId)
-                .Update(existing);
+            await _googleConnectionRepo.UpdateAsync(existing);
         }
         else
         {
@@ -628,7 +609,7 @@ public class GoogleBusinessService : IGoogleBusinessService
                 ConnectedAt     = DateTimeOffset.UtcNow,
                 IsActive        = isActive
             };
-            await _supabase.From<GoogleConnectionEntity>().Insert(entity);
+            await _googleConnectionRepo.InsertAsync(entity);
         }
     }
 
@@ -637,9 +618,7 @@ public class GoogleBusinessService : IGoogleBusinessService
         // Bulk delete en una sola query (antes se hacía en loop, O(N) llamadas).
         // Postgrest .Delete() sobre un Where() sin materializar la lista ejecuta
         // un único DELETE sql-side.
-        await _supabase.From<ReviewEntity>()
-            .Where(r => r.IdNegocio == negocioId)
-            .Delete();
+        await _reviewRepo.DeleteByNegocioIdAsync(negocioId);
 
         _logger.LogInformation("[GBP] Reseñas previas eliminadas (bulk) para negocioId={Id}", negocioId);
     }

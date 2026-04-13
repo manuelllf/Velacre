@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Interfaces;
-using backend.Models.Entities;
 
 namespace backend.Controllers;
 
@@ -11,13 +10,15 @@ namespace backend.Controllers;
 public class HealthController : ControllerBase
 {
     private readonly IReviewAiService _aiService;
-    private readonly Supabase.Client _supabase;
+    private readonly INegocioRepository _negocioRepo;
+    private readonly IReviewRepository _reviewRepo;
     private readonly ILogger<HealthController> _logger;
 
-    public HealthController(IReviewAiService aiService, Supabase.Client supabase, ILogger<HealthController> logger)
+    public HealthController(IReviewAiService aiService, INegocioRepository negocioRepo, IReviewRepository reviewRepo, ILogger<HealthController> logger)
     {
         _aiService = aiService;
-        _supabase = supabase;
+        _negocioRepo = negocioRepo;
+        _reviewRepo = reviewRepo;
         _logger = logger;
     }
 
@@ -27,20 +28,11 @@ public class HealthController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[HealthController] POST /analysis — userId={UserId}", userId);
 
-        var negocioResult = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId)
-            .Limit(1)
-            .Get();
-
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null)
             return NotFound("No tienes ningún negocio registrado.");
 
-        var reviewsResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.IdNegocio == negocio.Id)
-            .Get();
-
-        var reviews = reviewsResult.Models;
+        var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
 
         if (reviews.Count == 0)
         {

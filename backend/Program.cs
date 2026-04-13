@@ -1,7 +1,10 @@
 using DotNetEnv;
 using backend.Infrastructure;
 using backend.Interfaces;
+using backend.Repositories;
 using backend.Services;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Supabase;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Http.Resilience;
@@ -84,6 +87,19 @@ builder.Services.AddHttpClient<IGooglePlacesService, GooglePlacesService>();
 builder.Services.AddHttpClient<IOutscraperService, OutscraperService>();
 builder.Services.AddHttpClient<IGoogleBusinessService, GoogleBusinessService>();
 builder.Services.AddScoped<EmailService>();
+
+// Repositories
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<INegocioRepository, NegocioRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IGoogleConnectionRepository, GoogleConnectionRepository>();
+builder.Services.AddScoped<ICompetidorRepository, CompetidorRepository>();
+builder.Services.AddScoped<IRadarAnalisisRepository, RadarAnalisisRepository>();
+builder.Services.AddScoped<IAnalisisIaRepository, AnalisisIaRepository>();
+
+// FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddSingleton<Supabase.Client>(sp =>
 {

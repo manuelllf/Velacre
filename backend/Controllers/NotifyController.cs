@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using backend.Models.Entities;
+using backend.Interfaces;
 using backend.Services;
 
 namespace backend.Controllers;
@@ -11,13 +11,13 @@ namespace backend.Controllers;
 public class NotifyController : ControllerBase
 {
     private readonly EmailService _email;
-    private readonly Supabase.Client _supabase;
+    private readonly IUsuarioRepository _usuarioRepo;
     private readonly ILogger<NotifyController> _logger;
 
-    public NotifyController(EmailService email, Supabase.Client supabase, ILogger<NotifyController> logger)
+    public NotifyController(EmailService email, IUsuarioRepository usuarioRepo, ILogger<NotifyController> logger)
     {
         _email = email;
-        _supabase = supabase;
+        _usuarioRepo = usuarioRepo;
         _logger = logger;
     }
 
@@ -30,9 +30,7 @@ public class NotifyController : ControllerBase
 
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
 
-        var usuarioResult = await _supabase.From<UsuarioEntity>()
-            .Where(u => u.Id == userId).Limit(1).Get();
-        var usuario = usuarioResult.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
 
         var userEmail = usuario?.Email ?? "";
         var userName  = usuario?.Nombre ?? "";

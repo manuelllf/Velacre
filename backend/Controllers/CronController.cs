@@ -8,27 +8,24 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class CronController : ControllerBase
 {
-    private readonly Supabase.Client _supabase;
+    private readonly INegocioRepository _negocioRepo;
+    private readonly IReviewRepository _reviewRepo;
     private readonly IOutscraperService _outscraper;
     private readonly ILogger<CronController> _logger;
     private readonly string _cronSecret;
 
-    public CronController(Supabase.Client supabase, IOutscraperService outscraper, ILogger<CronController> logger)
+    public CronController(INegocioRepository negocioRepo, IReviewRepository reviewRepo, IOutscraperService outscraper, ILogger<CronController> logger)
     {
-        _supabase = supabase;
+        _negocioRepo = negocioRepo;
+        _reviewRepo = reviewRepo;
         _outscraper = outscraper;
         _logger = logger;
         _cronSecret = Environment.GetEnvironmentVariable("CRON_SECRET") ?? "";
     }
 
-    /// <summary>
-    /// Sincroniza reseñas de todos los negocios con place_id configurado.
-    /// Protegido por X-Cron-Secret header. Llamado por Railway cron cada martes.
-    /// </summary>
     [HttpPost("sync")]
     public async Task<IActionResult> SyncAll()
     {
-        // Verificar secret
         if (!string.IsNullOrEmpty(_cronSecret))
         {
             var provided = Request.Headers["X-Cron-Secret"].FirstOrDefault() ?? "";
@@ -41,12 +38,7 @@ public class CronController : ControllerBase
 
         _logger.LogInformation("[CronController] Iniciando sync semanal de reseñas");
 
-        // Obtener todos los negocios con place_id
-        var negociosResult = await _supabase.From<NegocioEntity>().Get();
-        var negocios = negociosResult.Models
-            .Where(n => !string.IsNullOrWhiteSpace(n.PlaceId))
-            .ToList();
-
+        var negocios = await _negocioRepo.GetAllWithPlaceIdAsync();
         _logger.LogInformation("[CronController] {Count} negocios con place_id", negocios.Count);
 
         int totalNew = 0;
@@ -57,19 +49,17 @@ public class CronController : ControllerBase
         {
             try
             {
-                // Obtener reseñas existentes para calcular fecha de corte
-                var existingResult = await _supabase.From<ReviewEntity>()
-                    .Where(r => r.IdNegocio == negocio.Id).Get();
+                var existing = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
 
-                var existingIds = existingResult.Models
+                var existingIds = existing
                     .Where(r => r.GoogleReviewId != null)
                     .Select(r => r.GoogleReviewId!)
                     .ToHashSet();
 
                 DateTimeOffset? sinceDate = null;
-                if (existingResult.Models.Count > 0)
+                if (existing.Count > 0)
                 {
-                    var latest = existingResult.Models
+                    var latest = existing
                         .Where(r => r.GoogleReviewId != null && r.ReviewDate.HasValue)
                         .Select(r => r.ReviewDate!.Value)
                         .DefaultIfEmpty()
@@ -105,7 +95,7 @@ public class CronController : ControllerBase
                         CreadoFecha          = DateTimeOffset.UtcNow
                     };
 
-                    await _supabase.From<ReviewEntity>().Insert(entity);
+                    await _reviewRepo.InsertAsync(entity);
                     newCount++;
                 }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Interfaces;
 using backend.Models.Entities;
@@ -14,28 +14,37 @@ public class ReviewController : ControllerBase
 {
     private readonly IReviewAiService _aiService;
     private readonly IGoogleBusinessService _gbp;
-    private readonly Supabase.Client _supabase;
+    private readonly IUsuarioRepository _usuarioRepo;
+    private readonly INegocioRepository _negocioRepo;
+    private readonly IReviewRepository _reviewRepo;
+    private readonly IAnalisisIaRepository _analisisIaRepo;
     private readonly ILogger<ReviewController> _logger;
 
-    public ReviewController(IReviewAiService aiService, IGoogleBusinessService gbp, Supabase.Client supabase, ILogger<ReviewController> logger)
+    public ReviewController(
+        IReviewAiService aiService,
+        IGoogleBusinessService gbp,
+        IUsuarioRepository usuarioRepo,
+        INegocioRepository negocioRepo,
+        IReviewRepository reviewRepo,
+        IAnalisisIaRepository analisisIaRepo,
+        ILogger<ReviewController> logger)
     {
-        _aiService = aiService;
-        _gbp       = gbp;
-        _supabase  = supabase;
-        _logger    = logger;
+        _aiService      = aiService;
+        _gbp            = gbp;
+        _usuarioRepo    = usuarioRepo;
+        _negocioRepo    = negocioRepo;
+        _reviewRepo     = reviewRepo;
+        _analisisIaRepo = analisisIaRepo;
+        _logger         = logger;
     }
 
     [HttpPost("generate")]
     public async Task<IActionResult> GenerateResponse([FromBody] GenerateReviewRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.ReviewText))
-            return BadRequest("La reseña no puede estar vacía.");
-
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[ReviewController] POST /generate — userId={UserId}", userId);
 
-        var usuarioResult = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
-        var usuario = usuarioResult.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
 
         if (usuario != null)
         {
@@ -57,7 +66,7 @@ public class ReviewController : ControllerBase
                 {
                     usuario.RespuestasManualesMes = 0;
                     usuario.RespuestasMesReset = now;
-                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+                    await _usuarioRepo.UpdateAsync(usuario);
                 }
                 if (usuario.RespuestasManualesMes >= manualLimit)
                 {
@@ -67,8 +76,7 @@ public class ReviewController : ControllerBase
             }
         }
 
-        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound("No tienes ningún negocio registrado. Completa el onboarding primero.");
 
         var tone = request.Tono ?? negocio.TonoPredefinido ?? "Profesional";
@@ -102,19 +110,10 @@ public class ReviewController : ControllerBase
     [HttpPost("save-manual")]
     public async Task<IActionResult> SaveManualReview([FromBody] SaveManualReviewRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.ReviewText))
-            return BadRequest("La reseña no puede estar vacía.");
-
-        var tonoLower = request.TonoSeleccionado.ToLower();
-        if (tonoLower != "profesional" && tonoLower != "cercano" && tonoLower != "directo"
-            && tonoLower != "empatico" && tonoLower != "agradecido" && tonoLower != "humoristico")
-            return BadRequest("Tono inválido.");
-
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[ReviewController] POST /save-manual — userId={UserId}, tono={Tono}", userId, request.TonoSeleccionado);
 
-        var usuarioResult = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
-        var usuario = usuarioResult.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
 
         if (usuario != null)
         {
@@ -131,7 +130,7 @@ public class ReviewController : ControllerBase
                 {
                     usuario.RespuestasManualesMes = 0;
                     usuario.RespuestasMesReset = now;
-                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+                    await _usuarioRepo.UpdateAsync(usuario);
                 }
                 if (usuario.RespuestasManualesMes >= manualLimit)
                 {
@@ -141,13 +140,13 @@ public class ReviewController : ControllerBase
             }
         }
 
-        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound("No tienes ningún negocio registrado.");
 
         try
         {
             var estado = request.Estado == "respondida" ? "respondida" : "pendiente";
+            var tonoLower = request.TonoSeleccionado.ToLower();
             var tonoCapitalized = char.ToUpper(tonoLower[0]) + tonoLower[1..];
             var now2 = DateTimeOffset.UtcNow;
 
@@ -169,11 +168,7 @@ public class ReviewController : ControllerBase
                 CreadoFecha = now2
             };
 
-            var result = await _supabase.From<ReviewEntity>().Insert(entity);
-            if (result.Models.Count == 0)
-                return StatusCode(500, "No se pudo guardar la reseña.");
-
-            var saved = result.Models[0];
+            await _reviewRepo.InsertAsync(entity);
 
             // Increment manual counter
             if (usuario != null)
@@ -184,30 +179,30 @@ public class ReviewController : ControllerBase
                 {
                     usuario.RespuestasManualesMes += 1;
                     if (usuario.RespuestasMesReset == null) usuario.RespuestasMesReset = DateTimeOffset.UtcNow;
-                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Update(usuario);
+                    await _usuarioRepo.UpdateAsync(usuario);
                     _logger.LogDebug("[ReviewController] Contador manual → {Count} para userId={UserId}", usuario.RespuestasManualesMes, userId);
                 }
             }
 
-            _logger.LogInformation("[ReviewController] Review manual guardada: {ReviewId}", saved.Id);
+            _logger.LogInformation("[ReviewController] Review manual guardada: {ReviewId}", entity.Id);
 
             return Ok(new
             {
-                id = saved.Id,
+                id = entity.Id,
                 googleReviewId = (string?)null,
                 authorName = (string?)null,
                 starRating = (int?)null,
-                reviewDate = saved.CreadoFecha,
-                clientereview = saved.ClienteReview,
-                estado = saved.Estado,
-                respuestaProfesional = saved.RespuestaProfesional,
-                respuestaCercano = saved.RespuestaCercano,
-                respuestaDirecto = saved.RespuestaDirecto,
-                tonoGenerado = saved.TonoGenerado,
-                plataforma = saved.Plataforma,
-                respondidaFecha = saved.RespondidaFecha,
-                contextoCliente = saved.ContextoCliente,
-                contextoRespuesta = saved.ContextoRespuesta,
+                reviewDate = entity.CreadoFecha,
+                clientereview = entity.ClienteReview,
+                estado = entity.Estado,
+                respuestaProfesional = entity.RespuestaProfesional,
+                respuestaCercano = entity.RespuestaCercano,
+                respuestaDirecto = entity.RespuestaDirecto,
+                tonoGenerado = entity.TonoGenerado,
+                plataforma = entity.Plataforma,
+                respondidaFecha = entity.RespondidaFecha,
+                contextoCliente = entity.ContextoCliente,
+                contextoRespuesta = entity.ContextoRespuesta,
                 retenida = false,
                 motivoRetencion = (string?)null,
             });
@@ -225,12 +220,7 @@ public class ReviewController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[ReviewController] GET /pending — userId={UserId}", userId);
 
-        var negocioResult = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId)
-            .Limit(1)
-            .Get();
-
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
 
         if (negocio == null)
         {
@@ -238,11 +228,9 @@ public class ReviewController : ControllerBase
             return NotFound("No tienes ningún negocio registrado. Completa el onboarding primero.");
         }
 
-        var reviewsResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.IdNegocio == negocio.Id)
-            .Get();
+        var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
 
-        var pending = reviewsResult.Models
+        var pending = reviews
             .Where(r => r.RespuestaProfesional == null && r.RespuestaCercano == null && r.RespuestaDirecto == null)
             .OrderByDescending(r => r.ReviewDate ?? r.CreadoFecha)
             .Select(r => new
@@ -272,12 +260,7 @@ public class ReviewController : ControllerBase
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
         _logger.LogInformation("[ReviewController] POST /{ReviewId}/generate — userId={UserId}", id, userId);
 
-        var negocioResult = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId)
-            .Limit(1)
-            .Get();
-
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
 
         if (negocio == null)
         {
@@ -285,12 +268,7 @@ public class ReviewController : ControllerBase
             return NotFound("No tienes ningún negocio registrado. Completa el onboarding primero.");
         }
 
-        var reviewResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.Id == id && r.IdNegocio == negocio.Id)
-            .Limit(1)
-            .Get();
-
-        var review = reviewResult.Models.FirstOrDefault();
+        var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
 
         if (review == null)
         {
@@ -299,8 +277,7 @@ public class ReviewController : ControllerBase
         }
 
         // ── Plan limit check + reserva atómica ───────────────────────────────
-        var usuarioRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
-        var usuario    = usuarioRes.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
         var incrementedCounter = false;
         var softCapWarning = false;
         if (usuario != null)
@@ -324,18 +301,15 @@ public class ReviewController : ControllerBase
             bool allowed;
             try
             {
-                var rpcResult = await _supabase.Rpc("try_increment_ia_counter",
-                    new Dictionary<string, object> { { "p_user_id", userId }, { "p_limit", iaLimit } });
-                var rpcContent = rpcResult?.Content?.Trim().Trim('"') ?? "";
-                var rpcAllowed = rpcContent.Equals("true", StringComparison.OrdinalIgnoreCase);
+                var rpcAllowed = await _usuarioRepo.TryIncrementIaCounterAsync(userId, iaLimit);
 
                 // Pro SIEMPRE pasa — la RPC solo sirve para incrementar el contador
                 allowed = esProEfectivo || rpcAllowed;
 
                 if (!rpcAllowed)
                 {
-                    _logger.LogWarning("[ReviewController] RPC returned false: userId={UserId} plan={Plan} iaLimit={Limit} rpcContent=\"{RpcContent}\" esProEfectivo={EsPro}",
-                        userId, usuario.Plan, iaLimit, rpcContent, esProEfectivo);
+                    _logger.LogWarning("[ReviewController] RPC returned false: userId={UserId} plan={Plan} iaLimit={Limit} esProEfectivo={EsPro}",
+                        userId, usuario.Plan, iaLimit, esProEfectivo);
                 }
             }
             catch (Exception rpcEx)
@@ -377,9 +351,7 @@ public class ReviewController : ControllerBase
             _logger.LogInformation("[ReviewController] Tono {Tone} ya generado para reviewId={ReviewId}", tone, id);
             // Revertir incremento si la respuesta ya existía
             if (incrementedCounter)
-                await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
-                    .Set(u => u.RespuestasIaMes, Math.Max(0, (usuario!.RespuestasIaMes)))
-                    .Update();
+                await _usuarioRepo.UpdateIaCounterRollbackAsync(userId, Math.Max(0, usuario!.RespuestasIaMes));
             return Ok(new { response = alreadyGenerated, tono = tone });
         }
 
@@ -408,18 +380,7 @@ public class ReviewController : ControllerBase
                 string[] topFallback;
                 try
                 {
-                    var rpcRes = await _supabase.Rpc("get_top_keywords",
-                        new Dictionary<string, object>
-                        {
-                            { "p_negocio_id", negocio.Id },
-                            { "p_limit", 6 }
-                        });
-                    var rpcBody = rpcRes?.Content ?? "[]";
-                    using var rpcDoc = System.Text.Json.JsonDocument.Parse(rpcBody);
-                    topFallback = rpcDoc.RootElement.EnumerateArray()
-                        .Select(e => e.TryGetProperty("word", out var w) ? w.GetString() ?? "" : "")
-                        .Where(s => !string.IsNullOrWhiteSpace(s))
-                        .ToArray();
+                    topFallback = await _reviewRepo.GetTopKeywordsAsync(negocio.Id, 6);
                 }
                 catch (Exception rpcEx)
                 {
@@ -456,13 +417,11 @@ public class ReviewController : ControllerBase
                 review.ActualizadoPor   = userId;
                 review.ActualizadoFecha = DateTimeOffset.UtcNow;
 
-                await _supabase.From<ReviewEntity>().Where(r => r.Id == review.Id).Update(review);
+                await _reviewRepo.UpdateAsync(review);
 
                 // Revertir el slot de IA consumido (no se generó respuesta real)
                 if (incrementedCounter && usuario != null)
-                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
-                        .Set(u => u.RespuestasIaMes, Math.Max(0, usuario.RespuestasIaMes))
-                        .Update();
+                    await _usuarioRepo.UpdateIaCounterRollbackAsync(userId, Math.Max(0, usuario.RespuestasIaMes));
 
                 return Ok(new { retenida = true, motivoRetencion, response = (string?)null });
             }
@@ -487,9 +446,7 @@ public class ReviewController : ControllerBase
             review.ActualizadoFecha = DateTimeOffset.UtcNow;
             review.KeywordsUsadas = keywordsUsadas;
 
-            await _supabase.From<ReviewEntity>()
-                .Where(r => r.Id == review.Id)
-                .Update(review);
+            await _reviewRepo.UpdateAsync(review);
 
             _logger.LogInformation("[ReviewController] Respuesta generada y guardada para reviewId={ReviewId}", id);
 
@@ -513,9 +470,7 @@ public class ReviewController : ControllerBase
             {
                 try
                 {
-                    await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
-                        .Set(u => u.RespuestasIaMes, Math.Max(0, usuario.RespuestasIaMes))
-                        .Update();
+                    await _usuarioRepo.UpdateIaCounterRollbackAsync(userId, Math.Max(0, usuario.RespuestasIaMes));
                 }
                 catch (Exception rollbackEx)
                 {
@@ -532,15 +487,12 @@ public class ReviewController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
 
-        var negocioResult = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
-        var reviewsResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.IdNegocio == negocio.Id).Get();
+        var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
 
-        var all = reviewsResult.Models
+        var all = reviews
             .OrderByDescending(r => r.ReviewDate ?? r.CreadoFecha)
             .Select(r => new
             {
@@ -577,14 +529,10 @@ public class ReviewController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
 
-        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
-        var reviewResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.Id == id && r.IdNegocio == negocio.Id)
-            .Limit(1).Get();
-        var review = reviewResult.Models.FirstOrDefault();
+        var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
         if (review == null) return NotFound("Reseña no encontrada.");
 
         if (string.IsNullOrWhiteSpace(review.ClienteReview))
@@ -613,14 +561,10 @@ public class ReviewController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
 
-        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
-        var reviewResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.Id == id && r.IdNegocio == negocio.Id)
-            .Limit(1).Get();
-        var review = reviewResult.Models.FirstOrDefault();
+        var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
         if (review == null) return NotFound("Reseña no encontrada.");
 
         // Leer la respuesta generada según el tono usado
@@ -658,12 +602,10 @@ public class ReviewController : ControllerBase
     public async Task<IActionResult> GetMetrics()
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
-        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
-        var reviewsResult = await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Get();
-        var reviews = reviewsResult.Models;
+        var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
 
         var total = reviews.Count;
         var velacreCount = reviews.Count(r => r.TonoGenerado != null && r.TonoGenerado != "google");
@@ -710,20 +652,13 @@ public class ReviewController : ControllerBase
     public async Task<IActionResult> GetAnalysis()
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
-        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
-        var analysisResult = await _supabase.From<AnalisisIaEntity>()
-            .Where(a => a.NegocioId == negocio.Id)
-            .Order("created_at", Postgrest.Constants.Ordering.Descending)
-            .Limit(1)
-            .Get();
+        var latest = await _analisisIaRepo.GetLatestByNegocioIdAsync(negocio.Id);
 
-        var latest = analysisResult.Models.FirstOrDefault();
-
-        var reviewsResult = await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Get();
-        var currentReviewCount = reviewsResult.Models.Count;
+        var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
+        var currentReviewCount = reviews.Count;
 
         if (latest == null)
             return Ok(new { analysis = (object?)null, currentReviewCount, analysisReviewCount = 0 });
@@ -741,25 +676,20 @@ public class ReviewController : ControllerBase
     public async Task<IActionResult> GenerateAnalysis()
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
-        var negocioResult = await _supabase.From<NegocioEntity>().Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound();
 
-        var reviewsResult = await _supabase.From<ReviewEntity>().Where(r => r.IdNegocio == negocio.Id).Get();
-        var reviews = reviewsResult.Models;
+        var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
 
         if (reviews.Count == 0)
             return Ok(new { brilla = "Aún no tienes reseñas para analizar.", quema = "—", accion = "Sincroniza tus reseñas de Google para empezar." });
 
         // Límite diario: hasta 3 análisis/día, +1 si hay 5+ reseñas nuevas desde el último
         var todayUtc = DateTimeOffset.UtcNow.Date;
-        var allAnalysisResult = await _supabase.From<AnalisisIaEntity>()
-            .Where(a => a.NegocioId == negocio.Id)
-            .Order("created_at", Postgrest.Constants.Ordering.Descending)
-            .Get();
+        var allAnalysis = await _analisisIaRepo.GetAllByNegocioIdAsync(negocio.Id);
 
-        var todayCount = allAnalysisResult.Models.Count(a => a.CreatedAt.HasValue && a.CreatedAt.Value.UtcDateTime.Date == todayUtc);
-        var lastAnalysis = allAnalysisResult.Models.FirstOrDefault();
+        var todayCount = allAnalysis.Count(a => a.CreatedAt.HasValue && a.CreatedAt.Value.UtcDateTime.Date == todayUtc);
+        var lastAnalysis = allAnalysis.FirstOrDefault();
         var reviewDelta = lastAnalysis != null ? reviews.Count - lastAnalysis.ReviewCount : reviews.Count;
         var dailyLimit = reviewDelta >= 5 ? 4 : 3;
 
@@ -795,7 +725,7 @@ public class ReviewController : ControllerBase
                 ReviewCount = reviews.Count,
                 CreatedAt   = DateTimeOffset.UtcNow,
             };
-            await _supabase.From<AnalisisIaEntity>().Insert(entity);
+            await _analisisIaRepo.InsertAsync(entity);
 
             return Ok(new { brilla, quema, accion });
         }
@@ -822,8 +752,7 @@ public class ReviewController : ControllerBase
         _logger.LogInformation("[ReviewController] POST /{ReviewId}/publish-google — userId={UserId}", id, userId);
 
         // Verificar plan Core/Pro
-        var usuarioRes = await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId).Limit(1).Get();
-        var usuario    = usuarioRes.Models.FirstOrDefault();
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
         if (usuario == null) return NotFound("Usuario no encontrado");
 
         var now = DateTimeOffset.UtcNow;
@@ -867,14 +796,10 @@ public class ReviewController : ControllerBase
             return BadRequest("Estado inválido");
 
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
-        var negocioResult = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId).Limit(1).Get();
-        var negocio = negocioResult.Models.FirstOrDefault();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
 
-        var reviewResult = await _supabase.From<ReviewEntity>()
-            .Where(r => r.Id == id && r.IdNegocio == negocio.Id).Limit(1).Get();
-        var review = reviewResult.Models.FirstOrDefault();
+        var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
         if (review == null) return NotFound("Reseña no encontrada");
 
         review.Estado = request.Estado;
@@ -882,7 +807,7 @@ public class ReviewController : ControllerBase
             review.RespondidaFecha = DateTimeOffset.UtcNow;
         else if (request.Estado != "respondida")
             review.RespondidaFecha = null;
-        await _supabase.From<ReviewEntity>().Where(r => r.Id == id).Update(review);
+        await _reviewRepo.UpdateAsync(review);
         return Ok(new { id, estado = request.Estado });
     }
 }
