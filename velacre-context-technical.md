@@ -1121,13 +1121,13 @@ type ReportErrorPayload = {
 
 ### 13.1 Backend
 
-- **0 tests** (ni unit ni integration). Sin `backend.Tests.csproj`.
-- **[2026-04-12]** ~~`Infrastructure/` vacío~~ — ahora contiene `GlobalExceptionMiddleware.cs` y `FireAndForget.cs`. Sigue sin haber capa DAL propia (se usa directamente el `Supabase.Client`).
+- ~~**0 tests**~~ **✅ Resuelto 2026-04-14** — 18 tests (ClaudeService + NegocioController + UsuarioController).
+- ~~**Sin capa DAL propia**~~ **✅ Resuelto 2026-04-13** — 7 repositorios con interfaces.
 - **Duplicación de plan check** en varios controllers: `usuario.Plan == "pro" || (usuario.ProOverride && ...)`. Debería ser método helper.
 - **Duplicación de extracción de userId**: `Guid.Parse(User.FindFirst("sub")!.Value)` en todos los controllers.
 - **`Stripe.net` referenciado** pero no usado.
-- **Warnings sobre CreateNegocio**: comentario explícito "Supabase devuelve Models vacío" → workaround con GET adicional (posible bug SDK).
-- **Hardcode orígenes CORS** en `Program.cs:57-63`. No escala a nuevos entornos.
+- **Warnings sobre CreateNegocio**: workaround con GET adicional (posible bug SDK Supabase).
+- **Hardcode orígenes CORS** en `Program.cs`. No escala a nuevos entornos.
 - **Mini-radar** tiene system prompt hardcodeado en el controller (debería estar en ClaudeService).
 - **LemonController** tiene mapeo manual variant_id (plan, billing) — debería estar en config.
 - `NotifyController` sin dedupe de waitlist.
@@ -1135,12 +1135,11 @@ type ReportErrorPayload = {
 
 ### 13.2 Frontend
 
-- **`dashboard/page.tsx` = 1307 líneas**. God component. Estado disperso en ~15 useState. Mezcla data fetching, filtros, modales, upsell, sync, generación, publicación, estado manual.
+- ~~**`dashboard/page.tsx` = 1307 líneas god component**~~ **✅ Resuelto 2026-04-13** — 555 líneas, 6 componentes extraídos.
 - **`salud/page.tsx` ~500 líneas**, alta complejidad (métricas + PDF + radar).
-- **`LandingPage.tsx` 1000+ líneas** — aceptable porque es contenido visual.
-- Sin React Query / SWR → cada página refetch al montar, sin cache entre navegaciones.
+- ~~**`LandingPage.tsx` 1000+ líneas**~~ **✅ Resuelto 2026-04-13** — 227 líneas, 4 componentes extraídos.
+- ~~**Sin React Query / SWR**~~ **✅ Resuelto 2026-04-13** — React Query + 5 hooks.
 - `localStorage` para i18n: `lib/i18n.tsx:43`.
-- `console.log`/`console.error` en `lib/api.ts` dejados en producción.
 - `NEXT_PUBLIC_API_URL ?? 'http://localhost:5146'` — el fallback solo debería existir en dev.
 - `<html lang="es">` hardcodeado aunque hay i18n.
 - Rutas hardcodeadas en string literals (no enum/const central).
