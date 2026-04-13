@@ -82,7 +82,7 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
         │ (access_token de Supabase)            │
         ▼                                       │
  ┌──────────────────────┐                       │
- │  Backend .NET 9      │  HTTP                 │
+ │  Backend .NET 10     │  HTTP                 │
  │  ASP.NET Core        ├──► Anthropic Claude   │
  │  (Railway)           ├──► Google Places v1   │
  │                      ├──► Google Business    │
@@ -405,7 +405,7 @@ src/
 │   │   └── plan/           Skip / Core / Pro
 │   ├── inicio/             Hub autenticado (dashboard, salud, settings)
 │   ├── dashboard/
-│   │   ├── page.tsx        **GOD COMPONENT 1307 LÍNEAS**
+│   │   ├── page.tsx        555 líneas (refactorizado 2026-04-13)
 │   │   └── salud/          Métricas + Radar (Pro)
 │   ├── settings/
 │   ├── admin/
@@ -1257,7 +1257,7 @@ public static class ClaimsPrincipalExtensions {
 8. CORS `AllowAnyMethod/Header`. **Backlog** (bajo riesgo: origen restringido).
 
 **Mantenibilidad**:
-9. `dashboard/page.tsx` 1307 líneas (god component). **Backlog**.
+9. ~~`dashboard/page.tsx` 1307 líneas (god component)~~ **✅ Resuelto 2026-04-13** — 555 líneas.
 10. 0 tests. **Backlog**.
 11. Sin monitoring (Sentry). **Backlog** — pero ahora el usuario puede reportar errores manualmente vía `/api/report-error`.
 12. ~~Sin error boundaries frontend~~ **✅ Resuelto 2026-04-12** — `ErrorBoundary`, `app/error.tsx`, `app/global-error.tsx`.

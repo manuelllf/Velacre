@@ -60,7 +60,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
        │
        │ JWT Bearer (Supabase Auth)
        ▼
- Backend .NET 9 (Railway)
+ Backend .NET 10 (Railway)
    ├── Claude IA (respuestas, filtro, radar, análisis)
    ├── Google Places (búsqueda de negocios)
    ├── Google Business Profile (OAuth, reseñas, publicación — pendiente activación)
@@ -73,7 +73,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
  Supabase (PostgreSQL + Auth + RPCs)
 ```
 
-**Auth:** Supabase Auth (email+pwd y Google OAuth) → JWT ES256 → backend valida con JWKS. Protección de rutas puramente client-side (useEffect + getSession).
+**Auth:** Supabase Auth (email+pwd y Google OAuth) → JWT ES256 → backend valida con JWKS. Protección de rutas server-side con `proxy.ts` + `@supabase/ssr` (cookies HTTP, sin flashing). RLS en 7 tablas (22 policies).
 
 **Modelo de datos (entidades principales):**
 - `usuario` — perfil, plan, estado, contadores de uso, datos suscripción LS
