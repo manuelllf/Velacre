@@ -1,6 +1,6 @@
 # Velacre — Contexto del proyecto
 
-> **Última actualización:** 2026-04-12. Para detalle técnico exhaustivo (endpoints, servicios, seguridad, concurrencia), ver `velacre-context-technical.md`.
+> **Última actualización:** 2026-04-13. Para detalle técnico exhaustivo (endpoints, servicios, seguridad, concurrencia), ver `velacre-context-technical.md`.
 
 ---
 
@@ -49,7 +49,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 | Email | Bienvenida, reportes de error | Resend (info@velacre.com) |
 | Búsqueda de lugares | Onboarding, Mini Radar | Google Places API |
 
-**Estado del código (~18k líneas):** 45 endpoints, 11 controllers, 5 servicios, 9 entidades BD. 0% cobertura de tests. Error handling global implementado (2026-04-12). Circuit breaker en llamadas a Claude. Sin rate limiting aplicativo (backlog).
+**Estado del código (~18k líneas):** 45 endpoints, 11 controllers, 5 servicios, 9 entidades BD. ~5-7% cobertura de tests (25 tests: 9 backend xUnit, 16 frontend Vitest). Error handling global implementado (2026-04-12). Circuit breaker en llamadas a Claude. Sin rate limiting aplicativo (backlog).
 
 ---
 
@@ -325,6 +325,9 @@ Registro (Google OAuth o email)
 - **i18n completo:** 3 idiomas (ES/GAL/EN), ~550 claves tipadas, selector de idioma en todas las páginas, cero textos hardcodeados visibles al usuario. 28 ficheros migrados.
 - **6 tonos de respuesta:** añadidos Empático, Agradecido y Humorístico. Modal manual simplificado: genera 1 respuesta en tono del negocio (antes generaba 3 y pedía elegir). Misma UX que reseñas Google. Menos tokens, menos fricción.
 
+### 2026-04-13
+- **Tests básicos:** primera infraestructura de tests del proyecto. Backend: 9 tests xUnit (ClaudeService — parseo JSON, filtro seguridad, tonos). Frontend: 16 tests Vitest (API client, ResponseCard, Tooltip). Todo con mocks, cero llamadas reales. Cobertura estimada ~5-7%.
+
 ---
 
 ## 13. Pendiente estratégico y técnico
@@ -358,7 +361,7 @@ Registro (Google OAuth o email)
 - **Eliminación de reseñas (Pro):** Claude genera texto de reclamación según políticas de Google → usuario copia y pega en formulario oficial. Velacre no elimina, Google decide.
 - **Modo supervisado + auto-publicación:** supervisado es el modo por defecto (decidido). Auto-publicar requiere toggle activo en Settings + guardar. Implementar cuando GBP esté activo.
 - **Multi-ubicación:** soporte `negocio[]` por usuario, pricing por local adicional (~€20/mes).
-- **Tests:** 0% cobertura actual. Priorizar tests de integración en flujos críticos (generación IA, sync, checkout).
+- **Tests:** ~5-7% cobertura (25 tests con mocks, 2026-04-13). Backend: ClaudeService (parseo JSON, filtro seguridad, tonos). Frontend: API client, ResponseCard, Tooltip. Priorizar ampliar a flujos de sync, checkout y ReviewController.
 - **Rate limiting aplicativo:** no crítico sin atacantes, buena práctica para producción.
 
 ### Ideas futuras (post-tracción)

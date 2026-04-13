@@ -2,7 +2,7 @@
 
 Documento técnico exhaustivo del proyecto **Velacre (ReviewShield)**. Retrato del estado actual del código a día **12 abril 2026** — arquitectura, flujos, integraciones, seguridad, concurrencia y backlog técnico. Para contexto de negocio / pricing / outreach, ver `velacre-context.md`.
 
-> **Última actualización:** 2026-04-12 (tras implementar Fase 2 + Fase 3). Ver §19 Changelog al final.
+> **Última actualización:** 2026-04-13 (tests básicos backend + frontend). Ver §19 Changelog al final.
 >
 > **Alcance**: este doc no recomienda cambios, describe el estado actual. Las propuestas de implementación están marcadas **✅ implementado 2026-04-12** en §11 y los hallazgos de concurrencia accionables en §12 están marcados igual cuando se han resuelto.
 
@@ -25,8 +25,8 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 **Estado del código**:
 - ~5.000 líneas backend, ~12.800 líneas frontend (incluidos locales i18n).
 - 44 endpoints API, 11 controllers, 5 servicios, 9 entidades de BD.
-- **0% cobertura de tests** (ni backend ni frontend).
-- **Sin error boundary** global en frontend, **sin middleware global** de errores en backend.
+- **~5-7% cobertura de tests** (25 tests con mocks, 2026-04-13): backend 9 tests xUnit (ClaudeService), frontend 16 tests Vitest (API client, ResponseCard, Tooltip).
+- ~~**Sin error boundary** global en frontend, **sin middleware global** de errores en backend.~~ **✅ Resuelto 2026-04-12**.
 - **Sin rate limiting** aplicativo, sin circuit breakers, sin monitoring (Sentry u otro).
 
 **Debilidades críticas identificadas** (detalle en §10 y §13):
@@ -534,6 +534,22 @@ Ver §8 para los diagramas secuenciales completos (generación de respuesta, syn
 - `grep :any` → 0 resultados. `grep @ts-ignore` → 0. Proyecto bien tipado.
 - 1 solo `eslint-disable-next-line react-hooks/exhaustive-deps` en `dashboard/page.tsx:120` (dependency router).
 - ESLint config en `eslint.config.mjs`.
+
+### 4.10 Tests (2026-04-13)
+
+**Backend** (`backend.Tests/`): xUnit + Moq. 9 tests unitarios.
+- `Services/ClaudeServiceTests.cs` — parseo JSON de respuestas Claude, filtro seguridad (retención por intoxicación/discriminación), fallback texto raw, mapeo de 6 tonos.
+- Mock: `FakeHttpMessageHandler` que devuelve JSON simulado de la API Anthropic. Cero llamadas reales.
+- Ejecutar: `dotnet test backend.Tests/`
+
+**Frontend** (`frontend/src/test/`): Vitest + @testing-library/react + jsdom. 16 tests.
+- `lib/api.test.ts` — ApiError, generateResponses (200/429/500/auth header), saveManualReview (200/429). Mock de `fetch` + `@/lib/supabase`.
+- `components/ResponseCard.test.tsx` — renderizado, copy to clipboard, estado "copiado". Mock de `useLanguage`.
+- `components/Tooltip.test.tsx` — renderizado, hover show/hide, focus.
+- Config: `vitest.config.ts`, setup en `src/test/setup.ts`.
+- Ejecutar: `cd frontend && npm test`
+
+**Cobertura estimada: ~5-7%** del código total. Cubre el servicio más crítico (IA) y componentes clave del frontend.
 
 ---
 
@@ -1376,6 +1392,12 @@ Rediseñado como botón flotante fijo `fixed bottom-5 left-5 z-50` (simétrico a
 - **`RadarController.cs`**: llamadas a Outscraper paralelizadas con `Task.WhenAll` (antes `foreach` secuencial). Reduce scraping de 3 competidores de ~15-30s a ~5-10s.
 - **`dashboard/salud/page.tsx`**: polling de análisis en curso. Al lanzar el radar se guarda timestamp en `localStorage`. Si el usuario navega y vuelve, detecta el análisis en curso y muestra spinner con "Generando informe comparativo..." + polling cada 5s a `getRadar()` hasta que el resultado aparezca en BD (o timeout 2 min). Limpia el flag al completar o al expirar.
 - **Eliminado `app/health/page.tsx`**: página legacy de 439 líneas sin i18n ni enlaces, versión vieja del panel de salud.
+
+### 2026-04-13 — Tests básicos backend + frontend
+
+- **Backend tests** (`backend.Tests/`): nuevo proyecto xUnit + Moq. `ClaudeServiceTests.cs` con 9 tests: parseo JSON válido, filtro seguridad (intoxicación, discriminación), fallback texto raw, mapeo de 6 tonos. `FakeHttpMessageHandler` simula API Anthropic sin llamadas reales.
+- **Frontend tests** (`frontend/src/test/`): Vitest + @testing-library/react + jsdom. 16 tests en 3 archivos: `api.test.ts` (ApiError, generateResponses, saveManualReview con mock de fetch + supabase), `ResponseCard.test.tsx` (renderizado, clipboard, estado copiado), `Tooltip.test.tsx` (hover, focus, hide). Config: `vitest.config.ts`, `src/test/setup.ts`.
+- **Cobertura estimada: ~5-7%** (~25 tests, cero llamadas a APIs reales).
 
 ---
 
