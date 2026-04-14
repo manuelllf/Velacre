@@ -20,3 +20,6 @@ dist/
 # Cursor / VS Code
 .vscode/
 .cursor/
+
+# Outreach research — datos crudos (prospects.md sí se versiona)
+velacre-outreach/raw/

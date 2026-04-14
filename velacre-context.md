@@ -162,7 +162,7 @@ Modal separado para TripAdvisor, Yelp, etc. Genera 1 respuesta en el tono del ne
 2. Analizar: carga reseñas propias de BD + scraping 20 reseñas por competidor
 3. Claude genera: fortaleza/debilidad propias, tabla competidores con amenaza, oportunidades, acción semanal, matriz de sentimiento 0-10 por 4 categorías dinámicas, acción Pro estratégica
 4. Límite: 2 análisis por mes natural
-5. Coste: ~€0.02-0.06 por análisis
+5. Coste real por análisis: ~€0,22-0,28 · Desglose: 3 competidores × 20 reseñas cada uno = 60 reseñas Outscraper (~$0,18 ≈ €0,17) + 1 llamada a Claude Sonnet (~€0,05-0,10 según longitud de reseñas propias incluidas). Anteriormente documentado como "~€0,02-0,06" por error de modelo de pricing (Outscraper cobra por reseña, no por llamada).
 
 ### PDFs benchmark (Pro)
 - **PDF mensual:** cabecera Atlantic Blue, 6 KPIs, velocidad de respuesta, distribución estrellas con comparativa, evolución, keywords, diagnóstico IA, matriz competitiva si hay Radar
@@ -183,7 +183,7 @@ Backend completo: OAuth flow, listar locales, publicar respuestas directamente e
 **Modo de publicación (diseño decidido, pendiente de implementar):** por defecto, modo supervisado — el usuario revisa y aprueba cada respuesta antes de publicar en Google. Para activar auto-publicación, el usuario debe marcar un toggle en Settings y guardar cambios. Esto es deliberado: los dueños de negocio tienen miedo a que la IA publique sin su control. El modo supervisado es el estándar, auto-publicar es opt-in explícito.
 
 ### Mini Radar — herramienta de prospección B2B (admin)
-Herramienta interna para generar informes gratuitos de cualquier negocio como lead magnet de outreach. Busca por Google Places, scraping 30 reseñas + Claude genera diagnóstico + email pitch en lenguaje humano (sin jerga SEO). PDF de 3 páginas descargable. Coste ~€0.05 por informe. Sin persistencia. Incluye regla de auto-revisión que prohíbe tecnicismos ("SEO", "CTR", "ranking", etc.) y obliga a lenguaje de "vecino que quiere echar una mano".
+Herramienta interna para generar informes gratuitos de cualquier negocio como lead magnet de outreach. Busca por Google Places, scraping 30 reseñas + Claude genera diagnóstico + email pitch en lenguaje humano (sin jerga SEO). PDF de 3 páginas descargable. Coste real por informe: ~€0,13-0,18 (30 reseñas Outscraper ≈ $0,09 ≈ €0,08 + 1 llamada Claude Sonnet ≈ €0,05-0,10). Sin persistencia. Incluye regla de auto-revisión que prohíbe tecnicismos ("SEO", "CTR", "ranking", etc.) y obliga a lenguaje de "vecino que quiere echar una mano".
 
 ### PWA instalable
 Service Worker + manifest. Instalable en Android (prompt nativo) e iOS (instrucciones "Compartir → Añadir"). Banner solo en landing/inicio, primera vez de por vida, auto-hide 10s.
@@ -225,7 +225,7 @@ Registro (Google OAuth o email)
 | Integración | Por qué | Estado |
 |---|---|---|
 | **Claude (Anthropic)** | Motor de IA para respuestas, filtro seguridad, radar, análisis. Claude detecta dinámicamente categorías de sentimiento y adapta el lenguaje al idioma de la reseña. | ✅ Activo. Circuit breaker implementado. |
-| **Outscraper** | Scraping de reseñas de Google sin necesidad de OAuth. Barato (~€0.02/llamada). Permite importar reseñas desde el día 1 sin aprobación de Google. | ✅ Activo. Fallback si GBP no está conectado. |
+| **Outscraper** | Scraping de reseñas de Google sin necesidad de OAuth. Pricing oficial: **~$0,003 por reseña scrapeada** (Reviews V3 endpoint), es decir ~$0,18 por llamada estándar de 60 reseñas y ~$0,09 por una de 30. Permite importar reseñas desde el día 1 sin aprobación de Google. | ✅ Activo. Fallback si GBP no está conectado. |
 | **Google Business Profile** | Importación nativa + publicación directa de respuestas en Google (sin copy-paste). Valor diferencial clave vs competencia. | 🟡 Implementado, pendiente aprobación Google. |
 | **Google Places** | Buscar negocios por nombre en onboarding y Mini Radar. | ✅ Activo. |
 | **Lemon Squeezy** | Pagos con IVA incluido (MoR), checkout, portal de gestión para el cliente, webhooks de suscripción. Sin necesidad de gestionar facturación propia. | ✅ Implementado y probado. Pendiente activación tienda (alta autónomo). |
@@ -305,7 +305,7 @@ Registro (Google OAuth o email)
 - **Fix flujo móvil:** teasers Basic/Core en salud + redirect post-checkout LS.
 
 ### 2026-04-10 (sesión 1)
-- **Mini Radar v1:** herramienta de prospección B2B. Genera informes PDF de cualquier negocio como lead magnet. Buscador Google Places, prompt humanizado, email pitch pre-redactado. Coste ~€0.05.
+- **Mini Radar v1:** herramienta de prospección B2B. Genera informes PDF de cualquier negocio como lead magnet. Buscador Google Places, prompt humanizado, email pitch pre-redactado. Coste real ~€0,13-0,18 (inicialmente documentado como ~€0,05 por subestimación del pricing de Outscraper, corregido 2026-04-15).
 - **Calculadora landing recalibrada:** tiempos realistas (6 min sin Velacre → 5 seg con Velacre).
 - **Email unificado:** `info@velacre.com` en todas las superficies.
 - **Banner PWA reescrito:** solo landing/inicio, primera vez de por vida, 10s auto-hide.
@@ -339,6 +339,14 @@ Registro (Google OAuth o email)
 ### 2026-04-14 — CI/CD + limpieza backlog
 - **GitHub Actions CI:** tests automáticos en cada push (18 backend + 35 frontend + tsc). Deploy bloqueado si fallan.
 - **Limpieza:** `html lang` dinámico (accesibilidad), Stripe.net eliminado, `GetUserId()` helper (33 repeticiones eliminadas), prompt mini-radar movido a ClaudeService.
+
+### 2026-04-15 — Pipeline research outreach + fix pricing
+- **Pipeline outreach research:** 3 scripts Node standalone en `scripts/outreach/` (sourcing Google Places + verificación Outscraper + scoring local). Config en `queries.json` editable. Sin dependencias npm, lee directamente `backend/.env`. Skip logic y guardado parcial cada 10. Output a `velacre-outreach/raw/` (gitignored) + `prospects.md` (versionado).
+- **Batch parcial ejecutado:** 125 candidatos sourced (80 hostelería + 45 hoteles boutique, post-filtro clínicas) · 30 verificados con métricas reales Outscraper (10 Pro + 10 Core + 10 Discard, densidad de candidatos 66%). Batch detenido al 40/125 por control de coste tras error de estimación inicial.
+- **Top 15 enriquecido con búsqueda web manual:** ciudad, especialidades, dueños identificados (Rubén Rey en Taberna de Cunqueiro), reconocimientos (Solete Repsol 2025 en O Gato Negro, Bib Gourmand en Casa Marco, Michelin Guide en Noa Boutique), historia (centenaria 1922 en O Gato Negro, 300 años en O Sendeiro). Resultado en `velacre-outreach/prospects.md`.
+- **11 DMs personalizados** basados en Template E de Fogar da Carne. 7 restaurantes + 4 hotelitos boutique independientes (verificados sin cadena vía búsqueda web). Orden de ataque definido. En `velacre-outreach/dms-top11.md` + Google Doc subido al Drive del fundador.
+- **Fix pricing Outscraper en velacre-context.md:** corregido el shorthand incorrecto "~€0,02/llamada" (4 puntos afectados) al pricing oficial real **~$0,003 por reseña scrapeada** (Outscraper cobra por reseña, no por llamada). Esto implica ~$0,18 por llamada de 60 reseñas. Mini Radar real ~€0,13-0,18 (antes documentado como €0,05). Radar competencia real ~€0,22-0,28 (antes €0,02-0,06).
+- **Aprendizaje:** 2 errores consecutivos con Outscraper costaron ~$11 (modelo de pricing mal estimado + relanzar tras bug parseDate sin smoke test previo). Regla guardada en memoria del fundador: autorización explícita obligatoria para cualquier gasto en APIs de pago.
 
 ---
 

@@ -1,0 +1,45 @@
+{
+  "_comment": "Configuración del pipeline de research outreach Velacre. Editable sin tocar los scripts.",
+  "prefilter": {
+    "_comment": "Filtro barato sobre metadata de Google Places antes de gastar en Outscraper.",
+    "minUserRatingCount": 150,
+    "maxPerQuery": 20
+  },
+  "buckets": {
+    "_comment": "Clasificación por volumen real en últimos 90 días (Outscraper).",
+    "discard_max_reviews_90d": 44,
+    "core_min_reviews_90d": 45,
+    "pro_min_reviews_90d": 90
+  },
+  "outscraper": {
+    "_comment": "60 es suficiente: si el lote llega al límite sin salir de la ventana 90d, se extrapola el ritmo para estimar reviews90d. Más barato (60% menos gasto) y confiable para el bucketing.",
+    "reviewsLimitPerPlace": 60,
+    "delayBetweenCallsMs": 600,
+    "maxRetries": 2
+  },
+  "scoring": {
+    "responseRateWeight": 40,
+    "negativeUnansweredWeight": 30,
+    "negativeUnansweredPointsPer": 5,
+    "negativeUnansweredMax": 30,
+    "vulnerableRatingWeight": 20,
+    "vulnerableRatingMin": 3.8,
+    "vulnerableRatingMax": 4.4,
+    "contactableWeight": 10
+  },
+  "queries": [
+    { "id": "01", "category": "hosteleria",      "q": "restaurantes A Coruña" },
+    { "id": "02", "category": "hosteleria",      "q": "restaurantes Vigo" },
+    { "id": "03", "category": "hosteleria",      "q": "restaurantes Santiago de Compostela" },
+    { "id": "04", "category": "hosteleria",      "q": "restaurantes Pontevedra" },
+    { "id": "05", "category": "clinica",         "q": "clínica dental A Coruña" },
+    { "id": "06", "category": "clinica",         "q": "clínica dental Vigo" },
+    { "id": "07", "category": "clinica",         "q": "clínica estética Santiago" },
+    { "id": "08", "category": "clinica",         "q": "clínica estética A Coruña" },
+    { "id": "09", "category": "clinica",         "q": "clínica dental Vigo centro" },
+    { "id": "10", "category": "clinica",         "q": "medicina estética Galicia" },
+    { "id": "11", "category": "hotel_boutique",  "q": "hotel boutique Galicia" },
+    { "id": "12", "category": "hotel_boutique",  "q": "casa rural con encanto Galicia" },
+    { "id": "13", "category": "hotel_boutique",  "q": "hotel con encanto Rías Baixas" }
+  ]
+}
