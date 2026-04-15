@@ -78,6 +78,26 @@ export interface LandingLocale {
     negativeCount: string
     keywords: string
     kwords: Array<{ w: string; s: 'positive' | 'negative' | 'neutral' }>
+    brillaLabel: string
+    brillaText: string
+    quemaLabel: string
+    quemaText: string
+    accionLabel: string
+    accionText: string
+    proBadge: string
+  }
+
+  radarPreview: {
+    h2: string
+    p: string
+    competitor: string
+    tuNegocio: string
+    categories: string[]
+    threatLabel: string
+    threatHigh: string
+    threatMedium: string
+    threatLow: string
+    proBadge: string
   }
 
   howto: {
@@ -115,6 +135,7 @@ export interface LandingLocale {
         desc: string
         features: string[]
         cta: string
+        badge: string
       }
       pro: {
         name: string

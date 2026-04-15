@@ -63,7 +63,7 @@ export default function PricingSection() {
         <FadeInUp delay={0.08}>
           <GlowCard className="bg-slate-900 border border-slate-600 rounded-2xl p-6 flex flex-col h-full relative">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold bg-slate-600 text-white px-3 py-1 rounded-full whitespace-nowrap">
-              Más popular
+              {l.pricing.plans.core.badge}
             </span>
             <div className="mb-5">
               <p className="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-2">{l.pricing.plans.core.name}</p>

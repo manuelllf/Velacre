@@ -218,7 +218,6 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12">
         <div className="w-full max-w-sm">
           <div className="mb-8 text-center">
-            <Link href="/" className="inline-block text-base font-bold text-slate-900 dark:text-white mb-1">Velacre</Link>
             <p className="text-sm text-slate-500 dark:text-slate-400">{ob.setupLabel}</p>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4 mb-4">
@@ -277,8 +276,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
-            <Link href="/" className="inline-block text-base font-bold text-white mb-3">Velacre</Link>
-            <h1 className="text-xl font-semibold text-white">{op.selectYourLocal}</h1>
+            <h1 className="text-xl font-semibold text-white"><Link href="/" className="hover:opacity-80 transition-opacity">{op.selectYourLocal}</Link></h1>
             <p className="text-sm text-slate-400 mt-1">{op.multipleLocalsFound}</p>
           </div>
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6">
@@ -340,8 +338,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12 relative">
       <div className="w-full max-w-lg">
         <div className="text-center mb-6">
-          <Link href="/" className="inline-block text-base font-bold text-slate-900 dark:text-white mb-3">Velacre</Link>
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">{ob.title}</h1>
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white"><Link href="/" className="hover:opacity-80 transition-opacity">{ob.title}</Link></h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{ob.subtitle}</p>
         </div>
 

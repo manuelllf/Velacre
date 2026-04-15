@@ -123,6 +123,26 @@ const en: LandingLocale = {
       { w: 'cold', s: 'negative' },
       { w: 'recommended', s: 'positive' },
     ],
+    brillaLabel: 'What they love most',
+    brillaText: 'Friendly staff and product quality are the highlights your customers repeat most. 8 out of 10 positive reviews mention service.',
+    quemaLabel: 'Top complaints',
+    quemaText: 'Wait times during peak hours and value for money are the most frequent complaints. 3 negative reviews this month mention waits over 30 minutes.',
+    accionLabel: 'This week\u2019s action',
+    accionText: 'Reply to the 4 unanswered negative reviews from the last 15 days. Prioritise those mentioning waits \u2014 a simple "sorry, we\u2019re improving" makes a difference.',
+    proBadge: 'Pro only',
+  },
+
+  radarPreview: {
+    h2: 'Do you know what your rivals do better?',
+    p: 'The Competitor Radar analyses up to 3 competitors and tells you exactly where they beat you and what to do this week. Pro exclusive.',
+    competitor: 'Competitor',
+    tuNegocio: 'Your business',
+    categories: ['Service', 'Food', 'Atmosphere', 'Price'],
+    threatLabel: 'Threat',
+    threatHigh: 'High',
+    threatMedium: 'Medium',
+    threatLow: 'Low',
+    proBadge: 'Available on Pro',
   },
 
   howto: {
@@ -173,6 +193,7 @@ const en: LandingLocale = {
         desc: 'For the business that doesn\'t want to miss a single review.',
         features: ['20 AI responses per month', 'Google + other platforms', 'Health Panel with key stats', 'Custom tone and SEO keywords', 'Full review history'],
         cta: 'Choose Core',
+        badge: 'Most popular',
       },
       pro: {
         name: 'Pro',
@@ -182,7 +203,7 @@ const en: LandingLocale = {
         desc: 'The difference between replying to reviews and understanding your reputation.',
         features: ['Unlimited AI responses', 'Full Health Panel (AI analysis + PDF reports)', 'Competition Radar: discover what your 3 rivals do better and what to do this week', '0–10 benchmark across 4 categories vs competitors', 'Priority support'],
         cta: 'Choose Pro',
-        badge: 'Most popular',
+        badge: 'Top choice',
       },
     },
     perMonth: '/mo',

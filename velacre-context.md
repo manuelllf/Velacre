@@ -348,6 +348,14 @@ Registro (Google OAuth o email)
 - **Fix pricing Outscraper en velacre-context.md:** corregido el shorthand incorrecto "~€0,02/llamada" (4 puntos afectados) al pricing oficial real **~$0,003 por reseña scrapeada** (Outscraper cobra por reseña, no por llamada). Esto implica ~$0,18 por llamada de 60 reseñas. Mini Radar real ~€0,13-0,18 (antes documentado como €0,05). Radar competencia real ~€0,22-0,28 (antes €0,02-0,06).
 - **Aprendizaje:** 2 errores consecutivos con Outscraper costaron ~$11 (modelo de pricing mal estimado + relanzar tras bug parseDate sin smoke test previo). Regla guardada en memoria del fundador: autorización explícita obligatoria para cualquier gasto en APIs de pago.
 
+### 2026-04-16 — Landing rework + i18n fixes + onboarding fix + PDF fix
+- **Calculadora ROI eliminada** de la landing (hardcoded ES, no i18n, no resonaba con el target). Reemplazada por **Radar Preview dummy** con 3 competidores ficticios, 4 categorías con barras de score (0-10), badges de amenaza (Alta/Media/Baja) y overlay "Disponible en Pro". Genera FOMO mostrando lo que el plan Pro ofrece.
+- **Panel de Salud en landing ampliado:** añadidas 3 tarjetas dummy de análisis IA (brilla/quema/acción) con badge "Solo en Pro", replicando el aspecto real del dashboard Pro.
+- **Badges de pricing corregidos:** Core tenía "Más popular" hardcoded en español → ahora i18n (`core.badge`). Pro en EN decía "Most popular" (colisión con Core) → cambiado a "Top choice". Ambos badges usan claves de locale correctas en ES/EN/GAL.
+- **Onboarding: logo duplicado en móvil corregido.** Había un `<Link>Velacre</Link>` + `<h1>{ob.title}</h1>` que renderizaban "Velacre" dos veces. Eliminado el redundante, h1 ahora es clickable. Fix aplicado en las 3 ramas condicionales del mismo fichero (loading, GBP select, formulario).
+- **i18n completo:** todos los textos nuevos tienen claves en ES/EN/GAL. Gallego revisado (servizo, prezo, ameaza, queixan, recensions). 0 strings hardcodeados en componentes nuevos.
+- **Fix PDF em-dash:** los 3 generadores de PDF (mini radar, mensual, anual) ahora sustituyen em-dash/en-dash de LLMs por coma antes del strip WinAnsi, eliminando los huecos raros que aparecían en texto generado por IA.
+
 ---
 
 ## 13. Pendiente estratégico y técnico

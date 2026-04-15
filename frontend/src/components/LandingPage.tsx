@@ -8,7 +8,7 @@ import { useLanguage } from '@/lib/i18n'
 import { FadeInUp, GlowCard, GoogleIcon } from './landing/shared'
 
 import HeroSection from './landing/HeroSection'
-import CalculatorSection from './landing/CalculatorSection'
+import RadarPreviewSection from './landing/RadarPreviewSection'
 import DemoSection from './landing/DemoSection'
 import PricingSection from './landing/PricingSection'
 
@@ -63,7 +63,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <CalculatorSection />
+      <RadarPreviewSection />
 
       <DemoSection />
 
@@ -123,6 +123,25 @@ export default function LandingPage() {
                       }`}>{kw.w}</motion.span>
                   ))}
                 </div>
+              </div>
+
+              {/* AI Analysis cards */}
+              <div className="grid md:grid-cols-3 gap-3 mt-6 pt-6 border-t border-slate-800">
+                <div className="bg-emerald-950/30 border border-emerald-900/40 rounded-xl p-4 relative">
+                  <div className="text-xs font-semibold text-emerald-400 mb-2">+ {l.health.brillaLabel}</div>
+                  <p className="text-xs text-slate-400 leading-relaxed">{l.health.brillaText}</p>
+                </div>
+                <div className="bg-red-950/30 border border-red-900/40 rounded-xl p-4 relative">
+                  <div className="text-xs font-semibold text-red-400 mb-2">− {l.health.quemaLabel}</div>
+                  <p className="text-xs text-slate-400 leading-relaxed">{l.health.quemaText}</p>
+                </div>
+                <div className="bg-blue-950/30 border border-blue-900/40 rounded-xl p-4 relative">
+                  <div className="text-xs font-semibold text-blue-400 mb-2">→ {l.health.accionLabel}</div>
+                  <p className="text-xs text-slate-400 leading-relaxed">{l.health.accionText}</p>
+                </div>
+              </div>
+              <div className="flex justify-center mt-4">
+                <span className="text-xs font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full">{l.health.proBadge}</span>
               </div>
             </GlowCard>
           </FadeInUp>

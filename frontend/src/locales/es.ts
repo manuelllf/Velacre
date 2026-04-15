@@ -123,6 +123,26 @@ const es: LandingLocale = {
       { w: 'frío', s: 'negative' },
       { w: 'recomendable', s: 'positive' },
     ],
+    brillaLabel: 'Lo que más destacan',
+    brillaText: 'El trato cercano del personal y la calidad del producto son los puntos fuertes que más repiten tus clientes. 8 de cada 10 reseñas positivas mencionan el servicio.',
+    quemaLabel: 'Lo que más se quejan',
+    quemaText: 'Los tiempos de espera en hora punta y la relación calidad-precio son las quejas más frecuentes. 3 reseñas negativas este mes mencionan esperas de más de 30 minutos.',
+    accionLabel: 'Acción de esta semana',
+    accionText: 'Responde a las 4 reseñas negativas sin contestar de los últimos 15 días. Prioriza las que mencionan esperas — un "lo sentimos, estamos mejorando" marca la diferencia.',
+    proBadge: 'Solo en Pro',
+  },
+
+  radarPreview: {
+    h2: '\u00bfSabes qu\u00e9 hacen mejor tus rivales?',
+    p: 'El Radar de Competencia analiza hasta 3 competidores y te dice exactamente d\u00f3nde te ganan y qu\u00e9 hacer esta semana. Exclusivo Pro.',
+    competitor: 'Competidor',
+    tuNegocio: 'Tu negocio',
+    categories: ['Servicio', 'Comida', 'Ambiente', 'Precio'],
+    threatLabel: 'Amenaza',
+    threatHigh: 'Alta',
+    threatMedium: 'Media',
+    threatLow: 'Baja',
+    proBadge: 'Disponible en Pro',
   },
 
   howto: {
@@ -173,6 +193,7 @@ const es: LandingLocale = {
         desc: 'Para el negocio que no quiere perder ni una reseña sin responder.',
         features: ['20 respuestas IA al mes', 'Google + otras plataformas', 'Panel de Salud con estadísticas clave', 'Tono personalizado y palabras clave SEO', 'Historial completo de reseñas'],
         cta: 'Elegir Core',
+        badge: 'M\u00e1s popular',
       },
       pro: {
         name: 'Pro',

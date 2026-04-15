@@ -123,6 +123,26 @@ const gal: LandingLocale = {
       { w: 'frío', s: 'negative' },
       { w: 'recomendable', s: 'positive' },
     ],
+    brillaLabel: 'O que m\u00e1is destacan',
+    brillaText: 'O trato cercano do persoal e a calidade do produto son os puntos fortes que m\u00e1is repiten os teus clientes. 8 de cada 10 recensions positivas mencionan o servizo.',
+    quemaLabel: 'O que m\u00e1is se queixan',
+    quemaText: 'Os tempos de espera en hora punta e a relaci\u00f3n calidade-prezo son as queixas m\u00e1is frecuentes. 3 recensions negativas este mes mencionan esperas de m\u00e1is de 30 minutos.',
+    accionLabel: 'Acci\u00f3n desta semana',
+    accionText: 'Responde \u00e1s 4 recensions negativas sen contestar dos \u00faltimos 15 d\u00edas. Prioriza as que mencionan esperas \u2014 un "sent\u00edmolo, estamos mellorando" marca a diferenza.',
+    proBadge: 'S\u00f3 en Pro',
+  },
+
+  radarPreview: {
+    h2: 'Sabes que fan mellor os teus rivais?',
+    p: 'O Radar de Competencia analiza ata 3 competidores e d\u00edche exactamente onde che ganan e que facer esta semana. Exclusivo Pro.',
+    competitor: 'Competidor',
+    tuNegocio: 'O teu negocio',
+    categories: ['Servizo', 'Comida', 'Ambiente', 'Prezo'],
+    threatLabel: 'Ameaza',
+    threatHigh: 'Alta',
+    threatMedium: 'Media',
+    threatLow: 'Baixa',
+    proBadge: 'Dispo\u00f1ible en Pro',
   },
 
   howto: {
@@ -173,6 +193,7 @@ const gal: LandingLocale = {
         desc: 'Para o negocio que non quere perder nin unha recensión sen responder.',
         features: ['20 respostas IA ao mes', 'Google + outras plataformas', 'Panel de Saúde con estatísticas clave', 'Ton personalizado e palabras clave SEO', 'Historial completo de recensións'],
         cta: 'Escoller Core',
+        badge: 'O m\u00e1is popular',
       },
       pro: {
         name: 'Pro',
