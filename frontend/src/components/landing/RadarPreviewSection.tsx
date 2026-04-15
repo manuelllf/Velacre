@@ -79,8 +79,8 @@ export default function RadarPreviewSection() {
 
         {/* Pro overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent flex items-end justify-center pb-8 pointer-events-none">
-          <span className="text-sm font-bold text-blue-400 bg-blue-950 border border-blue-800 px-4 py-2 rounded-full pointer-events-auto">
-            {l.proBadge} →
+          <span className="text-sm font-bold text-blue-400 bg-blue-950 border border-blue-800 px-4 py-2 rounded-full">
+            {l.proBadge}
           </span>
         </div>
       </GlowCard>

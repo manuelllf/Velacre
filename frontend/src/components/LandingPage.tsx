@@ -63,9 +63,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <RadarPreviewSection />
-
       <DemoSection />
+
+      <RadarPreviewSection />
 
       {/* ── HEALTH PANEL ── */}
       <section className="bg-slate-900/50 border-y border-slate-800 py-24">
