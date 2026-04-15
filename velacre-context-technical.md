@@ -2,7 +2,7 @@
 
 Documento técnico exhaustivo del proyecto **Velacre (ReviewShield)**. Retrato del estado actual del código a día **12 abril 2026** — arquitectura, flujos, integraciones, seguridad, concurrencia y backlog técnico. Para contexto de negocio / pricing / outreach, ver `velacre-context.md`.
 
-> **Última actualización:** 2026-04-13 (tests básicos backend + frontend). Ver §19 Changelog al final.
+> **Última actualización:** 2026-04-16 (tests básicos backend + frontend). Ver §19 Changelog al final.
 >
 > **Alcance**: este doc no recomienda cambios, describe el estado actual. Las propuestas de implementación están marcadas **✅ implementado 2026-04-12** en §11 y los hallazgos de concurrencia accionables en §12 están marcados igual cuando se han resuelto.
 
@@ -18,16 +18,16 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 - **Auth**: Supabase Auth (JWT ES256). Backend valida vía JWKS discovery.
 - **IA**: Anthropic Claude (`claude-sonnet-4-6`) vía `Anthropic.SDK` v5.
 - **Reseñas**: OAuth Google Business Profile (nativo) + Outscraper (fallback / competidores).
-- **Pagos**: LemonSqueezy con webhook HMAC-SHA256 (Stripe.net presente pero **no usado**).
+- **Pagos**: LemonSqueezy con webhook HMAC-SHA256.
 - **Email**: Resend.
 - **Deploy**: Backend en Railway (PORT env var), frontend presumiblemente Vercel.
 
 **Estado del código**:
 - ~5.000 líneas backend, ~12.800 líneas frontend (incluidos locales i18n).
-- 44 endpoints API, 11 controllers, 5 servicios, 9 entidades de BD.
+- 49 endpoints API, 11 controllers, 5 servicios, 9 entidades de BD.
 - **~12-15% cobertura de tests** (53 tests con mocks, 2026-04-14): backend 18 tests xUnit (ClaudeService + NegocioController + UsuarioController), frontend 35 tests Vitest (API client + modules, ResponseCard, Tooltip, useReviews hook).
 - ~~**Sin error boundary** global en frontend, **sin middleware global** de errores en backend.~~ **✅ Resuelto 2026-04-12**.
-- **Sin rate limiting** aplicativo, sin circuit breakers, sin monitoring (Sentry u otro).
+- **Sin rate limiting** aplicativo, sin monitoring (Sentry u otro).
 
 **Debilidades críticas identificadas** (detalle en §10 y §13):
 1. ~~Exposición de `ex.Message` al cliente en endpoints backend (500)~~ **✅ Resuelto 2026-04-12** — middleware global + `throw;` en los 7 sitios.
@@ -54,7 +54,6 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 | BD SDK | supabase-csharp | 0.16.2 | Postgrest, sin EF Core |
 | IA | Anthropic.SDK | 5.10.0 | Claude Sonnet 4.6 |
 | JSON | Newtonsoft.Json | 13.0.4 | |
-| Pagos | Stripe.net | 50.4.1 | **Cargado pero no usado** |
 | Env loader | DotNetEnv | 3.1.1 | |
 | Identity provider | Supabase Auth | — | Email+pwd y Google OAuth |
 | Reseñas (API nativa) | Google Business Profile API | v1 + v4 | OAuth |
@@ -127,13 +126,13 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 backend/
 ├── Controllers/          11 controllers
 ├── Services/             5 servicios (Claude, GooglePlaces, Outscraper, GoogleBusiness, Email)
-├── Interfaces/           4 interfaces (sin interfaz para EmailService)
+├── Interfaces/           11 interfaces (7 repositorios + 4 servicios; sin interfaz para EmailService)
 ├── Models/
 │   ├── Entities/         9 entidades Postgrest
 │   ├── Requests/         DTOs de entrada
 │   ├── Responses/        DTOs de salida
 │   └── Varios/           GbpLocation, etc.
-├── Infrastructure/       **Vacío** (sin DbContext, sin DAL propio)
+├── Infrastructure/       GlobalExceptionMiddleware.cs, FireAndForget.cs, ClaimsPrincipalExtensions.cs
 ├── Program.cs            Punto de entrada y configuración DI
 ├── backend.csproj
 ├── appsettings.json      Logging solo
@@ -142,7 +141,7 @@ backend/
 └── backend.http          Scratchpad REST Client
 ```
 
-**Observación**: `Infrastructure/` está vacío — el proyecto no tiene capa DAL propia; los controllers llaman directamente al `Supabase.Client` inyectado.
+**Observación**: los controllers usan repositorios inyectados (7 interfaces + 7 implementaciones) que encapsulan el acceso a `Supabase.Client`.
 
 ### 3.2 `Program.cs` — pipeline actualizado (2026-04-12)
 
@@ -203,7 +202,7 @@ app.Run($"http://0.0.0.0:{PORT ?? 5146}")
 - Ningún `UseHsts` / `UseHttpsRedirection` (confía en Railway).
 - Ningún health check endpoint oficial (hay un `HealthController` pero no es `/health` de ASP.NET Core; es para análisis de reseñas).
 
-### 3.3 Controllers — tabla completa (45 endpoints tras 2026-04-12)
+### 3.3 Controllers — tabla completa (49 endpoints tras 2026-04-12)
 
 > Todos con `[Authorize]` salvo los marcados. Todos los métodos devuelven `Task<IActionResult>`.
 
@@ -416,7 +415,7 @@ src/
 │   └── globals.css
 ├── components/             1504 líneas en total
 │   ├── Providers.tsx       LanguageProvider + PWAInstall
-│   ├── LandingPage.tsx     1000+ líneas (hero, features, pricing)
+│   ├── LandingPage.tsx     ~246 líneas (refactorizado 2026-04-13, secciones extraídas a componentes en landing/)
 │   ├── ResponseCard.tsx
 │   ├── PWAInstall.tsx      Banner Android + instrucciones iOS
 │   ├── PublishGoogleModal.tsx
@@ -424,7 +423,7 @@ src/
 │   ├── HelpModal.tsx
 │   ├── SectionNav.tsx · Tooltip.tsx · LangSwitcher.tsx
 ├── lib/
-│   ├── api.ts              732 líneas — cliente HTTP + tipos + ApiError
+│   ├── api/                directorio modular (9 módulos, ~580 líneas totales). Refactorizado desde api.ts monolítico en 2026-04-13.
 │   ├── i18n.tsx            LanguageContext + hook useLanguage
 │   └── supabase.ts (asumido) Cliente supabase-js
 └── locales/
@@ -432,21 +431,21 @@ src/
     ├── es.ts · en.ts · gal.ts
 ```
 
-**Total**: 12.824 líneas TS/TSX (incluidos locales). Componentes: 1.504 líneas.
+**Total**: ~16.500 líneas TS/TSX. Componentes: 1.504 líneas.
 
 ### 4.2 `app/layout.tsx` + `Providers`
 
 `layout.tsx` (44 líneas):
 - Fonts `Geist` + `Geist_Mono` via `next/font/google`.
 - `metadata`: title Velacre, description, `manifest: "/manifest.webmanifest"`, `appleWebApp` config, `themeColor: "#0f172a"`.
-- HTML `lang="es"` **hardcodeado** (el cambio de idioma del `LangSwitcher` no actualiza este atributo).
+- ~~HTML `lang="es"` hardcodeado~~ **✅ Resuelto 2026-04-14** — `document.documentElement.lang` se sincroniza con locale.
 - Class `dark` fija → la app solo tiene tema dark.
 - Children envueltos en `<Providers>`.
 
 `Providers.tsx` (14 líneas, `'use client'`):
 - Envuelve todo en `LanguageProvider`.
 - Renderiza `<PWAInstall />` como overlay global.
-- **No hay otros providers**: ni Error Boundary, ni React Query, ni Sentry, ni toast system global.
+- **Providers incluyen** ErrorBoundary, QueryClientProvider (React Query con staleTime 30s), LanguageProvider y LangSwitcher. Sin Sentry ni toast system global.
 
 ### 4.3 Rutas completas
 
@@ -469,9 +468,9 @@ src/
 | `/health` | Pública | Health check |
 | `/privacidad` `/terminos` `/contacto` | Pública | Legales |
 
-### 4.4 Cliente HTTP (`lib/api.ts`)
+### 4.4 Cliente HTTP (`lib/api/`)
 
-- **Fetch nativo**, sin axios / SWR / React Query.
+- **Fetch nativo** envuelto en `lib/api/` modular. React Query (`@tanstack/react-query`) para data fetching con caching (staleTime 30s). Sin axios.
 - `API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5146'`.
 - `authHeaders()` obtiene sesión fresca de Supabase en **cada** request (performance: no hay cache de sesión ahí).
 - Clase `ApiError`:
@@ -493,8 +492,8 @@ Ver §8 para los diagramas secuenciales completos (generación de respuesta, syn
 
 ### 4.6 Estado global y gestión de datos
 
-- **Sin estado global** de usuario/negocio. Cada página refetch al montar.
-- Único context: `LanguageProvider` (i18n) en `lib/i18n.tsx`.
+- React Query gestiona el cache de datos (usuario, negocio, reseñas) con staleTime 30s. No hay store global tipo Redux/Zustand.
+- Contexts: `LanguageProvider` (i18n) + `QueryClientProvider` (React Query).
 - `dashboard/page.tsx` mantiene ~15 `useState` locales (reviews, filters, sync progress, modals, upsell, etc.) → fuente principal de la complejidad del componente.
 
 ### 4.7 i18n custom (sin next-intl)
@@ -504,7 +503,7 @@ Ver §8 para los diagramas secuenciales completos (generación de respuesta, syn
 - `lib/i18n.tsx:43` guarda la elección en `localStorage` (`STORAGE_KEY`).
 - `locales/types.ts` define un shape tipado `LandingLocale` con secciones `nav`, `hero`, `app.common`, `app.dashboard`, `app.auth`, etc.
 - Consumo: `const { t } = useLanguage(); const d = t.app.dashboard`.
-- **No actualiza `<html lang>`** al cambiar idioma.
+- ~~No actualiza `<html lang>` al cambiar idioma~~ **✅ Resuelto 2026-04-14** — html lang dinámico: `document.documentElement.lang` se actualiza al cambiar idioma.
 
 ### 4.8 PWA
 
@@ -648,7 +647,7 @@ Sin herramienta de migraciones en el repo. Asumido: cambios de schema a mano ví
 | Admin por env var única | `ADMIN_USER_ID` | No escala a varios admins sin code change |
 | Cron secret con `==` | `CronController` | Timing attack teórico (bajo riesgo) |
 | ~~Protección de rutas frontend solo client-side~~ **✅ Resuelto 2026-04-14** | `proxy.ts` con `@supabase/ssr` | — |
-| `User.FindFirst("sub")!.Value` | Todos los controllers | NPE si el claim falta (500 feo) |
+| ~~`User.FindFirst("sub")!.Value`~~ **✅ Mitigado 2026-04-14** — `GetUserId()` extension con mensaje claro reemplaza 33 ocurrencias. | Todos los controllers | ~~NPE si el claim falta (500 feo)~~ |
 | CORS con credentials + allowAnyOrigin si `CORS_EXTRA_ORIGIN` mal configurado | `Program.cs:72-74` | Si alguien mete `*` en esa env var, se abre todo |
 | Sin Sentry / monitoring | Frontend y backend | Errores prod invisibles |
 | Sin HSTS / HTTPS redirect explícito | `Program.cs` | Confía en Railway TLS termination |
@@ -713,8 +712,9 @@ POST /api/review/{id}/generate
   │       Si > 250 → softCapWarning=true (no bloquea)
   │
   ├─ Carga fallback keywords:
-  │   └─ SELECT * FROM review WHERE idNegocio=... ← **N+1**, carga TODO en memoria
-  │       Agrupa, top 6
+  │   └─ ~~SELECT * FROM review WHERE idNegocio=... ← **N+1**, carga TODO en memoria~~
+  │       ~~Agrupa, top 6~~
+  │       **✅ Resuelto 2026-04-12** — RPC `get_top_keywords` reemplaza la carga completa.
   │
   ├─ ClaudeService.GenerateSingleResponseWithContextAsync(
   │     reviewText, tono, idioma, keywords, contextoNegocio)
@@ -1181,23 +1181,23 @@ public static class ClaimsPrincipalExtensions {
 
 | Métrica | Backend | Frontend |
 |---|---|---|
-| LOC totales | ~5.000 | 12.824 (incluidos locales) |
+| LOC totales | ~5.000 | ~16.500 |
 | Controllers / páginas | 11 controllers | ~20 rutas app/ |
 | Servicios / componentes | 5 services | ~10 componentes compartidos |
-| Entidades BD / tipos API | 9 entities | ~30 tipos en `lib/api.ts` |
-| Endpoints API | 44 | consumidos ~35 |
-| Tests | 0 | 0 |
-| Cobertura | 0% | 0% |
+| Entidades BD / tipos API | 9 entities | ~30 tipos en `lib/api/` |
+| Endpoints API | 49 | consumidos ~35 |
+| Tests | 18 (xUnit) | 35 (Vitest) |
+| Cobertura | ~12-15% | ~12-15% |
 | TODO/FIXME explícitos | 0 | 0 |
 | `any` / `@ts-ignore` | — | 0 / 0 |
-| Error boundaries | 0 | 0 |
-| Middleware global de errores | No | No |
+| Error boundaries | GlobalExceptionMiddleware | ErrorBoundary + error.tsx + global-error.tsx |
+| Middleware global de errores | Sí (GlobalExceptionMiddleware) | Sí (ErrorBoundary) |
 
 ---
 
 ## 15. Dependencias sin usar / deprecated
 
-- **Backend**: `Stripe.net` v50.4.1 — cargado pero sin imports. Candidato a eliminar del `.csproj`.
+- **Backend**: sin dependencias muertas detectadas (Stripe.net eliminado 2026-04-14).
 - **Frontend**: sin dependencias obviamente muertas.
 
 ---
@@ -1261,7 +1261,7 @@ public static class ClaimsPrincipalExtensions {
 
 **Mantenibilidad**:
 9. ~~`dashboard/page.tsx` 1307 líneas (god component)~~ **✅ Resuelto 2026-04-13** — 555 líneas.
-10. 0 tests. **Backlog**.
+10. ~~0 tests~~ **✅ Parcialmente resuelto 2026-04-13** — 53 tests (18 backend xUnit, 35 frontend Vitest), ~12-15% cobertura. Backlog: ReviewController, LemonController, flujos e2e.
 11. Sin monitoring (Sentry). **Backlog** — pero ahora el usuario puede reportar errores manualmente vía `/api/report-error`.
 12. ~~Sin error boundaries frontend~~ **✅ Resuelto 2026-04-12** — `ErrorBoundary`, `app/error.tsx`, `app/global-error.tsx`.
 

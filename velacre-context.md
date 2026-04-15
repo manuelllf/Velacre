@@ -1,6 +1,6 @@
 # Velacre — Contexto del proyecto
 
-> **Última actualización:** 2026-04-13. Para detalle técnico exhaustivo (endpoints, servicios, seguridad, concurrencia), ver `velacre-context-technical.md`.
+> **Última actualización:** 2026-04-16. Para detalle técnico exhaustivo (endpoints, servicios, seguridad, concurrencia), ver `velacre-context-technical.md`.
 
 ---
 
@@ -49,7 +49,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 | Email | Bienvenida, reportes de error | Resend (info@velacre.com) |
 | Búsqueda de lugares | Onboarding, Mini Radar | Google Places API |
 
-**Estado del código (~18k líneas):** 45 endpoints, 11 controllers, 7 repositorios, 5 servicios, 9 entidades BD. ~12-15% cobertura de tests (53 tests: 18 backend xUnit, 35 frontend Vitest). Capa de repositorios + FluentValidation. RLS en 7 tablas (22 policies). Auth SSR con proxy.ts + @supabase/ssr. Error handling global (2026-04-12). Circuit breaker en Claude. Sin rate limiting aplicativo (backlog).
+**Estado del código (~21k líneas):** 49 endpoints, 11 controllers, 7 repositorios, 5 servicios, 9 entidades BD. ~12-15% cobertura de tests (53 tests: 18 backend xUnit, 35 frontend Vitest). Capa de repositorios + FluentValidation + React Query (frontend). RLS en 7 tablas (22 policies). Auth SSR con proxy.ts + @supabase/ssr. Error handling global (2026-04-12). Circuit breaker en Claude. Sin rate limiting aplicativo (backlog).
 
 ---
 
@@ -192,7 +192,7 @@ Service Worker + manifest. Instalable en Android (prompt nativo) e iOS (instrucc
 Siempre dark. Fondo #0f172a, acento blue. Cal Sans para headers, Geist para body.
 
 ### Multiidioma (i18n)
-3 idiomas: castellano (por defecto), gallego e inglés. Sistema basado en `LanguageProvider` con persistencia en `localStorage`. Todos los textos visibles al usuario usan el sistema i18n (~550 claves tipadas en TypeScript). Páginas de error crítico (`global-error.tsx`) mantienen fallback en español por seguridad (Provider puede no estar disponible).
+3 idiomas: castellano (por defecto), gallego e inglés. Sistema basado en `LanguageProvider` con persistencia en `localStorage`. Todos los textos visibles al usuario usan el sistema i18n (~800 claves tipadas en TypeScript). Páginas de error crítico (`global-error.tsx`) mantienen fallback en español por seguridad (Provider puede no estar disponible).
 
 **Selector de idioma:** botón flotante fijo en esquina inferior izquierda (mismo estilo que el botón de ayuda `?` en inferior derecha). Muestra el código del idioma activo (ES/GL/EN), click abre dropdown hacia arriba con los 3 idiomas (Castellano, Galego, English). Montado globalmente desde `Providers.tsx` — visible en todas las páginas sin necesidad de añadirlo a cada header. Tooltip al hover. Click-outside para cerrar.
 
@@ -322,7 +322,7 @@ Registro (Google OAuth o email)
 - **Hardening:** sync nunca borra reseñas, logs saneados, circuit breaker en Claude, delete-me atómico, N+1 keywords resuelto, bulk delete, fire-and-forget con logging.
 - **Fix RPC Pro bloqueado:** la RPC `try_increment_ia_counter` en producción devolvía `false` con `p_limit=-1`. Fix doble: RPC actualizada en Supabase + backend nunca bloquea Pro por resultado de RPC.
 - **Filtro seguridad ampliado:** 2 nuevas categorías — acusación de fraude/estafa y discriminación (6 categorías totales).
-- **i18n completo:** 3 idiomas (ES/GAL/EN), ~550 claves tipadas, selector de idioma en todas las páginas, cero textos hardcodeados visibles al usuario. 28 ficheros migrados.
+- **i18n completo:** 3 idiomas (ES/GAL/EN), ~800 claves tipadas, selector de idioma en todas las páginas, cero textos hardcodeados visibles al usuario. 28 ficheros migrados.
 - **6 tonos de respuesta:** añadidos Empático, Agradecido y Humorístico. Modal manual simplificado: genera 1 respuesta en tono del negocio (antes generaba 3 y pedía elegir). Misma UX que reseñas Google. Menos tokens, menos fricción.
 
 ### 2026-04-13
