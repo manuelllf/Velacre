@@ -20,7 +20,10 @@ const SLATE_900: RGB = [15, 23, 42]
 
 /** Elimina caracteres fuera de WinAnsi (Helvetica jsPDF soporta hasta \xFF) */
 function safe(s: string): string {
-  return s.replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
+  // Los modelos sueltan em-dash/en-dash (U+2013/2014) que están fuera de Latin-1
+  // y el strip los dejaba como huecos raros. Los sustituimos por coma, que
+  // cumple la misma función sintáctica en castellano.
+  return s.replace(/[\u2012-\u2015]/g, ',').replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
 }
 
 /** Sanitiza un nombre para usarlo como parte de un filename */
