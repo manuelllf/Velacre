@@ -212,111 +212,115 @@ public class AdminController : ControllerBase
     }
 
     [HttpPost("mini-radar")]
-    public async Task<IActionResult> MiniRadar([FromBody] MiniRadarRequest request)
-    {
-        if (!await IsAdminAsync()) return Forbid();
-        if (string.IsNullOrWhiteSpace(request.PlaceId))
-            return BadRequest(new { error = "place_id_required", mensaje = "Se requiere place_id" });
+public async Task<IActionResult> MiniRadar([FromBody] MiniRadarRequest request)
+{
+    if (!await IsAdminAsync()) return Forbid();
+    if (string.IsNullOrWhiteSpace(request.PlaceId))
+        return BadRequest(new { error = "place_id_required", mensaje = "Se requiere place_id" });
 
-        _logger.LogInformation("[MiniRadar] Analizando placeId={PlaceId} nombre={Nombre}",
-            request.PlaceId, request.Nombre ?? "(sin nombre)");
+    _logger.LogInformation("[MiniRadar] Analizando placeId={PlaceId} nombre={Nombre}",
+        request.PlaceId, request.Nombre ?? "(sin nombre)");
 
-        var resenas = await _outscraper.GetCompetitorReviewsAsync(request.PlaceId, 30);
-        if (resenas.Count == 0)
-            return NotFound(new { error = "no_reviews_found", mensaje = "No se pudieron obtener reseñas para este place_id" });
-
-        var total = resenas.Count;
-        var ratingAvg = resenas.Average(r => r.StarRating);
-        var respondidas = resenas.Count(r => !string.IsNullOrEmpty(r.OwnerAnswer));
-        var pctRespondidas = (int)Math.Round((double)respondidas / total * 100);
-
-        var dist = new Dictionary<string, int>
-        {
-            ["s5"] = resenas.Count(r => r.StarRating == 5),
-            ["s4"] = resenas.Count(r => r.StarRating == 4),
-            ["s3"] = resenas.Count(r => r.StarRating == 3),
-            ["s2"] = resenas.Count(r => r.StarRating == 2),
-            ["s1"] = resenas.Count(r => r.StarRating == 1),
-        };
-
-        var hoy = DateTimeOffset.UtcNow;
-        var ult30d = resenas.Count(r => r.PublishedAt >= hoy.AddDays(-30));
-        var ult90d = resenas.Count(r => r.PublishedAt >= hoy.AddDays(-90));
-
-        var peoresSinResponder = resenas
-            .Where(r => string.IsNullOrEmpty(r.OwnerAnswer) && r.StarRating <= 3 && !string.IsNullOrEmpty(r.Text))
-            .OrderBy(r => r.StarRating)
-            .ThenByDescending(r => r.PublishedAt)
-            .Take(3)
-            .Select(r => new
-            {
-                autor = r.AuthorName,
-                rating = r.StarRating,
-                texto = r.Text.Length > 240 ? r.Text[..240] + "..." : r.Text,
-                fecha = r.PublishedAt,
-            })
-            .ToList();
-
-        var resenasText = string.Join("\n", resenas.Take(30).Select(r =>
-        {
-            var textCorto = r.Text.Length > 200 ? r.Text[..200] : r.Text;
-            var marca = string.IsNullOrEmpty(r.OwnerAnswer) ? "[SIN RESPUESTA]" : "[respondida]";
-            return $"- {r.StarRating}★ \"{textCorto}\" {marca}";
-        }));
-
-        var nombreDisplay = string.IsNullOrWhiteSpace(request.Nombre) ? "el negocio" : request.Nombre;
-
-        string analisisRaw;
-        try
-        {
-            analisisRaw = await _aiService.GenerateMiniRadarAnalysisAsync(
-                nombreDisplay, resenasText, ratingAvg, pctRespondidas, ult30d, ult90d);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[MiniRadar] Error en Claude");
-            return StatusCode(500, new { error = "ai_error", mensaje = "Error al analizar con IA. Inténtalo de nuevo." });
-        }
-
-        var jsonStart = analisisRaw.IndexOf('{');
-        var jsonEnd = analisisRaw.LastIndexOf('}');
-        var analisisLimpio = jsonStart >= 0 && jsonEnd > jsonStart
-            ? analisisRaw[jsonStart..(jsonEnd + 1)]
-            : "{}";
-
-        JsonElement? analisisParsed = null;
-        try
-        {
-            using var doc = JsonDocument.Parse(analisisLimpio);
-            analisisParsed = doc.RootElement.Clone();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "[MiniRadar] No se pudo parsear el JSON de Claude, devolviendo raw");
-        }
-
-        _logger.LogInformation("[MiniRadar] OK — total={Total} respondidas={Pct}% rating={Rating:F2} ult30d={Ult30}",
-            total, pctRespondidas, ratingAvg, ult30d);
-
-        return Ok(new
-        {
-            placeId = request.PlaceId,
-            nombre = request.Nombre,
-            stats = new
-            {
-                total,
-                ratingAvg = Math.Round(ratingAvg, 2),
-                distribucion = dist,
-                pctRespondidas,
-                ult30d,
-                ult90d,
-            },
-            peoresSinResponder,
-            analisis = analisisParsed,
-            analisisRaw = analisisParsed == null ? analisisLimpio : null,
-            generadoEn = DateTimeOffset.UtcNow,
+    // Últimos 30 días reales, con mapeo completo (owner_answer incluido)
+    var resenas = await _outscraper.GetRecentReviewsAsync(request.PlaceId, dias: 30, maxReviews: 200);
+    
+    if (resenas.Count == 0)
+        return NotFound(new { 
+            error = "no_recent_reviews", 
+            mensaje = "No se han encontrado reseñas en los últimos 30 días para este negocio" 
         });
+
+    var total = resenas.Count;
+    var ratingAvg = resenas.Average(r => r.StarRating);
+    var respondidas = resenas.Count(r => !string.IsNullOrEmpty(r.OwnerAnswer));
+    var pctRespondidas = (int)Math.Round((double)respondidas / total * 100);
+
+    var dist = new Dictionary<string, int>
+    {
+        ["s5"] = resenas.Count(r => r.StarRating == 5),
+        ["s4"] = resenas.Count(r => r.StarRating == 4),
+        ["s3"] = resenas.Count(r => r.StarRating == 3),
+        ["s2"] = resenas.Count(r => r.StarRating == 2),
+        ["s1"] = resenas.Count(r => r.StarRating == 1),
+    };
+
+    // ult30d = total (por definición del nuevo método), ult90d ya no tiene sentido aquí
+    var ult30d = total;
+    var ult90d = total; // o lo eliminas del DTO si prefieres
+
+    var peoresSinResponder = resenas
+        .Where(r => string.IsNullOrEmpty(r.OwnerAnswer) && r.StarRating <= 3 && !string.IsNullOrEmpty(r.Text))
+        .OrderBy(r => r.StarRating)
+        .ThenByDescending(r => r.PublishedAt)
+        .Take(3)
+        .Select(r => new
+        {
+            autor = r.AuthorName,
+            rating = r.StarRating,
+            texto = r.Text.Length > 240 ? r.Text[..240] + "..." : r.Text,
+            fecha = r.PublishedAt,
+        })
+        .ToList();
+
+    var resenasText = string.Join("\n", resenas.Select(r =>
+    {
+        var textCorto = r.Text.Length > 200 ? r.Text[..200] : r.Text;
+        var marca = string.IsNullOrEmpty(r.OwnerAnswer) ? "[SIN RESPUESTA]" : "[respondida]";
+        return $"- {r.StarRating}★ \"{textCorto}\" {marca}";
+    }));
+
+    var nombreDisplay = string.IsNullOrWhiteSpace(request.Nombre) ? "el negocio" : request.Nombre;
+
+    string analisisRaw;
+    try
+    {
+        analisisRaw = await _aiService.GenerateMiniRadarAnalysisAsync(
+            nombreDisplay, resenasText, ratingAvg, pctRespondidas, ult30d, ult90d);
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "[MiniRadar] Error en Claude");
+        return StatusCode(500, new { error = "ai_error", mensaje = "Error al analizar con IA. Inténtalo de nuevo." });
+    }
+
+    var jsonStart = analisisRaw.IndexOf('{');
+    var jsonEnd = analisisRaw.LastIndexOf('}');
+    var analisisLimpio = jsonStart >= 0 && jsonEnd > jsonStart
+        ? analisisRaw[jsonStart..(jsonEnd + 1)]
+        : "{}";
+
+    JsonElement? analisisParsed = null;
+    try
+    {
+        using var doc = JsonDocument.Parse(analisisLimpio);
+        analisisParsed = doc.RootElement.Clone();
+    }
+    catch (Exception ex)
+    {
+        _logger.LogWarning(ex, "[MiniRadar] No se pudo parsear el JSON de Claude, devolviendo raw");
+    }
+
+    _logger.LogInformation("[MiniRadar] OK — total={Total} respondidas={Pct}% rating={Rating:F2}",
+        total, pctRespondidas, ratingAvg);
+
+    return Ok(new
+    {
+        placeId = request.PlaceId,
+        nombre = request.Nombre,
+        stats = new
+        {
+            total,
+            ratingAvg = Math.Round(ratingAvg, 2),
+            distribucion = dist,
+            pctRespondidas,
+            ult30d,
+            ult90d,
+        },
+        peoresSinResponder,
+        analisis = analisisParsed,
+        analisisRaw = analisisParsed == null ? analisisLimpio : null,
+        generadoEn = DateTimeOffset.UtcNow,
+    });
 }
 
 public record CambiarEstadoRequest(string Estado, int? DiasPrueba);
