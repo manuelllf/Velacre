@@ -1,6 +1,6 @@
-# DMs personalizados — Top 12 IG-seguidos
+# DMs personalizados — Top 18 IG-seguidos
 
-> **Generado 2026-04-15** (11 iniciales). **Gumer añadido 2026-04-16** tras research + Mini Radar. Estilo basado en Template E (O Fogar da Carne) del doc `velacre-email-templates-outreach.docx`.
+> **Generado 2026-04-15** (11 iniciales). **Gumer añadido 2026-04-16** tras research + Mini Radar. **Redes Compostela, The Othilio Bar, Bresca, Tizar Gourmet, Gloria Bendita y O Pincho añadidos 2026-04-16** (segunda oleada, seleccionados de `prospects-young-digital.md` + banda 1400-6000). Estilo basado en Template E (O Fogar da Carne) del doc `velacre-email-templates-outreach.docx`.
 >
 > **⚠️ IMPORTANTE antes de enviar cualquier DM**:
 > Cada mensaje dice "he probado a analizar vuestras reseñas con mi programa y me saca un PDF...". Eso implica que TIENES el PDF del Mini Radar listo cuando envías. Si no lo has generado, tienes dos opciones:
@@ -392,6 +392,178 @@ velacre.com · info@velacre.com
 
 ---
 
+## 13 · Redes Compostela · Mariscos & Tapas (Santiago) · Añadido 2026-04-16
+
+**Canal**: IG DM (verificar handle) · **Hook**: 4,8★ con 1.598 reseñas — el rating más alto del top 44 filtrado. Mariscos y tapas en Santiago. · **Mini Radar**: pendiente de generar
+
+```
+Boas 👋
+
+Soy Manuel, de Ferrol. Os sigo en redes — un 4,8 de media
+con casi 1.600 reseñas en Santiago es de los mejores ratings
+que he visto por la zona, y con mariscos y tapas no es fácil
+sostener ese nivel.
+
+Te escribo por otra cosa: llevo meses montando un pequeño
+programa que ayuda a restaurantes a responder reseñas de
+Google con IA. Si queréis os monto en unos minutos un PDF
+de 3 páginas con lo que veo en vuestras reseñas del último
+mes — lo que más alaban, lo que menos, y cuáles llevan más
+tiempo sin respuesta.
+
+Gratis, sin compromiso de nada. En IG no puedo adjuntar,
+¿me pasas un mail o WhatsApp y os lo envío?
+
+Un abrazo,
+Manuel
+velacre.com · info@velacre.com
+```
+
+---
+
+## 14 · The Othilio Bar (Vigo) · Añadido 2026-04-16
+
+**Canal**: IG DM (verificar handle) · **Hook**: chef Carlos Rodal (pasó por Celler de Can Roca) + hermano gemelo Pablo en sala, abrieron 2014 en Luis Taboada (Vigo centro), #20/732 TripAdvisor, llenos 2-3 días antes · **Mini Radar**: pendiente de generar · **Nota**: saluda a Carlos por nombre — es el chef público
+
+```
+Boas Carlos 👋
+
+Soy Manuel, de Ferrol. Os sigo desde hace tiempo — tu paso
+por Can Roca y 10 años ya con Pablo al frente de la sala en
+Luis Taboada es de las trayectorias más sólidas del centro
+de Vigo. Las reservas llenas 2-3 días antes hablan solas.
+
+Te escribo por otra cosa: llevo meses montando un pequeño
+programa que ayuda a restaurantes a responder reseñas de
+Google con IA. Si quieres te monto en unos minutos un PDF
+de 3 páginas con lo que veo en vuestras reseñas del último
+mes — lo que más alaban, lo que menos, y cuáles llevan más
+tiempo sin respuesta.
+
+Gratis, sin compromiso de nada. En IG no puedo adjuntar,
+¿me pasas un mail o WhatsApp y te lo envío?
+
+Un abrazo,
+Manuel
+velacre.com · info@velacre.com
+```
+
+---
+
+## 15 · Bresca (Santiago) · Añadido 2026-04-16
+
+**Canal**: IG DM (verificar handle) · **Hook**: 4,7★ con más de 2.400 reseñas en Santiago · **Mini Radar**: pendiente de generar · **Nota**: verificar si tienen más de un local (la URL `bresca.es/santiago` sugiere que sí) — si son 2+ locales, aplican las mismas consideraciones que Lola & Lía (multi-ubicación en backlog)
+
+```
+Boas 👋
+
+Soy Manuel, de Ferrol. Os sigo en redes — un 4,7 con más de
+2.400 reseñas en Santiago no se gana sin mimar mucho lo que
+sale a mesa y en sala.
+
+Te escribo por otra cosa: llevo meses montando un pequeño
+programa que ayuda a restaurantes a responder reseñas de
+Google con IA. Si queréis os monto en unos minutos un PDF
+de 3 páginas con lo que veo en vuestras reseñas del último
+mes — lo que más alaban, lo que menos, y cuáles llevan más
+tiempo sin respuesta.
+
+Gratis, sin compromiso de nada. En IG no puedo adjuntar,
+¿me pasas un mail o WhatsApp y os lo envío?
+
+Un abrazo,
+Manuel
+velacre.com · info@velacre.com
+```
+
+---
+
+## 16 · Tizar Gourmet Urban Food (Ourense) · Añadido 2026-04-16
+
+**Canal**: IG DM (verificar handle) · **Hook**: 4,7★ con 2.295 reseñas en Ourense, concepto "urban food" (moderno, branding cuidado) · **Mini Radar**: pendiente de generar
+
+```
+Boas 👋
+
+Soy Manuel, de Ferrol. Os sigo en redes — meter "urban food"
+en Ourense y llegar a un 4,7 con más de 2.200 reseñas es de
+las propuestas más interesantes que he visto en la ciudad.
+
+Te escribo por otra cosa: llevo meses montando un pequeño
+programa que ayuda a restaurantes a responder reseñas de
+Google con IA. Si queréis os monto en unos minutos un PDF
+de 3 páginas con lo que veo en vuestras reseñas del último
+mes — lo que más alaban, lo que menos, y cuáles llevan más
+tiempo sin respuesta.
+
+Gratis, sin compromiso de nada. En IG no puedo adjuntar,
+¿me pasas un mail o WhatsApp y os lo envío?
+
+Un abrazo,
+Manuel
+velacre.com · info@velacre.com
+```
+
+---
+
+## 17 · Gloria Bendita (A Coruña) · Añadido 2026-04-16
+
+**Canal**: IG DM (verificar handle) · **Hook**: nombre con fuerza/branding claro, 4,4★ con 1.531 reseñas en A Coruña · **Mini Radar**: pendiente de generar
+
+```
+Boas 👋
+
+Soy Manuel, de Ferrol. Os sigo en redes — el nombre Gloria
+Bendita ya se gana el punto de que te acuerdes, y con más
+de 1.500 reseñas en A Coruña se nota que hay cocina detrás,
+no solo un branding bueno.
+
+Te escribo por otra cosa: llevo meses montando un pequeño
+programa que ayuda a restaurantes a responder reseñas de
+Google con IA. Si queréis os monto en unos minutos un PDF
+de 3 páginas con lo que veo en vuestras reseñas del último
+mes — lo que más alaban, lo que menos, y cuáles llevan más
+tiempo sin respuesta.
+
+Gratis, sin compromiso de nada. En IG no puedo adjuntar,
+¿me pasas un mail o WhatsApp y os lo envío?
+
+Un abrazo,
+Manuel
+velacre.com · info@velacre.com
+```
+
+---
+
+## 18 · Restaurante O Pincho (Ferrol) · Añadido 2026-04-16
+
+**Canal**: IG DM (verificar handle) · **Hook**: **único de Ferrol en el ranking**, #5 de 181 restaurantes de la ciudad en TripAdvisor, 4,4★ con ~2.900 reseñas, calle María 95, especialidad plancha · **Mini Radar**: pendiente de generar · **Nota**: **ventaja local** — Manuel es de Ferrol, el "también de Ferrol" en el saludo es un diferencial poderoso de afinidad que no se puede replicar con otros prospects
+
+```
+Boas 👋
+
+Soy Manuel, también de Ferrol. Por la calle María siempre
+se escucha bien de O Pincho — el #5 de la ciudad en
+TripAdvisor y casi 2.900 reseñas con 4,4★ no es habitual
+ni en restaurantes que llevan décadas.
+
+Os escribo por otra cosa: llevo meses montando un pequeño
+programa que ayuda a restaurantes a responder reseñas de
+Google con IA. Si queréis os monto en unos minutos un PDF
+de 3 páginas con lo que veo en vuestras reseñas del último
+mes — lo que más alaban, lo que menos, y cuáles llevan más
+tiempo sin respuesta.
+
+Gratis, sin compromiso de nada. En IG no puedo adjuntar,
+¿me pasas un mail o WhatsApp y os lo envío?
+
+Un abrazo,
+Manuel
+velacre.com · info@velacre.com
+```
+
+---
+
 # Notas de uso
 
 **Follow-up**: 1 solo recordatorio amistoso a los 7 días si no responden. Nunca insistir más. (Coherente con la regla del prospect #1.)
@@ -402,5 +574,7 @@ velacre.com · info@velacre.com
 - Para los que llevan "Boas" en gallego (A Pedra, do Bispo, de Cunqueiro, Noiesa): confirmar que el interlocutor entiende gallego fluido (todos los gallegos, pero puede haber staff de fuera)
 
 **Nota sobre Gumer**: junto con Hotel Plaza, son los 2 únicos prospects donde el pitch es "ya respondéis pero podéis mejorar calidad/personalización". Agrupa ambos el mismo día para no mezclar con los DMs de pitch estándar "no respondéis" — el tono y la expectativa de respuesta son distintas.
+
+**Nota sobre la segunda oleada (#13-#18, añadidos 2026-04-16)**: ninguno tiene Mini Radar generado aún. Los DMs usan tiempo verbal condicional ("si quieres te lo monto") para no comprometer un PDF inexistente. Cuando respondan interesados, generas el Mini Radar y lo envías. Si prefieres generarlo antes (más potencia en el primer disparo), cambia el tiempo verbal a presente en el DM concreto antes de enviar. **O Pincho** y **The Othilio Bar** son los 2 con hooks más personales (Ferrol local / Carlos Rodal Can Roca) — merecen PDF a tiro si vas a gastar Mini Radar en alguno.
 
 **Si se cae algún DM por falta de handle/DM cerrado**: busca web/email del negocio y usa el mismo texto con pequeños ajustes ("Os escribo este email" en lugar de "por aquí").
