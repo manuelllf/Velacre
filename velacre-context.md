@@ -127,7 +127,7 @@ Cuando se active la integración directa con Google Business Profile:
 
 ### Estado de pagos
 
-Checkout Lemon Squeezy implementado y probado en modo test Y en live mode. Tienda sin activar hasta alta como autónomo — cuando se active, los pagos en producción se procesarán automáticamente con IVA correcto (LS como Merchant of Record).
+Checkout Lemon Squeezy **activo en producción (live mode) desde 2026-04-16**. Cobra con IVA correcto automáticamente (LS como Merchant of Record). Los prospects que conviertan pueden pagar Core/Pro directamente desde el onboarding sin workaround manual.
 
 ---
 
@@ -232,7 +232,7 @@ Registro (Google OAuth o email)
 | **Outscraper** | Scraping de reseñas de Google sin necesidad de OAuth. Pricing oficial: **~$0,003 por reseña scrapeada** (Reviews V3 endpoint), es decir ~$0,18 por llamada estándar de 60 reseñas y ~$0,09 por una de 30. Permite importar reseñas desde el día 1 sin aprobación de Google. | ✅ Activo. Fallback si GBP no está conectado. |
 | **Google Business Profile** | Importación nativa + publicación directa de respuestas en Google (sin copy-paste). Valor diferencial clave vs competencia. | 🟡 Implementado, pendiente aprobación Google. |
 | **Google Places** | Buscar negocios por nombre en onboarding y Mini Radar. | ✅ Activo. |
-| **Lemon Squeezy** | Pagos con IVA incluido (MoR), checkout, portal de gestión para el cliente, webhooks de suscripción. Sin necesidad de gestionar facturación propia. | ✅ Implementado y probado. Pendiente activación tienda (alta autónomo). |
+| **Lemon Squeezy** | Pagos con IVA incluido (MoR), checkout, portal de gestión para el cliente, webhooks de suscripción. Sin necesidad de gestionar facturación propia. | ✅ **Activo en producción** (live mode, 2026-04-16). |
 | **Resend** | Emails transaccionales (bienvenida, reportes de error). Los emails de suscripción los envía LS directamente. | ✅ Activo. |
 | **Supabase Auth** | Auth con email+pwd y Google OAuth. JWT para el backend. Sin dependencia de auth propio. | ✅ Activo. |
 
@@ -404,9 +404,10 @@ Registro (Google OAuth o email)
 - Al activar: quitar CSS de badges "Próximamente" + subir precios Core/Pro.
 - Cierra el flanco abierto #1 vs wiReply.
 
-### Prioridad máxima — Activar pagos
-- Alta como autónomo → activar tienda LS (payout/datos bancarios).
-- Checkout ya probado en test y live mode. Descuentos creados (99% test, 15% primeros clientes).
+### ~~Prioridad máxima — Activar pagos~~ ✅ Resuelto 2026-04-16
+- Tienda Lemon Squeezy **activa en producción (live mode)**. Los prospects pueden pagar Core/Pro directamente.
+- Descuentos creados (99% test para QA, 15% primeros clientes para outreach).
+- Próximo paso operativo: cuando cierre el primer cliente, generarle el cupón 15% antes de mandarle el link de checkout.
 
 ### Prioridad alta — Outreach / Captación
 
