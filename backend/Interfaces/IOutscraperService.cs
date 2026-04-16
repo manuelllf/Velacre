@@ -10,6 +10,13 @@ public interface IOutscraperService
 
     /// <summary>Obtiene las últimas N reseñas de un competidor para análisis comparativo.</summary>
     Task<List<OutscraperReview>> GetCompetitorReviewsAsync(string placeId, int limit = 20);
+
+    /// <summary>
+    /// Reseñas publicadas en los últimos N días (filtrado server-side por cutoff + defensa client-side).
+    /// Usado por el Mini Radar (prospección B2B) para calcular métricas reales: tasa de respuesta,
+    /// volumen del último mes, etc. Mapeo completo incluyendo owner_answer.
+    /// </summary>
+    Task<List<OutscraperReview>> GetRecentReviewsAsync(string placeId, int dias = 30, int maxReviews = 200);
 }
 
 public record OutscraperReview(

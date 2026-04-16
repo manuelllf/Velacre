@@ -175,18 +175,16 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   doc.text(resumenLines, ML, y)
   y += resumenLines.length * 5 + 8
 
-  // 4 KPIs grid 2x2
+  // 3 KPIs en fila (Rating / Reseñas último mes / % Respondidas)
   sectionLabel(doc, 'MÉTRICAS CLAVE', y, ML)
   y += 12
-  const cardW = (CW - 6) / 2
+  const cardW = (CW - 8) / 3
   const cardH = 24
   kpiCard(doc, ML, y, cardW, cardH, 'Rating medio', `${ratingLabel} / 5`, INDIGO)
-  kpiCard(doc, ML + cardW + 6, y, cardW, cardH, 'Reseñas analizadas', `${stats.total}`, GREEN)
-  y += cardH + 5
-  kpiCard(doc, ML, y, cardW, cardH, 'Últimos 30 días', `${stats.ult30d} reseñas`, AMBER)
+  kpiCard(doc, ML + cardW + 4, y, cardW, cardH, 'Reseñas último mes', `${stats.total}`, GREEN)
   kpiCard(
     doc,
-    ML + cardW + 6,
+    ML + (cardW + 4) * 2,
     y,
     cardW,
     cardH,

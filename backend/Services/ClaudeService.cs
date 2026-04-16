@@ -358,7 +358,7 @@ public class ClaudeService : IReviewAiService
     }
 
     public async Task<string> GenerateMiniRadarAnalysisAsync(string nombreNegocio, string resenasText,
-        double ratingAvg, int pctRespondidas, int ult30d, int ult90d)
+        double ratingAvg, int pctRespondidas, int totalUltimoMes)
     {
         var systemPrompt =
             "Eres un asesor de confianza que ayuda a dueños de bares, restaurantes, hoteles y clínicas pequeñas a entender qué dicen sus clientes en Google. " +
@@ -377,8 +377,8 @@ public class ClaudeService : IReviewAiService
 
         var userPrompt =
             $"Negocio: {nombreNegocio}\n" +
-            $"Stats: rating medio {ratingAvg:F2}/5, {pctRespondidas}% respondidas, {ult30d} reseñas últimos 30 días, {ult90d} reseñas últimos 90 días.\n\n" +
-            $"Últimas reseñas (más recientes primero):\n{resenasText}";
+            $"Stats (últimos 30 días): {totalUltimoMes} reseñas, rating medio {ratingAvg:F2}/5, {pctRespondidas}% respondidas por el propietario.\n\n" +
+            $"Reseñas del último mes (más recientes primero):\n{resenasText}";
 
         return await GetClaudeMessageAsync(userPrompt, systemPrompt);
     }

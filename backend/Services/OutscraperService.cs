@@ -39,9 +39,7 @@ public class OutscraperService : IOutscraperService
         _logger.LogInformation("[OutscraperService] Sync {Mode} — placeId={PlaceId}, limit={Limit}, sinceDate={Since}",
             mode, placeId, limit, sinceDate?.ToString("yyyy-MM-dd") ?? "—");
 
-        // Construir URL
         var url = $"{BaseUrl}?query={Uri.EscapeDataString(placeId)}&reviewsLimit={limit}&sort=newest&async=false";
-
         if (!isInitial && sinceDate.HasValue)
         {
             var cutoff = sinceDate.Value.ToUnixTimeSeconds();
@@ -49,21 +47,66 @@ public class OutscraperService : IOutscraperService
             _logger.LogDebug("[OutscraperService] cutoff={Cutoff} ({Date})", cutoff, sinceDate.Value.ToString("yyyy-MM-dd"));
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add("X-API-KEY", _apiKey);
+        var results = await FetchAndMapAsync(url, $"sync {mode}");
+        _logger.LogInformation("[OutscraperService] {Count} reseñas obtenidas (modo {Mode})", results.Count, mode);
+        return results;
+    }
+
+    public async Task<List<OutscraperReview>> GetCompetitorReviewsAsync(string placeId, int limit = 20)
+    {
+        if (string.IsNullOrEmpty(_apiKey)) return [];
+        _logger.LogInformation("[OutscraperService] Competidor snapshot — placeId={PlaceId}, limit={Limit}", placeId, limit);
+
+        var url = $"{BaseUrl}?query={Uri.EscapeDataString(placeId)}&reviewsLimit={limit}&sort=newest&async=false";
+        var results = await FetchAndMapAsync(url, "competidor");
+        _logger.LogInformation("[OutscraperService] Competidor: {Count} reseñas", results.Count);
+        return results;
+    }
+
+    public async Task<List<OutscraperReview>> GetRecentReviewsAsync(string placeId, int dias = 30, int maxReviews = 200)
+    {
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            _logger.LogWarning("[OutscraperService] API key no configurada, abortando GetRecentReviewsAsync");
+            return [];
+        }
+
+        var sinceDate = DateTimeOffset.UtcNow.AddDays(-dias);
+        var cutoff = sinceDate.ToUnixTimeSeconds();
+
+        _logger.LogInformation("[OutscraperService] Recent reviews — placeId={PlaceId}, dias={Dias}, cutoff={Date}",
+            placeId, dias, sinceDate.ToString("yyyy-MM-dd"));
+
+        var url = $"{BaseUrl}?query={Uri.EscapeDataString(placeId)}&reviewsLimit={maxReviews}&sort=newest&cutoff={cutoff}&async=false";
+        var results = await FetchAndMapAsync(url, "recent");
+
+        // Defensa client-side por si cutoff falla o llega alguna reseña sin fecha
+        var filtered = results.Where(r => r.PublishedAt >= sinceDate).ToList();
+
+        var respondidas = filtered.Count(r => !string.IsNullOrEmpty(r.OwnerAnswer));
+        _logger.LogInformation("[OutscraperService] Recent: {Total} reseñas últimos {Dias}d, {Resp} respondidas",
+            filtered.Count, dias, respondidas);
+
+        return filtered;
+    }
+
+    // ─── Helpers privados ────────────────────────────────────────────────────
+
+    private async Task<List<OutscraperReview>> FetchAndMapAsync(string url, string context)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Add("X-API-KEY", _apiKey);
 
         try
         {
-            var response = await _http.SendAsync(request);
+            var response = await _http.SendAsync(req);
             var body = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("[OutscraperService] Error HTTP {Status}: {Body}", response.StatusCode, body);
+                _logger.LogError("[OutscraperService] HTTP {Status} ({Ctx}): {Body}", response.StatusCode, context, body);
                 return [];
             }
-
-            _logger.LogDebug("[OutscraperService] Respuesta recibida ({Bytes} bytes)", body.Length);
 
             var json = JsonDocument.Parse(body);
             var results = new List<OutscraperReview>();
@@ -71,7 +114,7 @@ public class OutscraperService : IOutscraperService
             // Estructura: { "data": [ { "reviews_data": [{...}, ...] } ] }
             if (!json.RootElement.TryGetProperty("data", out var dataArr))
             {
-                _logger.LogWarning("[OutscraperService] Respuesta sin campo 'data'");
+                _logger.LogWarning("[OutscraperService] Respuesta sin campo 'data' ({Ctx})", context);
                 return results;
             }
 
@@ -82,72 +125,41 @@ public class OutscraperService : IOutscraperService
 
                 foreach (var review in reviewsData.EnumerateArray())
                 {
-                    var reviewId   = review.TryGetProperty("review_id", out var rid) ? rid.GetString() ?? "" : "";
-                    var author     = review.TryGetProperty("author_title", out var a) ? a.GetString() ?? "Anónimo" : "Anónimo";
-                    var ratingProp = review.TryGetProperty("review_rating", out var r) ? r : default;
-                    var rating     = ratingProp.ValueKind == JsonValueKind.Number ? ratingProp.GetInt32() : 0;
-                    var text       = review.TryGetProperty("review_text", out var t) ? t.GetString() ?? "" : "";
-                    var dateStr    = review.TryGetProperty("review_datetime_utc", out var d) ? d.GetString() ?? "" : "";
-                    var ownerAns   = review.TryGetProperty("owner_answer", out var oa) && oa.ValueKind == JsonValueKind.String
-                                     ? oa.GetString() : null;
-                    var lang       = review.TryGetProperty("review_lang", out var l) && l.ValueKind == JsonValueKind.String
-                                     ? l.GetString() : null;
-
-                    if (string.IsNullOrEmpty(reviewId)) continue;
-
-                    var publishedAt = ParseDate(dateStr);
-                    results.Add(new OutscraperReview(reviewId, author, rating, text, publishedAt, ownerAns, lang));
+                    var mapped = MapReview(review);
+                    if (mapped != null) results.Add(mapped);
                 }
             }
 
-            _logger.LogInformation("[OutscraperService] {Count} reseñas obtenidas (modo {Mode})", results.Count, mode);
             return results;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[OutscraperService] Excepción al obtener reseñas");
+            _logger.LogError(ex, "[OutscraperService] Excepción ({Ctx})", context);
             return [];
         }
     }
 
-    public async Task<List<OutscraperReview>> GetCompetitorReviewsAsync(string placeId, int limit = 20)
+    /// <summary>
+    /// Mapeo centralizado de una reseña de Outscraper (reviews-v3).
+    /// Incluye todos los campos relevantes: autor, rating, texto, fecha,
+    /// respuesta del propietario e idioma detectado.
+    /// </summary>
+    private static OutscraperReview? MapReview(JsonElement review)
     {
-        if (string.IsNullOrEmpty(_apiKey)) return [];
-        _logger.LogInformation("[OutscraperService] Competidor snapshot — placeId={PlaceId}, limit={Limit}", placeId, limit);
+        var reviewId = review.TryGetProperty("review_id", out var rid) ? rid.GetString() ?? "" : "";
+        if (string.IsNullOrEmpty(reviewId)) return null;
 
-        var url = $"{BaseUrl}?query={Uri.EscapeDataString(placeId)}&reviewsLimit={limit}&sort=newest&async=false";
-        var req = new HttpRequestMessage(HttpMethod.Get, url);
-        req.Headers.Add("X-API-KEY", _apiKey);
+        var author     = review.TryGetProperty("author_title", out var a) ? a.GetString() ?? "Anónimo" : "Anónimo";
+        var ratingProp = review.TryGetProperty("review_rating", out var r) ? r : default;
+        var rating     = ratingProp.ValueKind == JsonValueKind.Number ? ratingProp.GetInt32() : 0;
+        var text       = review.TryGetProperty("review_text", out var t) ? t.GetString() ?? "" : "";
+        var dateStr    = review.TryGetProperty("review_datetime_utc", out var d) ? d.GetString() ?? "" : "";
+        var ownerAns   = review.TryGetProperty("owner_answer", out var oa) && oa.ValueKind == JsonValueKind.String
+                         ? oa.GetString() : null;
+        var lang       = review.TryGetProperty("review_lang", out var l) && l.ValueKind == JsonValueKind.String
+                         ? l.GetString() : null;
 
-        try
-        {
-            var response = await _http.SendAsync(req);
-            var body = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode) { _logger.LogError("[OutscraperService] Competidor HTTP {S}", response.StatusCode); return []; }
-
-            var json = JsonDocument.Parse(body);
-            var results = new List<OutscraperReview>();
-            if (!json.RootElement.TryGetProperty("data", out var dataArr)) return results;
-
-            foreach (var dataItem in dataArr.EnumerateArray())
-            {
-                if (!dataItem.TryGetProperty("reviews_data", out var reviewsData)) continue;
-                foreach (var review in reviewsData.EnumerateArray())
-                {
-                    var reviewId   = review.TryGetProperty("review_id",     out var rid) ? rid.GetString() ?? "" : "";
-                    var author     = review.TryGetProperty("author_title",  out var a)   ? a.GetString()   ?? "Anónimo" : "Anónimo";
-                    var ratingProp = review.TryGetProperty("review_rating", out var r)   ? r : default;
-                    var rating     = ratingProp.ValueKind == JsonValueKind.Number ? ratingProp.GetInt32() : 0;
-                    var text       = review.TryGetProperty("review_text",   out var t)   ? t.GetString()   ?? "" : "";
-                    var dateStr2   = review.TryGetProperty("review_datetime_utc", out var d) ? d.GetString() ?? "" : "";
-                    if (string.IsNullOrEmpty(reviewId)) continue;
-                    results.Add(new OutscraperReview(reviewId, author, rating, text, ParseDate(dateStr2)));
-                }
-            }
-            _logger.LogInformation("[OutscraperService] Competidor: {Count} reseñas", results.Count);
-            return results;
-        }
-        catch (Exception ex) { _logger.LogError(ex, "[OutscraperService] Error en GetCompetitorReviewsAsync"); return []; }
+        return new OutscraperReview(reviewId, author, rating, text, ParseDate(dateStr), ownerAns, lang);
     }
 
     private static DateTimeOffset ParseDate(string dateStr)

@@ -37,5 +37,5 @@ public interface IReviewAiService
     /// Devuelve JSON con fortalezas, debilidades, accion, resumen, emailPitch.
     /// </summary>
     Task<string> GenerateMiniRadarAnalysisAsync(string nombreNegocio, string resenasText,
-        double ratingAvg, int pctRespondidas, int ult30d, int ult90d);
+        double ratingAvg, int pctRespondidas, int totalUltimoMes);
 }

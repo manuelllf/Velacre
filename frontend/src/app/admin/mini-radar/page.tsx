@@ -351,10 +351,9 @@ export default function MiniRadarPage() {
                 {result.placeId}
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
                 <KpiBox label={mr.ratingLabel} value={`${result.stats.ratingAvg.toFixed(2)}`} suffix="/5" />
-                <KpiBox label={mr.reviewsAnalyzed} value={`${result.stats.total}`} />
-                <KpiBox label={mr.last30d} value={`${result.stats.ult30d}`} />
+                <KpiBox label={mr.reviewsLastMonth} value={`${result.stats.total}`} />
                 <KpiBox
                   label={mr.pctResponded}
                   value={`${result.stats.pctRespondidas}%`}
