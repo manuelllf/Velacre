@@ -382,7 +382,7 @@ public class ClaudeService : IReviewAiService
             " - Velocidad asimétrica: las 5★ se contestan rápido, las 1-2★ se dejan días.\n" +
             " - Falta de firma personal: el dueño nunca firma con su nombre, respuestas anónimas.\n" +
             "Regla dura sobre 'oportunidad': si NO hay un patrón claro y evidente en los datos reales, devuelve \"oportunidad\": null. PROHIBIDO inventar patrones o exagerar. Si hay dudas, null.\n" +
-            "Reglas duras generales: (1) No inventes datos que no estén en las reseñas. (2) No uses comillas dobles dentro de los valores de los strings JSON, usa apóstrofes si necesitas. (3) Si encuentras la palabra 'SEO' o 'ranking' o 'CTR' en tu borrador, reescríbelo en lenguaje humano antes de devolverlo. (4) Los 'ejemplos' del campo oportunidad deben ser extractos reales, no invenciones.";
+            "Reglas duras generales: (1) No inventes datos que no estén en las reseñas. (2) No uses comillas dobles dentro de los valores de los strings JSON, usa apóstrofes si necesitas. (3) Si encuentras la palabra 'SEO' o 'ranking' o 'CTR' en tu borrador, reescríbelo en lenguaje humano antes de devolverlo. (4) Los 'ejemplos' del campo oportunidad deben ser extractos reales, no invenciones. (5) Puntuación correcta: NUNCA pongas espacio antes de coma, punto, punto y coma o dos puntos. Escribe 'hola, qué tal' NO 'hola , qué tal'. Escribe 'final.' NO 'final .'. Tampoco empieces los items de arrays con guión ('-') porque el layout del PDF ya los rendera con su propio bullet.";
 
         // Formato de fechas en español (ej: "17 mar 2026")
         var desdeStr = fechaDesde.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-ES"));

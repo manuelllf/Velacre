@@ -183,12 +183,15 @@ export interface YearlyPdfData {
   summary: SummaryData | null
 }
 
-// Elimina caracteres fuera de WinAnsi (Helvetica jsPDF)
+// Elimina caracteres fuera de WinAnsi + arregla puntuación típica de LLMs
 function safe(s: string): string {
-  // Los modelos sueltan em-dash/en-dash (U+2013/2014) que están fuera de Latin-1
-  // y el strip los dejaba como huecos raros. Los sustituimos por coma, que
-  // cumple la misma función sintáctica en castellano.
-  return s.replace(/[\u2012-\u2015]/g, ',').replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
+  return s
+    // em-dash/en-dash (U+2013/2014) → coma (cumplen función similar en castellano)
+    .replace(/[\u2012-\u2015]/g, ',')
+    // Espacio antes de puntuación (Claude lo mete a veces): "hola , qué" → "hola, qué"
+    .replace(/\s+([,.;:!?])/g, '$1')
+    // Strip caracteres fuera de WinAnsi
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
 }
 
 function varText(

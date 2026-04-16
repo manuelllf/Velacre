@@ -18,12 +18,15 @@ const SLATE_900: RGB = [15, 23, 42]
 
 // ─── Utilidades ──────────────────────────────────────────────────────────────
 
-/** Elimina caracteres fuera de WinAnsi (Helvetica jsPDF soporta hasta \xFF) */
+/** Elimina caracteres fuera de WinAnsi + arregla puntuación típica de LLMs */
 function safe(s: string): string {
-  // Los modelos sueltan em-dash/en-dash (U+2013/2014) que están fuera de Latin-1
-  // y el strip los dejaba como huecos raros. Los sustituimos por coma, que
-  // cumple la misma función sintáctica en castellano.
-  return s.replace(/[\u2012-\u2015]/g, ',').replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
+  return s
+    // em-dash/en-dash (U+2013/2014) → coma (cumplen función similar en castellano)
+    .replace(/[\u2012-\u2015]/g, ',')
+    // Espacio antes de puntuación (Claude lo mete a veces): "hola , qué" → "hola, qué"
+    .replace(/\s+([,.;:!?])/g, '$1')
+    // Strip caracteres fuera de WinAnsi
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
 }
 
 /** Sanitiza un nombre para usarlo como parte de un filename */
@@ -383,7 +386,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
     y += 8
   } else {
     for (const f of fortalezas) {
-      const lines = wrapText(doc, `- ${f}`, CW - 4)
+      const lines = wrapText(doc, f, CW - 4)
       doc.setTextColor(...GREEN)
       doc.setFont('helvetica', 'bold')
       doc.text('+', ML, y)
@@ -405,7 +408,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
     y += 8
   } else {
     for (const d of debilidades) {
-      const lines = wrapText(doc, `- ${d}`, CW - 4)
+      const lines = wrapText(doc, d, CW - 4)
       doc.setTextColor(...RED)
       doc.setFont('helvetica', 'bold')
       doc.text('-', ML, y)
