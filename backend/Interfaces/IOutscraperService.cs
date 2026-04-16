@@ -10,6 +10,11 @@ public interface IOutscraperService
 
     /// <summary>Obtiene las últimas N reseñas de un competidor para análisis comparativo.</summary>
     Task<List<OutscraperReview>> GetCompetitorReviewsAsync(string placeId, int limit = 20);
+
+Task<List<OutscraperReview>> GetReviewsAsync(string placeId, DateTimeOffset? sinceDate = null);
+    Task<List<OutscraperReview>> GetCompetitorReviewsAsync(string placeId, int limit = 20);
+    Task<List<OutscraperReview>> GetRecentReviewsAsync(string placeId, int dias = 30, int maxReviews = 200);
+
 }
 
 public record OutscraperReview(
