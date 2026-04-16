@@ -183,7 +183,11 @@ Backend completo: OAuth flow, listar locales, publicar respuestas directamente e
 **Modo de publicación (diseño decidido, pendiente de implementar):** por defecto, modo supervisado — el usuario revisa y aprueba cada respuesta antes de publicar en Google. Para activar auto-publicación, el usuario debe marcar un toggle en Settings y guardar cambios. Esto es deliberado: los dueños de negocio tienen miedo a que la IA publique sin su control. El modo supervisado es el estándar, auto-publicar es opt-in explícito.
 
 ### Mini Radar — herramienta de prospección B2B (admin)
-Herramienta interna para generar informes gratuitos de cualquier negocio como lead magnet de outreach. Busca por Google Places, scraping 30 reseñas + Claude genera diagnóstico + email pitch en lenguaje humano (sin jerga SEO). PDF de 3 páginas descargable. Coste real por informe: ~€0,13-0,18 (30 reseñas Outscraper ≈ $0,09 ≈ €0,08 + 1 llamada Claude Sonnet ≈ €0,05-0,10). Sin persistencia. Incluye regla de auto-revisión que prohíbe tecnicismos ("SEO", "CTR", "ranking", etc.) y obliga a lenguaje de "vecino que quiere echar una mano".
+Herramienta interna para generar informes gratuitos de cualquier negocio como lead magnet de outreach. Busca por Google Places, scraping de reseñas de los últimos 30 días (cutoff server-side + limit 60) con `owner_answer` mapeado → Claude analiza reseñas y respuestas → PDF de 3 páginas con KPIs, quejas sin responder, **oportunidad detectada** (patrón de mejora concreto con 3 ejemplos reales), diagnóstico IA y email pitch en lenguaje humano (sin jerga SEO).
+
+**Transparencia**: PDF muestra rango real de fechas del sample (*"Análisis de las N reseñas más recientes, del X al Y"*). No ment "30 reseñas del último mes" cuando el sample cubre menos (high-volume) o más (low-volume). Layout: 3 tarjetas KPI en fila (Rating / Reseñas analizadas con rango / % Respondidas).
+
+**Coste real por informe**: ~€0,13-0,18 (Outscraper reviews-v3 ≈ $0,003 por reseña devuelta, ~$0,09-0,18 dependiendo del volumen + 1 llamada Claude Sonnet ≈ €0,05-0,10). Sin persistencia. Prompt con auto-revisión que prohíbe tecnicismos ("SEO", "CTR", "ranking", etc.) y obliga a lenguaje de "vecino que quiere echar una mano".
 
 ### PWA instalable
 Service Worker + manifest. Instalable en Android (prompt nativo) e iOS (instrucciones "Compartir → Añadir"). Banner solo en landing/inicio, primera vez de por vida, auto-hide 10s.
@@ -348,13 +352,48 @@ Registro (Google OAuth o email)
 - **Fix pricing Outscraper en velacre-context.md:** corregido el shorthand incorrecto "~€0,02/llamada" (4 puntos afectados) al pricing oficial real **~$0,003 por reseña scrapeada** (Outscraper cobra por reseña, no por llamada). Esto implica ~$0,18 por llamada de 60 reseñas. Mini Radar real ~€0,13-0,18 (antes documentado como €0,05). Radar competencia real ~€0,22-0,28 (antes €0,02-0,06).
 - **Aprendizaje:** 2 errores consecutivos con Outscraper costaron ~$11 (modelo de pricing mal estimado + relanzar tras bug parseDate sin smoke test previo). Regla guardada en memoria del fundador: autorización explícita obligatoria para cualquier gasto en APIs de pago.
 
-### 2026-04-16 — Landing rework + i18n fixes + onboarding fix + PDF fix
+### 2026-04-16 — Sesión intensiva: landing rework + Mini Radar arreglado + outreach en marcha
 - **Calculadora ROI eliminada** de la landing (hardcoded ES, no i18n, no resonaba con el target). Reemplazada por **Radar Preview dummy** con 3 competidores ficticios, 4 categorías con barras de score (0-10), badges de amenaza (Alta/Media/Baja) y overlay "Disponible en Pro". Genera FOMO mostrando lo que el plan Pro ofrece.
 - **Panel de Salud en landing ampliado:** añadidas 3 tarjetas dummy de análisis IA (brilla/quema/acción) con badge "Solo en Pro", replicando el aspecto real del dashboard Pro.
 - **Badges de pricing corregidos:** Core tenía "Más popular" hardcoded en español → ahora i18n (`core.badge`). Pro en EN decía "Most popular" (colisión con Core) → cambiado a "Top choice". Ambos badges usan claves de locale correctas en ES/EN/GAL.
 - **Onboarding: logo duplicado en móvil corregido.** Había un `<Link>Velacre</Link>` + `<h1>{ob.title}</h1>` que renderizaban "Velacre" dos veces. Eliminado el redundante, h1 ahora es clickable. Fix aplicado en las 3 ramas condicionales del mismo fichero (loading, GBP select, formulario).
 - **i18n completo:** todos los textos nuevos tienen claves en ES/EN/GAL. Gallego revisado (servizo, prezo, ameaza, queixan, recensions). 0 strings hardcodeados en componentes nuevos.
 - **Fix PDF em-dash:** los 3 generadores de PDF (mini radar, mensual, anual) ahora sustituyen em-dash/en-dash de LLMs por coma antes del strip WinAnsi, eliminando los huecos raros que aparecían en texto generado por IA.
+
+#### Mini Radar — rediseño crítico (bug + feature + fix timeout)
+
+- **Bug crítico resuelto**: el Mini Radar mostraba `% Respondidas: 0%` siempre. Causa: `AdminController.MiniRadar` llamaba a `GetCompetitorReviewsAsync` que construía el record `OutscraperReview` con solo 5 campos (sin `owner_answer`). Al contestar 0% en todos los PDFs, Velacre mentía a los prospects. Cabañitas del Bosque (83% real) y Porto Santo (0% real) tenían el mismo PDF falso hasta el fix.
+- **Nuevo método `GetRecentReviewsAsync(placeId, dias, maxReviews)`** en OutscraperService: usa `cutoff` server-side de Outscraper v3 + filtro client-side por fecha. Mapeo completo incluyendo `owner_answer` y `lang`. Helper privado `MapReview` compartido entre los 3 métodos del servicio (elimina duplicación).
+- **Fix del fix (timeout)**: primera versión usaba `maxReviews=200` que causaba `TaskCanceledException` a los 100s en Outscraper síncrono. Bajado a **60**, valor ya validado por el pipeline outreach (queries.json).
+- **Transparencia de fechas en el PDF**: la tarjeta KPI ahora dice "Reseñas analizadas: N / del X al Y". Header de página 1: *"Análisis de las N reseñas más recientes, del X al Y"*. Elimina el engaño potencial de "30 reseñas del último mes" cuando el sample cubría menos de 30 días (caso Cabañitas: 60 reseñas en 17 días) o cuando el negocio tenía menos volumen. Layout pasó de 4 tarjetas 2x2 (con "Últimos 30 días" redundante) a 3 tarjetas en fila.
+- **Nuevo campo `oportunidad`** en el análisis IA: Claude detecta UN patrón de mejora concreto (respuestas clonadas, positivas sin contestar, queja repetida ignorada, respuestas impersonales, velocidad asimétrica, falta firma) con título + descripción + 3 ejemplos reales extraídos de las reseñas. Se renderiza en pág 2 del PDF. Si no hay patrón claro, Claude devuelve `null` y la sección no aparece (regla estricta anti-alucinación). Llena la página 2 que antes quedaba casi vacía en negocios sin reseñas negativas pendientes — es el hook comercial más potente del informe.
+- **Polisher fixes PDF**: eliminado doble guión en bullets de fortalezas/debilidades ("+ - Texto" ahora es solo "+ Texto"). Añadida regex `/\s+([,.;:!?])/g → $1` en `safe()` de ambos PDF (mini-radar + report) para eliminar espacios antes de puntuación que Claude a veces mete.
+
+#### Outreach en marcha — primera oleada enviada
+
+- **DMs enviados**: el top 11 generado el 15 abril + Gumer (añadido tras Mini Radar) están casi todos enviados vía IG DM y email.
+- **Respuestas iniciales**: Porto Santo (Vigo) y Cabañitas del Bosque respondieron por IG → pidieron el PDF por email → clavan "visto" en correo (fase de evaluación).
+- **Research nuevo** añadido a la memoria de outreach:
+  - **Tiagos Churrasco** (Santiago) — chef Fran, churrascaria grande (200 comensales), 30 reseñas/mes, 40% respondidas → ICP ideal, pitch "no respondéis"
+  - **Lola & Lía** (Vigo) — hermanas Nazaret y Sheila Silva, cadena de 3 locales → fuera de ICP actual (multi-ubicación en backlog), parkeado hasta implementación
+  - **Gumer** (Pontevedra) — chef Andrés Virgós + sala Javier Coya, #1 TripAdvisor Pontevedra, 95% respondidas → pitch "ya respondéis pero..." como Hotel Plaza, ángulo Radar Competencia
+
+#### Infraestructura email operativa
+
+- **Gmail "Send as" con Resend SMTP configurado**: puedes enviar desde `info@velacre.com` a mano (móvil + desktop) manteniendo la app de Gmail. Setup: Resend SMTP (smtp.resend.com:465, user `resend`, password = RESEND_API_KEY) + "Treat as alias" marcado para headers limpios.
+- **Email Forwarding de Namecheap activado**: `info@velacre.com` → `infovelacre@gmail.com`. DNS MX del apex publicado (`eforward*.registrar-servers.com`), SPF apex auto-generado. Resend en `send.velacre.com` (subdominio aislado) sigue intacto — el MX de `send` pendiente de re-añadir manualmente en Host Records (Namecheap lo borró al cambiar preset). No bloquea envío, solo afecta tracking de bounces.
+
+#### Saldado de deuda en docs
+
+- **Auditoría completa** de `velacre-context.md` y `velacre-context-technical.md`: 20+ items stale corregidos (métricas de código, conteo de endpoints, descripción de Providers frontend, estado de Stripe.net eliminado, etc.).
+- **5 endpoints faltantes documentados** en ReviewController (analysis GET/POST, publish-google, summary alias, estado PUT). Header de controller corregido: 7→13 endpoints.
+- **Métricas actualizadas**: LOC ~18k→~21k, endpoints 45→49, claves i18n ~550→~800.
+
+#### Preparación para primer cliente de pago
+
+- **Lemon Squeezy tienda activa en producción** — los prospects que contesten "sí, me registro" pueden pagar directamente Core/Pro sin workaround.
+- **`SendRetainedReviewAlertAsync` documentado como dormant por diseño**: la retención ocurre síncronamente cuando el usuario pulsa "generar respuesta", ve el banner ⚠️ en directo. El método queda documentado con comentario explícito para evitar falsos positivos en auditorías futuras. Se conectará cuando exista auto-publicación o cron de generación batch.
+- **Backlog técnico pre-cliente**: verificado. **Cero bloqueantes técnicos** para primer registro. Smoke test end-to-end en móvil pendiente (responsabilidad operativa del fundador, no del código).
 
 ---
 

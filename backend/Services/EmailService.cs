@@ -82,6 +82,19 @@ public class EmailService
         }
     }
 
+    /// <summary>
+    /// Alerta por email cuando una reseña es retenida por el filtro de seguridad.
+    ///
+    /// ⚠️ NO SE LLAMA ACTUALMENTE — por diseño.
+    /// La retención solo ocurre cuando el usuario pulsa "generar respuesta" (endpoints
+    /// POST /api/review/generate y POST /api/review/{id}/generate), momento en el que
+    /// ve el banner ⚠️ en directo en el dashboard. No hace falta notificar fuera de banda.
+    ///
+    /// Conectar este método cuando exista alguno de:
+    ///  - Auto-publicación en GBP (modo no supervisado) — backlog post-GBP
+    ///  - Cron de generación batch (el usuario NO está delante en el momento de la retención)
+    ///  - Webhook de alguna integración externa que dispare generación asíncrona
+    /// </summary>
     public async Task SendRetainedReviewAlertAsync(string toEmail, string negocioNombre, string reviewText, string motivo)
     {
         if (string.IsNullOrEmpty(_apiKey))

@@ -1,6 +1,6 @@
-# DMs personalizados — Top 11 IG-seguidos
+# DMs personalizados — Top 12 IG-seguidos
 
-> **Generado 2026-04-15**. Estilo basado en Template E (O Fogar da Carne) del doc `velacre-email-templates-outreach.docx`.
+> **Generado 2026-04-15** (11 iniciales). **Gumer añadido 2026-04-16** tras research + Mini Radar. Estilo basado en Template E (O Fogar da Carne) del doc `velacre-email-templates-outreach.docx`.
 >
 > **⚠️ IMPORTANTE antes de enviar cualquier DM**:
 > Cada mensaje dice "he probado a analizar vuestras reseñas con mi programa y me saca un PDF...". Eso implica que TIENES el PDF del Mini Radar listo cuando envías. Si no lo has generado, tienes dos opciones:
@@ -362,6 +362,36 @@ velacre.com · info@velacre.com
 
 ---
 
+## 12 · Gumer Restaurante (Pontevedra) · Añadido 2026-04-16
+
+**Canal**: IG DM [@somosgumer](https://www.instagram.com/somosgumer/) · **Hook**: #1 de 292 en TripAdvisor Pontevedra, chef Andrés Virgós + sala Javier Coya, arrancaron en pandemia sin prisas · **Nota**: responden al 95% (pitch distinto, como Hotel Plaza) · **Mini Radar generado** con patrón detectado: "respuestas cortas a reseñas muy trabajadas"
+
+```
+Boas Andrés 👋
+
+Soy Manuel, de Ferrol. Os sigo desde hace tiempo — un
+gastrobar que arrancó en pandemia y hoy es el #1 de
+Pontevedra en TripAdvisor tiene mucho mérito.
+
+Te escribo por otra cosa: llevo meses montando un pequeño
+programa que ayuda a restaurantes a responder reseñas de
+Google con IA. Con vosotros el caso es distinto porque
+respondéis al 95%, eso ya os pone por encima de casi todos.
+Pero me fijé en un patrón: a las reseñas largas (las que
+nombran a Roi, las que cuentan platos) les cae el mismo
+"muchas gracias" que a quien no escribe nada. Mi herramienta os puede aportar esa
+personalización que suma mucho para seguir siendo la referencia en Google.
+
+He preparado un PDF gratis con el análisis del último mes con mi propio sistema,
+sin compromiso de nada. ¿Me pasas un mail o WhatsApp y te lo envío?
+
+Un abrazo,
+Manuel
+velacre.com · info@velacre.com
+```
+
+---
+
 # Notas de uso
 
 **Follow-up**: 1 solo recordatorio amistoso a los 7 días si no responden. Nunca insistir más. (Coherente con la regla del prospect #1.)
@@ -371,12 +401,6 @@ velacre.com · info@velacre.com
 - Verificar que el handle IG existe y tiene DMs abiertos (algunos perfiles de negocio los tienen desactivados)
 - Para los que llevan "Boas" en gallego (A Pedra, do Bispo, de Cunqueiro, Noiesa): confirmar que el interlocutor entiende gallego fluido (todos los gallegos, pero puede haber staff de fuera)
 
-**Orden sugerido de envío** (escalonado 2-3/día para no quemar cuentas ni IG):
-1. **Día 1**: Taberna de Cunqueiro (es el único con nombre del dueño → más personal) + El Papatorio
-2. **Día 2**: Porto Santo + Taberna A Pedra
-3. **Día 3**: Taberna do Bispo + A Noiesa
-4. **Día 4**: Noa Boutique + Mardevela
-5. **Día 5**: Atmos + 1930 Boutique
-6. **Día 6**: Hotel Plaza (prioridad baja por ser "meh")
+**Nota sobre Gumer**: junto con Hotel Plaza, son los 2 únicos prospects donde el pitch es "ya respondéis pero podéis mejorar calidad/personalización". Agrupa ambos el mismo día para no mezclar con los DMs de pitch estándar "no respondéis" — el tono y la expectativa de respuesta son distintas.
 
 **Si se cae algún DM por falta de handle/DM cerrado**: busca web/email del negocio y usa el mismo texto con pequeños ajustes ("Os escribo este email" en lugar de "por aquí").

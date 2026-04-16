@@ -222,7 +222,7 @@ app.Run($"http://0.0.0.0:{PORT ?? 5146}")
 | PUT | `/api/admin/negocios/{negocioId}/place` | Setear place_id a mano |
 | POST | `/api/admin/usuarios/{id}/activar` · `/desactivar` | Legacy, llaman a `/estado` |
 | PUT | `/api/admin/usuarios/{id}/rol` | cliente/admin |
-| POST | `/api/admin/mini-radar` | **B2B**: análisis ad-hoc de un place_id (prospección). **No persiste.** Llama Outscraper + Claude. Devuelve stats + peoresSinResponder + email pitch pre-redactado. |
+| POST | `/api/admin/mini-radar` | **B2B**: análisis ad-hoc de un place_id (prospección). **No persiste.** Llama `GetRecentReviewsAsync(dias=30, max=60)` + Claude. Devuelve `{stats: {total, ratingAvg, distribucion, pctRespondidas, fechaDesde, fechaHasta}, peoresSinResponder, analisis: {fortalezas, debilidades, accion, resumen, emailPitch, oportunidad?}}`. El campo `oportunidad` es nullable: Claude detecta un patrón de mejora concreto (respuestas clonadas, positivas sin contestar, etc.) con 3 ejemplos reales o devuelve null si no hay patrón claro. Ver §19 (2026-04-16). |
 
 **IsAdmin check**: prioriza `ADMIN_USER_ID` env var, con fallback a `rol="admin"` en BD. Anti-escalabilidad (hardcode a 1 admin en env).
 
@@ -330,9 +330,12 @@ app.Run($"http://0.0.0.0:{PORT ?? 5146}")
 
 #### `OutscraperService`
 - Endpoint: `https://api.app.outscraper.com/maps/reviews-v3`.
-- **Inicial**: 60 reseñas. **Incremental**: 500.
+- Tres métodos públicos (refactorizados 2026-04-16 con helper privado `MapReview` compartido):
+  - `GetReviewsAsync(placeId, sinceDate?)` — sync inicial (60 reseñas) / incremental (500, con cutoff).
+  - `GetCompetitorReviewsAsync(placeId, limit=20)` — snapshot rápido para Radar de Competencia.
+  - `GetRecentReviewsAsync(placeId, dias=30, maxReviews=60)` — **Mini Radar** (cutoff server-side + filtro client-side, incluye owner_answer). Límite 60 validado como techo anti-timeout (Outscraper v3 síncrono peta a los 100s con 200).
 - Cutoff como unix timestamp.
-- Mapea `review_id, author_title, review_rating, review_text, review_datetime_utc, owner_answer, review_lang`.
+- `MapReview` centraliza el mapeo de `review_id, author_title, review_rating, review_text, review_datetime_utc, owner_answer, review_lang`. Antes estaba duplicado en 3 sitios y uno de ellos (Competitor) omitía `owner_answer` → causa del bug "0% respondidas" en Mini Radar hasta 2026-04-16.
 - **Error de red → devuelve lista vacía silenciosamente** (riesgo: interpretar "vacío" como "no hay reviews nuevas" y borrar data en modo inicial).
 
 #### `EmailService` (sin interfaz)
@@ -340,7 +343,7 @@ app.Run($"http://0.0.0.0:{PORT ?? 5146}")
 - Templates HTML hardcodeados en C# con estilo Tailwind inline.
 - Métodos:
   - `SendWaitlistNotificationAsync`
-  - `SendRetainedReviewAlertAsync` ← **DEFINIDO PERO NUNCA LLAMADO** (dejado a futuro)
+  - `SendRetainedReviewAlertAsync` ← **DORMANT POR DISEÑO** (documentado 2026-04-16 con XML doc). La retención solo ocurre síncronamente cuando el usuario pulsa "generar respuesta", momento en que ve el banner ⚠️ en directo. Este email tiene sentido cuando exista auto-publicación GBP o cron de generación batch.
   - `SendWelcomeAsync` ← **único email transaccional que Velacre sigue enviando** tras 2026-04-12
   - `SendSubscriptionConfirmedAsync` ← **[2026-04-12]** ya no se invoca desde el webhook (LS envía el suyo con factura); método conservado por si se reutiliza
   - `SendSubscriptionCancelledAsync` ← **[2026-04-12]** idem
@@ -1251,7 +1254,7 @@ public static class ClaimsPrincipalExtensions {
 > Para leer en 30 segundos.
 
 **Bugs funcionales** (impactan al usuario directamente):
-1. Las reseñas retenidas por filtro IA no notifican al usuario por email (endpoint existe, no se llama). **[2026-04-12: dejado a futuro por decisión]**
+1. ~~Las reseñas retenidas por filtro IA no notifican al usuario por email~~ **✅ Confirmado como NO-BUG 2026-04-16** — la retención solo ocurre síncronamente cuando el usuario pulsa "generar respuesta", ve el banner ⚠️ en directo en el dashboard. El método `SendRetainedReviewAlertAsync` queda dormant documentado para cuando exista auto-publicación GBP o cron de generación batch.
 2. ~~`500 ex.Message` inconsistente~~ **✅ Resuelto 2026-04-12**.
 
 **Bugs de concurrencia / datos**:
