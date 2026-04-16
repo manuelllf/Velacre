@@ -75,10 +75,12 @@ const FIELD_MASK = [
 
 function parseCliArgs() {
   const args = process.argv.slice(2);
-  const opts = { min: 1400 };
+  const opts = { min: 1400, max: 6000 };
   for (const a of args) {
-    const m = a.match(/^--min=(\d+)$/);
-    if (m) opts.min = parseInt(m[1], 10);
+    const mMin = a.match(/^--min=(\d+)$/);
+    if (mMin) opts.min = parseInt(mMin[1], 10);
+    const mMax = a.match(/^--max=(\d+)$/);
+    if (mMax) opts.max = parseInt(mMax[1], 10);
   }
   return opts;
 }
@@ -144,14 +146,14 @@ const BLOCKLIST = [
   /McDonald's|Burger King|Starbucks|KFC|Telepizza|Domino's/i,
 ];
 
-function renderMarkdown(candidates, minRatings) {
+function renderMarkdown(candidates, minRatings, maxRatings) {
   const filtered = candidates.filter(c => !BLOCKLIST.some(rx => rx.test(c.name)));
   const excluded = candidates.length - filtered.length;
 
   const lines = [];
   lines.push(`# Prospects heavy hitters — Google Places only`);
   lines.push('');
-  lines.push(`> Generado ${new Date().toISOString().slice(0, 10)}. Filtro: \`userRatingCount >= ${minRatings}\`. Sin Outscraper.`);
+  lines.push(`> Generado ${new Date().toISOString().slice(0, 10)}. Banda: \`${minRatings} ≤ userRatingCount ≤ ${maxRatings}\`. Sin Outscraper.`);
   lines.push('');
   lines.push(`**${filtered.length} candidatos** (de ${candidates.length} brutos, ${excluded} filtrados por ser cadenas/paradores).`);
   lines.push('Ordenados por volumen de reseñas (más primero).');
@@ -197,7 +199,7 @@ async function main() {
   requireKeys(env, ['GOOGLE_PLACES_API_KEY']);
   const apiKey = env.GOOGLE_PLACES_API_KEY;
 
-  console.log(`\n🎯 Top by volume — threshold userRatingCount >= ${opts.min}`);
+  console.log(`\n🎯 Top by volume — ${opts.min} ≤ userRatingCount ≤ ${opts.max}`);
   console.log(`   ${QUERIES.length} queries · Google Places only · sin Outscraper\n`);
 
   const byPlaceId = new Map();
@@ -212,13 +214,14 @@ async function main() {
         const candidate = normalize(place, q);
         if (!candidate.placeId) continue;
         if (candidate.userRatingCount < opts.min) continue;
+        if (candidate.userRatingCount > opts.max) continue;
         if (!byPlaceId.has(candidate.placeId)) {
           byPlaceId.set(candidate.placeId, candidate);
           passed++;
         }
       }
       stats.push({ query: q.q, returned: raw.length, passed });
-      console.log(`→ ${String(raw.length).padStart(2)} bruto · ${passed} nuevos ≥${opts.min}`);
+      console.log(`→ ${String(raw.length).padStart(2)} bruto · ${passed} nuevos ∈[${opts.min},${opts.max}]`);
     } catch (err) {
       console.log(`✖ ${err.message}`);
       stats.push({ query: q.q, error: err.message });
@@ -232,15 +235,15 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(JSON_OUT, JSON.stringify({
     generatedAt: new Date().toISOString(),
-    threshold: opts.min,
+    threshold: { min: opts.min, max: opts.max },
     queries: QUERIES,
     stats,
     candidates,
   }, null, 2), 'utf8');
 
-  fs.writeFileSync(MD_OUT, renderMarkdown(candidates, opts.min), 'utf8');
+  fs.writeFileSync(MD_OUT, renderMarkdown(candidates, opts.min, opts.max), 'utf8');
 
-  console.log(`\n✅ ${candidates.length} heavy hitters encontrados (≥ ${opts.min} reseñas all-time)`);
+  console.log(`\n✅ ${candidates.length} prospects en la banda ${opts.min}-${opts.max} reseñas all-time`);
   console.log(`   JSON: ${path.relative(ROOT, JSON_OUT)}`);
   console.log(`   MD:   ${path.relative(ROOT, MD_OUT)}`);
   if (candidates.length > 0) {

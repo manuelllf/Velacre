@@ -1,8 +1,11 @@
 /**
  * Helper rápido: regenera el MD desde heavy-hitters.json sin llamar a Places.
- * Útil cuando cambia el rendering pero los datos siguen siendo válidos.
+ * Útil cuando cambias el rendering o quieres un rango distinto sin gastar
+ * cuota de Places.
  *
- * Uso: node scripts/outreach/lib/regen-md.mjs
+ * Uso:
+ *   node scripts/outreach/lib/regen-md.mjs                       # usa la banda del JSON
+ *   node scripts/outreach/lib/regen-md.mjs --min=1400 --max=6000 # refiltra el JSON
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,6 +15,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const JSON_IN = path.join(ROOT, 'velacre-outreach', 'raw', 'heavy-hitters.json');
 const MD_OUT = path.join(ROOT, 'velacre-outreach', 'prospects-heavy-hitters.md');
+
+function parseCliArgs() {
+  const args = process.argv.slice(2);
+  const opts = {};
+  for (const a of args) {
+    const mMin = a.match(/^--min=(\d+)$/);
+    if (mMin) opts.min = parseInt(mMin[1], 10);
+    const mMax = a.match(/^--max=(\d+)$/);
+    if (mMax) opts.max = parseInt(mMax[1], 10);
+  }
+  return opts;
+}
 
 function extractCiudad(address) {
   if (!address) return '—';
@@ -33,14 +48,14 @@ const BLOCKLIST = [
   /McDonald's|Burger King|Starbucks|KFC|Telepizza|Domino's/i,
 ];
 
-function renderMarkdown(candidates, minRatings) {
+function renderMarkdown(candidates, minRatings, maxRatings) {
   const filtered = candidates.filter(c => !BLOCKLIST.some(rx => rx.test(c.name)));
   const excluded = candidates.length - filtered.length;
 
   const lines = [];
   lines.push(`# Prospects heavy hitters — Google Places only`);
   lines.push('');
-  lines.push(`> Generado ${new Date().toISOString().slice(0, 10)}. Filtro: \`userRatingCount >= ${minRatings}\`. Sin Outscraper.`);
+  lines.push(`> Generado ${new Date().toISOString().slice(0, 10)}. Banda: \`${minRatings} ≤ userRatingCount ≤ ${maxRatings}\`. Sin Outscraper.`);
   lines.push('');
   lines.push(`**${filtered.length} candidatos** (de ${candidates.length} brutos, ${excluded} filtrados por ser cadenas/paradores).`);
   lines.push('Ordenados por volumen de reseñas (más primero).');
@@ -71,7 +86,20 @@ function renderMarkdown(candidates, minRatings) {
   return lines.join('\n');
 }
 
+const opts = parseCliArgs();
 const data = JSON.parse(fs.readFileSync(JSON_IN, 'utf8'));
-const md = renderMarkdown(data.candidates, data.threshold);
+
+// Threshold original del JSON (puede ser { min, max } nuevo o legacy number)
+const orig = typeof data.threshold === 'object' ? data.threshold : { min: data.threshold, max: Infinity };
+const min = opts.min ?? orig.min;
+const max = opts.max ?? (orig.max === Infinity ? Number.POSITIVE_INFINITY : orig.max);
+
+// Re-filtrar desde el JSON (puede ser más estricto que el original, pero no más laxo
+// porque el JSON no contiene candidatos fuera del rango original)
+const refiltered = data.candidates.filter(c => c.userRatingCount >= min && c.userRatingCount <= max);
+
+const md = renderMarkdown(refiltered, min, max);
 fs.writeFileSync(MD_OUT, md, 'utf8');
-console.log(`✅ MD regenerado desde ${path.basename(JSON_IN)}: ${data.candidates.length} brutos → ${md.split('\n').filter(l => l.startsWith('| ') && !l.startsWith('| #') && !l.startsWith('|---')).length} tras blocklist`);
+
+const blocked = refiltered.filter(c => BLOCKLIST.some(rx => rx.test(c.name))).length;
+console.log(`✅ MD regenerado: banda [${min}, ${max}] · ${data.candidates.length} en JSON → ${refiltered.length} tras rango → ${refiltered.length - blocked} tras blocklist`);
