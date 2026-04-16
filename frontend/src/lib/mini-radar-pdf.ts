@@ -107,6 +107,7 @@ function kpiCard(
   label: string,
   value: string,
   accent: RGB,
+  subtitle?: string,
 ) {
   doc.setDrawColor(...SLATE_200)
   doc.setFillColor(...SLATE_50)
@@ -121,8 +122,14 @@ function kpiCard(
   doc.text(safe(label.toUpperCase()), x + 4, y + 7)
   doc.setTextColor(...SLATE_900)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(18)
-  doc.text(safe(value), x + 4, y + 18)
+  doc.setFontSize(subtitle ? 16 : 18)
+  doc.text(safe(value), x + 4, y + 17)
+  if (subtitle) {
+    doc.setTextColor(...SLATE_500)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(6.5)
+    doc.text(safe(subtitle), x + 4, y + 22)
+  }
 }
 
 // ─── Generador principal ─────────────────────────────────────────────────────
@@ -147,6 +154,14 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
     year: 'numeric',
   })
 
+  // Rango de fechas del sample (para transparencia)
+  const fmtShort = (iso: string) =>
+    new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+  const fmtLong = (iso: string) =>
+    new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+  const rangoCorto = `del ${fmtShort(stats.fechaDesde)} al ${fmtShort(stats.fechaHasta)}`
+  const rangoLargo = `del ${fmtLong(stats.fechaDesde)} al ${fmtLong(stats.fechaHasta)}`
+
   // ═════════════ PORTADA (pagina 1) ═════════════
 
   pdfHeader(doc, W, ML, MR, nombre, 'Informe Mini Radar')
@@ -161,6 +176,9 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
   doc.setTextColor(...SLATE_500)
+  doc.text(safe(`Análisis de las ${stats.total} reseñas más recientes, ${rangoLargo}`), ML, y)
+  y += 5
+  doc.setFontSize(8)
   doc.text(safe(`Informe gratuito generado el ${fechaGen}`), ML, y)
   y += 14
 
@@ -175,13 +193,13 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
   doc.text(resumenLines, ML, y)
   y += resumenLines.length * 5 + 8
 
-  // 3 KPIs en fila (Rating / Reseñas último mes / % Respondidas)
+  // 3 KPIs en fila (Rating / Reseñas analizadas con rango / % Respondidas)
   sectionLabel(doc, 'MÉTRICAS CLAVE', y, ML)
   y += 12
   const cardW = (CW - 8) / 3
-  const cardH = 24
+  const cardH = 26
   kpiCard(doc, ML, y, cardW, cardH, 'Rating medio', `${ratingLabel} / 5`, INDIGO)
-  kpiCard(doc, ML + cardW + 4, y, cardW, cardH, 'Reseñas último mes', `${stats.total}`, GREEN)
+  kpiCard(doc, ML + cardW + 4, y, cardW, cardH, 'Reseñas analizadas', `${stats.total}`, GREEN, rangoCorto)
   kpiCard(
     doc,
     ML + (cardW + 4) * 2,
@@ -247,7 +265,7 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9.5)
     doc.text(
-      safe('No se han encontrado reseñas críticas sin responder en las últimas 30. Bien hecho.'),
+      safe(`No se han encontrado reseñas críticas sin responder en las ${stats.total} analizadas. Bien hecho.`),
       ML,
       y + 6,
     )

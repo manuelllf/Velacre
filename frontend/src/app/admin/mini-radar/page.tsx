@@ -353,7 +353,11 @@ export default function MiniRadarPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
                 <KpiBox label={mr.ratingLabel} value={`${result.stats.ratingAvg.toFixed(2)}`} suffix="/5" />
-                <KpiBox label={mr.reviewsLastMonth} value={`${result.stats.total}`} />
+                <KpiBox
+                  label={mr.reviewsAnalyzed}
+                  value={`${result.stats.total}`}
+                  subtitle={`del ${new Date(result.stats.fechaDesde).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} al ${new Date(result.stats.fechaHasta).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`}
+                />
                 <KpiBox
                   label={mr.pctResponded}
                   value={`${result.stats.pctRespondidas}%`}
@@ -516,11 +520,13 @@ function KpiBox({
   label,
   value,
   suffix,
+  subtitle,
   tone = 'default',
 }: {
   label: string
   value: string
   suffix?: string
+  subtitle?: string
   tone?: 'default' | 'red' | 'amber' | 'green'
 }) {
   const colorMap = {
@@ -538,6 +544,9 @@ function KpiBox({
         {value}
         {suffix && <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-0.5">{suffix}</span>}
       </p>
+      {subtitle && (
+        <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-0.5">{subtitle}</p>
+      )}
     </div>
   )
 }

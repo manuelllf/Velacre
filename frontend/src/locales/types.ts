@@ -850,7 +850,7 @@ export interface LandingLocale {
       unknownError: string
       selectFirst: string
       ratingLabel: string
-      reviewsLastMonth: string
+      reviewsAnalyzed: string
       pctResponded: string
       analyzedBusiness: string
       emailPitchTitle: string

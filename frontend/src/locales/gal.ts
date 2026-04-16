@@ -939,7 +939,7 @@ const gal: LandingLocale = {
       unknownError: 'Erro descoñecido',
       selectFirst: 'Busca e selecciona un negocio de Google Places primeiro',
       ratingLabel: 'Rating',
-      reviewsLastMonth: 'Recensións último mes',
+      reviewsAnalyzed: 'Recensións analizadas',
       pctResponded: '% Respondidas',
       analyzedBusiness: 'Negocio analizado',
       emailPitchTitle: 'Email pitch listo para enviar',

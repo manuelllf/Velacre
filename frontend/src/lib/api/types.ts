@@ -164,10 +164,12 @@ export interface RadarData {
 }
 
 export interface MiniRadarStats {
-  total: number  // Reseñas del último mes (filtrado server-side por fecha)
+  total: number  // Reseñas analizadas (últimos 30 días, cap 60)
   ratingAvg: number
   distribucion: { s5: number; s4: number; s3: number; s2: number; s1: number }
   pctRespondidas: number
+  fechaDesde: string  // ISO — fecha de la reseña más antigua del sample
+  fechaHasta: string  // ISO — fecha de la reseña más reciente del sample
 }
 
 export interface MiniRadarPeorResena {

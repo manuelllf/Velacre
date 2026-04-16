@@ -222,7 +222,8 @@ public class AdminController : ControllerBase
             request.PlaceId, request.Nombre ?? "(sin nombre)");
 
         // Reseñas del último mes reales (con owner_answer mapeado para %respondidas correcto)
-        var resenas = await _outscraper.GetRecentReviewsAsync(request.PlaceId, dias: 30, maxReviews: 200);
+        // Limit 60 = valor validado por el pipeline outreach; Outscraper v3 timeoutea con valores más altos.
+        var resenas = await _outscraper.GetRecentReviewsAsync(request.PlaceId, dias: 30, maxReviews: 60);
         if (resenas.Count == 0)
             return NotFound(new
             {
@@ -234,6 +235,10 @@ public class AdminController : ControllerBase
         var ratingAvg = resenas.Average(r => r.StarRating);
         var respondidas = resenas.Count(r => !string.IsNullOrEmpty(r.OwnerAnswer));
         var pctRespondidas = (int)Math.Round((double)respondidas / total * 100);
+
+        // Rango real de fechas del sample (para transparencia en el PDF)
+        var fechaDesde = resenas.Min(r => r.PublishedAt);
+        var fechaHasta = resenas.Max(r => r.PublishedAt);
 
         var dist = new Dictionary<string, int>
         {
@@ -274,7 +279,7 @@ public class AdminController : ControllerBase
         try
         {
             analisisRaw = await _aiService.GenerateMiniRadarAnalysisAsync(
-                nombreDisplay, resenasText, ratingAvg, pctRespondidas, total);
+                nombreDisplay, resenasText, ratingAvg, pctRespondidas, total, fechaDesde, fechaHasta);
         }
         catch (Exception ex)
         {
@@ -312,6 +317,8 @@ public class AdminController : ControllerBase
                 ratingAvg = Math.Round(ratingAvg, 2),
                 distribucion = dist,
                 pctRespondidas,
+                fechaDesde,
+                fechaHasta,
             },
             peoresSinResponder,
             analisis = analisisParsed,

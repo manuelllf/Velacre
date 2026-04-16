@@ -358,7 +358,7 @@ public class ClaudeService : IReviewAiService
     }
 
     public async Task<string> GenerateMiniRadarAnalysisAsync(string nombreNegocio, string resenasText,
-        double ratingAvg, int pctRespondidas, int totalUltimoMes)
+        double ratingAvg, int pctRespondidas, int totalAnalizadas, DateTimeOffset fechaDesde, DateTimeOffset fechaHasta)
     {
         var systemPrompt =
             "Eres un asesor de confianza que ayuda a dueños de bares, restaurantes, hoteles y clínicas pequeñas a entender qué dicen sus clientes en Google. " +
@@ -384,10 +384,16 @@ public class ClaudeService : IReviewAiService
             "Regla dura sobre 'oportunidad': si NO hay un patrón claro y evidente en los datos reales, devuelve \"oportunidad\": null. PROHIBIDO inventar patrones o exagerar. Si hay dudas, null.\n" +
             "Reglas duras generales: (1) No inventes datos que no estén en las reseñas. (2) No uses comillas dobles dentro de los valores de los strings JSON, usa apóstrofes si necesitas. (3) Si encuentras la palabra 'SEO' o 'ranking' o 'CTR' en tu borrador, reescríbelo en lenguaje humano antes de devolverlo. (4) Los 'ejemplos' del campo oportunidad deben ser extractos reales, no invenciones.";
 
+        // Formato de fechas en español (ej: "17 mar 2026")
+        var desdeStr = fechaDesde.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-ES"));
+        var hastaStr = fechaHasta.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-ES"));
+        var rangoDias = (int)Math.Round((fechaHasta - fechaDesde).TotalDays);
+
         var userPrompt =
             $"Negocio: {nombreNegocio}\n" +
-            $"Stats (últimos 30 días): {totalUltimoMes} reseñas, rating medio {ratingAvg:F2}/5, {pctRespondidas}% respondidas por el propietario.\n\n" +
-            $"Reseñas del último mes (más recientes primero):\n{resenasText}";
+            $"Stats: {totalAnalizadas} reseñas analizadas (publicadas entre {desdeStr} y {hastaStr}, rango de {rangoDias} días), rating medio {ratingAvg:F2}/5, {pctRespondidas}% respondidas por el propietario.\n\n" +
+            $"IMPORTANTE sobre el alcance: NO digas 'últimos 30 días' ni 'último mes'. Di 'las reseñas analizadas', 'las últimas N reseñas', o menciona el rango real (ej: 'desde mediados de marzo'). El sample puede cubrir menos de 30 días si el negocio tiene mucha actividad.\n\n" +
+            $"Reseñas analizadas (más recientes primero):\n{resenasText}";
 
         return await GetClaudeMessageAsync(userPrompt, systemPrompt);
     }

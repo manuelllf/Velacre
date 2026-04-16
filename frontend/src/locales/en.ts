@@ -939,7 +939,7 @@ const en: LandingLocale = {
       unknownError: 'Unknown error',
       selectFirst: 'Search and select a Google Places business first',
       ratingLabel: 'Rating',
-      reviewsLastMonth: 'Reviews last month',
+      reviewsAnalyzed: 'Reviews analysed',
       pctResponded: '% Responded',
       analyzedBusiness: 'Analysed business',
       emailPitchTitle: 'Email pitch ready to send',
