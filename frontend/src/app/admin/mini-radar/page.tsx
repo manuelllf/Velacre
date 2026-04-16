@@ -467,6 +467,33 @@ export default function MiniRadarPage() {
               </div>
             )}
 
+            {/* Oportunidad detectada por IA */}
+            {result.analisis?.oportunidad && (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 p-6 shadow-sm">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-3">
+                  Oportunidad detectada: {result.analisis.oportunidad.titulo}
+                </h3>
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
+                  {result.analisis.oportunidad.descripcion}
+                </p>
+                {result.analisis.oportunidad.ejemplos && result.analisis.oportunidad.ejemplos.length > 0 && (
+                  <>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-2">
+                      Ejemplos de esta semana:
+                    </h4>
+                    <ul className="space-y-2">
+                      {result.analisis.oportunidad.ejemplos.map((ej, i) => (
+                        <li key={i} className="flex gap-2 text-sm text-slate-700 dark:text-slate-300">
+                          <span className="text-indigo-500 dark:text-indigo-400 shrink-0">*</span>
+                          <span>{ej}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* PDF confirmation */}
             <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 rounded-xl p-4 flex items-center gap-3">
               <svg className="w-5 h-5 text-green-600 dark:text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

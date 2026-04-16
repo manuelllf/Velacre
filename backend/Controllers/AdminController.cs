@@ -261,8 +261,11 @@ public class AdminController : ControllerBase
         var resenasText = string.Join("\n", resenas.Select(r =>
         {
             var textCorto = r.Text.Length > 200 ? r.Text[..200] : r.Text;
-            var marca = string.IsNullOrEmpty(r.OwnerAnswer) ? "[SIN RESPUESTA]" : "[respondida]";
-            return $"- {r.StarRating}★ \"{textCorto}\" {marca}";
+            var respuesta = string.IsNullOrEmpty(r.OwnerAnswer)
+                ? "→ SIN RESPUESTA"
+                : $"→ Respuesta propietario: \"{(r.OwnerAnswer.Length > 150 ? r.OwnerAnswer[..150] + "..." : r.OwnerAnswer)}\"";
+            var autor = !string.IsNullOrEmpty(r.AuthorName) ? $"[{r.AuthorName}] " : "";
+            return $"- {autor}{r.StarRating}★ \"{textCorto}\" {respuesta}";
         }));
 
         var nombreDisplay = string.IsNullOrWhiteSpace(request.Nombre) ? "el negocio" : request.Nombre;

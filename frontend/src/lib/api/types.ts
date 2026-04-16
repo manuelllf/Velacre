@@ -177,12 +177,19 @@ export interface MiniRadarPeorResena {
   fecha: string
 }
 
+export interface MiniRadarOportunidad {
+  titulo: string           // MAYÚSCULAS, max 50 chars
+  descripcion: string      // 2-3 frases, max 400 chars
+  ejemplos: string[] | null // 0-3 extractos reales, max 140 chars cada uno
+}
+
 export interface MiniRadarAnalisis {
   fortalezas: string[]
   debilidades: string[]
   accion: string
   resumen: string
   emailPitch: string
+  oportunidad: MiniRadarOportunidad | null
 }
 
 export interface MiniRadarResult {

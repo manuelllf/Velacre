@@ -365,15 +365,24 @@ public class ClaudeService : IReviewAiService
             "IMPORTANTE — Lenguaje: tu audiencia son dueños de negocio de PYMEs gallegas que NO son técnicos. NO uses NUNCA jerga como 'SEO', 'CTR', 'ranking', 'visibilidad orgánica', 'posicionamiento web', 'keywords', 'engagement', 'conversion', 'call-to-action', 'KPI', 'sentiment', 'review management'. " +
             "En lugar de eso, habla como hablaría un amigo del dueño: 'salir antes cuando alguien busca en Google', 'que más gente te vea y entre a comer', 'aparecer arriba del todo cuando buscan restaurantes en tu zona', 'que Google recomiende tu negocio', 'la gente que te busca en el móvil', 'la primera impresión que dan las estrellas', 'lo que leen los clientes antes de reservar'. " +
             "Frases cortas. Palabras normales. Como le hablarías a alguien en la barra del bar. Puedes usar expresiones gallegas naturales si encajan pero sin forzar. " +
-            "Analiza las reseñas proporcionadas y devuelve ÚNICAMENTE un JSON válido (sin markdown, sin prefijo) con esta estructura EXACTA:\n" +
+            "Analiza las reseñas proporcionadas Y las respuestas del propietario. Devuelve ÚNICAMENTE un JSON válido (sin markdown, sin prefijo) con esta estructura EXACTA:\n" +
             "{\n" +
             "  \"fortalezas\": [\"breve fortaleza 1 en lenguaje humano (max 90 chars)\", \"breve fortaleza 2\"],\n" +
             "  \"debilidades\": [\"breve debilidad 1 en lenguaje humano (max 90 chars)\", \"breve debilidad 2\"],\n" +
             "  \"accion\": \"una acción concreta y accionable para esta semana, en lenguaje de dueño de bar (max 140 chars). Ejemplo bueno: 'Responded a las 5 últimas reseñas negativas hoy mismo — cada respuesta que ponéis hace que Google os enseñe a más gente'. Ejemplo malo: 'Optimizar CTR mediante respuestas proactivas para mejorar SEO local'.\",\n" +
             "  \"resumen\": \"3 frases resumen del estado actual, en lenguaje humano sin tecnicismos (max 300 chars). Habla de estrellas, de qué dicen los clientes, y de qué está pasando con las respuestas — nada de 'reputación online' ni 'presencia digital'.\",\n" +
-            "  \"emailPitch\": \"2 párrafos cortos de mensaje dirigido al dueño, como si fuera un vecino que ha notado algo y quiere echarle una mano. Menciona 1 hallazgo concreto de las reseñas. Propón mandarle el informe PDF gratis sin compromiso. Firma: Manuel, Velacre.com. NO menciones precios. NO uses jerga. NO seas comercial estándar — sé cercano y honesto.\"\n" +
+            "  \"emailPitch\": \"2 párrafos cortos de mensaje dirigido al dueño, como si fuera un vecino que ha notado algo y quiere echarle una mano. Menciona 1 hallazgo concreto de las reseñas. Propón mandarle el informe PDF gratis sin compromiso. Firma: Manuel, Velacre.com. NO menciones precios. NO uses jerga. NO seas comercial estándar — sé cercano y honesto.\",\n" +
+            "  \"oportunidad\": null o un objeto { \"titulo\": \"NOMBRE CORTO EN MAYÚSCULAS del patrón detectado (max 50 chars). Ej: 'RESPUESTAS CLONADAS', 'POSITIVAS SIN CONTESTAR', 'QUEJA REPETIDA IGNORADA'\", \"descripcion\": \"2-3 frases explicando el patrón y por qué le importa al dueño (max 400 chars). Lenguaje humano, concreto, con datos de las reseñas reales.\", \"ejemplos\": [\"ejemplo concreto extraído de UNA reseña real, mencionando nombre del cliente si aparece (max 140 chars)\", \"ejemplo 2\", \"ejemplo 3\"] }\n" +
             "}\n" +
-            "Reglas duras: (1) No inventes datos que no estén en las reseñas. (2) No uses comillas dobles dentro de los valores de los strings JSON, usa apóstrofes si necesitas. (3) Si encuentras la palabra 'SEO' o 'ranking' o 'CTR' en tu borrador, reescríbelo en lenguaje humano antes de devolverlo.";
+            "SOBRE 'oportunidad': busca UN patrón de mejora claro que el dueño no ve y que se puede arreglar con acción específica. Ejemplos de patrones válidos:\n" +
+            " - Respuestas clonadas: todas las respuestas del propietario empiezan con la misma plantilla o dicen casi lo mismo.\n" +
+            " - Positivas sin contestar: reseñas de 4-5★ sin respuesta mientras que hay respuesta en otras (oportunidad perdida).\n" +
+            " - Queja repetida ignorada: 3+ reseñas mencionan el mismo problema (espera, ruido, precio) pero las respuestas no lo abordan.\n" +
+            " - Respuestas impersonales: no mencionan lo que el cliente cuenta, solo agradecen genérico.\n" +
+            " - Velocidad asimétrica: las 5★ se contestan rápido, las 1-2★ se dejan días.\n" +
+            " - Falta de firma personal: el dueño nunca firma con su nombre, respuestas anónimas.\n" +
+            "Regla dura sobre 'oportunidad': si NO hay un patrón claro y evidente en los datos reales, devuelve \"oportunidad\": null. PROHIBIDO inventar patrones o exagerar. Si hay dudas, null.\n" +
+            "Reglas duras generales: (1) No inventes datos que no estén en las reseñas. (2) No uses comillas dobles dentro de los valores de los strings JSON, usa apóstrofes si necesitas. (3) Si encuentras la palabra 'SEO' o 'ranking' o 'CTR' en tu borrador, reescríbelo en lenguaje humano antes de devolverlo. (4) Los 'ejemplos' del campo oportunidad deben ser extractos reales, no invenciones.";
 
         var userPrompt =
             $"Negocio: {nombreNegocio}\n" +

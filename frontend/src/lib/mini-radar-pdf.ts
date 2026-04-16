@@ -294,6 +294,58 @@ export async function downloadMiniRadarPdf(data: MiniRadarResult): Promise<void>
     }
   }
 
+  // ─── Oportunidad detectada (si Claude encontró un patrón) ─────────────────
+  if (analisis?.oportunidad) {
+    const op = analisis.oportunidad
+
+    // Si queda poco espacio en la página, saltar
+    if (y > 220) {
+      doc.addPage()
+      pdfHeader(doc, W, ML, MR, nombre, 'Mini Radar - Hallazgos (cont.)')
+      y = 45
+    } else {
+      y += 8
+    }
+
+    sectionLabel(doc, `OPORTUNIDAD DETECTADA: ${op.titulo}`, y, ML)
+    y += 12
+
+    // Descripción
+    doc.setTextColor(...SLATE_700)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9.5)
+    const descLines = wrapText(doc, op.descripcion, CW)
+    doc.text(descLines, ML, y)
+    y += descLines.length * 5 + 6
+
+    // Ejemplos (si hay)
+    if (op.ejemplos && op.ejemplos.length > 0) {
+      doc.setTextColor(...SLATE_900)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.text(safe('Ejemplos de esta semana:'), ML, y)
+      y += 6
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      for (const ej of op.ejemplos) {
+        doc.setTextColor(...INDIGO)
+        doc.text('*', ML + 2, y + 3)
+        doc.setTextColor(...SLATE_700)
+        const ejLines = wrapText(doc, ej, CW - 8)
+        doc.text(ejLines, ML + 7, y + 3)
+        y += ejLines.length * 4.5 + 2
+
+        // Cambio de página si nos quedamos sin espacio
+        if (y > 265) {
+          doc.addPage()
+          pdfHeader(doc, W, ML, MR, nombre, 'Mini Radar - Hallazgos (cont.)')
+          y = 45
+        }
+      }
+    }
+  }
+
   // ═════════════ PAGINA 3 — DIAGNOSTICO IA ═════════════
 
   doc.addPage()
