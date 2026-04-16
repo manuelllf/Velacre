@@ -23,7 +23,94 @@ public class OutscraperService : IOutscraperService
         else
             _logger.LogWarning("[OutscraperService] OUTSCRAPER_API_KEY NO configurada");
     }
+/// <summary>
+/// Obtiene todas las reseñas publicadas en los últimos N días.
+/// Usa el parámetro cutoff de Outscraper v3 para filtrar server-side.
+/// Mapea todos los campos relevantes (owner_answer, lang, fecha).
+/// </summary>
+public async Task<List<OutscraperReview>> GetRecentReviewsAsync(string placeId, int dias = 30, int maxReviews = 200)
+{
+    if (string.IsNullOrEmpty(_apiKey))
+    {
+        _logger.LogWarning("[OutscraperService] API key no configurada, abortando");
+        return [];
+    }
 
+    var sinceDate = DateTimeOffset.UtcNow.AddDays(-dias);
+    var cutoff = sinceDate.ToUnixTimeSeconds();
+
+    _logger.LogInformation("[OutscraperService] Recent reviews — placeId={PlaceId}, dias={Dias}, cutoff={Cutoff}",
+        placeId, dias, sinceDate.ToString("yyyy-MM-dd"));
+
+    var url = $"{BaseUrl}?query={Uri.EscapeDataString(placeId)}&reviewsLimit={maxReviews}&sort=newest&cutoff={cutoff}&async=false";
+
+    var req = new HttpRequestMessage(HttpMethod.Get, url);
+    req.Headers.Add("X-API-KEY", _apiKey);
+
+    try
+    {
+        var response = await _http.SendAsync(req);
+        var body = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("[OutscraperService] Recent HTTP {Status}: {Body}", response.StatusCode, body);
+            return [];
+        }
+
+        var json = JsonDocument.Parse(body);
+        var results = new List<OutscraperReview>();
+
+        if (!json.RootElement.TryGetProperty("data", out var dataArr)) return results;
+
+        foreach (var dataItem in dataArr.EnumerateArray())
+        {
+            if (!dataItem.TryGetProperty("reviews_data", out var reviewsData)) continue;
+
+            foreach (var review in reviewsData.EnumerateArray())
+            {
+                var mapped = MapReview(review);
+                if (mapped != null) results.Add(mapped);
+            }
+        }
+
+        // Defensa extra: filtrar client-side por si cutoff falla o vienen reseñas sin fecha
+        var filtered = results.Where(r => r.PublishedAt >= sinceDate).ToList();
+
+        var respondidas = filtered.Count(r => !string.IsNullOrEmpty(r.OwnerAnswer));
+        _logger.LogInformation("[OutscraperService] Recent: {Total} reseñas últimos {Dias}d, {Resp} respondidas",
+            filtered.Count, dias, respondidas);
+
+        return filtered;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "[OutscraperService] Error en GetRecentReviewsAsync");
+        return [];
+    }
+}
+
+/// <summary>
+/// Mapeo centralizado de una reseña de Outscraper.
+/// Usado por todos los métodos que leen reviews_data.
+/// </summary>
+private static OutscraperReview? MapReview(JsonElement review)
+{
+    var reviewId = review.TryGetProperty("review_id", out var rid) ? rid.GetString() ?? "" : "";
+    if (string.IsNullOrEmpty(reviewId)) return null;
+
+    var author     = review.TryGetProperty("author_title", out var a) ? a.GetString() ?? "Anónimo" : "Anónimo";
+    var ratingProp = review.TryGetProperty("review_rating", out var r) ? r : default;
+    var rating     = ratingProp.ValueKind == JsonValueKind.Number ? ratingProp.GetInt32() : 0;
+    var text       = review.TryGetProperty("review_text", out var t) ? t.GetString() ?? "" : "";
+    var dateStr    = review.TryGetProperty("review_datetime_utc", out var d) ? d.GetString() ?? "" : "";
+    var ownerAns   = review.TryGetProperty("owner_answer", out var oa) && oa.ValueKind == JsonValueKind.String
+                     ? oa.GetString() : null;
+    var lang       = review.TryGetProperty("review_lang", out var l) && l.ValueKind == JsonValueKind.String
+                     ? l.GetString() : null;
+
+    return new OutscraperReview(reviewId, author, rating, text, ParseDate(dateStr), ownerAns, lang);
+}
     public async Task<List<OutscraperReview>> GetReviewsAsync(string placeId, DateTimeOffset? sinceDate = null)
     {
         if (string.IsNullOrEmpty(_apiKey))
