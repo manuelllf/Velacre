@@ -23,8 +23,8 @@
   --f-body: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system;
   --f-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', monospace;
 
-  --maxw: 1200px;
-  --gutter: clamp(20px, 4vw, 48px);
+  --maxw: 1400px;
+  --gutter: clamp(20px, 4vw, 56px);
 
   background: var(--ink);
   color: var(--paper);
