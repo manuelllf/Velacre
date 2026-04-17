@@ -171,6 +171,126 @@ export interface LandingLocale {
     contact: string
   }
 
+  landingEditorial: {
+    nav: {
+      product: string
+      radar: string
+      pricing: string
+    }
+    hero: {
+      metaLangs: string
+      metaVersion: string
+      h1l1: string
+      h1l2pre: string
+      h1accent: string
+      h1l2post: string
+      sub: string
+      foot: [string, string, string]
+      ticker: {
+        title: string
+        count: string
+        tagPositive: string
+        tagComplaint: string
+        tagRetained: string
+        items: Array<{
+          av: string
+          name: string
+          preview: string
+          stars: 1 | 2 | 3 | 4 | 5
+          tag: 'positive' | 'complaint' | 'retained'
+        }>
+      }
+    }
+    stats: {
+      s4val: string
+      s4label: string
+    }
+    sections: {
+      product: string
+      intel: string
+      health: string
+      flow: string
+      who: string
+      pricing: string
+      start: string
+    }
+    demo: {
+      h2l1: string
+      h2l2: string
+      lede: string
+      reviewLabel: string
+      responseLabel: string
+      statusReady: string
+      statusGenerating: string
+      languageLabel: string
+      respondInGoogle: string
+    }
+    radar: {
+      h2l1: string
+      h2l2: string
+      lede: string
+      tuNegocio: string
+      headerBiz: string
+      catCocina: string
+      catServicio: string
+      catAmbiente: string
+      catPrecio: string
+      competitors: [string, string, string]
+      actionLbl: string
+      actionTxt: string
+      strengthLbl: string
+      strengthTxt: string
+      opportunityLbl: string
+      opportunityTxt: string
+      proBadge: string
+    }
+    health: {
+      h2l1: string
+      h2l2: string
+      lede: string
+      kpi4lbl: string
+      kpi4val: string
+      kpi4sub: string
+    }
+    howto: {
+      h2l1: string
+      h2l2: string
+      lede: string
+    }
+    forWho: {
+      h2l1: string
+      h2l2: string
+      lede: string
+      sectors: string[]
+    }
+    pricing: {
+      h2l1: string
+      h2l2: string
+      lede: string
+      basicForever: string
+      perMonth: string
+      perYear: string
+    }
+    cta: {
+      sectionLbl: string
+      h2l1: string
+      h2l2: string
+      sub: string
+      foot: string
+    }
+    footer: {
+      tagline: string
+      productCol: string
+      companyCol: string
+      legalCol: string
+      productLinks: Array<{ label: string; href: string }>
+      companyLinks: Array<{ label: string; href: string }>
+      legalLinks: Array<{ label: string; href: string }>
+      bottomLeft: string
+      bottomRight: string
+    }
+  }
+
   app: {
     common: {
       logout: string

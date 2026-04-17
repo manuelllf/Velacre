@@ -1,89 +1,123 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { FadeInUp, GlowCard } from './shared'
+import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/lib/i18n'
 
-const DUMMY_DATA = [
-  { scores: [8.2, 7.5, 9.1, 6.8], threat: 'high' as const },
-  { scores: [6.1, 8.8, 7.3, 7.9], threat: 'medium' as const },
-  { scores: [5.4, 6.2, 6.7, 8.5], threat: 'low' as const },
-]
 const MY_SCORES = [7.8, 8.1, 8.4, 7.2]
+const COMP_DATA = [
+  { scores: [8.2, 7.5, 9.1, 6.8], threat: 'hi' as const },
+  { scores: [6.1, 8.8, 7.3, 7.9], threat: 'md' as const },
+  { scores: [5.4, 6.2, 6.7, 8.5], threat: 'lo' as const },
+]
 
-function ScoreBar({ score, max = 10, color }: { score: number; max?: number; color: string }) {
+function Bar({ score, variant }: { score: number; variant: 'acc' | 'dim' | 'bad' }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [w, setW] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ents => {
+        ents.forEach(ent => {
+          if (ent.isIntersecting) {
+            setW(score * 10)
+            obs.unobserve(ent.target)
+          }
+        })
+      },
+      { threshold: 0.2 },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [score])
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full ${color}`}
-          initial={{ width: 0 }}
-          whileInView={{ width: `${(score / max) * 100}%` }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
+    <div className="radar-cell" ref={ref}>
+      <div className="bar-track">
+        <div className={`bar-fill bf-${variant}`} style={{ width: `${w}%` }} />
       </div>
-      <span className="text-xs font-bold text-slate-400 tabular-nums w-8 text-right">{score.toFixed(1)}</span>
+      <span className="bar-n">{score.toFixed(1)}</span>
     </div>
   )
 }
 
 export default function RadarPreviewSection() {
-  const { t } = useLanguage()
-  const l = t.radarPreview
+  const { t: l } = useLanguage()
+  const e = l.landingEditorial
+
+  const threatClass = { hi: 'threat-hi', md: 'threat-md', lo: 'threat-lo' } as const
+  const threatLabel = { hi: l.radarPreview.threatHigh, md: l.radarPreview.threatMedium, lo: l.radarPreview.threatLow } as const
 
   return (
-    <FadeInUp className="max-w-5xl mx-auto px-6 py-16">
-      <div className="text-center mb-10">
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{l.h2}</h2>
-        <p className="text-slate-400 max-w-xl mx-auto">{l.p}</p>
+    <section className="sec wrap" id="radar">
+      <div className="sec-head">
+        <div className="sec-idx">
+          <span className="num">02</span>
+          {e.sections.intel}
+        </div>
+        <div>
+          <h2>
+            {e.radar.h2l1}
+            <br />
+            {e.radar.h2l2}
+          </h2>
+          <p className="sec-lede">{e.radar.lede}</p>
+        </div>
       </div>
 
-      <GlowCard className="bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-        {/* Table header */}
-        <div className="grid grid-cols-[1fr_repeat(4,minmax(0,1fr))] gap-3 mb-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          <div />
-          {l.categories.map(cat => (
-            <div key={cat} className="text-center">{cat}</div>
+      <div className="radar-card">
+        <div className="radar-head">
+          <div className="lbl">{e.radar.headerBiz}</div>
+          <div className="lbl">{e.radar.catCocina}</div>
+          <div className="lbl">{e.radar.catServicio}</div>
+          <div className="lbl">{e.radar.catAmbiente}</div>
+          <div className="lbl">{e.radar.catPrecio}</div>
+        </div>
+
+        <div className="radar-row mine">
+          <div className="radar-name">
+            <b>{e.radar.tuNegocio}</b>
+          </div>
+          {MY_SCORES.map((s, i) => (
+            <Bar key={i} score={s} variant="acc" />
           ))}
         </div>
 
-        {/* My business row */}
-        <div className="grid grid-cols-[1fr_repeat(4,minmax(0,1fr))] gap-3 items-center mb-2 py-2 px-3 bg-blue-950/40 border border-blue-800/30 rounded-xl">
-          <div className="text-sm font-bold text-blue-400 truncate">{l.tuNegocio}</div>
-          {MY_SCORES.map((score, i) => (
-            <ScoreBar key={i} score={score} color="bg-blue-500" />
-          ))}
-        </div>
-
-        {/* Competitor rows */}
-        {DUMMY_DATA.map((comp, idx) => (
-          <div key={idx} className="grid grid-cols-[1fr_repeat(4,minmax(0,1fr))] gap-3 items-center py-2 px-3 border-b border-slate-800/50 last:border-0">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-300 truncate">{l.competitor} {idx + 1}</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                comp.threat === 'high' ? 'bg-red-900/50 text-red-400' :
-                comp.threat === 'medium' ? 'bg-amber-900/50 text-amber-400' :
-                'bg-emerald-900/50 text-emerald-400'
-              }`}>
-                {comp.threat === 'high' ? l.threatHigh : comp.threat === 'medium' ? l.threatMedium : l.threatLow}
-              </span>
+        {COMP_DATA.map((c, idx) => (
+          <div key={idx} className="radar-row">
+            <div className="radar-name">
+              <b>{e.radar.competitors[idx]}</b>
+              <span className={`radar-threat ${threatClass[c.threat]}`}>{threatLabel[c.threat]}</span>
             </div>
-            {comp.scores.map((score, i) => (
-              <ScoreBar key={i} score={score} color={
-                score > MY_SCORES[i] ? 'bg-red-500' : 'bg-slate-600'
-              } />
+            {c.scores.map((s, i) => (
+              <Bar key={i} score={s} variant={s > MY_SCORES[i] ? 'bad' : 'dim'} />
             ))}
           </div>
         ))}
 
-        {/* Pro overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent flex items-end justify-center pb-8 pointer-events-none">
-          <span className="text-sm font-bold text-blue-400 bg-blue-950 border border-blue-800 px-4 py-2 rounded-full">
-            {l.proBadge}
+        <div className="radar-overlay">
+          <span className="pill">
+            <span className="dot" />
+            {e.radar.proBadge}
           </span>
         </div>
-      </GlowCard>
-    </FadeInUp>
+      </div>
+
+      <div className="radar-insights">
+        <div>
+          <div className="mono" style={{ color: 'var(--accent)', marginBottom: 10 }}>
+            {e.radar.actionLbl}
+          </div>
+          <p>{e.radar.actionTxt}</p>
+        </div>
+        <div>
+          <div className="mono" style={{ marginBottom: 10 }}>{e.radar.strengthLbl}</div>
+          <p>{e.radar.strengthTxt}</p>
+        </div>
+        <div>
+          <div className="mono" style={{ marginBottom: 10 }}>{e.radar.opportunityLbl}</div>
+          <p>{e.radar.opportunityTxt}</p>
+        </div>
+      </div>
+    </section>
   )
 }
