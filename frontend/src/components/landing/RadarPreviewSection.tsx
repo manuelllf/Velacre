@@ -10,7 +10,7 @@ const COMP_DATA = [
   { scores: [5.4, 6.2, 6.7, 8.5], threat: 'lo' as const },
 ]
 
-function Bar({ score, variant }: { score: number; variant: 'acc' | 'dim' | 'bad' }) {
+function Bar({ score, variant, label }: { score: number; variant: 'acc' | 'dim' | 'bad'; label: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const [w, setW] = useState(0)
   useEffect(() => {
@@ -32,6 +32,7 @@ function Bar({ score, variant }: { score: number; variant: 'acc' | 'dim' | 'bad'
   }, [score])
   return (
     <div className="radar-cell" ref={ref}>
+      <span className="radar-cell-label">{label}</span>
       <div className="bar-track">
         <div className={`bar-fill bf-${variant}`} style={{ width: `${w}%` }} />
       </div>
@@ -46,6 +47,7 @@ export default function RadarPreviewSection() {
 
   const threatClass = { hi: 'threat-hi', md: 'threat-md', lo: 'threat-lo' } as const
   const threatLabel = { hi: l.radarPreview.threatHigh, md: l.radarPreview.threatMedium, lo: l.radarPreview.threatLow } as const
+  const cats = [e.radar.catCocina, e.radar.catServicio, e.radar.catAmbiente, e.radar.catPrecio]
 
   return (
     <section className="sec wrap" id="radar">
@@ -78,7 +80,7 @@ export default function RadarPreviewSection() {
             <b>{e.radar.tuNegocio}</b>
           </div>
           {MY_SCORES.map((s, i) => (
-            <Bar key={i} score={s} variant="acc" />
+            <Bar key={i} score={s} variant="acc" label={cats[i]} />
           ))}
         </div>
 
@@ -89,7 +91,7 @@ export default function RadarPreviewSection() {
               <span className={`radar-threat ${threatClass[c.threat]}`}>{threatLabel[c.threat]}</span>
             </div>
             {c.scores.map((s, i) => (
-              <Bar key={i} score={s} variant={s > MY_SCORES[i] ? 'bad' : 'dim'} />
+              <Bar key={i} score={s} variant={s > MY_SCORES[i] ? 'bad' : 'dim'} label={cats[i]} />
             ))}
           </div>
         ))}
