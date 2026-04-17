@@ -118,6 +118,11 @@ export default function LandingPage() {
                 68<span className="unit">%</span>
               </div>
               <div className="kpi-sub">{l.health.reviewsOf}</div>
+              <div className="kpi-sent" title={`${l.health.positive} 62% · ${l.health.neutral} 18% · ${l.health.negative} 20%`}>
+                <div className="sent-good" style={{ flex: 62 }} />
+                <div className="sent-mid" style={{ flex: 18 }} />
+                <div className="sent-bad" style={{ flex: 20 }} />
+              </div>
             </div>
             <div className="kpi">
               <div className="kpi-lbl">{l.health.kpi3}</div>
@@ -131,18 +136,6 @@ export default function LandingPage() {
               </div>
               <div className="kpi-sub">{e.health.kpi4sub}</div>
             </div>
-          </div>
-
-          <div className="mono-sm" style={{ marginBottom: 6 }}>{l.health.sentiment}</div>
-          <div className="sent-bar">
-            <div className="sent-good" style={{ width: '62%' }} />
-            <div className="sent-mid" style={{ width: '18%' }} />
-            <div className="sent-bad" style={{ width: '20%' }} />
-          </div>
-          <div className="sent-legend">
-            <span className="g">{l.health.positive} · 62%</span>
-            <span className="m">{l.health.neutral} · 18%</span>
-            <span className="b">{l.health.negative} · 20%</span>
           </div>
 
           <div className="ai-grid">

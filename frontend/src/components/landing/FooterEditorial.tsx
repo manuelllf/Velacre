@@ -18,7 +18,7 @@ export function FooterEditorial() {
         <div>
           <div className="foot-brand">
             <VelacreMark size={40} />
-            <span className="nav-brand-name">Velacre</span>
+            <span className="nav-brand-name">velacre</span>
           </div>
           <p className="foot-tag">{e.footer.tagline}</p>
         </div>

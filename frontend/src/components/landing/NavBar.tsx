@@ -17,12 +17,12 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
         style={{ background: 'transparent', border: 0, cursor: 'pointer' }}
       >
         <VelacreMark size={44} className="wm" />
-        <span className="nav-brand-name">Velacre</span>
+        <span className="nav-brand-name">velacre</span>
       </button>
     ) : (
       <Link href="/" className="nav-brand" style={{ cursor: 'pointer' }}>
         <VelacreMark size={44} className="wm" />
-        <span className="nav-brand-name">Velacre</span>
+        <span className="nav-brand-name">velacre</span>
       </Link>
     )
 
