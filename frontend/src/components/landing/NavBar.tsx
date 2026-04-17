@@ -16,12 +16,12 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         style={{ background: 'transparent', border: 0, cursor: 'pointer' }}
       >
-        <VelacreMark size={36} className="wm" />
+        <VelacreMark size={44} className="wm" />
         <span className="nav-brand-name">Velacre</span>
       </button>
     ) : (
       <Link href="/" className="nav-brand" style={{ cursor: 'pointer' }}>
-        <VelacreMark size={36} className="wm" />
+        <VelacreMark size={44} className="wm" />
         <span className="nav-brand-name">Velacre</span>
       </Link>
     )

@@ -149,13 +149,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 68px;
+  height: 76px;
 }
-.vel-lp .nav-brand { display: flex; align-items: center; gap: 12px; }
-.vel-lp .nav-brand .wm { width: 36px; height: 36px; }
+.vel-lp .nav-brand { display: flex; align-items: center; gap: 14px; }
+.vel-lp .nav-brand .wm { width: 44px; height: 44px; }
 .vel-lp .nav-brand-name {
   font-family: var(--f-head);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--paper);
