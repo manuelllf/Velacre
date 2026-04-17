@@ -273,7 +273,10 @@
   padding: 14px 16px;
   border-bottom: 1px solid var(--line);
   align-items: center;
+  transition: background 0.18s ease;
+  cursor: default;
 }
+.vel-lp .ticker-row:hover { background: rgba(232, 226, 212, 0.03); }
 .vel-lp .ticker-row:last-child { border-bottom: 0; }
 .vel-lp .ticker-av {
   width: 32px;
@@ -578,6 +581,10 @@
   align-items: center;
   padding: 14px 0;
   border-bottom: 1px solid var(--line);
+  transition: background 0.18s ease;
+}
+.vel-lp .radar-row:hover:not(.mine) {
+  background: rgba(232, 226, 212, 0.025);
 }
 .vel-lp .radar-row:last-child { border-bottom: 0; }
 .vel-lp .radar-name {
@@ -774,7 +781,11 @@
   border: 1px solid var(--line);
   border-radius: 3px;
   background: var(--ink);
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
+.vel-lp .ai-brilla:hover { border-color: rgba(110, 158, 126, 0.45); }
+.vel-lp .ai-quema:hover  { border-color: rgba(196, 106, 92, 0.45); }
+.vel-lp .ai-accion:hover { border-color: rgba(74, 111, 229, 0.5); }
 .vel-lp .ai-card .ai-lbl {
   font-family: var(--f-mono);
   font-size: 10px;
@@ -926,7 +937,9 @@
   flex-direction: column;
   background: var(--ink-2);
   position: relative;
+  transition: background 0.2s ease;
 }
+.vel-lp .plan:not(.pro):hover { background: var(--ink-3); }
 .vel-lp .plan:last-child { border-right: 0; }
 @media (max-width: 900px) {
   .vel-lp .plan { border-right: 0; border-bottom: 1px solid var(--line); }
