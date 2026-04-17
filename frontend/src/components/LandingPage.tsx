@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
@@ -18,6 +18,7 @@ export default function LandingPage() {
   const { t: l } = useLanguage()
   const e = l.landingEditorial
   const [googleLoading, setGoogleLoading] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
 
   async function handleGoogleSignup() {
     setGoogleLoading(true)
@@ -27,8 +28,30 @@ export default function LandingPage() {
     })
   }
 
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const targets = Array.from(
+      root.querySelectorAll<HTMLElement>('.sec, .stats, .final, .radar-card, .health-card, .pricing-grid, .transv'),
+    )
+    targets.forEach(t => t.classList.add('fade'))
+    const obs = new IntersectionObserver(
+      ents => {
+        ents.forEach(ent => {
+          if (ent.isIntersecting) {
+            ent.target.classList.add('in')
+            obs.unobserve(ent.target)
+          }
+        })
+      },
+      { threshold: 0.06, rootMargin: '-40px' },
+    )
+    targets.forEach(t => obs.observe(t))
+    return () => obs.disconnect()
+  }, [])
+
   return (
-    <div className="vel-lp">
+    <div className="vel-lp" ref={rootRef}>
       <NavBar variant="landing" />
 
       {/* ===== HERO ===== */}

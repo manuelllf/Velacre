@@ -322,7 +322,7 @@ const es: LandingLocale = {
     forWho: {
       h2l1: 'Pensado para dueños.',
       h2l2: 'No para agencias.',
-      lede: 'Empezó en hostelería gallega y ahora sirve a cualquier PYME hispanohablante que viva del boca a boca.',
+      lede: 'Empezó en hostelería gallega y ahora sirve a cualquier PYME que viva del boca a boca.',
       sectors: [
         'Hostelería & tabernas',
         'Cafeterías',

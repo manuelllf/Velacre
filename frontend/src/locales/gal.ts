@@ -322,7 +322,7 @@ const gal: LandingLocale = {
     forWho: {
       h2l1: 'Pensado para donos.',
       h2l2: 'Non para axencias.',
-      lede: 'Empezou na hostalaría galega e agora serve calquera PEME hispanofalante que viva do boca a boca.',
+      lede: 'Empezou na hostalaría galega e agora serve calquera PEME que viva do boca a boca.',
       sectors: [
         'Hostalaría & tabernas',
         'Cafeterías',

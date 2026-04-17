@@ -76,7 +76,7 @@ h1, h2, h3 {
 .vel-lang-btn {
   width: 44px;
   height: 44px;
-  border-radius: 3px;
+  border-radius: 50%;
   background: #0F1729;
   border: 1px solid rgba(232, 226, 212, 0.22);
   color: #E8E2D4;

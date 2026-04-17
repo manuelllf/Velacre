@@ -11,7 +11,7 @@ export function FooterEditorial() {
     <footer className="foot-min">
       <div className="wrap foot-min-row">
         <span className="mono foot-min-left">
-          {e.footer.bottomLeft} · {e.footer.bottomRight}
+          {e.footer.bottomLeft}
         </span>
         <nav className="foot-min-links">
           {e.footer.legalLinks.map(link => (
