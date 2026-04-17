@@ -720,10 +720,11 @@
 .vel-lp .kpi-sub { font-size: 12px; color: var(--mute); margin-top: 6px; }
 .vel-lp .kpi-sent {
   display: flex;
-  height: 3px;
-  border-radius: 1px;
+  height: 4px;
+  border-radius: 2px;
   overflow: hidden;
   margin-top: 10px;
+  opacity: 0.9;
 }
 .vel-lp .kpi-sent > div { height: 100%; }
 
@@ -1269,99 +1270,137 @@
   .vel-lp .nav-ctas .btn { padding: 8px 12px; font-size: 12px; }
 
   /* Hero */
-  .vel-lp .hero { padding: 24px 0 44px; }
-  .vel-lp .hero-meta { margin-bottom: 18px; gap: 8px; font-size: 10px; }
+  .vel-lp .hero { padding: 24px 0 40px; }
+  .vel-lp .hero-meta {
+    margin-bottom: 18px;
+    gap: 10px;
+    font-size: 10px;
+    justify-content: space-between;
+  }
   .vel-lp .hero-meta .sep { display: none; }
   .vel-lp .hero h1 { max-width: none; }
   .vel-lp .hero-sub { font-size: 15.5px; margin-top: 18px; line-height: 1.55; }
   .vel-lp .hero-cta { gap: 10px; margin-top: 22px; flex-direction: column; }
   .vel-lp .hero-cta .btn { width: 100%; padding: 13px 18px; font-size: 14px; }
   .vel-lp .hero-foot {
-    gap: 12px;
-    margin-top: 18px;
+    gap: 6px;
+    margin-top: 16px;
     font-size: 12px;
     flex-direction: column;
+    align-items: flex-start;
   }
+  .vel-lp .hero-foot span::before { display: none; }
   .vel-lp .hero-grid { gap: 28px; }
 
   /* Ticker */
   .vel-lp .ticker-head { padding: 10px 14px; }
+  .vel-lp .ticker-head .mono { font-size: 10px; }
   .vel-lp .ticker-row {
-    grid-template-columns: 32px 1fr auto;
+    grid-template-columns: 30px 1fr auto;
     gap: 10px;
-    padding: 11px 14px;
+    padding: 12px 14px;
   }
   .vel-lp .ticker-av { width: 28px; height: 28px; font-size: 10px; }
-  .vel-lp .ticker-name { font-size: 12px; }
+  .vel-lp .ticker-name { font-size: 12.5px; }
   .vel-lp .ticker-prev { font-size: 11px; }
-  .vel-lp .ticker-tag { font-size: 8px; }
-  .vel-lp .ticker-stars { font-size: 10px; }
+  .vel-lp .ticker-tag { font-size: 8px; padding: 2px 5px; }
+  .vel-lp .ticker-stars { font-size: 10px; letter-spacing: 1px; }
 
   /* Stats */
-  .vel-lp .stats-cell { padding: 22px 18px; }
-  .vel-lp .stats-num { font-size: 32px; }
-  .vel-lp .stats-lbl { font-size: 12px; margin-top: 8px; max-width: none; }
+  .vel-lp .stats-cell { padding: 22px 16px; }
+  .vel-lp .stats-num { font-size: 30px; }
+  .vel-lp .stats-lbl {
+    font-size: 11.5px;
+    margin-top: 8px;
+    max-width: none;
+    line-height: 1.4;
+  }
 
   /* Section header */
-  .vel-lp .sec-head { margin-bottom: 28px; gap: 12px; }
-  .vel-lp .sec-idx { padding-top: 0; font-size: 10px; }
-  .vel-lp .sec-idx .num { font-size: 32px; margin-bottom: 2px; }
-  .vel-lp .sec-lede { font-size: 15px; margin-top: 14px; line-height: 1.55; }
+  .vel-lp .sec-head { margin-bottom: 28px; gap: 14px; }
+  .vel-lp .sec-idx {
+    padding-top: 0;
+    font-size: 10px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .vel-lp .sec-idx .num {
+    font-size: 32px;
+    margin-bottom: 0;
+    line-height: 1;
+  }
+  .vel-lp .sec-lede { font-size: 15px; margin-top: 12px; line-height: 1.55; }
 
   /* Cards & Demo */
-  .vel-lp .card { padding: 18px; }
+  .vel-lp .card { padding: 18px 16px; }
+  .vel-lp .demo-label { margin-bottom: 14px; gap: 8px; }
+  .vel-lp .demo-label .mono { font-size: 9.5px; }
   .vel-lp .demo-text { font-size: 14px; line-height: 1.55; }
   .vel-lp .demo-review-head { gap: 10px; margin-bottom: 12px; }
   .vel-lp .demo-av { width: 30px; height: 30px; font-size: 11px; }
   .vel-lp .demo-name { font-size: 13px; }
   .vel-lp .demo-date { font-size: 11px; }
+  .vel-lp .rev-nav button { width: 24px; height: 24px; }
   .vel-lp .tone-grid { gap: 5px; margin: 10px 0 14px; }
-  .vel-lp .tone-btn { padding: 7px 3px; font-size: 9px; letter-spacing: 0.06em; }
+  .vel-lp .tone-btn { padding: 8px 4px; font-size: 9px; letter-spacing: 0.06em; }
   .vel-lp .tone-body { min-height: 140px; font-size: 13.5px; line-height: 1.55; }
 
   /* Radar — layout vertical por competidor */
-  .vel-lp .radar-card { padding: 18px 16px; }
+  .vel-lp .radar-card { padding: 18px 14px; }
   .vel-lp .radar-head { display: none; }
   .vel-lp .radar-row {
     grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 16px 0;
+    gap: 8px;
+    padding: 14px 0;
   }
   .vel-lp .radar-row.mine {
-    margin: 0 -10px;
-    padding: 14px 10px;
+    margin: 0 -8px;
+    padding: 14px 8px;
   }
   .vel-lp .radar-name {
     padding-bottom: 4px;
     border-bottom: 1px dashed var(--line);
+    gap: 8px;
+    flex-wrap: wrap;
   }
   .vel-lp .radar-cell {
     display: grid;
-    grid-template-columns: 86px 1fr 28px;
+    grid-template-columns: 72px 1fr 34px;
     gap: 10px;
     align-items: center;
   }
   .vel-lp .radar-cell-label {
     display: block;
     font-family: var(--f-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--mute);
   }
-  .vel-lp .radar-overlay { padding: 28px 20px 16px; }
-  .vel-lp .radar-insights { gap: 20px; margin-top: 28px; }
+  .vel-lp .bar-n { width: 34px; font-size: 11px; }
+  .vel-lp .radar-overlay { padding: 28px 16px 16px; }
+  .vel-lp .radar-insights { gap: 20px; margin-top: 24px; }
   .vel-lp .radar-insights p { font-size: 14px; line-height: 1.55; }
+  .vel-lp .radar-insights .mono { margin-bottom: 8px; }
 
   /* Health */
-  .vel-lp .health-card { padding: 18px 16px; }
-  .vel-lp .kpi-grid { gap: 12px; padding-bottom: 16px; margin-bottom: 16px; }
-  .vel-lp .kpi { padding-left: 10px; }
+  .vel-lp .health-card { padding: 18px 14px; }
+  .vel-lp .kpi-grid {
+    gap: 14px 12px;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+  }
+  .vel-lp .kpi {
+    padding-left: 10px;
+    border-left: 1px solid var(--line);
+  }
+  .vel-lp .kpi:nth-child(2n+1) { border-left: 0; padding-left: 0; }
   .vel-lp .kpi-val { font-size: 24px; gap: 6px; }
   .vel-lp .kpi-lbl { font-size: 9px; letter-spacing: 0.08em; }
   .vel-lp .kpi-sub { font-size: 11px; margin-top: 4px; }
-  .vel-lp .kpi-sent { margin-top: 8px; }
-  .vel-lp .ai-grid { gap: 12px; padding-top: 16px; margin-top: 16px; }
+  .vel-lp .kpi-sent { margin-top: 8px; height: 3px; }
+  .vel-lp .ai-grid { gap: 12px; padding-top: 18px; margin-top: 18px; }
   .vel-lp .ai-card { padding: 14px; }
   .vel-lp .ai-card p { font-size: 13px; }
 
