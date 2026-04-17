@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n'
 import { renderStars } from './shared'
@@ -11,6 +11,10 @@ const TONES: ToneKey[] = ['profesional', 'empatico', 'cercano', 'directo', 'agra
 function TypedBody({ text, onDone }: { text: string; onDone: () => void }) {
   const [typed, setTyped] = useState('')
   const [done, setDone] = useState(false)
+  const onDoneRef = useRef(onDone)
+  useEffect(() => {
+    onDoneRef.current = onDone
+  }, [onDone])
   useEffect(() => {
     let i = 0
     const id = setInterval(() => {
@@ -19,11 +23,11 @@ function TypedBody({ text, onDone }: { text: string; onDone: () => void }) {
       if (i >= text.length) {
         clearInterval(id)
         setDone(true)
-        onDone()
+        onDoneRef.current()
       }
     }, 14)
     return () => clearInterval(id)
-  }, [text, onDone])
+  }, [text])
   return (
     <>
       {typed}
@@ -44,7 +48,7 @@ export default function DemoSection() {
   const fullText = current.tones[tone]
   const bodyKey = `${reviewIdx}-${tone}`
 
-  const handleDone = () => setStatus('ready')
+  const handleDone = useCallback(() => setStatus('ready'), [])
   const reset = () => setStatus('generating')
 
   const next = () => {

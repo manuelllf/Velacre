@@ -281,10 +281,8 @@ export interface LandingLocale {
     footer: {
       tagline: string
       productCol: string
-      companyCol: string
       legalCol: string
       productLinks: Array<{ label: string; href: string }>
-      companyLinks: Array<{ label: string; href: string }>
       legalLinks: Array<{ label: string; href: string }>
       bottomLeft: string
       bottomRight: string

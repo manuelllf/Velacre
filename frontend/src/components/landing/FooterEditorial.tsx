@@ -8,15 +8,13 @@ export function FooterEditorial() {
   const { t: l } = useLanguage()
   const e = l.landingEditorial
 
-  function resolveHref(href: string, isProductLink: boolean) {
-    if (!isProductLink) return href
-    // Product links use hash anchors; they only work on landing root.
+  function resolveHref(href: string) {
     return href.startsWith('#') ? `/${href}` : href
   }
 
   return (
     <footer className="foot wrap">
-      <div className="foot-row">
+      <div className="foot-row foot-row-3">
         <div>
           <div className="foot-brand">
             <VelacreMark size={32} />
@@ -27,15 +25,9 @@ export function FooterEditorial() {
         <div className="foot-col">
           <h4>{e.footer.productCol}</h4>
           {e.footer.productLinks.map(link => (
-            <Link key={link.label} href={resolveHref(link.href, true)}>
+            <Link key={link.label} href={resolveHref(link.href)}>
               {link.label}
             </Link>
-          ))}
-        </div>
-        <div className="foot-col">
-          <h4>{e.footer.companyCol}</h4>
-          {e.footer.companyLinks.map(link => (
-            <Link key={link.label} href={link.href}>{link.label}</Link>
           ))}
         </div>
         <div className="foot-col">
