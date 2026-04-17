@@ -858,12 +858,17 @@
 }
 
 /* ========== PRICING ========== */
+.vel-lp .bill-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 0 auto 40px;
+}
 .vel-lp .bill-toggle {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin: 0 auto 40px;
-  width: fit-content;
 }
 .vel-lp .bill-toggle .lbl { font-size: 13px; color: var(--paper-dim); font-weight: 500; }
 .vel-lp .bill-toggle .lbl.on { color: var(--paper); }
@@ -967,11 +972,16 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--paper);
-  padding: 2px 7px;
+  padding: 3px 8px;
   border: 1px solid var(--line-strong);
   border-radius: 2px;
+  background: transparent;
 }
-.vel-lp .plan.pro .plan-badge { border-color: var(--accent); color: var(--accent); }
+.vel-lp .plan.pro .plan-badge {
+  background: var(--accent);
+  color: var(--paper);
+  border-color: var(--accent);
+}
 .vel-lp .plan-price {
   display: flex;
   align-items: baseline;
@@ -1061,7 +1071,7 @@
 
 /* ========== FINAL CTA ========== */
 .vel-lp .final {
-  padding: clamp(80px, 12vw, 160px) 0;
+  padding: clamp(48px, 6vw, 80px) 0 clamp(48px, 6vw, 80px);
   border-top: 1px solid var(--line);
   background: var(--ink-2);
   position: relative;
@@ -1074,10 +1084,10 @@
   text-align: center;
   position: relative;
 }
-.vel-lp .final h2 { max-width: 18ch; margin: 24px auto 20px; }
+.vel-lp .final h2 { max-width: 18ch; margin: 16px auto 14px; }
 .vel-lp .final .mono { color: var(--paper-dim); }
-.vel-lp .final .hero-cta { justify-content: center; margin-top: 36px; }
-.vel-lp .final-foot { margin-top: 20px; font-size: 13px; color: var(--mute); }
+.vel-lp .final .hero-cta { justify-content: center; margin-top: 24px; }
+.vel-lp .final-foot { margin-top: 14px; font-size: 13px; color: var(--mute); }
 .vel-lp .mark-bg {
   position: absolute;
   inset: 0;
@@ -1288,9 +1298,9 @@
   .vel-lp .ticker-stars { font-size: 10px; }
 
   /* Stats */
-  .vel-lp .stats-cell { padding: 24px 16px; }
+  .vel-lp .stats-cell { padding: 22px 18px; }
   .vel-lp .stats-num { font-size: 32px; }
-  .vel-lp .stats-lbl { font-size: 12px; margin-top: 8px; }
+  .vel-lp .stats-lbl { font-size: 12px; margin-top: 8px; max-width: none; }
 
   /* Section header */
   .vel-lp .sec-head { margin-bottom: 28px; gap: 12px; }
@@ -1371,13 +1381,9 @@
   .vel-lp .sector { padding: 12px 10px; font-size: 12.5px; }
 
   /* Pricing — layout limpio en columna */
-  .vel-lp .bill-toggle {
-    margin: 0 auto 24px;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .vel-lp .bill-toggle .save-pill { font-size: 9px; padding: 2px 6px; }
+  .vel-lp .bill-wrap { margin: 0 auto 24px; gap: 12px; }
+  .vel-lp .bill-toggle { gap: 10px; justify-content: center; }
+  .vel-lp .save-pill { font-size: 9px; padding: 2px 6px; }
   .vel-lp .pricing-grid {
     border: 0;
     border-radius: 0;
@@ -1417,7 +1423,7 @@
   .vel-lp .foot-min-links { gap: 18px; }
 
   /* Final CTA */
-  .vel-lp .final { padding: 64px 0; }
+  .vel-lp .final { padding: 48px 0; }
   .vel-lp .final-inner { padding: 0 18px; }
   .vel-lp .final h2 { margin: 18px auto 14px; }
   .vel-lp .final .hero-sub { font-size: 15px; }

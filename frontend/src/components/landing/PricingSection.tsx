@@ -37,15 +37,17 @@ export default function PricingSection() {
         </div>
       </div>
 
-      <div className="bill-toggle">
-        <span className={`lbl ${yearly ? '' : 'on'}`}>{l.pricing.monthly}</span>
-        <button
-          type="button"
-          className={`tgl ${yearly ? 'on' : ''}`}
-          onClick={() => setYearly(v => !v)}
-          aria-label="toggle"
-        />
-        <span className={`lbl ${yearly ? 'on' : ''}`}>{l.pricing.yearly}</span>
+      <div className="bill-wrap">
+        <div className="bill-toggle">
+          <span className={`lbl ${yearly ? '' : 'on'}`}>{l.pricing.monthly}</span>
+          <button
+            type="button"
+            className={`tgl ${yearly ? 'on' : ''}`}
+            onClick={() => setYearly(v => !v)}
+            aria-label="toggle"
+          />
+          <span className={`lbl ${yearly ? 'on' : ''}`}>{l.pricing.yearly}</span>
+        </div>
         <span className={`save-pill ${yearly ? 'show' : ''}`}>{l.pricing.yearlySave}</span>
       </div>
 

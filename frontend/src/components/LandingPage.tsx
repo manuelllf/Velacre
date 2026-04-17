@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
 import './landing/landing.css'
-import { FadeInUp, GoogleIcon } from './landing/shared'
+import { GoogleIcon } from './landing/shared'
 import { VelacreMark } from './landing/VelacreMark'
 import { NavBar } from './landing/NavBar'
 import { FooterEditorial } from './landing/FooterEditorial'
@@ -61,35 +61,27 @@ export default function LandingPage() {
       <section className="stats">
         <div className="wrap">
           <div className="stats-grid">
-            <FadeInUp>
-              <div className="stats-cell">
-                <div className="stats-num">{l.stats.s1val}</div>
-                <div className="stats-lbl">{l.stats.s1label}</div>
+            <div className="stats-cell">
+              <div className="stats-num">{l.stats.s1val}</div>
+              <div className="stats-lbl">{l.stats.s1label}</div>
+            </div>
+            <div className="stats-cell">
+              <div className="stats-num">{l.stats.s2val}</div>
+              <div className="stats-lbl">{l.stats.s2label}</div>
+            </div>
+            <div className="stats-cell">
+              <div className="stats-num">
+                <span className="accent">{l.stats.s3val}</span>
               </div>
-            </FadeInUp>
-            <FadeInUp delay={0.05}>
-              <div className="stats-cell">
-                <div className="stats-num">{l.stats.s2val}</div>
-                <div className="stats-lbl">{l.stats.s2label}</div>
+              <div className="stats-lbl">{l.stats.s3label}</div>
+            </div>
+            <div className="stats-cell">
+              <div className="stats-num">
+                {e.stats.s4val}
+                <span className="dim" style={{ fontSize: '0.55em' }}>€</span>
               </div>
-            </FadeInUp>
-            <FadeInUp delay={0.1}>
-              <div className="stats-cell">
-                <div className="stats-num">
-                  <span className="accent">{l.stats.s3val}</span>
-                </div>
-                <div className="stats-lbl">{l.stats.s3label}</div>
-              </div>
-            </FadeInUp>
-            <FadeInUp delay={0.15}>
-              <div className="stats-cell">
-                <div className="stats-num">
-                  {e.stats.s4val}
-                  <span className="dim" style={{ fontSize: '0.55em' }}>€</span>
-                </div>
-                <div className="stats-lbl">{e.stats.s4label}</div>
-              </div>
-            </FadeInUp>
+              <div className="stats-lbl">{e.stats.s4label}</div>
+            </div>
           </div>
         </div>
       </section>
