@@ -64,3 +64,81 @@ h1, h2, h3 {
 .scroll-thin::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* ========== LANG SWITCHER (global, editorial) ========== */
+.vel-lang {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 50;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui;
+}
+.vel-lang-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 3px;
+  background: #0F1729;
+  border: 1px solid rgba(232, 226, 212, 0.22);
+  color: #E8E2D4;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.vel-lang-btn:hover {
+  background: #1A2236;
+  border-color: #B8B1A0;
+}
+.vel-lang-menu {
+  position: absolute;
+  bottom: 52px;
+  left: 0;
+  background: #0F1729;
+  border: 1px solid rgba(232, 226, 212, 0.22);
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 160px;
+}
+.vel-lang-opt {
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #B8B1A0;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+.vel-lang-opt:hover {
+  background: #1A2236;
+  color: #E8E2D4;
+}
+.vel-lang-opt.active {
+  background: #E8E2D4;
+  color: #0A0E1A;
+}
+.vel-lang-code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  min-width: 22px;
+  color: inherit;
+  opacity: 0.7;
+}
+.vel-lang-opt.active .vel-lang-code { opacity: 1; }
+
+@media (max-width: 720px) {
+  .vel-lang { bottom: 14px; left: 14px; }
+  .vel-lang-btn { width: 40px; height: 40px; }
+}

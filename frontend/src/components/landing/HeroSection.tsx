@@ -37,7 +37,7 @@ export default function HeroSection({ googleLoading, onGoogleSignup }: HeroSecti
             <span className="dot" />
             {l.hero.badge}
           </span>
-          <h1 style={{ marginTop: 18 }}>
+          <h1 style={{ marginTop: 14 }}>
             {e.hero.h1l1}
             <br />
             {e.hero.h1l2pre} <em>{e.hero.h1accent}</em>

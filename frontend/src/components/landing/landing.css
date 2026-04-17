@@ -56,8 +56,8 @@
   margin: 0;
 }
 
-.vel-lp h1 { font-size: clamp(36px, 5.2vw, 72px); }
-.vel-lp h2 { font-size: clamp(28px, 3.6vw, 46px); }
+.vel-lp h1 { font-size: clamp(34px, 4.6vw, 64px); }
+.vel-lp h2 { font-size: clamp(26px, 3.2vw, 44px); }
 .vel-lp h3 { font-size: clamp(22px, 2.2vw, 30px); letter-spacing: -0.02em; }
 
 .vel-lp .mono {
@@ -178,12 +178,12 @@
 }
 
 /* ========== HERO ========== */
-.vel-lp .hero { padding: clamp(32px, 5.5vw, 72px) 0 clamp(40px, 6vw, 80px); }
+.vel-lp .hero { padding: clamp(20px, 3.5vw, 40px) 0 clamp(28px, 4.5vw, 56px); }
 .vel-lp .hero-meta {
   display: flex;
   align-items: baseline;
   gap: 14px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .vel-lp .hero-meta .mono { color: var(--paper-dim); }
 .vel-lp .hero-meta .sep {
@@ -200,22 +200,22 @@
 }
 .vel-lp .hero-sub {
   max-width: 52ch;
-  margin-top: 28px;
-  font-size: clamp(17px, 1.4vw, 20px);
+  margin-top: 20px;
+  font-size: clamp(16px, 1.2vw, 18px);
   color: var(--paper-dim);
-  line-height: 1.55;
+  line-height: 1.5;
 }
 .vel-lp .hero-cta {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 36px;
+  margin-top: 24px;
 }
 .vel-lp .hero-foot {
   display: flex;
   flex-wrap: wrap;
   gap: 22px;
-  margin-top: 24px;
+  margin-top: 18px;
   font-size: 13px;
   color: var(--mute);
 }
@@ -1089,7 +1089,37 @@
 }
 .vel-lp .mark-bg img { width: min(420px, 70vw); height: auto; }
 
-/* ========== FOOTER ========== */
+/* ========== FOOTER MINIMAL ========== */
+.vel-lp .foot-min {
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+  background: var(--ink);
+}
+.vel-lp .foot-min-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.vel-lp .foot-min-left {
+  color: var(--mute);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.vel-lp .foot-min-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.vel-lp .foot-min-links a {
+  font-size: 13px;
+  color: var(--paper-dim);
+  transition: color 0.15s;
+}
+.vel-lp .foot-min-links a:hover { color: var(--paper); }
+
+/* ========== FOOTER (legacy multi-col, kept for compat) ========== */
 .vel-lp .foot {
   padding: 48px 0 36px;
   border-top: 1px solid var(--line);
@@ -1206,12 +1236,13 @@
 /* Radar cell label is only visible on mobile */
 .vel-lp .radar-cell-label { display: none; }
 
+
 /* =========================================================
    MOBILE POLISH — todo se compacta y respira.
    Se acaba la sensación "blog de Google con anuncios al medio".
    ========================================================= */
 @media (max-width: 720px) {
-  .vel-lp .wrap { padding: 0 18px; }
+  .vel-lp .wrap { padding: 0 22px; }
   .vel-lp .sec { padding: 44px 0; }
 
   /* Headings */
@@ -1339,16 +1370,51 @@
   .vel-lp .sectors { gap: 8px; }
   .vel-lp .sector { padding: 12px 10px; font-size: 12.5px; }
 
-  /* Pricing */
-  .vel-lp .bill-toggle { margin-bottom: 28px; gap: 10px; }
-  .vel-lp .plan { padding: 28px 22px; }
-  .vel-lp .plan.pro { padding: 32px 22px; }
-  .vel-lp .plan-price .amt { font-size: 44px; }
-  .vel-lp .plan-desc { font-size: 13px; min-height: 0; margin-top: 14px; }
-  .vel-lp .plan ul { margin-top: 16px; padding-top: 14px; gap: 10px; }
-  .vel-lp .plan li { font-size: 13.5px; }
-  .vel-lp .transv { padding: 20px; margin-top: 20px; }
+  /* Pricing — layout limpio en columna */
+  .vel-lp .bill-toggle {
+    margin: 0 auto 24px;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .vel-lp .bill-toggle .save-pill { font-size: 9px; padding: 2px 6px; }
+  .vel-lp .pricing-grid {
+    border: 0;
+    border-radius: 0;
+    gap: 12px;
+    overflow: visible;
+  }
+  .vel-lp .plan {
+    padding: 24px 20px 28px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--ink-2);
+  }
+  .vel-lp .plan.pro {
+    padding: 28px 20px 32px;
+    border: 1px solid var(--accent);
+  }
+  .vel-lp .plan-head { margin-bottom: 4px; }
+  .vel-lp .plan-price .amt { font-size: 40px; }
+  .vel-lp .plan-price .per { font-size: 12px; }
+  .vel-lp .plan-annual { font-size: 10px; min-height: 14px; }
+  .vel-lp .plan-desc { font-size: 13px; min-height: 0; margin-top: 12px; line-height: 1.5; }
+  .vel-lp .plan ul { margin-top: 14px; padding-top: 14px; gap: 10px; }
+  .vel-lp .plan li { font-size: 13.5px; line-height: 1.4; }
+  .vel-lp .plan-cta { margin-top: 20px; padding: 12px 18px; font-size: 13px; }
+  .vel-lp .transv { padding: 18px; margin-top: 20px; }
+  .vel-lp .transv-lbl { margin-bottom: 14px; }
   .vel-lp .transv-item { font-size: 13px; }
+
+  /* Footer mínimo */
+  .vel-lp .foot-min { padding: 16px 0; }
+  .vel-lp .foot-min-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .vel-lp .foot-min-left { font-size: 10px; line-height: 1.6; }
+  .vel-lp .foot-min-links { gap: 18px; }
 
   /* Final CTA */
   .vel-lp .final { padding: 64px 0; }
