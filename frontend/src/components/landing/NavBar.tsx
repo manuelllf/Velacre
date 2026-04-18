@@ -38,7 +38,7 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
           <Link href={productHref} className="link link-nav">{e.nav.product}</Link>
           <Link href={radarHref} className="link link-nav">{e.nav.radar}</Link>
           <Link href={pricingHref} className="link link-nav">{e.nav.pricing}</Link>
-          <Link href="/auth/login" className="link link-nav">
+          <Link href="/auth/login" className="link">
             {l.nav.login}
           </Link>
           <div className="nav-ctas">
