@@ -1151,7 +1151,13 @@
   text-align: center;
   position: relative;
 }
-.vel-lp .final h2 { max-width: 18ch; margin: 16px auto 14px; }
+.vel-lp .final-idx {
+  padding-top: 0;
+  margin-bottom: 18px;
+  text-align: center;
+}
+.vel-lp .final-idx .num { margin-bottom: 6px; }
+.vel-lp .final h2 { max-width: 18ch; margin: 0 auto 14px; }
 .vel-lp .final .mono { color: var(--paper-dim); }
 .vel-lp .final .hero-cta { justify-content: center; margin-top: 24px; }
 .vel-lp .final-foot { margin-top: 14px; font-size: 13px; color: var(--mute); }

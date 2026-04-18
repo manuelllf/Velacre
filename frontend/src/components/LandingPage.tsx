@@ -283,7 +283,10 @@ export default function LandingPage() {
           <VelacreMark size={420} />
         </div>
         <div className="final-inner">
-          <span className="mono">{e.cta.sectionLbl}</span>
+          <div className="sec-idx final-idx">
+            <span className="num">07</span>
+            {e.sections.start}
+          </div>
           <h2>
             {e.cta.h2l1}
             <br />
