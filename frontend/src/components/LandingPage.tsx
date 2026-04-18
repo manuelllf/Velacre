@@ -10,6 +10,7 @@ import { GoogleIcon } from './landing/shared'
 import { VelacreMark } from './landing/VelacreMark'
 import { NavBar } from './landing/NavBar'
 import { FooterEditorial } from './landing/FooterEditorial'
+import { CountUp } from './landing/CountUp'
 import HeroSection from './landing/HeroSection'
 import RadarPreviewSection from './landing/RadarPreviewSection'
 import DemoSection from './landing/DemoSection'
@@ -123,7 +124,7 @@ export default function LandingPage() {
             <div className="kpi">
               <div className="kpi-lbl">{l.health.kpi1}</div>
               <div className="kpi-val">
-                4.3 <span className="star">★</span>
+                <CountUp value={4.3} decimals={1} /> <span className="star">★</span>
                 <span className="delta">+0.2</span>
               </div>
               <div className="kpi-sub">{l.health.prevMonth}</div>
@@ -131,7 +132,7 @@ export default function LandingPage() {
             <div className="kpi">
               <div className="kpi-lbl">{l.health.kpi2}</div>
               <div className="kpi-val">
-                68<span className="unit">%</span>
+                <CountUp value={68} /><span className="unit">%</span>
               </div>
               <div className="kpi-sub">{l.health.reviewsOf}</div>
               <div className="kpi-sent" title={`${l.health.positive} 62% · ${l.health.neutral} 18% · ${l.health.negative} 20%`}>
@@ -142,13 +143,13 @@ export default function LandingPage() {
             </div>
             <div className="kpi">
               <div className="kpi-lbl">{l.health.kpi3}</div>
-              <div className="kpi-val">12</div>
+              <div className="kpi-val"><CountUp value={12} /></div>
               <div className="kpi-sub">{l.health.newReviews}</div>
             </div>
             <div className="kpi">
               <div className="kpi-lbl">{e.health.kpi4lbl}</div>
               <div className="kpi-val">
-                {e.health.kpi4val}<span className="unit">h</span>
+                <CountUp value={14} /><span className="unit">h</span>
               </div>
               <div className="kpi-sub">{e.health.kpi4sub}</div>
             </div>
