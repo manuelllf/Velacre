@@ -49,20 +49,20 @@ export function AppHeader({ negocioNombre, plan, rightExtra, brandHref = '/inici
     <header className="sticky top-0 z-30" style={HEADER_STYLE}>
       <div className="max-w-screen-xl mx-auto px-5 sm:px-6 h-[68px] flex items-center justify-between gap-3">
         <Link href={brandHref} className="flex items-center gap-3 min-w-0 cursor-pointer group">
-          <span className="inline-flex shrink-0" style={{ marginTop: 1 }}>
-            <VelacreMark size={36} />
-          </span>
+          <VelacreMark size={36} className="shrink-0" />
           <span
-            className="font-bold text-xl tracking-tight text-slate-200 group-hover:text-white transition-colors leading-none"
-            style={{ fontFamily: 'CalSansUI, ui-sans-serif' }}
+            className="font-bold text-xl tracking-tight text-slate-200 group-hover:text-white transition-colors"
+            style={{ fontFamily: 'CalSansUI, ui-sans-serif', lineHeight: '36px' }}
           >
             velacre
           </span>
           {negocioNombre && (
-            <span className="hidden sm:inline text-sm text-slate-500 truncate leading-none">· {negocioNombre}</span>
+            <span className="hidden sm:inline text-sm text-slate-500 truncate" style={{ lineHeight: '36px' }}>
+              · {negocioNombre}
+            </span>
           )}
           {plan && planLabel && (
-            <span className={`hidden sm:inline text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full leading-none ${PLAN_STYLES[plan]}`}>
+            <span className={`hidden sm:inline text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full ${PLAN_STYLES[plan]}`}>
               {planLabel}
             </span>
           )}
