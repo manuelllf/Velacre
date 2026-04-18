@@ -64,6 +64,19 @@ export default function DemoSection() {
     reset()
   }
 
+  // Swipe para cambiar de reseña en móvil
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const onTouchStart = (ev: React.TouchEvent) => setTouchStartX(ev.touches[0].clientX)
+  const onTouchEnd = (ev: React.TouchEvent) => {
+    if (touchStartX === null) return
+    const dx = ev.changedTouches[0].clientX - touchStartX
+    if (Math.abs(dx) > 48) {
+      if (dx < 0) next()
+      else prev()
+    }
+    setTouchStartX(null)
+  }
+
   return (
     <section className="sec wrap" id="producto">
       <div className="sec-head">
@@ -82,7 +95,11 @@ export default function DemoSection() {
       </div>
 
       <div className="demo-grid">
-        <div className="card demo-review">
+        <div
+          className="card demo-review"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
           <div className="demo-label">
             <span className="mono">{e.demo.reviewLabel}</span>
             <div className="rev-nav">

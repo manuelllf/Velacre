@@ -1325,19 +1325,8 @@
   .vel-lp .hero-foot span::before { display: none; }
   .vel-lp .hero-grid { gap: 28px; }
 
-  /* Ticker */
-  .vel-lp .ticker-head { padding: 10px 14px; }
-  .vel-lp .ticker-head .mono { font-size: 10px; }
-  .vel-lp .ticker-row {
-    grid-template-columns: 30px 1fr auto;
-    gap: 10px;
-    padding: 12px 14px;
-  }
-  .vel-lp .ticker-av { width: 28px; height: 28px; font-size: 10px; }
-  .vel-lp .ticker-name { font-size: 12.5px; }
-  .vel-lp .ticker-prev { font-size: 11px; }
-  .vel-lp .ticker-tag { font-size: 8px; padding: 2px 5px; }
-  .vel-lp .ticker-stars { font-size: 10px; letter-spacing: 1px; }
+  /* Ticker — oculto en móvil */
+  .vel-lp .ticker { display: none; }
 
   /* Stats */
   .vel-lp .stats-cell { padding: 22px 16px; }
@@ -1368,6 +1357,7 @@
 
   /* Cards & Demo */
   .vel-lp .card { padding: 18px 16px; }
+  .vel-lp .demo-review { touch-action: pan-y; }
   .vel-lp .demo-label { margin-bottom: 14px; gap: 8px; }
   .vel-lp .demo-label .mono { font-size: 9.5px; }
   .vel-lp .demo-text { font-size: 14px; line-height: 1.55; }
