@@ -270,6 +270,10 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <div className="wrap">
+        <hr className="rule-strong" />
+      </div>
+
       {/* ===== PRICING ===== */}
       <PricingSection />
 

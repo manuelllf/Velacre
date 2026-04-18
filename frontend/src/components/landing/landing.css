@@ -832,7 +832,12 @@
 .vel-lp .step:hover .step-n .big { color: var(--accent); }
 .vel-lp .step .step-n .big { transition: color 0.2s ease; }
 @media (max-width: 720px) {
-  .vel-lp .step { grid-template-columns: 80px 1fr; gap: 24px; padding-left: 14px; padding-right: 14px; margin: 0 -14px; }
+  .vel-lp .step {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 22px 14px;
+    margin: 0;
+  }
   .vel-lp .step-asset { display: none; }
 }
 .vel-lp .step-n {
@@ -1283,7 +1288,7 @@
    Se acaba la sensación "blog de Google con anuncios al medio".
    ========================================================= */
 @media (max-width: 720px) {
-  .vel-lp .wrap { padding: 0 22px; }
+  .vel-lp .wrap { padding: 0 24px; }
   .vel-lp .sec { padding: 44px 0; }
 
   /* Headings */
@@ -1434,14 +1439,22 @@
   .vel-lp .ai-card { padding: 14px; }
   .vel-lp .ai-card p { font-size: 13px; }
 
-  /* How it works */
-  .vel-lp .step {
-    grid-template-columns: 56px 1fr;
-    gap: 14px;
-    padding: 22px 0;
+  /* How it works — single column compact */
+  .vel-lp .step-n {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 10px;
+    padding-top: 0;
+    margin-bottom: 8px;
+    color: var(--mute);
   }
-  .vel-lp .step-n { font-size: 10px; padding-top: 2px; }
-  .vel-lp .step-n .big { font-size: 36px; margin-bottom: 4px; }
+  .vel-lp .step-n .big {
+    display: inline-block;
+    font-size: 28px;
+    margin-bottom: 0;
+    line-height: 1;
+  }
   .vel-lp .step h3 { font-size: 17px; margin-bottom: 6px; }
   .vel-lp .step p { font-size: 14px; line-height: 1.55; }
 

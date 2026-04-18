@@ -38,10 +38,10 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
           <Link href={productHref} className="link link-nav">{e.nav.product}</Link>
           <Link href={radarHref} className="link link-nav">{e.nav.radar}</Link>
           <Link href={pricingHref} className="link link-nav">{e.nav.pricing}</Link>
+          <Link href="/auth/login" className="link link-nav">
+            {l.nav.login}
+          </Link>
           <div className="nav-ctas">
-            <Link href="/auth/login" className="btn btn-sm" style={{ color: 'var(--paper-dim)' }}>
-              {l.nav.login}
-            </Link>
             <Link href="/auth/register" className="btn btn-primary btn-sm">
               {l.nav.start}
             </Link>
