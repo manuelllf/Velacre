@@ -1351,15 +1351,15 @@
   .vel-lp .hero-foot {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: 10px 18px;
     margin-top: 16px;
-    font-size: 10.5px;
+    font-size: 11px;
     letter-spacing: -0.005em;
   }
   .vel-lp .hero-foot span { white-space: nowrap; }
-  .vel-lp .hero-foot span::before { display: none; }
   .vel-lp .hero-grid { gap: 28px; }
 
   /* Ticker — oculto en móvil */
