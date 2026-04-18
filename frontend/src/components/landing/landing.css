@@ -666,17 +666,48 @@
 .vel-lp .radar-insights {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 16px;
   margin-top: 40px;
 }
 @media (max-width: 800px) {
   .vel-lp .radar-insights { grid-template-columns: 1fr; }
 }
-.vel-lp .radar-insights p {
-  font-size: 15px;
+.vel-lp .insight-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--ink-2);
+  position: relative;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.vel-lp .insight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  background: currentColor;
+  opacity: 0.55;
+}
+.vel-lp .insight-lbl {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.vel-lp .insight-card p {
+  font-size: 14.5px;
   line-height: 1.55;
   color: var(--paper);
 }
+.vel-lp .insight-action { color: var(--accent); }
+.vel-lp .insight-action:hover { border-color: rgba(74, 111, 229, 0.5); }
+.vel-lp .insight-strength { color: var(--good); }
+.vel-lp .insight-strength:hover { border-color: rgba(110, 158, 126, 0.45); }
+.vel-lp .insight-opportunity { color: var(--warn); }
+.vel-lp .insight-opportunity:hover { border-color: rgba(212, 168, 74, 0.45); }
 
 /* ========== HEALTH ========== */
 .vel-lp .health-card {

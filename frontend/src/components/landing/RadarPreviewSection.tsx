@@ -105,18 +105,16 @@ export default function RadarPreviewSection() {
       </div>
 
       <div className="radar-insights">
-        <div>
-          <div className="mono" style={{ color: 'var(--accent)', marginBottom: 10 }}>
-            {e.radar.actionLbl}
-          </div>
+        <div className="insight-card insight-action">
+          <div className="insight-lbl">{e.radar.actionLbl}</div>
           <p>{e.radar.actionTxt}</p>
         </div>
-        <div>
-          <div className="mono" style={{ marginBottom: 10 }}>{e.radar.strengthLbl}</div>
+        <div className="insight-card insight-strength">
+          <div className="insight-lbl">{e.radar.strengthLbl}</div>
           <p>{e.radar.strengthTxt}</p>
         </div>
-        <div>
-          <div className="mono" style={{ marginBottom: 10 }}>{e.radar.opportunityLbl}</div>
+        <div className="insight-card insight-opportunity">
+          <div className="insight-lbl">{e.radar.opportunityLbl}</div>
           <p>{e.radar.opportunityTxt}</p>
         </div>
       </div>
