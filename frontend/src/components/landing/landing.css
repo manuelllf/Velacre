@@ -984,7 +984,7 @@
 }
 @media (max-width: 900px) { .vel-lp .pricing-grid { grid-template-columns: 1fr; } }
 .vel-lp .plan {
-  padding: 36px 28px;
+  padding: 28px 26px;
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -1003,7 +1003,7 @@
     linear-gradient(180deg, rgba(74, 111, 229, 0.09), transparent 45%),
     var(--ink);
   border-right: 0;
-  padding: 44px 28px;
+  padding: 34px 26px;
 }
 .vel-lp .plan.pro::before {
   content: '';
@@ -1080,17 +1080,17 @@
   font-size: 14px;
   color: var(--paper-dim);
   line-height: 1.5;
-  margin-top: 18px;
-  min-height: 44px;
+  margin-top: 14px;
+  min-height: 40px;
 }
 .vel-lp .plan ul {
   list-style: none;
-  margin: 22px 0 0;
-  padding: 18px 0 0;
+  margin: 16px 0 0;
+  padding: 14px 0 0;
   border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
 }
 .vel-lp .plan li {
@@ -1102,7 +1102,7 @@
   color: var(--paper);
 }
 .vel-lp .plan li svg { margin-top: 5px; color: var(--accent); }
-.vel-lp .plan-cta { margin-top: 28px; }
+.vel-lp .plan-cta { margin-top: 22px; }
 .vel-lp .plan-cta.full { width: 100%; }
 
 .vel-lp .transv {
