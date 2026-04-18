@@ -170,9 +170,13 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <div className="wrap">
+        <hr className="rule-strong" />
+      </div>
+
       {/* ===== HOW IT WORKS ===== */}
-      <section className="sec" style={{ background: 'var(--ink-2)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
-        <div className="wrap">
+      <section className="sec wrap">
+        <div>
           <div className="sec-head">
             <div className="sec-idx">
               <span className="num">04</span>
@@ -238,6 +242,10 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <div className="wrap">
+        <hr className="rule-strong" />
+      </div>
 
       {/* ===== FOR WHO ===== */}
       <section className="sec wrap">

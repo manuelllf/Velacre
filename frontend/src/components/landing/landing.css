@@ -805,17 +805,34 @@
 /* ========== HOW IT WORKS ========== */
 .vel-lp .steps { border-top: 1px solid var(--line); }
 .vel-lp .step {
+  position: relative;
   display: grid;
   grid-template-columns: 110px 1fr auto;
   gap: clamp(20px, 4vw, 56px);
-  padding: clamp(28px, 4vw, 44px) 0;
+  padding: clamp(28px, 4vw, 44px) 20px;
+  margin: 0 -20px;
   border-bottom: 1px solid var(--line);
   align-items: start;
-  transition: background 0.2s ease;
+  transition: background 0.22s ease;
+}
+.vel-lp .step::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .vel-lp .step:hover { background: var(--ink-2); }
+.vel-lp .step:hover::before { transform: scaleY(1); }
+.vel-lp .step:hover .step-n .big { color: var(--accent); }
+.vel-lp .step .step-n .big { transition: color 0.2s ease; }
 @media (max-width: 720px) {
-  .vel-lp .step { grid-template-columns: 80px 1fr; gap: 24px; }
+  .vel-lp .step { grid-template-columns: 80px 1fr; gap: 24px; padding-left: 14px; padding-right: 14px; margin: 0 -14px; }
   .vel-lp .step-asset { display: none; }
 }
 .vel-lp .step-n {
