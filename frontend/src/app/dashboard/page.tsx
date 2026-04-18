@@ -366,7 +366,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <AppHeader negocioNombre={negocio?.nombre} />
+      <AppHeader negocioNombre={negocio?.nombre} plan={userPlan as 'basic' | 'core' | 'pro'} />
 
       <SectionNav />
 

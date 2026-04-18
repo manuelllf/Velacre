@@ -48,12 +48,6 @@ export default function InicioPage() {
     )
   }
 
-  const planLabel = plan === 'pro' ? t.app.inicioPage.planPro : plan === 'core' ? t.app.inicioPage.planCore : t.app.inicioPage.planBasic
-  const planColor = plan === 'pro'
-    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
-    : plan === 'core'
-    ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300'
-    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
 
   const greeting = nombre
     ? t.app.inicio.greeting.replace('{name}', nombre.split(' ')[0])
@@ -63,7 +57,7 @@ export default function InicioPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
       <AppHeader
         negocioNombre={negocioNombre}
-        rightExtra={<span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${planColor}`}>{planLabel}</span>}
+        plan={plan as 'basic' | 'core' | 'pro'}
       />
 
       <main className="flex-1 max-w-4xl mx-auto px-4 py-12">

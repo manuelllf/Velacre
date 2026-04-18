@@ -176,7 +176,15 @@ export default function MiniRadarPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="sticky top-0 z-30 bg-slate-900/85 backdrop-blur-md border-b border-slate-800">
+      <header
+        className="sticky top-0 z-30"
+        style={{
+          background: 'rgba(10, 14, 26, 0.96)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          borderBottom: '1px solid rgba(232, 226, 212, 0.12)',
+        }}
+      >
         <div className="max-w-4xl mx-auto px-5 sm:px-6 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h1

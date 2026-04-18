@@ -447,7 +447,7 @@ export default function SaludPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <AppHeader negocioNombre={negocio?.nombre} />
+      <AppHeader negocioNombre={negocio?.nombre} plan={userPlan as 'basic' | 'core' | 'pro'} />
       <SectionNav />
 
       {/* ── BASIC teaser: nota media real + 2 KPIs dummy blurred ── */}

@@ -6,10 +6,14 @@ import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from './landing/VelacreMark'
 
+export type PlanKey = 'basic' | 'core' | 'pro'
+
 export interface AppHeaderProps {
   /** Nombre del negocio, si hay — aparece al lado del wordmark */
   negocioNombre?: string | null
-  /** Extra content slot (e.g., info badges) a la derecha antes del logout */
+  /** Plan actual — pinta el badge */
+  plan?: PlanKey | null
+  /** Extra content slot (badges, acciones) a la derecha antes del logout */
   rightExtra?: React.ReactNode
   /** Dónde apunta el brand link (por defecto /inicio) */
   brandHref?: string
@@ -17,7 +21,20 @@ export interface AppHeaderProps {
   hideLogout?: boolean
 }
 
-export function AppHeader({ negocioNombre, rightExtra, brandHref = '/inicio', hideLogout = false }: AppHeaderProps) {
+const PLAN_STYLES: Record<PlanKey, string> = {
+  basic: 'border border-slate-700 text-slate-400',
+  core:  'border border-slate-600 text-slate-200',
+  pro:   'border border-blue-600 text-blue-400',
+}
+
+const HEADER_STYLE: React.CSSProperties = {
+  background: 'rgba(10, 14, 26, 0.96)',
+  backdropFilter: 'blur(14px)',
+  WebkitBackdropFilter: 'blur(14px)',
+  borderBottom: '1px solid rgba(232, 226, 212, 0.12)',
+}
+
+export function AppHeader({ negocioNombre, plan, rightExtra, brandHref = '/inicio', hideLogout = false }: AppHeaderProps) {
   const router = useRouter()
   const { t } = useLanguage()
 
@@ -26,8 +43,10 @@ export function AppHeader({ negocioNombre, rightExtra, brandHref = '/inicio', hi
     router.replace('/')
   }
 
+  const planLabel = plan === 'pro' ? t.app.inicioPage.planPro : plan === 'core' ? t.app.inicioPage.planCore : plan === 'basic' ? t.app.inicioPage.planBasic : null
+
   return (
-    <header className="sticky top-0 z-30 bg-slate-900/85 backdrop-blur-md border-b border-slate-800">
+    <header className="sticky top-0 z-30" style={HEADER_STYLE}>
       <div className="max-w-screen-xl mx-auto px-5 sm:px-6 h-[68px] flex items-center justify-between gap-3">
         <Link href={brandHref} className="flex items-center gap-3 min-w-0 cursor-pointer group">
           <VelacreMark size={36} />
@@ -39,6 +58,11 @@ export function AppHeader({ negocioNombre, rightExtra, brandHref = '/inicio', hi
           </span>
           {negocioNombre && (
             <span className="hidden sm:inline text-sm text-slate-500 truncate">· {negocioNombre}</span>
+          )}
+          {plan && planLabel && (
+            <span className={`hidden sm:inline text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-sm ${PLAN_STYLES[plan]}`}>
+              {planLabel}
+            </span>
           )}
         </Link>
         <div className="flex items-center gap-4 shrink-0">

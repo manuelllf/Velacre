@@ -219,7 +219,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <AppHeader negocioNombre={negocio?.nombre} />
+      <AppHeader negocioNombre={negocio?.nombre} plan={plan as 'basic' | 'core' | 'pro'} />
       <SectionNav />
 
       <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-4">
