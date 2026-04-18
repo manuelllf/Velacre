@@ -19,8 +19,9 @@
 }
 
 :root {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
+  /* Editorial palette base */
+  --background: #0A0E1A;
+  --foreground: #E8E2D4;
 }
 
 @theme inline {
@@ -29,6 +30,90 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-cal: 'CalSansUI', ui-sans-serif, system-ui, sans-serif;
+
+  /* ========================================================
+     TAILWIND COLOR TOKENS — remapeados a la paleta editorial
+     Las clases bg-slate-*, text-slate-*, bg-blue-*, etc.
+     siguen funcionando como están en los componentes pero
+     rinden con los colores nuevos. Cero cambios en JSX.
+     ======================================================== */
+
+  /* Navy/paper axis (antes slate) */
+  --color-slate-50:  #F5EFE1;
+  --color-slate-100: #F0EADC;
+  --color-slate-200: #E8E2D4;
+  --color-slate-300: #D4CEC0;
+  --color-slate-400: #B8B1A0;
+  --color-slate-500: #6E7689;
+  --color-slate-600: #4D5366;
+  --color-slate-700: #2A3347;
+  --color-slate-800: #1A2236;
+  --color-slate-900: #0F1729;
+  --color-slate-950: #0A0E1A;
+
+  /* Accent azul maduro (antes blue) */
+  --color-blue-50:  #EEF2FC;
+  --color-blue-100: #D9E1F8;
+  --color-blue-200: #BBC9F2;
+  --color-blue-300: #94AEF5;
+  --color-blue-400: #6E90F2;
+  --color-blue-500: #5F82F0;
+  --color-blue-600: #4A6FE5;
+  --color-blue-700: #3A55AE;
+  --color-blue-800: #2B3E7A;
+  --color-blue-900: #1E2E55;
+  --color-blue-950: #14203D;
+
+  /* Also remap indigo to the same accent family (some components use it) */
+  --color-indigo-400: #6E90F2;
+  --color-indigo-500: #5F82F0;
+  --color-indigo-600: #4A6FE5;
+
+  /* Good — verde musgo (antes emerald / green) */
+  --color-emerald-50:  #EFF5F1;
+  --color-emerald-100: #DFEBE2;
+  --color-emerald-200: #C5DDCB;
+  --color-emerald-300: #A6CFB0;
+  --color-emerald-400: #8FBE9C;
+  --color-emerald-500: #7DAE8B;
+  --color-emerald-600: #6E9E7E;
+  --color-emerald-700: #556D5F;
+  --color-emerald-800: #3F5148;
+  --color-emerald-900: #2B3830;
+  --color-emerald-950: #1A2820;
+  --color-green-400: #8FBE9C;
+  --color-green-500: #7DAE8B;
+  --color-green-600: #6E9E7E;
+
+  /* Warn — dorado apagado (antes amber / yellow) */
+  --color-amber-100: #F4E4B8;
+  --color-amber-200: #EBD488;
+  --color-amber-300: #DEB866;
+  --color-amber-400: #D4A84A;
+  --color-amber-500: #C39A44;
+  --color-amber-600: #A1823B;
+  --color-amber-700: #7A6430;
+  --color-amber-800: #553F1F;
+  --color-amber-900: #3A2D18;
+  --color-amber-950: #2A2114;
+  --color-yellow-300: #DEB866;
+  --color-yellow-400: #D4A84A;
+  --color-yellow-500: #C39A44;
+
+  /* Danger — terracota (antes red) */
+  --color-red-100: #F0D8D3;
+  --color-red-200: #E8BDB5;
+  --color-red-300: #E2A9A3;
+  --color-red-400: #D8928A;
+  --color-red-500: #CE7E70;
+  --color-red-600: #C46A5C;
+  --color-red-700: #9F5548;
+  --color-red-800: #7A4238;
+  --color-red-900: #55302A;
+  --color-red-950: #2A1815;
+
+  /* White remapea a paper — los botones crema de la landing matchean */
+  --color-white: #E8E2D4;
 }
 
 body {
@@ -42,10 +127,10 @@ h1, h2, h3 {
   font-family: 'CalSansUI', ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Scrollbar personalizado — fino, discreto, integrado */
+/* Scrollbar personalizado — fino, discreto, editorial */
 .scroll-thin {
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: #2A3347 transparent;
 }
 .scroll-thin::-webkit-scrollbar {
   width: 4px;
@@ -55,11 +140,11 @@ h1, h2, h3 {
   background: transparent;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
-  background-color: #334155;
+  background-color: #2A3347;
   border-radius: 9999px;
 }
 .scroll-thin::-webkit-scrollbar-thumb:hover {
-  background-color: #475569;
+  background-color: #4D5366;
 }
 .scroll-thin::-webkit-scrollbar-corner {
   background: transparent;
