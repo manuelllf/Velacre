@@ -458,6 +458,7 @@ Anti-plantilla: cero glows, `blur-3xl`, `rounded-2xl`, `shadow-2xl`. Rules finas
 - Hovers sutiles (sin scale/shadow): ticker rows, radar rows no-mine, AI cards (border del color temático), plan cards Basic/Core, step rows (barra accent izquierda + numeral accent), nav links.
 - Fade-in de secciones con IntersectionObserver + transiciones `cubic-bezier(0.2, 0.7, 0.2, 1)`.
 - LangSwitcher y HelpButton con estética editorial (círculo 44px navy, border crema 22%, hover ink-3). Ambos globales vía globals.css. En móvil 38px con blur; lang izquierda, help derecha, sin solape.
+- **CountUp en los 4 KPIs del panel 03 Salud**: los números (4.3★, 68%, 12, 14h) cuentan desde 0 al valor objetivo cuando entran en viewport. IntersectionObserver + `requestAnimationFrame` con easing `cubic-out` (1.4s). Da sensación de "se está cargando el panel real" — refuerza el concepto del dashboard Pro antes de que el usuario haya entrado.
 
 #### Polish móvil exhaustivo
 
