@@ -8,6 +8,7 @@ import { getMyUsuario, getMyNegocio } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
 import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
+import { HelpButton } from '@/components/HelpModal'
 
 export default function InicioPage() {
   const router = useRouter()
@@ -105,6 +106,7 @@ export default function InicioPage() {
         </div>
       </main>
 
+      <HelpButton />
       <AppFooter />
     </div>
   )

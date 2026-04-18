@@ -224,7 +224,7 @@ h1, h2, h3 {
 .vel-lang-opt.active .vel-lang-code { opacity: 1; }
 
 @media (max-width: 720px) {
-  .vel-lang { bottom: 14px; right: 14px; left: auto; }
+  .vel-lang { bottom: 14px; left: 14px; }
   .vel-lang-btn {
     width: 38px;
     height: 38px;
@@ -232,5 +232,46 @@ h1, h2, h3 {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   }
-  .vel-lang-menu { left: auto; right: 0; min-width: 150px; }
+  .vel-lang-menu { left: 0; min-width: 150px; }
+}
+
+/* ========== HELP BUTTON (global, editorial) ==========
+   Mismo lenguaje que lang switcher pero en esquina inferior derecha.
+============================================================ */
+.vel-help-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #0F1729;
+  border: 1px solid rgba(232, 226, 212, 0.22);
+  color: #E8E2D4;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.vel-help-btn:hover {
+  background: #1A2236;
+  border-color: #B8B1A0;
+  color: #FFFFFF;
+}
+
+@media (max-width: 720px) {
+  .vel-help-btn {
+    bottom: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+    background: rgba(15, 23, 41, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
 }

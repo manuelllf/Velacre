@@ -98,10 +98,11 @@ export function HelpButton() {
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
         title={t.app.help.tooltip}
         aria-label={t.app.help.title}
-        className="fixed bottom-5 right-5 z-50 w-10 h-10 rounded-full bg-slate-800 border border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white shadow-lg flex items-center justify-center transition-colors text-sm font-bold"
+        className="vel-help-btn"
       >
         ?
       </button>

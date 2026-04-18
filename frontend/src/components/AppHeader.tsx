@@ -22,9 +22,9 @@ export interface AppHeaderProps {
 }
 
 const PLAN_STYLES: Record<PlanKey, string> = {
-  basic: 'border border-slate-700 text-slate-400',
-  core:  'border border-slate-600 text-slate-200',
-  pro:   'border border-blue-600 text-blue-400',
+  basic: 'border border-slate-700 text-slate-400 bg-slate-800/40',
+  core:  'border border-slate-600 text-slate-200 bg-slate-800/60',
+  pro:   'border border-blue-600 text-blue-400 bg-blue-950/40',
 }
 
 const HEADER_STYLE: React.CSSProperties = {
@@ -49,18 +49,20 @@ export function AppHeader({ negocioNombre, plan, rightExtra, brandHref = '/inici
     <header className="sticky top-0 z-30" style={HEADER_STYLE}>
       <div className="max-w-screen-xl mx-auto px-5 sm:px-6 h-[68px] flex items-center justify-between gap-3">
         <Link href={brandHref} className="flex items-center gap-3 min-w-0 cursor-pointer group">
-          <VelacreMark size={36} />
+          <span className="inline-flex shrink-0" style={{ marginTop: 1 }}>
+            <VelacreMark size={36} />
+          </span>
           <span
-            className="font-bold text-xl tracking-tight text-slate-200 group-hover:text-white transition-colors"
+            className="font-bold text-xl tracking-tight text-slate-200 group-hover:text-white transition-colors leading-none"
             style={{ fontFamily: 'CalSansUI, ui-sans-serif' }}
           >
             velacre
           </span>
           {negocioNombre && (
-            <span className="hidden sm:inline text-sm text-slate-500 truncate">· {negocioNombre}</span>
+            <span className="hidden sm:inline text-sm text-slate-500 truncate leading-none">· {negocioNombre}</span>
           )}
           {plan && planLabel && (
-            <span className={`hidden sm:inline text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-sm ${PLAN_STYLES[plan]}`}>
+            <span className={`hidden sm:inline text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full leading-none ${PLAN_STYLES[plan]}`}>
               {planLabel}
             </span>
           )}
