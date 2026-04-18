@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
+import { useOAuthLoading } from '@/hooks/useOAuthLoading'
 import './landing/landing.css'
 import { GoogleIcon } from './landing/shared'
 import { VelacreMark } from './landing/VelacreMark'
@@ -17,7 +18,7 @@ import PricingSection from './landing/PricingSection'
 export default function LandingPage() {
   const { t: l } = useLanguage()
   const e = l.landingEditorial
-  const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useOAuthLoading()
   const rootRef = useRef<HTMLDivElement>(null)
 
   async function handleGoogleSignup() {

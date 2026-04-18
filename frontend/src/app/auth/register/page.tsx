@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { createUsuario } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import { useOAuthLoading } from '@/hooks/useOAuthLoading'
 
 function GoogleIcon() {
   return (
@@ -28,7 +29,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useOAuthLoading()
 
   async function handleGoogleRegister() {
     setError('')
