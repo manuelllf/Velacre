@@ -13,6 +13,8 @@ import ReportErrorModal from '@/components/ReportErrorModal'
 import { trackLastAction, type ErrorInfoLike } from '@/lib/errorReporter'
 import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generateMonthlyPDF, generateYearlyPDF, computeSpeedBenchmark, type MonthMetrics, type SpeedBenchmark, type PdfTheme } from '@/lib/report-pdf'
 import { useLanguage } from '@/lib/i18n'
+import { AppHeader } from '@/components/AppHeader'
+import { AppFooter } from '@/components/AppFooter'
 
 const STOPWORDS = new Set([
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'al', 'en', 'y', 'a', 'que',
@@ -445,23 +447,7 @@ export default function SaludPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
-        <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/inicio" className="font-bold text-base text-slate-900 dark:text-white">Velacre</Link>
-            {negocio && <span className="hidden sm:inline text-sm text-slate-400 dark:text-slate-500">· {negocio.nombre}</span>}
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
-              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-            >
-              {t.app.common.logout}
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader negocioNombre={negocio?.nombre} />
       <SectionNav />
 
       {/* ── BASIC teaser: nota media real + 2 KPIs dummy blurred ── */}
@@ -1459,16 +1445,7 @@ export default function SaludPage() {
 
       <HelpButton />
 
-      <footer className="mt-8 border-t border-slate-800 py-5">
-        <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
-          <span>© {new Date().getFullYear()} Velacre · {t.footer.rights.replace('© 2026 Velacre. ', '')}</span>
-          <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-300 transition-colors">{t.footer.privacy}</Link>
-            <Link href="/terminos" className="hover:text-slate-300 transition-colors">{t.footer.terms}</Link>
-            <Link href="/contacto" className="hover:text-slate-300 transition-colors">{t.footer.contact}</Link>
-          </div>
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   )
 }

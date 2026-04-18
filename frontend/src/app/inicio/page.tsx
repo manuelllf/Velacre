@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyUsuario, getMyNegocio } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import { AppHeader } from '@/components/AppHeader'
+import { AppFooter } from '@/components/AppFooter'
 
 export default function InicioPage() {
   const router = useRouter()
@@ -38,11 +40,6 @@ export default function InicioPage() {
     init()
   }, [router])
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.replace('/')
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -64,23 +61,10 @@ export default function InicioPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="font-bold text-lg text-slate-900 dark:text-white">Velacre</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${planColor}`}>{planLabel}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block">{negocioNombre}</span>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-            >
-              {t.app.common.logout}
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        negocioNombre={negocioNombre}
+        rightExtra={<span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${planColor}`}>{planLabel}</span>}
+      />
 
       <main className="flex-1 max-w-4xl mx-auto px-4 py-12">
         <div className="mb-10">
@@ -127,16 +111,7 @@ export default function InicioPage() {
         </div>
       </main>
 
-      <footer className="mt-8 border-t border-slate-800 py-5">
-        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
-          <span>© {new Date().getFullYear()} Velacre · {t.footer.rights.replace('© 2026 Velacre. ', '')}</span>
-          <div className="flex gap-4">
-            <Link href="/privacidad" className="hover:text-slate-300 transition-colors">{t.footer.privacy}</Link>
-            <Link href="/terminos" className="hover:text-slate-300 transition-colors">{t.footer.terms}</Link>
-            <Link href="/contacto" className="hover:text-slate-300 transition-colors">{t.footer.contact}</Link>
-          </div>
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   )
 }

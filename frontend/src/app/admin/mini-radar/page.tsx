@@ -176,25 +176,23 @@ export default function MiniRadarPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-base font-bold text-slate-900 dark:text-white">
+      <header className="sticky top-0 z-30 bg-slate-900/85 backdrop-blur-md border-b border-slate-800">
+        <div className="max-w-4xl mx-auto px-5 sm:px-6 py-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1
+              className="text-base font-bold text-slate-200"
+              style={{ fontFamily: 'CalSansUI, ui-sans-serif' }}
+            >
               {mr.headerTitle}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {mr.headerSubtitle}
-            </p>
+            <p className="text-xs text-slate-500 mt-0.5">{mr.headerSubtitle}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin"
-              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
-              {mr.backAdmin}
-            </Link>
-          </div>
+          <Link
+            href="/admin"
+            className="text-sm text-slate-400 hover:text-slate-200 transition-colors shrink-0"
+          >
+            {mr.backAdmin}
+          </Link>
         </div>
       </header>
 

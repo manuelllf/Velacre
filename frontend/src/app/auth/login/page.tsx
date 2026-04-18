@@ -92,7 +92,10 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
 
         <div className="text-center mb-7">
-          <Link href="/" className="inline-block font-bold text-2xl text-slate-900 dark:text-white mb-5">Velacre</Link>
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-5">
+            <img src="/icons/logo-64.png" alt="" className="w-9 h-9" />
+            <span className="text-2xl font-bold text-slate-200" style={{ fontFamily: 'CalSansUI, ui-sans-serif' }}>velacre</span>
+          </Link>
           <h1 className="text-xl font-semibold text-slate-900 dark:text-white">{l.title}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{l.subtitle}</p>
         </div>
