@@ -1384,6 +1384,7 @@
     margin-bottom: 0;
     line-height: 1;
   }
+  .vel-lp .sec-head h2 { text-align: center; max-width: none; }
   .vel-lp .sec-lede { font-size: 15px; margin-top: 12px; line-height: 1.55; }
 
   /* Cards & Demo */
