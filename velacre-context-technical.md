@@ -2,7 +2,7 @@
 
 Documento técnico exhaustivo del proyecto **Velacre (ReviewShield)**. Retrato del estado actual del código a día **12 abril 2026** — arquitectura, flujos, integraciones, seguridad, concurrencia y backlog técnico. Para contexto de negocio / pricing / outreach, ver `velacre-context.md`.
 
-> **Última actualización:** 2026-04-16 (tests básicos backend + frontend). Ver §19 Changelog al final.
+> **Última actualización:** 2026-04-18 (rediseño editorial completo — rama `20260418_redefine`). Ver §19 Changelog al final.
 >
 > **Alcance**: este doc no recomienda cambios, describe el estado actual. Las propuestas de implementación están marcadas **✅ implementado 2026-04-12** en §11 y los hallazgos de concurrencia accionables en §12 están marcados igual cuando se han resuelto.
 
@@ -23,7 +23,7 @@ Velacre es un SaaS para hostelería (Galicia) que importa reseñas de Google, ge
 - **Deploy**: Backend en Railway (PORT env var), frontend presumiblemente Vercel.
 
 **Estado del código**:
-- ~5.000 líneas backend, ~12.800 líneas frontend (incluidos locales i18n).
+- ~5.000 líneas backend, ~19.300 líneas frontend (incluidos locales i18n + landing.css editorial de 1.4k líneas).
 - 49 endpoints API, 11 controllers, 5 servicios, 9 entidades de BD.
 - **~12-15% cobertura de tests** (53 tests con mocks, 2026-04-14): backend 18 tests xUnit (ClaudeService + NegocioController + UsuarioController), frontend 35 tests Vitest (API client + modules, ResponseCard, Tooltip, useReviews hook).
 - ~~**Sin error boundary** global en frontend, **sin middleware global** de errores en backend.~~ **✅ Resuelto 2026-04-12**.
@@ -1455,6 +1455,80 @@ Refactorización completa en 6 grupos, 10 de 11 puntos ejecutados. Rama `202604_
 
 - **Bug**: `createBrowserClient` (`@supabase/ssr`) tiene `detectSessionInUrl: true` por defecto — consume automáticamente el code PKCE del OAuth callback. El `useEffect` del callback intentaba `exchangeCodeForSession()` después, pero el code ya estaba consumido → error "Error al iniciar sesión" aunque la sesión sí existía.
 - **Fix**: `auth/callback/page.tsx` ahora primero comprueba si ya hay sesión (auto-exchange), y solo usa `exchangeCodeForSession` como fallback. No se detectó en tests porque el flujo OAuth real requiere Google (no mockeable en unit tests).
+
+### 2026-04-18 — Rediseño editorial completo (rama `20260418_redefine`)
+
+Reescritura visual de toda la webapp manteniendo intacta la lógica de negocio. ~30 commits en rama dedicada, pusheados a origin. Creada rama `20260418_mainbase` al mismo SHA que `main` como snapshot de rollback.
+
+**Archivos nuevos**:
+- `frontend/src/components/landing/landing.css` — ~1400 líneas, sistema editorial scoped a `.vel-lp`. Tokens CSS (`--ink`, `--paper`, `--accent`, `--good`, `--warn`, `--danger`, `--line`, `--mute` …), utilidades `.wrap`, `.sec`, `.sec-head`, `.sec-idx`, `.rule-strong`, `.mono`, `.pill`, botones `.btn`/`.btn-primary`/`.btn-ghost`/`.btn-accent`, y componentes específicos (hero, ticker, stats, demo, radar, health, steps, sectors, pricing, final, foot-min, prose-legal, insight-card). Bloque `@media (max-width: 720px)` con overrides móviles y breakpoint extra 380px.
+- `frontend/src/components/landing/VelacreMark.tsx` — `<Image>` de Next.js que selecciona `/icons/logo-{64|128|256|1024}.png` según `size` prop.
+- `frontend/src/components/landing/NavBar.tsx` — nav editorial con variant `landing` (scroll-to-top) y `default` (Link a /).
+- `frontend/src/components/landing/FooterEditorial.tsx` — footer minimal de una línea (copyright mono + 3 links legales).
+- `frontend/src/components/PublicShell.tsx` — envuelve páginas marketing/legal con NavBar + main + FooterEditorial.
+- `frontend/src/components/AppHeader.tsx` — header app con VelacreMark + wordmark + negocio + plan badge + slot rightExtra + logout. Estilos inline rgba(10,14,26,0.96) + blur 14px + border paper 12% para matchear NavBar landing sin conflicto Tailwind.
+- `frontend/src/components/AppFooter.tsx` — footer app (mismo patrón que FooterEditorial pero con max-width-xl).
+- `frontend/src/hooks/useOAuthLoading.ts` — drop-in de `useState<boolean>(false)` que resetea en `pageshow` con `event.persisted=true` (bfcache restore) y `visibilitychange`. Fix del bug "botón de Google colgado al volver atrás".
+
+**Archivos modificados (alto impacto)**:
+- `frontend/src/app/globals.css` — `:root --background/--foreground` a ink/paper editoriales. Añadido en `@theme inline` el **remapeo completo de tokens Tailwind**: `--color-slate-{50..950}`, `--color-blue-{50..950}`, `--color-indigo-{400..600}`, `--color-emerald-*`/`--color-green-*`, `--color-amber-*`/`--color-yellow-*`, `--color-red-*`, `--color-white`. Esto propaga la paleta a toda la app sin tocar JSX. También añadidas reglas `.vel-lang*` (lang switcher) y `.vel-help-btn` (help button) con estética editorial.
+- `frontend/src/app/layout.tsx` — metadata.icons expandida (favicon.ico, favicon-16/32/48, apple-touch 120/152/180, mask-icon), openGraph.images, msapplication-* (TileColor, TileImage), viewport export con themeColor `#0A0E1A` (antes en metadata, Next 16 deprecó).
+- `frontend/src/app/manifest.ts` — iconos android-chrome + maskable, background/theme_color `#0A0E1A`.
+- `frontend/src/components/LandingPage.tsx` — reescrito de 0 con el nuevo sistema editorial (hero+ticker, stats 4 cells, 01 Producto, 02 Inteligencia, 03 Salud, 04 Flujo, 05 Público, 06 Precios, 07 Empezar). useEffect añade `.fade` a `.sec, .stats, .final, .radar-card, .health-card, .pricing-grid, .transv` y los observa con IntersectionObserver para el fade-in.
+- `frontend/src/components/landing/{HeroSection, DemoSection, RadarPreviewSection, PricingSection}.tsx` — reescritos. DemoSection incluye swipe horizontal móvil (`onTouchStart`/`onTouchEnd`, threshold 48px) y `TypedBody` sub-component que evita el bucle infinito de tipado (ref para onDone, efecto depende solo de `text`).
+- `frontend/src/components/landing/shared.tsx` — FadeInUp reescrito sin framer-motion (IntersectionObserver + inline styles). `GlowCard` y `CheckIcon` (existente) + `ArrowIcon`, `GoogleIcon`, `renderStars` añadidos.
+- `frontend/src/components/LangSwitcher.tsx` — classnames Tailwind → clases `.vel-lang*` (estilos en globals.css). Esquina inferior izquierda, dropdown hacia arriba.
+- `frontend/src/components/HelpModal.tsx` — FAB con clase `.vel-help-btn` (estilos globales). Esquina inferior derecha.
+- `frontend/src/app/{contacto,privacidad,terminos}/page.tsx` — migradas a `PublicShell` con prose-legal.
+- `frontend/src/app/{inicio,dashboard,dashboard/salud,settings,admin}/page.tsx` — `<header>` y `<footer>` propios reemplazados por `<AppHeader />` y `<AppFooter />`. Pages pasan `negocioNombre` y `plan` por props. Admin usa `rightExtra` con badge "Admin" + link Mini Radar + botón refrescar.
+- `frontend/src/app/admin/mini-radar/page.tsx` — header ad-hoc (título + back) con los mismos inline styles editoriales.
+- `frontend/src/app/auth/{login,register}/page.tsx` — texto "Velacre" reemplazado por `<img src="/icons/logo-64.png"> + wordmark velacre Cal Sans`. `useState(false)` para googleLoading pasa a `useOAuthLoading()`.
+- `frontend/src/locales/types.ts` — añadido bloque `landingEditorial` con ~60 claves tipadas (nav, hero, stats, sections, demo, radar, health, howto, forWho, pricing, cta, footer).
+- `frontend/src/locales/es.ts` — añadidas ~60 claves nuevas. Actualizadas existentes:
+  - `hero.badge`: "Acceso anticipado · Plazas limitadas" → "Sin permanencia · plan gratis real"
+  - `hero.ctaGoogle`: "Empezar con Google" → "Entrar con Google"
+  - `hero.ctaEmail`: "Crear cuenta con email" → "Con email"
+  - `stats.s1-3`: alineados al copy del diseño (6 tonos / <10s / 3 vecinos)
+  - `pricing.plans.core.priceYearlyMonthly`: "15,83 €" → "16 €"
+  - `pricing.plans.core.badge`: "Más popular" → "Más elegido"
+  - `pricing.plans.pro.priceYearlyMonthly`: "40,83 €" → "41 €"
+  - `pricing.plans.pro.badge`: "El más elegido" → "Más completo"
+  - `pricing.vatNote`: añadido "Cobro gestionado por Lemon Squeezy"
+  - `forWho.lede`: "PYME hispanohablante" → "PYME"
+- `frontend/src/locales/en.ts` y `frontend/src/locales/gal.ts` — mismos cambios con locales apropiados. Gallego revisado para sonar nativo.
+
+**Archivos eliminados**:
+- `frontend/public/favicon.svg`, `frontend/public/icon-192.png`, `frontend/public/icon-512.png`, `frontend/public/apple-touch-icon.png`
+- `frontend/src/app/icon.png`, `frontend/src/app/apple-icon.png`
+- `images/logo128.png`, `images/logo600.png` (viejos)
+
+**Archivos nuevos (assets)**:
+- `frontend/public/icons/` — 18 ficheros PWA (favicon.ico + favicon-{16,32,48}.png, apple-touch-icon-{120,152,180}.png, android-chrome-{192,512}.png, maskable-{192,512}.png, mstile-{150,310}.png, logo-{64,128,256,1024}.png, og-image-1200x630.png). Todos regenerados desde el master PNG recentrado simétricamente (el original tenía 13px padding arriba / 8px abajo, causaba mis-alignment en flex items-center).
+- `images/FINAL-v6-sello-V.png` y `images/FINAL-v6-sello-V-transparent.png` — versiones master del logo.
+- `images/Velacre/logo-options/pwa/*` — pack PWA oficial entregado por el fundador.
+
+**Decisiones técnicas relevantes**:
+
+1. **Scoping de la paleta editorial**: los tokens editoriales (`--ink`, `--paper`, etc.) viven scoped en `.vel-lp` (landing.css) — no contaminan el resto. La **propagación** a la app se hace via remapeo de tokens Tailwind en `@theme inline` de globals.css, no via las vars editoriales. Esto permite evolucionar landing y app por separado si fuese necesario.
+
+2. **Favicon tight crop**: `favicon-{16,32,48}.png` generados con `trim({threshold: 2})` + 1% padding (antes 4%), luego recentrados. `favicon.ico` reconstruido a mano con header/directorio binario embebiendo los 3 PNG (no había librería ICO instalada; se escribe el container ICO directamente en 20 líneas de node).
+
+3. **Logo centering**: el master PNG tenía padding asimétrico — el contenido visual del sello quedaba 2.5px por debajo del centro geométrico del bounding box. Fix: `await sharp(buf).trim().extend({top: padY, bottom: padY, left: padX, right: padX})` con `padX`/`padY` calculados para centrar el contenido. Regenerado `logo-1024.png` → resto de sizes derivados.
+
+4. **Tailwind v4 `@theme inline`**: al redefinir `--color-slate-950: #0A0E1A;` etc., Tailwind v4 recompila las utilidades atómicas con los nuevos valores. Las clases `bg-slate-950`, `text-blue-400`, `bg-emerald-500/40` etc. siguen existiendo pero con colores editoriales. Opacidades (`/50`, `/40`) también funcionan porque Tailwind las calcula como rgba desde el token base.
+
+5. **Fade-in sin framer-motion**: eliminada la dep de framer-motion en shared.tsx. `FadeInUp` usa IntersectionObserver + inline styles con transition. LandingPage.tsx tiene un observer global que aplica `.fade` → `.in` a todas las secciones de un tirón.
+
+6. **Swipe móvil**: implementado en vanilla (onTouchStart + onTouchEnd con delta > 48px). `touch-action: pan-y` en `.demo-review` declara al navegador que capturamos swipes horizontales pero preservamos scroll vertical nativo.
+
+7. **bfcache handling**: nuevo hook `useOAuthLoading` escucha `pageshow` con `event.persisted=true` para detectar restauración desde bfcache y resetear el estado. También maneja `visibilitychange` por si el usuario cambia de pestaña y vuelve sin completar OAuth. Resuelve el bug "botón de Google queda girando tras back browser".
+
+**Estado de ramas al cierre**:
+- `main` → MVP funcional pre-rediseño (no tocado).
+- `20260418_mainbase` → mismo SHA que `main`, creada como snapshot por seguridad.
+- `20260418_redefine` → todos los commits del rediseño, pushed a origin. Pendiente merge `--no-ff` a main cuando se valide.
+
+**Build limpio** (tsc + next build) en las 22 rutas al cerrar la sesión. Tests no afectados (ningún test lee colores ni markup de marca).
 
 ---
 

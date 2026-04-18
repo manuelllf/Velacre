@@ -1,6 +1,6 @@
 # Velacre — Contexto del proyecto
 
-> **Última actualización:** 2026-04-16. Para detalle técnico exhaustivo (endpoints, servicios, seguridad, concurrencia), ver `velacre-context-technical.md`.
+> **Última actualización:** 2026-04-18. Para detalle técnico exhaustivo (endpoints, servicios, seguridad, concurrencia), ver `velacre-context-technical.md`.
 
 ---
 
@@ -279,7 +279,12 @@ Registro (Google OAuth o email)
 ## 11. Decisiones de diseño clave (con el porqué)
 
 ### Producto y UX
-- **Modo oscuro forzado:** decisión estética deliberada. Velacre es una herramienta de trabajo, no un portal público. Dark reduce fatiga visual para dueños que lo usan al final del día.
+- **Modo oscuro forzado + paleta editorial (2026-04-18):** navy `#0A0E1A` + crema papel `#E8E2D4` + azul maduro `#4A6FE5` como acento único. Reemplaza el slate-950 + blue-600 anterior. Tokens Tailwind (`slate-*`, `blue-*`, `emerald-*`, `amber-*`, `red-*`, `white`) remapeados en `globals.css @theme inline` para propagar automáticamente a toda la app sin tocar JSX. Semánticos: good `#6E9E7E` (verde musgo), warn `#D4A84A` (dorado apagado), danger `#C46A5C` (terracota). Decisión contrarian vs el SaaS-azul-eléctrico genérico — diferenciación de marca deliberada, con riesgo asumido en vertical hostelería.
+- **Logo oficial: sello de lacre con "V" monograma.** PNG centrado simétricamente en bounding box (el original tenía 13px arriba / 8px abajo → se veía flotante en flex items-center, corregido con `trim` + `extend` simétrico). Pack PWA completo en `public/icons/` (18 ficheros: favicon.ico + 16/32/48, apple-touch 120/152/180, android-chrome 192/512, maskable 192/512 con safe zone 10%, mstile 150/310, og-image 1200×630, logo 64/128/256/1024).
+- **Wordmark "velacre" en minúsculas Cal Sans 700:** usado en navbar, footer, auth pages, mini-radar admin. Coherente entre landing y app.
+- **Shell unificado (2026-04-18):** `AppHeader` + `AppFooter` como componentes compartidos en `/inicio`, `/dashboard`, `/dashboard/salud`, `/settings`, `/admin`. Mismo tono `rgba(10,14,26,0.96)` + blur 14px que el NavBar de la landing — al navegar landing → app el header se queda quieto visualmente. `PublicShell` para páginas marketing/legal (`/contacto`, `/privacidad`, `/terminos`).
+- **Plan badge en header** (Basic/Core/Pro) junto al wordmark en todas las páginas app — redondeado (pill) para diferenciarse de los badges mono cuadrados de la landing editorial. Outline slate en Basic/Core, outline accent en Pro.
+
 - **6 tonos:** Profesional, Empático, Cercano, Directo, Agradecido y Humorístico. Agradecido pensado para reseñas positivas (4-5 estrellas), incluye keywords del negocio con naturalidad. Gap vs RepScan (9 tonos) reducido significativamente.
 - **Filtro seguridad transversal (no solo Pro):** coste cero (misma llamada Claude) y es el mejor argumento de marca. Desde 2026-04-10 comunicado como feature de todos los planes en la landing.
 - **GBP deshabilitado con "Próximamente":** todo el código está listo. La UI muestra badges y elementos con opacity reducida. Activación será quitar CSS, no desarrollar nada nuevo.
@@ -394,6 +399,89 @@ Registro (Google OAuth o email)
 - **Lemon Squeezy tienda activa en producción** — los prospects que contesten "sí, me registro" pueden pagar directamente Core/Pro sin workaround.
 - **`SendRetainedReviewAlertAsync` documentado como dormant por diseño**: la retención ocurre síncronamente cuando el usuario pulsa "generar respuesta", ve el banner ⚠️ en directo. El método queda documentado con comentario explícito para evitar falsos positivos en auditorías futuras. Se conectará cuando exista auto-publicación o cron de generación batch.
 - **Backlog técnico pre-cliente**: verificado. **Cero bloqueantes técnicos** para primer registro. Smoke test end-to-end en móvil pendiente (responsabilidad operativa del fundador, no del código).
+
+### 2026-04-18 — Rediseño editorial completo (rama `20260418_redefine`)
+
+Reescritura de marca y shell visual de toda la webapp sin tocar lógica de negocio. 30+ commits en una rama dedicada. `20260418_mainbase` creada como snapshot del MVP previo por seguridad.
+
+#### Nueva identidad de marca
+
+- **Paleta editorial navy + crema** sustituye al slate-950/blue-600 genérico. Valores exactos: `#0A0E1A` ink, `#0F1729` ink-2, `#1A2236` ink-3, `#E8E2D4` paper, `#B8B1A0` paper-dim, `#6E7689` mute, `#4A6FE5` accent, `#6E9E7E` good, `#D4A84A` warn, `#C46A5C` danger.
+- **Logo oficial: sello de lacre con "V" monograma** (pack PWA entregado por el fundador en `images/Velacre/logo-options/pwa/`). Adoptado en todos los sitios de marca. Master PNG re-centrado simétricamente (trim + extend) porque el original tenía padding asimétrico que descolocaba el flex-alignment. Regenerados los 18 iconos del pack (favicon 16/32/48, apple-touch 120/152/180, android-chrome 192/512, maskable con 10% safe zone, mstile, og-image, logos 64-1024).
+- **Wordmark "velacre" minúsculas Cal Sans 700** reemplaza al "Velacre" capitalizado. Usado en NavBar, AppHeader, footer, auth pages.
+
+#### Landing completamente rediseñada
+
+7 secciones numeradas `01`–`07` con sistema editorial:
+- **Hero** con meta `ES · GAL · EN / V · 2026.04`, pill "Sin permanencia · plan gratis real", H1 con acento en color, ticker de 4 reseñas en vivo (oculto en móvil), hero-foot de 3 chips.
+- **Stats 4 celdas**: 6 tonos / <10s / 3 vecinos / 0€.
+- **01 Producto**: demo interactivo con 3 reseñas y 6 tonos con typing animation; swipe horizontal móvil para navegar entre reseñas (threshold 48px, `touch-action: pan-y`).
+- **02 Inteligencia**: Radar con 3 competidores dummy (`Competidor 1/2/3`, antes usaba nombres reales de restaurantes gallegos — despersonalizado), barras animadas por IntersectionObserver. 3 cards de insights (Acción/Fortaleza/Oportunidad) con franja lateral de color temático.
+- **03 Salud**: 4 KPIs (nota media / respondidas con mini-barra de sentimiento colapsada / nuevas / velocidad), 3 cards IA brilla/quema/acción.
+- **04 Flujo**: 3 pasos con hover (barra accent izquierda + color accent en numeral).
+- **05 Público**: 8 sectores agrupados (hostelería & tabernas, cafeterías, hoteles & casas rurales, clínicas & dentistas, peluquerías & estética, talleres mecánicos, academias & fisio, tiendas de barrio).
+- **06 Precios**: toggle mensual/anual centrado con pill "2 meses gratis" debajo, 3 planes con Pro destacado (fondo con gradient sutil accent + borde accent), caja transversal "Incluido en todos los planes".
+- **07 Empezar**: CTA final con watermark del sello al fondo, misma gramática de sec-idx que el resto.
+
+Anti-plantilla: cero glows, `blur-3xl`, `rounded-2xl`, `shadow-2xl`. Rules finas, numeración mono, small caps, bordes rectos radius 2-4px. Fade-in por IntersectionObserver en secciones/cards.
+
+#### Propagación de paleta a toda la app sin tocar JSX
+
+- Tokens Tailwind (`slate-*` 50-950, `blue-*` 50-950, `emerald-*`, `green-*`, `amber-*`, `yellow-*`, `red-*`, `indigo-*`, `white`) remapeados en `globals.css @theme inline` a los valores editoriales.
+- Los componentes siguen usando `bg-slate-900 text-blue-400` etc. pero renderizan con la paleta nueva. Dashboard, settings, onboarding, auth, admin, inicio, sales, health → todo migrado automáticamente.
+- PDFs intactos (jsPDF usa colores hardcoded).
+
+#### Shell unificado cross-app
+
+- `AppHeader` (logo VelacreMark + wordmark + negocio + plan badge + logout) y `AppFooter` (copyright mono + 3 legal links) como componentes compartidos.
+- Aplicados en `/inicio`, `/dashboard`, `/dashboard/salud`, `/settings`, `/admin`. Admin mantiene badge propio "Admin" como `rightExtra`.
+- `PublicShell` (NavBar editorial + FooterEditorial) en `/contacto`, `/privacidad`, `/terminos`.
+- `/admin/mini-radar` con header ad-hoc pero mismo tono editorial.
+- Mismo `rgba(10,14,26,0.96)` + blur 14px + border cream 12% que el NavBar de la landing — navegación sin saltos de tono.
+
+#### i18n: bloque editorial + limpieza copy
+
+- Nuevo bloque `landingEditorial` en los 3 locales (ES/EN/GAL) con ~60 claves: nav, hero, stats, sections, demo, radar, health, howto, forWho, pricing, cta, footer.
+- Gallego nativo (boca a boca, recensions, veciños, prezo).
+- Copy limpio:
+  - "ES-GL" → "GAL" en meta del hero.
+  - "PYME hispanohablante" → "PYME" (sin adjetivar).
+  - "único SaaS español" fuera del footer (no lo somos, en todo caso gallego).
+  - "Hecho en Santiago" → "Hecho en Ferrol" — luego retirado, footer minimal solo con copyright + Galicia ES.
+  - "IVA incluido" → "Sin tarjeta" (Velacre cobra sin IVA via Lemon Squeezy Merchant of Record, el anterior wording era incorrecto).
+  - Badges de plan normalizados por eje: Core "Más elegido" / Pro "Más completo" (antes "Más popular" + "El más elegido" solapaban).
+  - Precios anuales redondeados en display: 16€ y 41€ (antes 15,83 y 40,83 — precios reales 190/490 año no cambian).
+- Competidores del Radar demo despersonalizados (eran nombres reales de restaurantes gallegos, podían confundir).
+
+#### Micro-interacciones editoriales
+
+- Hovers sutiles (sin scale/shadow): ticker rows, radar rows no-mine, AI cards (border del color temático), plan cards Basic/Core, step rows (barra accent izquierda + numeral accent), nav links.
+- Fade-in de secciones con IntersectionObserver + transiciones `cubic-bezier(0.2, 0.7, 0.2, 1)`.
+- LangSwitcher y HelpButton con estética editorial (círculo 44px navy, border crema 22%, hover ink-3). Ambos globales vía globals.css. En móvil 38px con blur; lang izquierda, help derecha, sin solape.
+
+#### Polish móvil exhaustivo
+
+- Gutter lateral `.wrap` 24px (antes 18-22), breakpoint adicional a 380px.
+- Section indices (01-07) y H2 centrados en móvil; sec-lede queda left-aligned.
+- Meta-bar del hero oculta en móvil (ruido en pantalla pequeña).
+- Hero-foot con bullets visibles, centrado, gap 10×18, wrap si no cabe.
+- Radar restructurado: cada competidor como sub-card stacked con labels mono de categoría a la izquierda, barra al medio, score a la derecha.
+- KPI 2×2 con border-left solo en columnas pares (antes todas, creaba línea fantasma al inicio de cada fila).
+- Pricing cards independientes con gap 12px (antes celdas pegadas en un grid con bordes compartidos).
+- Ticker oculto en móvil.
+
+#### Bug fixes de sesión
+
+- **OAuth loading state**: hook `useOAuthLoading` resetea el estado vía `pageshow` con `event.persisted` (bfcache restore) + `visibilitychange`. Antes: al pulsar "Entrar con Google" y volver atrás, el botón quedaba girando para siempre. Aplicado en landing, auth/login y auth/register.
+- **Logo descentrado**: fix descrito arriba (PNG re-centrado + AppHeader con lineHeight: 36px en spans para matchear altura del sello).
+- **Pro badge invisible**: había dos reglas CSS duplicadas `.plan.pro .plan-badge`, la posterior sobrescribía con `color: accent` sobre bg accent. Consolidada.
+- **Demo typing loop infinito**: `TypedBody` entraba en bucle porque `onDone` se re-creaba cada render. Fixed con `useCallback` + `useRef` interno.
+
+#### Estado de ramas al cierre
+
+- `main` = MVP funcional pre-rediseño.
+- `20260418_mainbase` = snapshot de `main` (mismo SHA).
+- `20260418_redefine` = todos los commits del rediseño, pushed a origin. Mergeable a main vía `git merge --no-ff` cuando se valide.
 
 ---
 
