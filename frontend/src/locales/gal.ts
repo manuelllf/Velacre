@@ -284,7 +284,10 @@ const gal: LandingLocale = {
       pricing: 'Empezas gratis para ver se Velacre encaixa coa túa forma de traballar. Se che serve, pasas a Core. Se queres vixiar os teus veciños, a Pro. Sen letra pequena nin sorpresas.',
     },
     data: {
-      label: 'O que din os datos',
+      label: 'Datos do sector',
+      h2l1: 'As recensións',
+      h2l2: 'non son opcionais.',
+      lede: 'Tres datos públicos que explican por que contestalas ben move a agulla do negocio.',
       items: [
         { num: '87%', text: 'de consumidores mira recensións antes de ir a un negocio local', src: 'BrightLocal · Consumer Survey 2024' },
         { num: '+0,12★', text: 'de media que gañan os negocios que responden ás súas recensións', src: 'Harvard Business School · 2017' },
@@ -326,7 +329,7 @@ const gal: LandingLocale = {
         { q: 'Responde en galego, catalán ou inglés?', a: 'Si. Responde no mesmo idioma da recensión orixinal. Se o teu cliente escribe en galego, a resposta sae en galego.' },
         { q: 'Necesito tarxeta para o plan gratis?', a: 'Non. 10 respostas IA ao mes, sen tarxeta, para sempre. O plan gratis é un plan, non unha demo.' },
         { q: 'Como conecta Velacre con Google?', a: 'Buscas o teu local por nome en Google Maps, un clic e listo. Non fai falta técnico nin acceso especial a Google Business Profile.' },
-        { q: 'Podo velo funcionar antes de rexistrarme?', a: 'Si. Baixa ao demo desta mesma páxina: unha recensión real, seis tonos, elixe un e ve a resposta en vivo.' },
+        { q: 'Podo velo funcionar antes de rexistrarme?', a: 'Si. Baixa á demo desta mesma páxina: unha recensión real, seis tonos, elixe un e ve a resposta en vivo.' },
       ],
     },
     demo: {

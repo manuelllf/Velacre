@@ -241,7 +241,20 @@ export default function LandingPage() {
 
         {/* ===== DATA STRIP ===== */}
         <section className="sec wrap sec-data">
-          <p className="data-head">{e.data.label}</p>
+          <div className="sec-head">
+            <div className="sec-idx">
+              <span className="num">·</span>
+              {e.data.label}
+            </div>
+            <div>
+              <h2>
+                {e.data.h2l1}
+                <br />
+                {e.data.h2l2}
+              </h2>
+              <p className="sec-lede">{e.data.lede}</p>
+            </div>
+          </div>
           <div className="data-strip">
             {e.data.items.map(item => (
               <div className="data-stat" key={item.num}>

@@ -223,6 +223,9 @@ export interface LandingLocale {
     }
     data: {
       label: string
+      h2l1: string
+      h2l2: string
+      lede: string
       items: Array<{ num: string; text: string; src: string }>
     }
     compare: {

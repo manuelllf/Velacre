@@ -284,7 +284,10 @@ const en: LandingLocale = {
       pricing: 'Start free to see if Velacre fits the way you work. If it helps, move to Core. If you want to track your neighbours, Pro. No fine print, no surprises.',
     },
     data: {
-      label: 'What the data says',
+      label: 'Industry data',
+      h2l1: 'Reviews',
+      h2l2: 'are not optional.',
+      lede: 'Three public data points that explain why answering well moves the needle for local businesses.',
       items: [
         { num: '87%', text: 'of consumers check online reviews before visiting a local business', src: 'BrightLocal \u00b7 Consumer Survey 2024' },
         { num: '+0.12\u2605', text: 'average rating lift for businesses that reply to their reviews', src: 'Harvard Business School \u00b7 2017' },

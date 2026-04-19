@@ -2045,15 +2045,6 @@
 /* ============================================================
    SEC DATA — stat strip externa con fuentes
    ============================================================ */
-.vel-lp .data-head {
-  font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--mute);
-  margin-bottom: 24px;
-  text-align: center;
-}
 .vel-lp .data-strip {
   display: grid;
   grid-template-columns: 1fr;
@@ -2084,7 +2075,6 @@
   margin-top: 8px;
 }
 @media (min-width: 720px) {
-  .vel-lp .data-head { margin-bottom: 36px; }
   .vel-lp .data-strip { grid-template-columns: repeat(3, 1fr); gap: 40px; }
   .vel-lp .data-stat .num { font-size: 48px; }
 }
@@ -2219,41 +2209,43 @@
   width: 100%;
   min-width: 480px;
   border-collapse: collapse;
-  background: var(--paper);
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  overflow: hidden;
+  background: transparent;
 }
 .vel-lp .compare-table th,
 .vel-lp .compare-table td {
-  padding: 12px 14px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--line);
-  font-size: 13.5px;
+  font-size: 14px;
   text-align: left;
   vertical-align: middle;
+  background: transparent;
 }
+.vel-lp .compare-table thead th { border-bottom: 1px solid var(--line-strong); padding-bottom: 12px; }
 .vel-lp .compare-table th {
   font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--mute);
   font-weight: 600;
-  background: var(--paper-2);
 }
 .vel-lp .compare-table th.us { color: var(--accent-strong); }
 .vel-lp .compare-table tr:last-child td { border-bottom: 0; }
-.vel-lp .compare-table td.center { text-align: center; font-size: 15px; }
-.vel-lp .compare-table td.us { background: rgba(74, 111, 229, 0.05); }
+.vel-lp .compare-table th.center,
+.vel-lp .compare-table td.center { text-align: center; }
+.vel-lp .compare-table td.center { line-height: 1; }
+.vel-lp .compare-table td.us,
+.vel-lp .compare-table th.us { border-left: 2px solid rgba(74, 111, 229, 0.35); }
 .vel-lp .compare-table .price {
   font-family: var(--f-head);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
   color: var(--ink);
+  letter-spacing: -0.01em;
 }
-.vel-lp .compare-table .price.us { color: var(--accent-strong); }
-.vel-lp .compare-table .yes { color: var(--good); font-weight: 700; }
-.vel-lp .compare-table .no { color: var(--mute); }
+.vel-lp .compare-table .price.us { color: var(--accent-strong); font-size: 20px; }
+.vel-lp .compare-table .yes { color: var(--good); font-weight: 700; font-size: 22px; }
+.vel-lp .compare-table .no  { color: var(--danger); font-weight: 400; font-size: 18px; opacity: 0.6; }
 .vel-lp .compare-foot {
   font-family: var(--f-mono);
   font-size: 9.5px;
