@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n'
 import { CheckIcon } from './shared'
@@ -15,6 +15,21 @@ export default function PricingSection() {
   const { t: l } = useLanguage()
   const e = l.landingEditorial
   const [yearly, setYearly] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(e.founding.code)
+      setCopied(true)
+    } catch {
+      setCopied(true)
+    }
+  }
+  useEffect(() => {
+    if (!copied) return
+    const t = setTimeout(() => setCopied(false), 1800)
+    return () => clearTimeout(t)
+  }, [copied])
 
   const coreM = priceNumber(l.pricing.plans.core.priceMonthly)
   const coreYMonthly = priceNumber(l.pricing.plans.core.priceYearlyMonthly)
@@ -51,6 +66,24 @@ export default function PricingSection() {
           <span className={`lbl ${yearly ? 'on' : ''}`}>{l.pricing.yearly}</span>
         </div>
         <span className={`save-pill ${yearly ? 'show' : ''}`}>{l.pricing.yearlySave}</span>
+      </div>
+
+      {/* Founding price banner */}
+      <div className="founding">
+        <span className="founding-lbl">{e.founding.label}</span>
+        <div className="founding-head">{e.founding.headline}</div>
+        <p className="founding-meta" style={{ margin: 0 }}>{e.founding.meta}</p>
+        <div className="founding-code">
+          <span className="code-label">{e.founding.codeLabel}</span>
+          <span className="code-value">{e.founding.code}</span>
+          <button
+            type="button"
+            className={`code-copy ${copied ? 'copied' : ''}`}
+            onClick={copyCode}
+          >
+            {copied ? e.founding.copied : e.founding.copy}
+          </button>
+        </div>
       </div>
 
       <div className="pricing-grid">

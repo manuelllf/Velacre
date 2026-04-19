@@ -239,6 +239,15 @@ export interface LandingLocale {
       h2l2: string
       items: Array<{ q: string; a: string }>
     }
+    founding: {
+      label: string
+      headline: string
+      meta: string
+      codeLabel: string
+      code: string
+      copy: string
+      copied: string
+    }
     demo: {
       h2l1: string
       h2l2: string

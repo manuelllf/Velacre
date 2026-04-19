@@ -307,6 +307,15 @@ const es: LandingLocale = {
       ],
       foot: 'Fuentes: webs públicas de los competidores (abril 2026). El dato "publicación directa" de Velacre se activa al aprobarse Google Business Profile.',
     },
+    founding: {
+      label: 'Founding price',
+      headline: '−20% para siempre, para los primeros 20 negocios.',
+      meta: 'El descuento se mantiene en todas las renovaciones. Cuando se agoten las 20 plazas, precio normal.',
+      codeLabel: 'Código',
+      code: 'VELFOUND20',
+      copy: 'Copiar',
+      copied: 'Copiado',
+    },
     faq: {
       label: 'Preguntas frecuentes',
       h2l1: 'Antes de registrarte,',

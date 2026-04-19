@@ -307,6 +307,15 @@ const en: LandingLocale = {
       ],
       foot: 'Sources: public competitor websites (April 2026). Velacre direct publishing activates upon Google Business Profile approval.',
     },
+    founding: {
+      label: 'Founding price',
+      headline: '\u221220% forever, for the first 20 businesses.',
+      meta: 'Discount holds across all renewals. When the 20 slots are gone, regular price.',
+      codeLabel: 'Code',
+      code: 'VELFOUND20',
+      copy: 'Copy',
+      copied: 'Copied',
+    },
     faq: {
       label: 'FAQ',
       h2l1: 'Before you sign up,',

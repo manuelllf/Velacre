@@ -2093,6 +2093,101 @@
 }
 
 /* ============================================================
+   FOUNDING BANNER — entre toggle y cards en pricing
+   ============================================================ */
+.vel-lp .founding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 18px 20px;
+  background: rgba(74, 111, 229, 0.06);
+  border: 1px solid rgba(74, 111, 229, 0.32);
+  border-radius: 10px;
+  margin: 0 auto 28px;
+  max-width: 620px;
+}
+.vel-lp .founding-lbl {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.vel-lp .founding-lbl::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+}
+.vel-lp .founding-head {
+  font-family: var(--f-head);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  max-width: 34ch;
+}
+.vel-lp .founding-meta {
+  font-size: 12.5px;
+  color: var(--muted-strong);
+  line-height: 1.5;
+  max-width: 48ch;
+}
+.vel-lp .founding-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  margin-top: 2px;
+}
+.vel-lp .founding-code .code-label {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.vel-lp .founding-code .code-value {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+.vel-lp .founding-code .code-copy {
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+  padding: 6px 12px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.vel-lp .founding-code .code-copy:hover { background: #000; }
+.vel-lp .founding-code .code-copy.copied { background: var(--good); }
+
+@media (min-width: 720px) {
+  .vel-lp .founding { padding: 22px 28px; }
+  .vel-lp .founding-head { font-size: 19px; }
+  .vel-lp .founding-meta { font-size: 13px; }
+}
+
+/* ============================================================
    COMPARE TABLE — 3-col dentro de pricing
    ============================================================ */
 .vel-lp .compare {
