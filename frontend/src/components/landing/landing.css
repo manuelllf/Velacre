@@ -341,11 +341,11 @@
   background: linear-gradient(transparent 72%, rgba(74, 111, 229, 0.22) 72%);
 }
 .vel-lp .hero-sub {
-  max-width: 52ch;
-  margin: 18px auto 0;
+  max-width: 44ch;
+  margin: 28px auto 0;
   font-size: 16.5px;
   color: var(--muted-strong);
-  line-height: 1.55;
+  line-height: 1.7;
 }
 .vel-lp .hero-cta {
   display: flex;
@@ -399,7 +399,7 @@
     align-items: start;
   }
   .vel-lp .hero h1       { margin: 14px 0 0; max-width: 20ch; text-align: left; }
-  .vel-lp .hero-sub      { max-width: 52ch; margin: 20px 0 0; font-size: 17.5px; }
+  .vel-lp .hero-sub      { max-width: 48ch; margin: 32px 0 0; font-size: 17.5px; line-height: 1.7; }
   .vel-lp .hero-cta      { flex-direction: row; flex-wrap: wrap; gap: 12px; width: auto; max-width: none; margin: 28px 0 0; }
   .vel-lp .hero-cta .btn { width: auto; min-height: 48px; padding: 14px 22px; font-size: 14.5px; }
   .vel-lp .hero-foot     { justify-content: flex-start; font-size: 13px; gap: 22px; margin-top: 24px; }
@@ -1966,59 +1966,84 @@
 }
 
 /* ============================================================
-   PROSE LEGAL — crema
+   PROSE LEGAL — editorial, no bloggy
    ============================================================ */
 .vel-lp .prose-legal {
   max-width: 68ch;
   margin: 0 auto;
-  padding: 40px 0 56px;
+  padding: 56px 0 72px;
 }
 .vel-lp .prose-legal h1 {
-  font-size: 28px;
-  margin-bottom: 12px;
+  font-family: var(--f-head);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
   color: var(--ink);
+  margin-bottom: 14px;
 }
 .vel-lp .prose-legal .updated {
   font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--mute);
-  margin-bottom: 28px;
+  margin-bottom: 48px;
 }
 .vel-lp .prose-legal h2 {
-  font-size: 19px;
-  margin-top: 32px;
-  margin-bottom: 10px;
+  font-family: var(--f-head);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
   color: var(--ink);
+  margin-top: 56px;
+  margin-bottom: 16px;
 }
 .vel-lp .prose-legal h3 {
-  font-size: 16px;
-  margin-top: 22px;
+  font-family: var(--f-head);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 32px;
   margin-bottom: 10px;
   color: var(--ink);
 }
 .vel-lp .prose-legal p,
 .vel-lp .prose-legal li {
   color: var(--muted-strong);
-  font-size: 14.5px;
-  line-height: 1.65;
-  margin-bottom: 14px;
+  font-size: 15.5px;
+  line-height: 1.75;
+  margin-bottom: 18px;
 }
 .vel-lp .prose-legal ul,
-.vel-lp .prose-legal ol { padding-left: 20px; }
-.vel-lp .prose-legal a  { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 2px; }
-.vel-lp .prose-legal a:hover { color: var(--accent); }
+.vel-lp .prose-legal ol {
+  padding-left: 22px;
+  margin-bottom: 20px;
+}
+.vel-lp .prose-legal li { margin-bottom: 10px; }
+.vel-lp .prose-legal a {
+  color: var(--ink);
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 1px;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.vel-lp .prose-legal a:hover { border-bottom-color: var(--ink); }
 .vel-lp .prose-legal strong  { color: var(--ink); font-weight: 600; }
 
 @media (min-width: 720px) {
-  .vel-lp .prose-legal       { padding: 64px 0 72px; }
-  .vel-lp .prose-legal h1    { font-size: 44px; margin-bottom: 14px; }
-  .vel-lp .prose-legal .updated { margin-bottom: 40px; font-size: 11px; }
-  .vel-lp .prose-legal h2    { font-size: 24px; margin-top: 44px; margin-bottom: 14px; }
-  .vel-lp .prose-legal h3    { font-size: 18px; margin-top: 28px; }
+  .vel-lp .prose-legal          { padding: 88px 0 96px; }
+  .vel-lp .prose-legal h1       { font-size: 52px; margin-bottom: 16px; letter-spacing: -0.03em; }
+  .vel-lp .prose-legal .updated { margin-bottom: 64px; font-size: 12px; }
+  .vel-lp .prose-legal h2       { font-size: 30px; margin-top: 80px; margin-bottom: 20px; }
+  .vel-lp .prose-legal h3       { font-size: 20px; margin-top: 40px; margin-bottom: 12px; }
   .vel-lp .prose-legal p,
-  .vel-lp .prose-legal li    { font-size: 15.5px; }
+  .vel-lp .prose-legal li       { font-size: 16.5px; line-height: 1.78; }
+}
+@media (min-width: 1200px) {
+  .vel-lp .prose-legal h1       { font-size: 64px; }
+  .vel-lp .prose-legal h2       { font-size: 34px; }
 }
 
 /* ============================================================
