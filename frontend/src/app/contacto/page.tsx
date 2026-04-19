@@ -14,6 +14,16 @@ export default function ContactoPage() {
     padding: 20,
   }
 
+  const label: React.CSSProperties = {
+    color: 'var(--mute)',
+    marginBottom: 10,
+  }
+
+  const emailLink: React.CSSProperties = {
+    fontSize: 16,
+    fontWeight: 500,
+  }
+
   return (
     <PublicShell>
       <article className="wrap prose-legal">
@@ -22,10 +32,10 @@ export default function ContactoPage() {
 
         <div style={{ display: 'grid', gap: 16, marginBottom: 32 }}>
           <div style={card}>
-            <div className="mono" style={{ color: 'var(--accent-strong)', marginBottom: 10 }}>
+            <div className="mono" style={label}>
               {c.generalEmail}
             </div>
-            <a href="mailto:info@velacre.com" style={{ color: 'var(--accent-strong)', fontSize: 16, fontWeight: 500 }}>
+            <a href="mailto:info@velacre.com" style={emailLink}>
               info@velacre.com
             </a>
             <p style={{ marginTop: 10, marginBottom: 0 }}>{c.generalEmailDesc}</p>
@@ -33,17 +43,17 @@ export default function ContactoPage() {
           </div>
 
           <div style={card}>
-            <div className="mono" style={{ color: 'var(--accent-strong)', marginBottom: 10 }}>
+            <div className="mono" style={label}>
               {c.privacyEmail}
             </div>
-            <a href="mailto:privacidad@velacre.com" style={{ color: 'var(--accent-strong)', fontSize: 16, fontWeight: 500 }}>
+            <a href="mailto:privacidad@velacre.com" style={emailLink}>
               privacidad@velacre.com
             </a>
             <p style={{ marginTop: 10, marginBottom: 0 }}>{c.privacyEmailDesc}</p>
           </div>
 
           <div style={card}>
-            <div className="mono" style={{ color: 'var(--mute)', marginBottom: 10 }}>
+            <div className="mono" style={label}>
               {c.locationTitle}
             </div>
             <address style={{ fontStyle: 'normal', lineHeight: 1.6, color: 'var(--ink)' }}>
