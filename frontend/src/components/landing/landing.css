@@ -1971,7 +1971,9 @@
 .vel-lp .prose-legal {
   max-width: 68ch;
   margin: 0 auto;
-  padding: 56px 0 72px;
+  padding-top: 56px;
+  padding-bottom: 72px;
+  /* horizontal padding heredado de .wrap (var(--gutter)) — no usar shorthand */
 }
 .vel-lp .prose-legal h1 {
   font-family: var(--f-head);
@@ -2033,7 +2035,7 @@
 .vel-lp .prose-legal strong  { color: var(--ink); font-weight: 600; }
 
 @media (min-width: 720px) {
-  .vel-lp .prose-legal          { padding: 88px 0 96px; }
+  .vel-lp .prose-legal          { padding-top: 88px; padding-bottom: 96px; }
   .vel-lp .prose-legal h1       { font-size: 52px; margin-bottom: 16px; letter-spacing: -0.03em; }
   .vel-lp .prose-legal .updated { margin-bottom: 64px; font-size: 12px; }
   .vel-lp .prose-legal h2       { font-size: 30px; margin-top: 80px; margin-bottom: 20px; }
