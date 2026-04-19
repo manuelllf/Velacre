@@ -155,7 +155,7 @@ Modal separado para TripAdvisor, Yelp, etc. Genera 1 respuesta en el tono del ne
 
 ### Panel de Salud (Core/Pro)
 - **Core:** nota media real, 4 KPIs, sentimiento, cards Pro bloqueadas con skeleton (sin datos reales bajo el blur)
-- **Pro:** todo lo anterior + análisis IA bajo demanda (brilla/quema/acción), velocidad de respuesta, evolución mensual, Radar de Competencia, PDFs descargables
+- **Pro:** todo lo anterior + análisis IA bajo demanda (brilla/quema/acción, 1/día), velocidad de respuesta, evolución mensual, Radar de Competencia, PDFs descargables
 
 ### Radar de Competencia (Pro)
 1. Añadir hasta 3 competidores buscando por nombre (Google Places)
@@ -483,6 +483,99 @@ Anti-plantilla: cero glows, `blur-3xl`, `rounded-2xl`, `shadow-2xl`. Rules finas
 - `main` = MVP funcional pre-rediseño.
 - `20260418_mainbase` = snapshot de `main` (mismo SHA).
 - `20260418_redefine` = todos los commits del rediseño, pushed a origin. Mergeable a main vía `git merge --no-ff` cuando se valide.
+
+### 2026-04-19/20 — Landing iteración 2 + cambio de límites (rama `20260418_redefine`)
+
+Continuación del rediseño editorial del 18 abril. Manuel revisa en móvil, detecta que la landing funciona en desktop pero se cae en móvil ("asquerosa"). Sesión dedicada a inversión de paleta, mobile-first real, enganche comercial y ajuste de límites de producto. ~20 commits sobre los 30 previos de la rama.
+
+#### Paleta invertida: crema base + módulos dark
+
+Ejecutado el spec `velacre-landing-redesign-spec.md` (escrito el 18, ejecutado el 19/20). Inversión de la paleta de la landing — de navy-everywhere a **crema (`#E8E2D4`) como fondo principal + módulos dark (`#0F1729`) solo donde hay producto real** (sec 01 Demo, 02 Radar, 03 Salud, card Pro de pricing, ticker hero). Secciones editoriales (hero, stats, 04 Flujo, 05 Público, 06 Precios crema, 07 CTA final, footer) todas en crema. Principio: **"el fondo es tu papel, lo oscuro es el producto"**.
+
+Webapp autenticada (`/inicio`, `/dashboard`, `/settings`, `/admin`) queda intacta en dark. Al entrar tras login el usuario no percibe salto porque ya vio esos módulos dark en la landing.
+
+#### Módulos renderizan UI real del dashboard
+
+Secciones 01/02/03 de la landing dejan de ser mockups estilizados con CSS editorial: **renderizan los mismos componentes, mismos tokens, mismas cards que `/dashboard`, `/dashboard/salud`** — solo con datos dummy. Técnica: envolver cada módulo en `<div className="dark">` para activar las variantes Tailwind `dark:*`, y copiar el JSX del dashboard (ReviewList, DetailPanel, KPIs, AI analysis cards, Radar table). Sin screenshots, sin imágenes fake. Lo que ves es lo que compras.
+
+#### Bugs de shorthand CSS con `padding` (2×)
+
+Bug raíz que aparece DOS veces a lo largo de la sesión:
+1. **`.sec { padding: 56px 0 }`** era shorthand y pisaba el padding horizontal de `.wrap` (`0 var(--gutter)`). Por eso cambiar el gutter de 16 a 36 no producía ningún efecto visible — el padding lateral siempre volvía a 0. Fix: separar `padding-top` / `padding-bottom`, sin shorthand.
+2. **Idéntico bug en `.prose-legal { padding: 56px 0 72px }`** una semana después. Páginas legales edge-to-edge hasta que se replica el fix. Regla aprendida: nunca `padding: X Y Z` shorthand en una clase que comparte elemento con `.wrap`.
+
+Un tercer bug relacionado: **flex-column shrinking con margin auto**. `.lp-main > *` con `.wrap { margin: 0 auto }` encogía a content-width en vez de llenar el cross-axis del flex. Fix: `.lp-main > * { width: 100% }` — auto margins ya no tienen holgura que consumir.
+
+#### Nav sin hamburguesa: iconos en todos los anchos
+
+La hamburguesa se descartó — "me parece feísima". Sustituida por **3 iconos mini** (producto, radar, precios) en la nav-row siempre visibles. Login agrupado con el CTA "Empezar gratis" en la derecha. En móvil (<380): iconos 32px sin label + CTA icon-only. Tablet+: iconos con label. Desktop 960+: icon+label completos. Se sacrifica visibilidad de los anchors por ahorro de toque; la alternativa hamburguesa era peor UX.
+
+#### Módulos unificados en móvil (Salud, Radar insights, Sectores, Flujo)
+
+Corrección tras feedback "en móvil salen las 3 en cards distintas, deberían salir juntas para dar legibilidad":
+- **Salud**: un solo card dark con 4 KPIs (grid 2×2 con borders internos) + separador + 3 filas AI con border-left color. Desktop: 4+3 cards separadas con fondos tintados emerald-950/red-950/blue-950.
+- **Radar insights**: 1 card crema con 3 zonas y border-left color. Desktop: 3 cards alturas iguales (`height: 100%`).
+- **Sectores** (sec 05): 1 card crema con 8 zonas grid 2×4. Desktop: 4×2 chips grandes (min-height 140-164px).
+- **Flujo** (sec 04): 1 card crema con 3 rows editorial. Desktop: 3 columnas igual altura.
+
+Todas siguen el mismo patrón: card unificado móvil / separated cards desktop, via media query en el propio contenedor.
+
+#### FOMO + enganche comercial (auditoría + cambios)
+
+Auditoría estructurada de FOMO/engagement concluyó landing 7.8/10 — sólida pero sin palancas conversoras. Ejecutados 4 cambios de alto ROI:
+
+1. **Sec "Datos del sector"** (nueva, entre sec 05 y sec 06). 3 stats externos con fuente:
+   - 87% de consumidores mira reseñas (BrightLocal 2024)
+   - +0.12★ media respondedores (Harvard Business School 2017)
+   - 2× clicks en negocios con 40+ reseñas (Google Business Profile)
+   Validación externa antes de la decisión de precio.
+
+2. **Tabla comparativa anonimizada** dentro de sec 06. 3 columnas "Competidor A (~€23)", "Competidor B (€249+)", "Velacre Pro (€49)" × 7 filas de features. Sin nombrar wiReply/RepScan explícitamente — el lector googlea si quiere. En móvil la tabla se rompe en 3 cards apiladas estilo **listado** (no cards de pricing — el usuario confundía con "segunda ronda de precios" la primera iteración).
+
+3. **Sec FAQ** (nueva, entre sec 06 y sec 07). 6 preguntas que desarman objeciones (reseñas falsas, cancelación, idiomas, tarjeta, conexión Google, ver antes). Card editorial crema.
+
+4. **Founding Price Banner** entre toggle y cards de pricing: **"−20% para siempre · primeros 20 negocios"**. Código `VELFOUND20` con botón Copiar (navigator.clipboard). Operativa en LS: crear discount con `Duration: Forever`, `Usage limit: 20`. Efectivo Core €19 → €15/mes para siempre, Pro €49 → €39/mes para siempre. Vs precio futuro post-GBP (Core €29, Pro €69), el founding lock equivale a ~48% off del precio futuro.
+
+**Help buttons "?"** añadidos en sec 01/02/03/06 (sec-idx). Click abre popover editorial con explicación de "cómo te ayuda esta feature" en tono vecino (sin tecnicismos), copy específico por sección. Respaldados por click-outside y Escape.
+
+**Ver demo link** "↓ Ver cómo funciona primero" en hero (scrollea a #producto) + "↑ Volver a la demo" en sec 07 CTA cierre. **Smooth scroll global** (`html { scroll-behavior: smooth }`) — anchors ya no saltan.
+
+#### Backend: cambio de límites de producto
+
+1. **Análisis IA** (panel Salud, endpoint `POST /api/review/analysis`): de **3/día (+1 bonus con 5+ reseñas nuevas)** a **1/día fijo**. Simplificación total: un análisis al día, se restablece a las 00:00 UTC.
+2. **Radar Competencia** (endpoint `POST /api/radar/analizar`): de **2/mes natural** a **1/semana ISO (lunes UTC)**. Nuevo helper privado `GetIsoWeekStart(DateTimeOffset)` en RadarController. Cambio de response shape: `analisisEsteMes` → `analisisEstaSemana` (con propagación a frontend types, salud/page.tsx, copy i18n ES/EN/GAL).
+3. Error string `ya_analizado_este_mes` → `ya_analizado_esta_semana`.
+4. Copy landing + in-app actualizado: `radarTooltip` "Hasta 2 análisis al mes" → "1 análisis a la semana"; `radarAlreadyAnalyzed` "este mes / mes que viene" → "esta semana / lunes que viene"; `aiLimitReached` "3 análisis/día" → "1 análisis/día"; helptext "cada mes" → "cada semana".
+
+Motivo: hacer que el plan Pro se sienta "premium acotado" en lugar de "barra libre con cap raro 250". Los límites nuevos son **fáciles de explicar** al prospect ("1 análisis al día, 1 radar a la semana") y previenen abuso sin bloquear uso legítimo.
+
+#### Polish transversal
+
+- **Hero CTAs**: iteraciones sucesivas de aire. Resuelto tras confirmar que padding shorthand NO estaba pisando (esta vez). Values finales: min-height 48, padding 14/20, font 14.5, gap 12, max-width 360 centrado móvil. Proporciones alineadas con el resto de botones del sitio (pricing .plan-cta, auth-submit).
+- **Wordmark "velacre"** alineado con el logo vía `line-height: [logo-size]px + margin-top: -2px` para compensar descender. Aplicado en NavBar editorial, AppHeader dashboard (ya lo tenía), auth-brand de login/register.
+- **Pro card pricing**: contraste reducido. bg `--mod-bg` (#0F1729) → `--ink-3` (#1A2236, más claro). Border accent sólido → rgba(74,111,229,0.55) translúcido. Más armónico con crema sin perder jerarquía.
+- **Sec 07 watermark** (sello de lacre fondo): opacity 0.05 → 0.11. Antes casi invisible, ahora perceptible sin dominar.
+- **Copy microedits ES/EN/GAL**:
+  - Em-dashes `—` y en-dashes `–` barridos (firma IA). Reemplazados por comas/puntos. Labels "Reseña — Google" → "Reseña · Google" con interpuncto.
+  - Stats labels: "6 tonos, de profesional a humorístico" → "tonos, cada respuesta suena como tú". Pasa de describir mecánica a describir beneficio.
+  - Hero sub: "Velacre las contesta, las entiende y te dice qué hacen mejor" → "Velacre las contesta en tu tono, te dice qué está fallando antes de que lo noten tus clientes y vigila qué hacen mejor tus vecinos." Tres verbos concretos.
+  - Sec 05 H2: "Pensado para dueños. No para agencias." → "Del asador a la clínica. Donde haya reseñas, funciona." (eliminada duplicación con hero sub).
+  - Sec 02 "Oportunidad" → "Patrón detectado" con copy que demuestra capacidad pattern-detection del mini-radar ("respondes 68% total pero solo 25% de 5★, 12 clientes ignorados").
+  - "0,12★" → "0.12★" (punto, no coma, en ES/GAL).
+  - "baja al demo" → "baja a la demo" (feminino correcto en español estándar).
+  - `vatNote`: removido "Cobro gestionado por Lemon Squeezy" (los prospects que quieran comprobar se leen los términos).
+
+#### Legal / auth / contacto — todo editorial, no bloggy
+
+- **Prose-legal** (privacidad, términos, contacto): H1 Cal Sans 36→56→64px, H2 22→30→34px con margin-top 56→80 (pausas amplias), body 15.5→16.5 line-height 1.78, margins p/ul más generosos. Links: fuera accent-azul-underline, ahora ink + border-bottom sutil (mismo patrón editorial que auth pages).
+- **Contacto** rediseñado de 3 cards paper-2 con boxes a **definition-list** editorial. Mobile: mono label arriba → email Cal Sans grande con underline → body + note. Desktop: label 180px baseline-left + content right. Sin boxes.
+- **Auth pages** (login/register/reset-password) migradas a crema con `.auth-*` utilities. Register compacto para caber sin scroll en 375×812. Links sin azul subrayado.
+
+#### Estado de ramas al cierre
+
+- `20260418_redefine` con ~20 commits nuevos sobre los 30 del 18 abril. Pushed a origin.
+- Build limpio (`next build` 22 rutas + `dotnet build`) al cerrar. Tests no afectados.
+- Pendiente: smoke test en móvil físico real (spec pedía iPhone SE 2020, iPhone 14, Pixel 7, Galaxy S23 mínimo) antes de merge. Preview emulado validado durante la sesión.
 
 ---
 

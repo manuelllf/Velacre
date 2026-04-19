@@ -1531,6 +1531,74 @@ Reescritura visual de toda la webapp manteniendo intacta la lógica de negocio. 
 
 **Build limpio** (tsc + next build) en las 22 rutas al cerrar la sesión. Tests no afectados (ningún test lee colores ni markup de marca).
 
+### 2026-04-19/20 — Landing iteración 2 + cambio de límites + bugs shorthand
+
+Sesión de continuación del rediseño editorial. Manuel revisa en móvil y detecta que funciona en desktop pero se cae en móvil. ~20 commits en `20260418_redefine`.
+
+**Landing: inversión de paleta ejecutada**
+
+Ejecutado el spec `velacre-landing-redesign-spec.md`. La landing pasa de dark-everywhere a fondo crema (`#E8E2D4`) con módulos dark solo en sec 01/02/03 + ticker hero + Pro card. Webapp autenticada intacta en dark. Archivos críticos modificados: `frontend/src/components/landing/landing.css` (rewrite completo mobile-first con tokens nuevos), `LandingPage.tsx`, `NavBar.tsx`, `HeroSection.tsx`, `DemoSection.tsx`, `RadarPreviewSection.tsx`, `PricingSection.tsx`, `FooterEditorial.tsx`, `PublicShell.tsx`, `globals.css` (scroll-behavior smooth + scrollbar-hide utility + keyframe vel-blink), y las 3 páginas legales + auth.
+
+**Módulos UI real dashboard**: sec 01/02/03 envueltas en `<div className="dark">` para activar variantes Tailwind `dark:*`. Copia directa del JSX de ReviewList + DetailPanel + KPIs + AI cards con datos dummy — no mockups. El prospect ve lo mismo que verá como usuario Pro.
+
+**Backend — cambio de límites**
+
+1. `POST /api/review/analysis` (ReviewController.cs):
+   - Antes: `dailyLimit = reviewDelta >= 5 ? 4 : 3; if (todayCount >= dailyLimit)`
+   - Ahora: `if (todayCount >= 1)` fijo.
+   - Mensaje error: sin cambio ("Límite diario alcanzado. Se restablece mañana.")
+
+2. `POST /api/radar/analizar` (RadarController.cs):
+   - Antes: `thisMonthCount = allAnalysis.Count(a => a.CreatedAt.Year == utcNow.Year && a.CreatedAt.Month == utcNow.Month); if (thisMonthCount >= 2)`
+   - Ahora: `weekStart = GetIsoWeekStart(DateTimeOffset.UtcNow); thisWeekCount = allAnalysis.Count(a => a.CreatedAt >= weekStart); if (thisWeekCount >= 1)`
+   - Nuevo helper privado `GetIsoWeekStart(DateTimeOffset)`: calcula el lunes 00:00 UTC de la semana actual (`dayOfWeek=0..6`, `daysSinceMonday = (dow + 6) % 7`).
+   - Error string: `ya_analizado_este_mes` → `ya_analizado_esta_semana`.
+
+3. `GET /api/radar` response: campo `analisisEsteMes` → `analisisEstaSemana` (propagado a TypeScript `RadarData` en `frontend/src/lib/api/types.ts`, `runRadarAnalysis()` return type en `radar.ts`, y consumidor `frontend/src/app/dashboard/salud/page.tsx`).
+
+4. Frontend salud page:
+   - `canAnalizar = analisisEstaSemana < 1` (antes `< 2`).
+   - `proximoAnalisisLabel` recalcula el siguiente lunes en vez del primer día del mes siguiente: `const dow = now.getDay(); const daysUntilMonday = ((8 - dow) % 7) || 7; const nextMonday = new Date(year, month, date + daysUntilMonday);`.
+   - Error handler escucha `ya_analizado_esta_semana`.
+
+5. Copy ES/EN/GAL: `aiLimitReached` "3 análisis/día" → "1 análisis/día", `radarTooltip` "Hasta 2 análisis al mes" → "1 análisis a la semana", `radarAlreadyAnalyzed` "este mes / mes que viene" → "esta semana / lunes que viene", helptext radar "análisis comparativo cada mes" → "cada semana".
+
+6. Docs: §6 pricing table `(3 competidores, 2 análisis/mes)` → `(3 competidores, 1 análisis/semana)`; §7 Radar Competencia `Límite: 2 análisis por mes natural` → `Límite: 1 análisis por semana (ISO, empieza lunes UTC)`; endpoint RadarController en §3.3 actualizado.
+
+**Bugs de shorthand CSS detectados (2×)**
+
+Bug raíz que aparece dos veces:
+
+1. **`.vel-lp .sec { padding: 56px 0 }`** pisaba el padding horizontal de `.wrap` (`0 var(--gutter)`). Resultado: gutter side = 0 px da igual qué variable se setee. Detectado por inspección con `preview_eval` tras 3 iteraciones de bump de gutter sin efecto visible. Fix: `padding-top: 56px; padding-bottom: 56px;` sin shorthand.
+2. **`.vel-lp .prose-legal { padding: 56px 0 72px }`** idéntico patrón unos días después. Mismas páginas legales (privacidad/terminos/contacto) en edge-to-edge. Fix igual: separar `padding-top/padding-bottom` individualmente.
+
+Un tercer bug relacionado: **flex-column shrinking**. `.lp-main` con `display: flex; flex-direction: column` + children con `.wrap { margin: 0 auto }` causaba que items con contenido de ancho menor al flex container (sec-who por ejemplo) no stretchearan — los auto margins distribuían el leftover space centrando al ancho del contenido en vez de llenar el cross-axis. Fix: `.vel-lp .lp-main > * { width: 100% }` — auto margins ya no tienen holgura que consumir, todas las sections llenan full width.
+
+**Regla aprendida**: en clases que compartan elemento con `.wrap` (que provee horizontal padding/margin), NUNCA usar `padding` ni `margin` shorthand. Usar siempre `padding-top/bottom`, `margin-top/bottom` explícitos.
+
+**Otros cambios técnicos relevantes**
+
+- `SectionHelp.tsx` — componente cliente para el "?" tooltip por sección. Click-outside con `mousedown` listener + Escape key. Popover `position: absolute` con flecha CSS `transform: rotate(45deg)`.
+- `html { scroll-behavior: smooth }` en globals.css — todos los anchors smooth scroll.
+- `.scrollbar-hide` utility global para el tone selector del demo.
+- NavBar rediseñada sin overlay menu ni body.vel-no-scroll logic — ya no se necesita con iconos persistentes.
+- `.lp-main` flex order reorder: `sec-demo (2) sec-stats (3) sec-radar (4) sec-health (5) sec-howto (6) sec-who (7) sec-data (8) sec-price (9) sec-faq (10) sec-final (11)`. En desktop `sec-demo` pasa a 3 y `sec-stats` a 2 — el demo aparece tras el hero en móvil, después de stats en desktop.
+- Nuevas secciones: sec-data (stats externos con fuente), sec-faq (6 Q&A), compare table dentro de sec-price (desktop tabla / móvil cards stacked), founding banner (20% para siempre con copy-to-clipboard del código `VELFOUND20`).
+
+**Auth pages a crema**
+
+Migradas login / register / reset-password a paleta crema usando nuevas utilidades `.auth-*` (auth-screen, auth-col, auth-head, auth-brand, auth-card, auth-divider, auth-field, auth-label, auth-input, auth-submit, auth-google, auth-links, auth-hint, auth-err, auth-spinner, auth-success). Submit en navy sólido. Links con `color: ink; border-bottom: 1px solid line-strong` (sin azul subrayado). Register compacto para caber en 375×812 sin scroll.
+
+**Contacto rediseñado**
+
+De 3 cards `paper-2` a **definition-list editorial** (`.contact-list` + `.contact-row` con mono-label + Cal Sans big value con underline + body + note). Sin boxes. Mobile stacked, desktop 180px label + content.
+
+**Estado al cierre**
+
+- `20260418_redefine` con ~50 commits totales (30 del 18 abril + ~20 del 19/20). Pushed a origin. Mergeable a main vía `--no-ff` cuando se valide en móvil físico.
+- Build limpio (`npx next build` + `dotnet build`). Tests sin cambios.
+- Preview local validada vía `mcp__Claude_Preview` en mobile 375px y desktop 1280px.
+
 ---
 
 *Fin del documento. Actualizar cuando se añadan/retiren servicios, cambie el schema de BD o se añada monitoring.*
