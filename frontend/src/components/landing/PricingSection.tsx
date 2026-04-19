@@ -191,6 +191,32 @@ export default function PricingSection() {
           <span className="lbl">{e.compare.label}</span>
           <p>{e.compare.lede}</p>
         </div>
+        {/* Móvil: cards apiladas por competidor */}
+        <div className="compare-cards">
+          {[2, 0, 1].map(idx => (
+            <div key={idx} className={`compare-card ${idx === 2 ? 'us' : ''}`}>
+              <div className="compare-card-head">
+                <span className="compare-card-name">{e.compare.headers[idx]}</span>
+                <span className={`compare-card-price ${idx === 2 ? 'us' : ''}`}>
+                  {e.compare.priceRow.values[idx]}
+                  <span className="per">/{e.compare.priceRow.lbl.toLowerCase().includes('mensual') || e.compare.priceRow.lbl.toLowerCase().includes('month') ? 'mes' : ''}</span>
+                </span>
+              </div>
+              <ul className="compare-card-list">
+                {e.compare.rows.map((row, i) => (
+                  <li key={i}>
+                    <span className={row.values[idx] ? 'yes' : 'no'}>
+                      {row.values[idx] ? '✓' : '✗'}
+                    </span>
+                    <span className="lbl">{row.lbl}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: tabla */}
         <div className="compare-wrap">
           <table className="compare-table">
             <thead>

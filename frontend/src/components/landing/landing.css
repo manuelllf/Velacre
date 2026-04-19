@@ -2204,7 +2204,98 @@
   color: var(--muted-strong);
   margin: 0;
 }
-.vel-lp .compare-wrap { overflow-x: auto; }
+/* Móvil: stacked cards. Desktop: tabla. */
+.vel-lp .compare-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.vel-lp .compare-wrap { display: none; overflow-x: auto; }
+
+@media (min-width: 720px) {
+  .vel-lp .compare-cards { display: none; }
+  .vel-lp .compare-wrap  { display: block; }
+}
+
+.vel-lp .compare-card {
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 18px;
+  background: var(--paper);
+}
+.vel-lp .compare-card.us {
+  border-color: rgba(74, 111, 229, 0.4);
+  border-left: 3px solid var(--accent-strong);
+  background: rgba(74, 111, 229, 0.04);
+}
+.vel-lp .compare-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.vel-lp .compare-card-name {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-weight: 600;
+}
+.vel-lp .compare-card.us .compare-card-name { color: var(--accent-strong); }
+.vel-lp .compare-card-price {
+  font-family: var(--f-head);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.vel-lp .compare-card-price.us { color: var(--accent-strong); }
+.vel-lp .compare-card-price .per {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--mute);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+.vel-lp .compare-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vel-lp .compare-card-list li {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.vel-lp .compare-card-list .yes {
+  color: var(--good);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+  text-align: center;
+}
+.vel-lp .compare-card-list .no {
+  color: var(--danger);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.55;
+  text-align: center;
+}
+.vel-lp .compare-card-list .lbl { padding-top: 0; }
 .vel-lp .compare-table {
   width: 100%;
   min-width: 480px;
