@@ -101,7 +101,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 | Respuestas manuales/mes | 5 | 5 | Ilimitadas |
 | Respuestas IA/mes | 10 | 20 | Ilimitadas (cap soft 250 con warning) |
 | Panel Salud | Teaser blurred | Stats clave reales (4 KPIs + sentimiento) | Completo |
-| Radar Competencia | — | — | ✅ (3 competidores, 2 análisis/mes) |
+| Radar Competencia | — | — | ✅ (3 competidores, 1 análisis/semana) |
 | PDFs benchmark | — | — | ✅ |
 | Análisis IA (brilla/quema/acción) | — | — | ✅ |
 
@@ -161,7 +161,7 @@ Modal separado para TripAdvisor, Yelp, etc. Genera 1 respuesta en el tono del ne
 1. Añadir hasta 3 competidores buscando por nombre (Google Places)
 2. Analizar: carga reseñas propias de BD + scraping 20 reseñas por competidor
 3. Claude genera: fortaleza/debilidad propias, tabla competidores con amenaza, oportunidades, acción semanal, matriz de sentimiento 0-10 por 4 categorías dinámicas, acción Pro estratégica
-4. Límite: 2 análisis por mes natural
+4. Límite: 1 análisis por semana (ISO, empieza lunes UTC)
 5. Coste real por análisis: ~€0,22-0,28 · Desglose: 3 competidores × 20 reseñas cada uno = 60 reseñas Outscraper (~$0,18 ≈ €0,17) + 1 llamada a Claude Sonnet (~€0,05-0,10 según longitud de reseñas propias incluidas). Anteriormente documentado como "~€0,02-0,06" por error de modelo de pricing (Outscraper cobra por reseña, no por llamada).
 
 ### PDFs benchmark (Pro)

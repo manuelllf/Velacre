@@ -271,10 +271,10 @@ app.Run($"http://0.0.0.0:{PORT ?? 5146}")
 #### `RadarController` — 4 endpoints (Pro only)
 | Método | Ruta | Propósito |
 |---|---|---|
-| GET | `/api/radar` | Competidores + último análisis + análisis este mes |
+| GET | `/api/radar` | Competidores + último análisis + análisis esta semana |
 | POST | `/api/radar/competidores` | Add (max 3), 400 si duplicado / límite |
 | DELETE | `/api/radar/competidores/{id}` | Borrar |
-| POST | `/api/radar/analizar` | **Límite hard: 2/mes**. Outscraper por competidor + Claude análisis comparativo. Guarda, conserva últimos 2. |
+| POST | `/api/radar/analizar` | **Límite hard: 1/semana (ISO, lunes UTC)**. Outscraper por competidor + Claude análisis comparativo. Guarda, conserva últimos 2. |
 
 #### `ReviewController` — 13 endpoints (el controller **crítico**)
 | Método | Ruta | Propósito |
@@ -288,7 +288,7 @@ app.Run($"http://0.0.0.0:{PORT ?? 5146}")
 | POST | `/api/review/{id}/translate-response` | Traduce respuesta publicada a ES |
 | GET | `/api/review/metrics` | `velacreCount`, `timeSaved` (×3.75 min), response rate histórico vs 3m |
 | GET | `/api/review/analysis` | Carga el análisis IA más reciente de BD (brilla/quema/acción). Devuelve `{analysis, currentReviewCount, analysisReviewCount}` |
-| POST | `/api/review/analysis` | Genera análisis IA con Claude sobre las últimas 50 reseñas. Límite diario: 3/día (+1 si hay 5+ reseñas nuevas). Guarda en BD (`analisis_ia`). |
+| POST | `/api/review/analysis` | Genera análisis IA con Claude sobre las últimas 50 reseñas. Límite diario: 1/día. Guarda en BD (`analisis_ia`). |
 | POST | `/api/review/summary` | Alias de `/analysis` (POST). Mantenido para no romper llamadas antiguas. |
 | POST | `/api/review/{id}/publish-google` | Publica respuesta editada en Google vía GBP API. Solo Core/Pro. Requiere `google_review_id` + GBP conectado. |
 | PUT | `/api/review/{id}/estado` | Cambia estado de reseña (pendiente/respondida/ignorada). Actualiza `respondidaFecha` según el caso. |

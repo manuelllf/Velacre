@@ -22,7 +22,7 @@ export async function removeCompetidor(id: string): Promise<void> {
   await fetchApi<void>('DELETE', `/api/radar/competidores/${id}`)
 }
 
-export async function runRadarAnalysis(): Promise<RadarAnalisisResult & { analisisEsteMes: number }> {
+export async function runRadarAnalysis(): Promise<RadarAnalisisResult & { analisisEstaSemana: number }> {
   const res = await fetch(`${API_URL}/api/radar/analizar`, {
     method: 'POST',
     headers: await authHeaders(),

@@ -685,16 +685,13 @@ public class ReviewController : ControllerBase
         if (reviews.Count == 0)
             return Ok(new { brilla = "Aún no tienes reseñas para analizar.", quema = "—", accion = "Sincroniza tus reseñas de Google para empezar." });
 
-        // Límite diario: hasta 3 análisis/día, +1 si hay 5+ reseñas nuevas desde el último
+        // Límite diario: 1 análisis/día
         var todayUtc = DateTimeOffset.UtcNow.Date;
         var allAnalysis = await _analisisIaRepo.GetAllByNegocioIdAsync(negocio.Id);
 
         var todayCount = allAnalysis.Count(a => a.CreatedAt.HasValue && a.CreatedAt.Value.UtcDateTime.Date == todayUtc);
-        var lastAnalysis = allAnalysis.FirstOrDefault();
-        var reviewDelta = lastAnalysis != null ? reviews.Count - lastAnalysis.ReviewCount : reviews.Count;
-        var dailyLimit = reviewDelta >= 5 ? 4 : 3;
 
-        if (todayCount >= dailyLimit)
+        if (todayCount >= 1)
             return StatusCode(429, new { message = "Límite diario alcanzado. Se restablece mañana." });
 
         // Generar con IA

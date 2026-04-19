@@ -52,9 +52,8 @@ public class RadarController : ControllerBase
         var competidores = await _competidorRepo.GetByNegocioIdAsync(negocio!.Id);
         var analisis = await _radarRepo.GetByNegocioIdOrderedAsync(negocio.Id);
 
-        var utcNow2 = DateTimeOffset.UtcNow;
-        var analisisEsteMes = analisis
-            .Count(a => a.CreatedAt.Year == utcNow2.Year && a.CreatedAt.Month == utcNow2.Month);
+        var weekStart = GetIsoWeekStart(DateTimeOffset.UtcNow);
+        var analisisEstaSemana = analisis.Count(a => a.CreatedAt >= weekStart);
         var ultimoAnalisis = analisis.FirstOrDefault();
 
         return Ok(new
@@ -66,7 +65,7 @@ public class RadarController : ControllerBase
                 nombre    = c.Nombre,
                 createdAt = c.CreatedAt,
             }),
-            analisisEsteMes,
+            analisisEstaSemana,
             ultimoAnalisis = ultimoAnalisis == null ? null : new
             {
                 id        = ultimoAnalisis.Id,
@@ -126,13 +125,12 @@ public class RadarController : ControllerBase
         if (competidores.Count == 0)
             return BadRequest(new { error = "sin_competidores" });
 
-        // Límite: 2 análisis por mes
-        var utcNow = DateTimeOffset.UtcNow;
+        // Límite: 1 análisis por semana (ISO week, empieza lunes UTC)
+        var weekStart = GetIsoWeekStart(DateTimeOffset.UtcNow);
         var allAnalysis = await _radarRepo.GetByNegocioIdOrderedAsync(negocio.Id);
-        var thisMonthCount = allAnalysis
-            .Count(a => a.CreatedAt.Year == utcNow.Year && a.CreatedAt.Month == utcNow.Month);
-        if (thisMonthCount >= 2)
-            return StatusCode(429, new { error = "ya_analizado_este_mes" });
+        var thisWeekCount = allAnalysis.Count(a => a.CreatedAt >= weekStart);
+        if (thisWeekCount >= 1)
+            return StatusCode(429, new { error = "ya_analizado_esta_semana" });
 
         // 1. Reseñas propias desde BD
         var misResenasEntities = await _reviewRepo.GetByNegocioIdOrderedAsync(negocio.Id, 30);
@@ -180,10 +178,10 @@ public class RadarController : ControllerBase
 
         return Ok(new
         {
-            id              = nuevo.Id,
-            createdAt       = nuevo.CreatedAt,
-            resultado       = ParseAnalisisJson(resultJson),
-            analisisEsteMes = thisMonthCount + 1,
+            id                  = nuevo.Id,
+            createdAt           = nuevo.CreatedAt,
+            resultado           = ParseAnalisisJson(resultJson),
+            analisisEstaSemana  = thisWeekCount + 1,
         });
     }
 
@@ -216,6 +214,15 @@ public class RadarController : ControllerBase
             return doc.RootElement.Clone();
         }
         catch { return null; }
+    }
+
+    // ISO 8601: la semana empieza el lunes. Devuelve 00:00 UTC del lunes de la semana actual.
+    private static DateTimeOffset GetIsoWeekStart(DateTimeOffset now)
+    {
+        var dow = (int)now.DayOfWeek;            // 0=Sun, 1=Mon, ... 6=Sat
+        var daysSinceMonday = (dow + 6) % 7;     // 0=Mon, 1=Tue, ... 6=Sun
+        var monday = now.UtcDateTime.Date.AddDays(-daysSinceMonday);
+        return new DateTimeOffset(monday, TimeSpan.Zero);
     }
 }
 

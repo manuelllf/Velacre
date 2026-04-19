@@ -160,7 +160,7 @@ export interface RadarAnalisisResult {
 export interface RadarData {
   competidores: Competidor[]
   ultimoAnalisis: RadarAnalisisResult | null
-  analisisEsteMes: number
+  analisisEstaSemana: number
 }
 
 export interface MiniRadarStats {

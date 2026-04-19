@@ -265,14 +265,14 @@ export default function SaludPage() {
       const result = await runRadarAnalysis()
       localStorage.removeItem('velacre_radar_started')
       setRadarData(prev => prev
-        ? { ...prev, ultimoAnalisis: result, analisisEsteMes: result.analisisEsteMes }
-        : { competidores: [], ultimoAnalisis: result, analisisEsteMes: result.analisisEsteMes })
+        ? { ...prev, ultimoAnalisis: result, analisisEstaSemana: result.analisisEstaSemana }
+        : { competidores: [], ultimoAnalisis: result, analisisEstaSemana: result.analisisEstaSemana })
     } catch (err) {
       localStorage.removeItem('velacre_radar_started')
       const msg = err instanceof Error ? err.message : sl.radarAnalyzeError
       if (msg.includes('sin_competidores')) setRadarError(sl.radarNoCompetitors)
       else if (msg.includes('sin_resenas_propias')) setRadarError(sl.radarNoOwnReviews)
-      else if (msg.includes('ya_analizado_este_mes')) setRadarError(sl.radarAlreadyAnalyzed)
+      else if (msg.includes('ya_analizado_esta_semana')) setRadarError(sl.radarAlreadyAnalyzed)
       else setRadarError(msg)
     } finally {
       timers.forEach(clearTimeout)
@@ -384,12 +384,15 @@ export default function SaludPage() {
   const radarResultado = radarData?.ultimoAnalisis?.resultado ?? null
   const radarAnalisisDate = radarData?.ultimoAnalisis
     ? new Date(radarData.ultimoAnalisis.createdAt) : null
-  const analisisEsteMes = radarData?.analisisEsteMes ?? 0
-  const canAnalizar = analisisEsteMes < 2
+  const analisisEstaSemana = radarData?.analisisEstaSemana ?? 0
+  const canAnalizar = analisisEstaSemana < 1
   const proximoAnalisisLabel = !canAnalizar
     ? (() => {
-        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-        return next.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })
+        // Próximo lunes 00:00 (ISO week)
+        const dow = now.getDay() // 0=Sun, 1=Mon, ...
+        const daysUntilMonday = ((8 - dow) % 7) || 7
+        const nextMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilMonday)
+        return nextMonday.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })
       })()
     : null
 
