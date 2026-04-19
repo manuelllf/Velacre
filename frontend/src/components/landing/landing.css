@@ -50,7 +50,7 @@
 
   /* ===== Layout ===== */
   --maxw: 1400px;
-  --gutter: 16px;
+  --gutter: 28px;
 
   background: var(--paper);
   color: var(--ink);
@@ -180,15 +180,15 @@
 .vel-lp .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
 /* ============================================================
-   NAV BAR
-   Móvil y tablet <960px  → logo + icono hamburguesa + CTA icon
-   Desktop ≥960px         → logo + links + login ghost + CTA accent
+   NAV BAR — sin hamburguesa. 3 iconos de sección + login + CTA.
+   Móvil: iconos sin label, login texto mini, CTA icon.
+   Desktop 960+: iconos con label, CTA con texto.
    ============================================================ */
 .vel-lp .nav {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(232, 226, 212, 0.92);
+  background: rgba(232, 226, 212, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
@@ -196,154 +196,122 @@
 .vel-lp .nav-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 56px;
+  gap: 14px;
+  height: 52px;
 }
 .vel-lp .nav-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: transparent;
   border: 0;
   cursor: pointer;
   padding: 0;
+  flex-shrink: 0;
+  margin-right: auto;
 }
-.vel-lp .nav-brand .wm { width: 34px; height: 34px; }
+.vel-lp .nav-brand .wm { width: 30px; height: 30px; }
 .vel-lp .nav-brand-name {
   font-family: var(--f-head);
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--ink);
   line-height: 1;
 }
 
-/* Links nav solo en ≥960px */
-.vel-lp .nav-links {
-  display: none;
-  align-items: center;
-  gap: 28px;
-}
-.vel-lp .nav-links a.link {
-  font-size: 14px;
-  color: var(--mute);
-  transition: color 0.15s;
-}
-.vel-lp .nav-links a.link:hover { color: var(--ink); }
-
-/* CTAs móviles */
-.vel-lp .nav-mobile {
+/* Anchors (3 iconos secciones) */
+.vel-lp .nav-anchors {
   display: flex;
   align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.vel-lp .nav-anchor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
-}
-.vel-lp .nav-hamb {
-  width: 44px;
-  height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid var(--line-strong);
+  width: 34px;
+  height: 34px;
+  color: var(--mute);
   border-radius: 3px;
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s, color 0.15s;
 }
-.vel-lp .nav-hamb:hover { background: rgba(10,14,26,0.04); }
-.vel-lp .nav-hamb svg { display: block; }
-.vel-lp .nav-cta-icon {
-  width: 44px;
-  height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent);
-  color: var(--paper);
-  border: 1px solid var(--accent);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.vel-lp .nav-cta-icon:hover { background: var(--accent-strong); }
+.vel-lp .nav-anchor:hover { background: rgba(10,14,26,0.06); color: var(--ink); }
+.vel-lp .nav-anchor .lbl { display: none; }
 
-/* CTAs desktop */
-.vel-lp .nav-ctas {
-  display: none;
+/* Login + CTA — agrupados derecha */
+.vel-lp .nav-auth {
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.vel-lp .nav-login {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--mute);
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+.vel-lp .nav-login:hover { color: var(--ink); }
+
+.vel-lp .nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  font-weight: 500;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.vel-lp .nav-cta:hover { background: #000; }
+.vel-lp .nav-cta-label     { display: none; }
+.vel-lp .nav-cta-icon-only { display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; }
+
+/* Móvil pequeño (<380): hide login, hide anchor labels, tighter */
+@media (max-width: 379px) {
+  .vel-lp .nav-login   { display: none; }
+  .vel-lp .nav-row     { gap: 10px; }
+  .vel-lp .nav-anchor  { width: 32px; height: 32px; }
+  .vel-lp .nav-cta-icon-only { width: 32px; height: 32px; }
+}
+
+@media (min-width: 720px) {
+  .vel-lp .nav-row         { height: 60px; gap: 20px; }
+  .vel-lp .nav-brand       { gap: 10px; }
+  .vel-lp .nav-brand .wm   { width: 34px; height: 34px; }
+  .vel-lp .nav-brand-name  { font-size: 19px; }
+  .vel-lp .nav-anchors     { gap: 4px; }
+  .vel-lp .nav-login       { font-size: 13px; padding: 6px 10px; }
 }
 
 @media (min-width: 960px) {
   .vel-lp .nav-row         { height: 68px; }
-  .vel-lp .nav-brand .wm   { width: 40px; height: 40px; }
-  .vel-lp .nav-brand-name  { font-size: 22px; }
-  .vel-lp .nav-links       { display: flex; }
-  .vel-lp .nav-ctas        { display: flex; }
-  .vel-lp .nav-mobile      { display: none; }
+  .vel-lp .nav-brand .wm   { width: 36px; height: 36px; }
+  .vel-lp .nav-brand-name  { font-size: 21px; }
+  .vel-lp .nav-anchors     { gap: 2px; }
+  .vel-lp .nav-anchor      {
+    width: auto;
+    height: 36px;
+    padding: 0 12px;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .vel-lp .nav-anchor .lbl { display: inline; }
+  .vel-lp .nav-cta         {
+    padding: 8px 16px;
+    font-size: 13px;
+    height: 36px;
+  }
+  .vel-lp .nav-cta-label     { display: inline; }
+  .vel-lp .nav-cta-icon-only { display: none; }
 }
-
-/* ===== Overlay móvil ===== */
-.vel-lp .nav-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: var(--paper);
-  display: flex;
-  flex-direction: column;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-.vel-lp .nav-overlay.open { opacity: 1; pointer-events: auto; }
-.vel-lp .nav-overlay-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 56px;
-  padding: 0 var(--gutter);
-  border-bottom: 1px solid var(--line);
-}
-.vel-lp .nav-overlay-body {
-  flex: 1;
-  padding: 24px var(--gutter);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.vel-lp .nav-overlay-link {
-  font-family: var(--f-head);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
-}
-.vel-lp .nav-overlay-link:last-of-type { border-bottom: 0; }
-.vel-lp .nav-overlay-foot {
-  padding: 20px var(--gutter) calc(20px + env(safe-area-inset-bottom, 0px));
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border-top: 1px solid var(--line);
-}
-.vel-lp .nav-overlay-foot .btn { width: 100%; min-height: 52px; font-size: 15px; }
-.vel-lp .nav-overlay-close {
-  width: 44px;
-  height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid var(--line-strong);
-  border-radius: 3px;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-/* Desactivar scroll body cuando overlay abierto */
-body.vel-no-scroll { overflow: hidden; }
 
 /* ============================================================
    HERO
@@ -414,7 +382,7 @@ body.vel-no-scroll { overflow: hidden; }
 .vel-lp .ticker { display: none; }
 
 @media (min-width: 720px) {
-  .vel-lp .hero { padding: 72px 0 56px; text-align: left; }
+  .vel-lp .hero { padding: 40px 0 56px; text-align: left; }
   .vel-lp .hero-meta {
     display: flex;
     align-items: baseline;
@@ -509,7 +477,7 @@ body.vel-no-scroll { overflow: hidden; }
 @keyframes vel-pulseDot { 0%, 100% { opacity: 1 } 50% { opacity: 0.3 } }
 
 @media (min-width: 1200px) {
-  .vel-lp .hero { padding: 96px 0 72px; }
+  .vel-lp .hero { padding: 56px 0 72px; }
   .vel-lp .hero-grid { gap: 72px; }
   .vel-lp .hero-sub { font-size: 18px; }
 }
@@ -1198,7 +1166,7 @@ body.vel-no-scroll { overflow: hidden; }
 }
 
 /* ============================================================
-   HOWTO (sec 04) — crema. 3 pasos stacked siempre.
+   HOWTO (sec 04) — crema. Compacto, editorial, 3 pasos mínimos.
    ============================================================ */
 .vel-lp .steps {
   border-top: 1px solid var(--line);
@@ -1206,11 +1174,12 @@ body.vel-no-scroll { overflow: hidden; }
 .vel-lp .step {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-  padding: 22px 14px;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  padding: 16px 0;
   border-bottom: 1px solid var(--line);
-  transition: background 0.22s ease;
+  transition: background 0.18s ease;
+  align-items: baseline;
 }
 .vel-lp .step::before {
   content: '';
@@ -1220,81 +1189,69 @@ body.vel-no-scroll { overflow: hidden; }
   background: var(--accent);
   transform: scaleY(0);
   transform-origin: center;
-  transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.vel-lp .step:hover { background: rgba(10, 14, 26, 0.04); }
 .vel-lp .step:hover::before { transform: scaleY(1); }
 .vel-lp .step:hover .step-n .big { color: var(--accent-strong); }
 .vel-lp .step-n {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
   font-family: var(--f-mono);
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 0.1em;
   color: var(--mute);
-  padding-top: 0;
-  margin-bottom: 8px;
+  line-height: 1.2;
 }
 .vel-lp .step-n .big {
-  display: inline-block;
+  display: block;
   font-family: var(--f-head);
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--ink);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   line-height: 1;
-  transition: color 0.2s ease;
+  margin-bottom: 2px;
+  transition: color 0.18s ease;
 }
-.vel-lp .step h3 { margin-bottom: 6px; color: var(--ink); font-size: 18px; }
+.vel-lp .step h3 {
+  color: var(--ink);
+  font-size: 15px;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
 .vel-lp .step p {
   color: var(--muted-strong);
-  max-width: 56ch;
-  font-size: 14.5px;
-  line-height: 1.55;
+  max-width: 60ch;
+  font-size: 13.5px;
+  line-height: 1.5;
 }
 .vel-lp .step-asset { display: none; }
 
 @media (min-width: 720px) {
   .vel-lp .step {
-    grid-template-columns: 110px 1fr auto;
-    gap: 44px;
-    padding: 32px 20px;
-    margin: 0 -20px;
-    align-items: start;
+    grid-template-columns: 64px 1fr;
+    gap: 20px;
+    padding: 20px 0;
   }
-  .vel-lp .step-n {
-    display: block;
-    margin-bottom: 0;
-    padding-top: 6px;
-    font-size: 12px;
-  }
-  .vel-lp .step-n .big {
-    display: block;
-    font-size: 56px;
-    line-height: 0.9;
-    margin-bottom: 6px;
-  }
-  .vel-lp .step h3 { font-size: 22px; margin-bottom: 10px; }
-  .vel-lp .step p  { font-size: 15.5px; line-height: 1.6; }
-  .vel-lp .step-asset { display: block; width: 120px; align-self: center; color: var(--mute); }
+  .vel-lp .step-n .big { font-size: 28px; }
+  .vel-lp .step-n      { font-size: 10px; }
+  .vel-lp .step h3     { font-size: 17px; }
+  .vel-lp .step p      { font-size: 14.5px; line-height: 1.55; }
 }
 @media (min-width: 1200px) {
-  .vel-lp .step    { grid-template-columns: 140px 1fr auto; gap: 56px; padding: 40px 24px; margin: 0 -24px; }
-  .vel-lp .step-n .big { font-size: 72px; }
-  .vel-lp .step h3 { font-size: 26px; }
+  .vel-lp .step    { grid-template-columns: 80px 1fr; gap: 28px; padding: 24px 0; }
+  .vel-lp .step-n .big { font-size: 34px; }
+  .vel-lp .step h3 { font-size: 19px; }
 }
 
 /* ============================================================
-   FORWHO (sec 05) — crema. Chips con wrap natural.
+   FORWHO (sec 05) — crema. Grid 2-col móvil alineado.
    ============================================================ */
 .vel-lp .sectors {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 .vel-lp .sector {
-  padding: 10px 14px;
+  padding: 12px 14px;
   border: 1px solid var(--line-strong);
   border-radius: 2px;
   font-size: 13px;
@@ -1302,6 +1259,12 @@ body.vel-no-scroll { overflow: hidden; }
   transition: all 0.15s ease;
   cursor: default;
   background: var(--paper);
+  text-align: center;
+  line-height: 1.3;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .vel-lp .sector:hover {
   border-color: var(--accent);
@@ -1309,8 +1272,8 @@ body.vel-no-scroll { overflow: hidden; }
   background: var(--accent-soft);
 }
 @media (min-width: 720px) {
-  .vel-lp .sectors { gap: 10px; }
-  .vel-lp .sector  { padding: 12px 16px; font-size: 14px; }
+  .vel-lp .sectors { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .vel-lp .sector  { padding: 14px 16px; font-size: 14px; }
 }
 
 /* ============================================================
@@ -1701,33 +1664,33 @@ body.vel-no-scroll { overflow: hidden; }
 }
 
 /* ============================================================
-   AUTH PAGES — crema, mobile-first
+   AUTH PAGES — crema, mobile-first. Compacto, cabe sin scroll.
    ============================================================ */
 .vel-lp .auth-screen {
   min-height: 100vh;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 40px var(--gutter);
+  padding: 16px var(--gutter);
   background: var(--paper);
 }
 .vel-lp .auth-col {
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
 }
-.vel-lp .auth-head { text-align: center; margin-bottom: 20px; }
+.vel-lp .auth-head { text-align: center; margin-bottom: 12px; }
 .vel-lp .auth-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
-.vel-lp .auth-brand img { width: 34px; height: 34px; object-fit: contain; }
+.vel-lp .auth-brand img { width: 28px; height: 28px; object-fit: contain; }
 .vel-lp .auth-brand-name {
   font-family: var(--f-head);
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--ink);
@@ -1735,7 +1698,7 @@ body.vel-no-scroll { overflow: hidden; }
 }
 .vel-lp .auth-title {
   font-family: var(--f-head);
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.025em;
   color: var(--ink);
@@ -1743,32 +1706,32 @@ body.vel-no-scroll { overflow: hidden; }
   margin: 0;
 }
 .vel-lp .auth-sub {
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: var(--muted-strong);
-  margin: 8px 0 0;
-  line-height: 1.5;
+  margin: 4px 0 0;
+  line-height: 1.4;
 }
 .vel-lp .auth-card {
   background: var(--paper-2);
   border: 1px solid var(--line-strong);
   border-radius: 4px;
-  padding: 22px 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
-.vel-lp .auth-divider { display: flex; align-items: center; gap: 12px; }
+.vel-lp .auth-divider { display: flex; align-items: center; gap: 10px; margin: 2px 0; }
 .vel-lp .auth-divider .line { flex: 1; height: 1px; background: var(--line); }
 .vel-lp .auth-divider .lbl {
   font-family: var(--f-mono);
-  font-size: 10px;
+  font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--mute);
 }
-.vel-lp .auth-field { display: flex; flex-direction: column; gap: 6px; }
+.vel-lp .auth-field { display: flex; flex-direction: column; gap: 4px; }
 .vel-lp .auth-label {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   color: var(--ink);
   display: flex;
@@ -1778,15 +1741,15 @@ body.vel-no-scroll { overflow: hidden; }
 }
 .vel-lp .auth-input {
   width: 100%;
-  min-height: 48px;
-  padding: 12px 14px;
+  min-height: 40px;
+  padding: 9px 12px;
   border: 1px solid var(--line-strong);
   border-radius: 3px;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--f-body);
-  font-size: 15px;
-  line-height: 1.4;
+  font-size: 14.5px;
+  line-height: 1.3;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .vel-lp .auth-input::placeholder { color: var(--mute); }
@@ -1796,53 +1759,54 @@ body.vel-no-scroll { overflow: hidden; }
   box-shadow: 0 0 0 3px rgba(74, 111, 229, 0.14);
 }
 .vel-lp .auth-input:disabled { opacity: 0.55; cursor: not-allowed; }
-.vel-lp .auth-hint { font-size: 11.5px; color: var(--mute); margin-top: 2px; }
+.vel-lp .auth-hint { font-size: 11px; color: var(--mute); margin-top: 0; }
 .vel-lp .auth-err {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--danger);
   background: rgba(196, 106, 92, 0.08);
   border: 1px solid rgba(196, 106, 92, 0.32);
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 3px;
 }
 .vel-lp .auth-submit {
   width: 100%;
-  min-height: 48px;
-  background: var(--accent);
+  min-height: 42px;
+  background: var(--ink);
   color: var(--paper);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ink);
   font-family: var(--f-body);
   font-weight: 500;
-  font-size: 14.5px;
+  font-size: 14px;
   border-radius: 3px;
   cursor: pointer;
   transition: background 0.15s ease;
+  margin-top: 2px;
 }
-.vel-lp .auth-submit:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); }
+.vel-lp .auth-submit:hover:not(:disabled) { background: #000; }
 .vel-lp .auth-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 .vel-lp .auth-google {
   width: 100%;
-  min-height: 48px;
+  min-height: 42px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   background: var(--paper);
   color: var(--ink);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line-strong);
   border-radius: 3px;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.vel-lp .auth-google:hover:not(:disabled) { background: var(--paper-2); }
+.vel-lp .auth-google:hover:not(:disabled) { background: var(--paper-2); border-color: var(--ink); }
 .vel-lp .auth-google:disabled { opacity: 0.55; cursor: not-allowed; }
 .vel-lp .auth-links {
   text-align: center;
-  margin-top: 20px;
-  font-size: 14px;
+  margin-top: 12px;
+  font-size: 13px;
   color: var(--mute);
 }
 .vel-lp .auth-links a {
@@ -1853,40 +1817,41 @@ body.vel-no-scroll { overflow: hidden; }
 }
 .vel-lp .auth-links-small {
   text-align: center;
-  margin-top: 12px;
-  font-size: 12px;
+  margin-top: 4px;
+  font-size: 11px;
   color: var(--mute);
+  line-height: 1.4;
 }
 .vel-lp .auth-links-small a { color: var(--accent-strong); }
 .vel-lp .auth-text-btn {
   background: transparent;
   border: 0;
   color: var(--accent-strong);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   padding: 2px 4px;
 }
 .vel-lp .auth-text-btn:hover { text-decoration: underline; }
 .vel-lp .auth-spinner {
-  width: 28px; height: 28px;
+  width: 26px; height: 26px;
   border: 3px solid var(--accent);
   border-top-color: transparent;
   border-radius: 50%;
   animation: vel-spin 0.8s linear infinite;
-  margin: 24px auto;
+  margin: 18px auto;
 }
 @keyframes vel-spin { to { transform: rotate(360deg); } }
 .vel-lp .auth-success {
   text-align: center;
-  padding: 12px 0;
+  padding: 8px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .vel-lp .auth-success-icon {
-  width: 44px; height: 44px;
+  width: 40px; height: 40px;
   border-radius: 50%;
   background: rgba(110, 158, 126, 0.12);
   border: 1px solid rgba(110, 158, 126, 0.35);
@@ -1895,17 +1860,17 @@ body.vel-no-scroll { overflow: hidden; }
 }
 .vel-lp .auth-success h3 {
   font-family: var(--f-head);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--ink);
   margin: 0;
 }
-.vel-lp .auth-success p { font-size: 13.5px; color: var(--muted-strong); margin: 0; }
+.vel-lp .auth-success p { font-size: 13px; color: var(--muted-strong); margin: 0; }
 
 @media (min-width: 720px) {
-  .vel-lp .auth-screen { padding: 56px var(--gutter); align-items: center; }
-  .vel-lp .auth-card   { padding: 32px 28px; }
-  .vel-lp .auth-title  { font-size: 30px; }
+  .vel-lp .auth-screen { padding: 24px var(--gutter); }
+  .vel-lp .auth-card   { padding: 22px; }
+  .vel-lp .auth-title  { font-size: 26px; }
 }
 
 /* ============================================================

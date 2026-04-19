@@ -10,7 +10,7 @@ const COMP_DATA = [
   { scores: [5.4, 6.2, 6.7, 8.5], threat: 'lo' as const },
 ]
 
-function Bar({ score, variant, label }: { score: number; variant: 'acc' | 'dim' | 'bad'; label: string }) {
+function Bar({ score, highlight }: { score: number; highlight: 'mine' | 'better' | 'dim' }) {
   const ref = useRef<HTMLDivElement>(null)
   const [w, setW] = useState(0)
   useEffect(() => {
@@ -30,13 +30,18 @@ function Bar({ score, variant, label }: { score: number; variant: 'acc' | 'dim' 
     obs.observe(el)
     return () => obs.disconnect()
   }, [score])
+
+  const barClass =
+    highlight === 'mine' ? 'bg-blue-500' :
+    highlight === 'better' ? 'bg-red-500/70' :
+    'bg-slate-600'
+
   return (
-    <div className="radar-cell" ref={ref}>
-      <span className="radar-cell-label">{label}</span>
-      <div className="bar-track">
-        <div className={`bar-fill bf-${variant}`} style={{ width: `${w}%` }} />
-      </div>
-      <span className="bar-n">{score.toFixed(1)}</span>
+    <div ref={ref} className="flex-1 h-[4px] bg-slate-800 rounded-full relative overflow-hidden">
+      <div
+        className={`absolute inset-0 ${barClass} rounded-full`}
+        style={{ width: `${w}%`, transition: 'width 1.1s cubic-bezier(0.2,0.7,0.2,1)' }}
+      />
     </div>
   )
 }
@@ -45,8 +50,11 @@ export default function RadarPreviewSection() {
   const { t: l } = useLanguage()
   const e = l.landingEditorial
 
-  const threatClass = { hi: 'threat-hi', md: 'threat-md', lo: 'threat-lo' } as const
-  const threatLabel = { hi: l.radarPreview.threatHigh, md: l.radarPreview.threatMedium, lo: l.radarPreview.threatLow } as const
+  const threatBadge = {
+    hi: { cls: 'bg-red-950 text-red-400 border-red-900', label: l.radarPreview.threatHigh },
+    md: { cls: 'bg-amber-950 text-amber-400 border-amber-900', label: l.radarPreview.threatMedium },
+    lo: { cls: 'bg-emerald-950 text-emerald-400 border-emerald-900', label: l.radarPreview.threatLow },
+  }
   const cats = [e.radar.catCocina, e.radar.catServicio, e.radar.catAmbiente, e.radar.catPrecio]
 
   return (
@@ -66,58 +74,88 @@ export default function RadarPreviewSection() {
         </div>
       </div>
 
-      <div className="radar-card">
-        <div className="radar-head">
-          <div className="lbl">{e.radar.headerBiz}</div>
-          <div className="lbl">{e.radar.catCocina}</div>
-          <div className="lbl">{e.radar.catServicio}</div>
-          <div className="lbl">{e.radar.catAmbiente}</div>
-          <div className="lbl">{e.radar.catPrecio}</div>
-        </div>
+      <div className="dark">
+        <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden">
 
-        <div className="radar-row mine">
-          <div className="radar-name">
-            <b>{e.radar.tuNegocio}</b>
-          </div>
-          {MY_SCORES.map((s, i) => (
-            <Bar key={i} score={s} variant="acc" label={cats[i]} />
-          ))}
-        </div>
-
-        {COMP_DATA.map((c, idx) => (
-          <div key={idx} className="radar-row">
-            <div className="radar-name">
-              <b>{e.radar.competitors[idx]}</b>
-              <span className={`radar-threat ${threatClass[c.threat]}`}>{threatLabel[c.threat]}</span>
+          {/* Mi negocio — card destacada */}
+          <div className="bg-blue-950/40 border border-blue-900/40 rounded-xl p-4 mb-3">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <span className="font-medium text-white text-[14px]">{e.radar.tuNegocio}</span>
+              </div>
+              <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-blue-400">{l.radarPreview.threatLabel}</span>
             </div>
-            {c.scores.map((s, i) => (
-              <Bar key={i} score={s} variant={s > MY_SCORES[i] ? 'bad' : 'dim'} label={cats[i]} />
-            ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2">
+              {MY_SCORES.map((s, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="font-mono text-[9.5px] tracking-[0.06em] uppercase text-slate-400 w-[82px] shrink-0">{cats[i]}</span>
+                  <Bar score={s} highlight="mine" />
+                  <span className="font-mono text-[11px] text-white tabular-nums w-[28px] text-right shrink-0">{s.toFixed(1)}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
 
-        <div className="radar-overlay">
-          <span className="pill">
-            <span className="dot" />
-            {e.radar.proBadge}
-          </span>
-        </div>
-      </div>
+          {/* Competidores */}
+          <div className="space-y-3">
+            {COMP_DATA.map((c, idx) => {
+              const t = threatBadge[c.threat]
+              return (
+                <div key={idx} className="bg-slate-800/40 border border-slate-800 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-medium text-slate-200 text-[14px]">{e.radar.competitors[idx]}</span>
+                    <span className={`font-mono text-[9px] tracking-[0.1em] uppercase border rounded px-2 py-[3px] ${t.cls}`}>{t.label}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2">
+                    {c.scores.map((s, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="font-mono text-[9.5px] tracking-[0.06em] uppercase text-slate-500 w-[82px] shrink-0">{cats[i]}</span>
+                        <Bar score={s} highlight={s > MY_SCORES[i] ? 'better' : 'dim'} />
+                        <span className={`font-mono text-[11px] tabular-nums w-[28px] text-right shrink-0 ${s > MY_SCORES[i] ? 'text-red-400' : 'text-slate-400'}`}>{s.toFixed(1)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
 
-      <div className="radar-insights">
-        <div className="insight-card insight-action">
-          <div className="insight-lbl">{e.radar.actionLbl}</div>
-          <p>{e.radar.actionTxt}</p>
+          {/* Overlay "Solo Pro" */}
+          <div className="absolute inset-x-0 bottom-0 pt-10 pb-4 px-4 bg-gradient-to-t from-slate-900 via-slate-900/90 to-transparent text-center pointer-events-none">
+            <span className="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.1em] uppercase text-blue-400 bg-slate-800/80 border border-slate-700 rounded px-3 py-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              {e.radar.proBadge}
+            </span>
+          </div>
         </div>
-        <div className="insight-card insight-strength">
-          <div className="insight-lbl">{e.radar.strengthLbl}</div>
-          <p>{e.radar.strengthTxt}</p>
-        </div>
-        <div className="insight-card insight-opportunity">
-          <div className="insight-lbl">{e.radar.opportunityLbl}</div>
-          <p>{e.radar.opportunityTxt}</p>
+
+        {/* Insights — 3 cards sobre crema (no dark) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+          <InsightCard kind="action"      lbl={e.radar.actionLbl}      txt={e.radar.actionTxt} />
+          <InsightCard kind="strength"    lbl={e.radar.strengthLbl}    txt={e.radar.strengthTxt} />
+          <InsightCard kind="opportunity" lbl={e.radar.opportunityLbl} txt={e.radar.opportunityTxt} />
         </div>
       </div>
     </section>
+  )
+}
+
+function InsightCard({ kind, lbl, txt }: { kind: 'action' | 'strength' | 'opportunity'; lbl: string; txt: string }) {
+  const palette = {
+    action:      { dot: 'bg-blue-500',    lbl: 'text-blue-400'    },
+    strength:    { dot: 'bg-emerald-500', lbl: 'text-emerald-400' },
+    opportunity: { dot: 'bg-amber-500',   lbl: 'text-amber-400'   },
+  }[kind]
+  return (
+    <div className="dark">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`w-2 h-2 rounded-full shrink-0 ${palette.dot}`} />
+          <p className={`font-mono text-[10px] tracking-[0.12em] uppercase ${palette.lbl}`}>{lbl}</p>
+        </div>
+        <p className="text-[13.5px] leading-relaxed text-slate-200">{txt}</p>
+      </div>
+    </div>
   )
 }

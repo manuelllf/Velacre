@@ -150,6 +150,12 @@ h1, h2, h3 {
   background: transparent;
 }
 
+/* ========== UTILITIES (landing) ========== */
+.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+@keyframes vel-blink { 50% { opacity: 0; } }
+
 /* ========== LANG SWITCHER (global, editorial) ========== */
 .vel-lang {
   position: fixed;

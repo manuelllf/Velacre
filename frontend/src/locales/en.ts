@@ -21,11 +21,11 @@ const en: LandingLocale = {
 
   stats: {
     s1val: '6',
-    s1label: 'reply tones — every answer sounds like you, not a robot',
+    s1label: 'reply tones, every answer sounds like you, not a robot',
     s2val: '< 10s',
     s2label: 'from your review to a reply ready to paste',
     s3val: '3',
-    s3label: 'rivals watched — one concrete action per week',
+    s3label: 'rivals watched, one concrete action per week',
   },
 
   demo: {
@@ -201,7 +201,7 @@ const en: LandingLocale = {
         priceYearly: '€490',
         priceYearlyMonthly: '€41',
         desc: 'The difference between replying to reviews and understanding your reputation.',
-        features: ['Unlimited AI responses', 'Full Health Panel (AI analysis + PDF reports)', 'Competition Radar: discover what your 3 rivals do better and what to do this week', '0–10 benchmark across 4 categories vs competitors', 'Priority support'],
+        features: ['Unlimited AI responses', 'Full Health Panel (AI analysis + PDF reports)', 'Competition Radar: discover what your 3 rivals do better and what to do this week', '0-10 benchmark across 4 categories vs competitors', 'Priority support'],
         cta: 'Choose Pro',
         badge: 'Most complete',
       },
@@ -214,7 +214,7 @@ const en: LandingLocale = {
       'Safety filter: we automatically withhold critical reviews (food poisoning, legal threats, serious accusations) so you can review them before publishing',
       '6 response tones: Professional, Empathetic, Friendly, Direct, Grateful and Humorous',
       'Replies in the same language as the review',
-      'No lock-in — cancel anytime',
+      'No lock-in, cancel anytime',
     ],
   },
 
@@ -256,7 +256,7 @@ const en: LandingLocale = {
         tagComplaint: 'Complaint',
         tagRetained: 'Retained',
         items: [
-          { av: 'MR', name: 'María R.', preview: 'We\u2019ll be back — the octopus was incredible.', stars: 5, tag: 'positive' },
+          { av: 'MR', name: 'María R.', preview: 'We\u2019ll be back, the octopus was incredible.', stars: 5, tag: 'positive' },
           { av: 'JC', name: 'José C.', preview: 'Took them 40 minutes to bring the bill…', stars: 2, tag: 'complaint' },
           { av: 'AF', name: 'Anonymous', preview: 'Got food poisoning after Saturday\u2019s dinner.', stars: 1, tag: 'retained' },
           { av: 'LS', name: 'Lucía S.', preview: 'Warm service and very fair prices, I\u2019ll be back.', stars: 5, tag: 'positive' },
@@ -265,7 +265,7 @@ const en: LandingLocale = {
     },
     stats: {
       s4val: '0',
-      s4label: 'to start — the free plan is a plan, not a demo',
+      s4label: 'to start, the free plan is a plan, not a demo',
     },
     sections: {
       product: 'Product',
@@ -280,8 +280,8 @@ const en: LandingLocale = {
       h2l1: 'One review.',
       h2l2: 'Six ways to answer.',
       lede: 'You stop rewriting the same apology ten times. Velacre drafts in the customer\u2019s language, slips in your keywords naturally and holds back what you shouldn\u2019t answer without thinking.',
-      reviewLabel: 'Review — Google',
-      responseLabel: 'Reply — Velacre',
+      reviewLabel: 'Review · Google',
+      responseLabel: 'Reply · Velacre',
       statusReady: 'Ready',
       statusGenerating: 'Generating…',
       languageLabel: 'Detected language',
@@ -299,11 +299,11 @@ const en: LandingLocale = {
       catPrecio: 'Value',
       competitors: ['Competitor 1', 'Competitor 2', 'Competitor 3'],
       actionLbl: 'This week\u2019s action',
-      actionTxt: 'Your ambience scores high (8.4) but value is slipping. Review your set menu — three of five reviews compare it to Competitor 1.',
+      actionTxt: 'Your ambience scores high (8.4) but value is slipping. Review your set menu, three of five reviews compare it to Competitor 1.',
       strengthLbl: 'Strength',
       strengthTxt: 'Food (8.1) ahead of two of your three neighbours. 14 of 32 recent reviews mention the octopus and the empanada.',
       opportunityLbl: 'Opportunity',
-      opportunityTxt: 'Competitor 2 replies to 41% of their reviews. You reply to 68%. Keep it up — that\u2019s what tips 4s into 5s.',
+      opportunityTxt: 'Competitor 2 replies to 41% of their reviews. You reply to 68%. Keep it up, that\u2019s what tips 4s into 5s.',
       proBadge: 'Only on Pro',
     },
     health: {
@@ -317,7 +317,7 @@ const en: LandingLocale = {
     howto: {
       h2l1: 'Three steps. From sign-up',
       h2l2: 'to first reply.',
-      lede: 'No manuals, no fifteen-minute tutorial, no SEO jargon. What you already do — only faster.',
+      lede: 'No manuals, no fifteen-minute tutorial, no SEO jargon. What you already do, only faster.',
     },
     forWho: {
       h2l1: 'Built for owners.',
@@ -350,7 +350,7 @@ const en: LandingLocale = {
       foot: 'Free plan · 10 replies a month · No card',
     },
     footer: {
-      tagline: 'Not just answering your reviews — telling you what to fix vs your neighbours.',
+      tagline: 'Not just answering your reviews, telling you what to fix vs your neighbours.',
       productCol: 'Product',
       legalCol: 'Legal',
       productLinks: [
@@ -575,7 +575,7 @@ const en: LandingLocale = {
       noAnalysis: 'Generate the AI analysis to receive personalised recommendations based on your reviews.',
       panelTitle: 'Health Panel',
       panelTitleFull: 'Full Health Panel',
-      panelTitleFullProOnly: 'Full Health Panel — Pro only',
+      panelTitleFullProOnly: 'Full Health Panel, Pro only',
       yourAvgRating: 'Your average rating',
       globalAvgRating: 'Global average rating',
       avgRating: 'Average rating',

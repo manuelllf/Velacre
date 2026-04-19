@@ -1,30 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from './VelacreMark'
 
-function HamburgerIcon() {
+function IconProducto() {
+  // Message / demo
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" fill="none" />
+    <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" fill="none">
+      <path d="M3 4h14v9H7l-4 3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   )
 }
 
-function CloseIcon() {
+function IconRadar() {
+  // Concentric rings
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" fill="none" />
+    <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" fill="none">
+      <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+function IconPrecios() {
+  // Euro tag
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" fill="none">
+      <path d="M13 5a5 5 0 1 0 0 10M5 9h6M5 11h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
     </svg>
   )
 }
 
 function ArrowRightIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="square" fill="none" />
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none">
+      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
     </svg>
   )
 }
@@ -32,23 +44,6 @@ function ArrowRightIcon() {
 export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing' }) {
   const { t: l } = useLanguage()
   const e = l.landingEditorial
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    if (open) document.body.classList.add('vel-no-scroll')
-    else document.body.classList.remove('vel-no-scroll')
-    return () => { document.body.classList.remove('vel-no-scroll') }
-  }, [open])
-
-  useEffect(() => {
-    function onKey(ev: KeyboardEvent) {
-      if (ev.key === 'Escape') setOpen(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
-
-  const close = () => setOpen(false)
 
   const Brand = (
     variant === 'landing' ? (
@@ -57,12 +52,12 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
         className="nav-brand"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       >
-        <VelacreMark size={34} className="wm" />
+        <VelacreMark size={30} className="wm" />
         <span className="nav-brand-name">velacre</span>
       </button>
     ) : (
       <Link href="/" className="nav-brand" style={{ textDecoration: 'none' }}>
-        <VelacreMark size={34} className="wm" />
+        <VelacreMark size={30} className="wm" />
         <span className="nav-brand-name">velacre</span>
       </Link>
     )
@@ -73,76 +68,35 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
   const pricingHref = variant === 'landing' ? '#precios'  : '/#precios'
 
   return (
-    <>
-      <header className="nav">
-        <div className="wrap nav-row">
-          {Brand}
+    <header className="nav">
+      <div className="wrap nav-row">
+        {Brand}
 
-          {/* Desktop links — visible ≥960px */}
-          <nav className="nav-links">
-            <Link href={productHref} className="link link-nav">{e.nav.product}</Link>
-            <Link href={radarHref}   className="link link-nav">{e.nav.radar}</Link>
-            <Link href={pricingHref} className="link link-nav">{e.nav.pricing}</Link>
-            <Link href="/auth/login" className="link">{l.nav.login}</Link>
-          </nav>
+        {/* Anchor icons — móvil + desktop, icon-only bajo 960, icon+label arriba */}
+        <nav className="nav-anchors">
+          <Link href={productHref} className="nav-anchor" title={e.nav.product} aria-label={e.nav.product}>
+            <IconProducto />
+            <span className="lbl">{e.nav.product}</span>
+          </Link>
+          <Link href={radarHref} className="nav-anchor" title={e.nav.radar} aria-label={e.nav.radar}>
+            <IconRadar />
+            <span className="lbl">{e.nav.radar}</span>
+          </Link>
+          <Link href={pricingHref} className="nav-anchor" title={e.nav.pricing} aria-label={e.nav.pricing}>
+            <IconPrecios />
+            <span className="lbl">{e.nav.pricing}</span>
+          </Link>
+        </nav>
 
-          <div className="nav-ctas">
-            <Link href="/auth/register" className="btn btn-accent btn-sm">
-              {l.nav.start}
-            </Link>
-          </div>
-
-          {/* Mobile — hamburguesa + CTA icono */}
-          <div className="nav-mobile">
-            <button
-              type="button"
-              className="nav-hamb"
-              aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-              aria-expanded={open}
-              onClick={() => setOpen(v => !v)}
-            >
-              <HamburgerIcon />
-            </button>
-            <Link
-              href="/auth/register"
-              className="nav-cta-icon"
-              aria-label={l.nav.start}
-              onClick={close}
-            >
-              <ArrowRightIcon />
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Overlay móvil */}
-      <div className={`nav-overlay ${open ? 'open' : ''}`} role="dialog" aria-modal="true" aria-hidden={!open}>
-        <div className="nav-overlay-head">
-          <span className="nav-brand">
-            <VelacreMark size={32} className="wm" />
-            <span className="nav-brand-name">velacre</span>
-          </span>
-          <button
-            type="button"
-            className="nav-overlay-close"
-            aria-label="Cerrar menú"
-            onClick={close}
-          >
-            <CloseIcon />
-          </button>
-        </div>
-        <div className="nav-overlay-body">
-          <Link href={productHref} className="nav-overlay-link" onClick={close}>{e.nav.product}</Link>
-          <Link href={radarHref}   className="nav-overlay-link" onClick={close}>{e.nav.radar}</Link>
-          <Link href={pricingHref} className="nav-overlay-link" onClick={close}>{e.nav.pricing}</Link>
-          <Link href="/auth/login" className="nav-overlay-link" onClick={close}>{l.nav.login}</Link>
-        </div>
-        <div className="nav-overlay-foot">
-          <Link href="/auth/register" className="btn btn-accent" onClick={close}>
-            {l.nav.start}
+        {/* Login + CTA — agrupado en la derecha */}
+        <div className="nav-auth">
+          <Link href="/auth/login" className="nav-login">{l.nav.login}</Link>
+          <Link href="/auth/register" className="nav-cta">
+            <span className="nav-cta-label">{l.nav.start}</span>
+            <span className="nav-cta-icon-only"><ArrowRightIcon /></span>
           </Link>
         </div>
       </div>
-    </>
+    </header>
   )
 }

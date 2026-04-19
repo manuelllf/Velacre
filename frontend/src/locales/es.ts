@@ -21,11 +21,11 @@ const es: LandingLocale = {
 
   stats: {
     s1val: '6',
-    s1label: 'tonos — cada respuesta suena como tú, no como un robot',
+    s1label: 'tonos, cada respuesta suena como tú, no como un robot',
     s2val: '< 10s',
     s2label: 'de tu reseña a una respuesta lista para pegar',
     s3val: '3',
-    s3label: 'rivales vigilados — una acción concreta por semana',
+    s3label: 'rivales vigilados, una acción concreta por semana',
   },
 
   demo: {
@@ -42,10 +42,10 @@ const es: LandingLocale = {
         tones: {
           profesional: 'Estimado Carlos, lamentamos profundamente que su experiencia no haya estado a la altura de nuestros estándares. Los tiempos de espera que describe y la atención recibida no reflejan los valores que nos guían. Hemos trasladado su comentario al equipo para tomar las medidas necesarias. Le invitamos a darnos una nueva oportunidad.',
           empatico: 'Carlos, entiendo perfectamente tu frustración y tienes toda la razón en sentirte así. Esperar 45 minutos y que la comida llegue fría es inaceptable, y que nadie se disculpase lo hace aún peor. Tu experiencia importa y nos duele que haya sido así. Ya hemos hablado con el equipo para que esto no se repita.',
-          cercano: 'Carlos, lo sentimos mucho, de verdad. 45 minutos es demasiado y encima fría — eso no está bien. Te entendemos perfectamente. Ya hemos hablado con el equipo para que no vuelva a pasar. Si le das otra oportunidad al local, vas a notar la diferencia.',
+          cercano: 'Carlos, lo sentimos mucho, de verdad. 45 minutos es demasiado y encima fría, eso no está bien. Te entendemos perfectamente. Ya hemos hablado con el equipo para que no vuelva a pasar. Si le das otra oportunidad al local, vas a notar la diferencia.',
           directo: 'Carlos, tienes razón. El servicio ese día no estuvo a la altura. Lo hemos corregido. Si vuelves, será diferente.',
           agradecido: 'Carlos, gracias por tomarte el tiempo de escribirnos. Aunque la experiencia no fue la que esperabas, valoramos mucho que nos lo digas porque es la única forma de mejorar. Ya hemos actuado y esperamos poder demostrártelo.',
-          humoristico: 'Carlos, 45 minutos da tiempo a hacer la compra, volver y cocinar tú mismo — lo reconocemos. Y encima fría, el colmo. Prometemos que la próxima vez será caliente y a tiempo. Bromas aparte, hemos tomado nota. Vuelve y verás.',
+          humoristico: 'Carlos, 45 minutos da tiempo a hacer la compra, volver y cocinar tú mismo, lo reconocemos. Y encima fría, el colmo. Prometemos que la próxima vez será caliente y a tiempo. Bromas aparte, hemos tomado nota. Vuelve y verás.',
         },
       },
       {
@@ -61,7 +61,7 @@ const es: LandingLocale = {
           cercano: 'Laura, qué alegría leerte. Nos encanta que el pulpo os haya conquistado y que el equipo estuviera a la altura. Esto nos da las pilas para seguir. ¡Os esperamos pronto!',
           directo: 'Laura, gracias. El pulpo es nuestro orgullo y el equipo se lo curra. Te esperamos.',
           agradecido: '¡Laura, muchas gracias por estas palabras! Saber que ha sido la mejor cena en mucho tiempo nos llena de orgullo. El equipo se va a alegrar mucho al leer esto. Os esperamos de vuelta con los brazos abiertos.',
-          humoristico: 'Laura, si el pulpo pudiera leer esto, se sonrojaría. Y el equipo ya lo ha leído — cuidado que se les sube el ego. Bromas aparte, muchas gracias de corazón. Os guardamos la mesa.',
+          humoristico: 'Laura, si el pulpo pudiera leer esto, se sonrojaría. Y el equipo ya lo ha leído, cuidado que se les sube el ego. Bromas aparte, muchas gracias de corazón. Os guardamos la mesa.',
         },
       },
       {
@@ -77,7 +77,7 @@ const es: LandingLocale = {
           cercano: 'Miguel, gracias por la sinceridad. Sabemos que "correcto" no es suficiente y queremos ir más allá. Estamos renovando la carta con platos que den más de sí. Si le das otra oportunidad, seguro que la experiencia mejora.',
           directo: 'Miguel, gracias por la opinión. Tomamos nota del precio-calidad. Estamos mejorando la oferta.',
           agradecido: 'Miguel, gracias por tomarte el tiempo de dejarnos tu opinión. Cada comentario sincero como el tuyo nos ayuda a identificar dónde podemos mejorar. Lo tenemos en cuenta.',
-          humoristico: 'Miguel, "correcto" nos suena a nota del cole — aprobado raspado. Queremos sacar sobresaliente. Estamos renovando la carta para que la próxima vez sea un "volvería seguro". ¡Acepta el reto!',
+          humoristico: 'Miguel, "correcto" nos suena a nota del cole, aprobado raspado. Queremos sacar sobresaliente. Estamos renovando la carta para que la próxima vez sea un "volvería seguro". ¡Acepta el reto!',
         },
       },
     ],
@@ -128,7 +128,7 @@ const es: LandingLocale = {
     quemaLabel: 'Lo que más se quejan',
     quemaText: 'Los tiempos de espera en hora punta y la relación calidad-precio son las quejas más frecuentes. 3 reseñas negativas este mes mencionan esperas de más de 30 minutos.',
     accionLabel: 'Acción de esta semana',
-    accionText: 'Responde a las 4 reseñas negativas sin contestar de los últimos 15 días. Prioriza las que mencionan esperas — un "lo sentimos, estamos mejorando" marca la diferencia.',
+    accionText: 'Responde a las 4 reseñas negativas sin contestar de los últimos 15 días. Prioriza las que mencionan esperas, un "lo sentimos, estamos mejorando" marca la diferencia.',
     proBadge: 'Solo en Pro',
   },
 
@@ -201,7 +201,7 @@ const es: LandingLocale = {
         priceYearly: '490 €',
         priceYearlyMonthly: '41 €',
         desc: 'La diferencia entre responder reseñas y entender tu reputación.',
-        features: ['Respuestas IA ilimitadas', 'Panel de Salud completo (análisis IA + informes PDF)', 'Radar de competencia: descubre qué hacen mejor tus 3 rivales y qué hacer esta semana', 'Benchmark 0–10 en 4 categorías vs competidores', 'Soporte prioritario'],
+        features: ['Respuestas IA ilimitadas', 'Panel de Salud completo (análisis IA + informes PDF)', 'Radar de competencia: descubre qué hacen mejor tus 3 rivales y qué hacer esta semana', 'Benchmark 0-10 en 4 categorías vs competidores', 'Soporte prioritario'],
         cta: 'Elegir Pro',
         badge: 'Más completo',
       },
@@ -214,7 +214,7 @@ const es: LandingLocale = {
       'Filtro de seguridad: retenemos automáticamente reseñas críticas (intoxicaciones, amenazas legales, acusaciones graves) para que las revises tú antes de publicar',
       '6 tonos de respuesta: Profesional, Empático, Cercano, Directo, Agradecido y Humorístico',
       'Respuestas en el mismo idioma de la reseña',
-      'Sin permanencia — cancela cuando quieras',
+      'Sin permanencia, cancela cuando quieras',
     ],
   },
 
@@ -265,7 +265,7 @@ const es: LandingLocale = {
     },
     stats: {
       s4val: '0',
-      s4label: 'para empezar — el plan gratis es un plan, no una demo',
+      s4label: 'para empezar, el plan gratis es un plan, no una demo',
     },
     sections: {
       product: 'Producto',
@@ -280,8 +280,8 @@ const es: LandingLocale = {
       h2l1: 'Una reseña.',
       h2l2: 'Seis formas de contestar.',
       lede: 'Dejas de reescribir la misma disculpa diez veces. Velacre redacta en el idioma del cliente, incluye tus palabras clave con naturalidad y retiene lo que no deberías contestar sin pensar.',
-      reviewLabel: 'Reseña — Google',
-      responseLabel: 'Respuesta — Velacre',
+      reviewLabel: 'Reseña · Google',
+      responseLabel: 'Respuesta · Velacre',
       statusReady: 'Listo',
       statusGenerating: 'Generando…',
       languageLabel: 'Idioma detectado',
@@ -303,7 +303,7 @@ const es: LandingLocale = {
       strengthLbl: 'Fortaleza',
       strengthTxt: 'Cocina (8.1) por encima de dos de tus tres vecinos. 14 de 32 reseñas recientes mencionan el pulpo y la empanada.',
       opportunityLbl: 'Oportunidad',
-      opportunityTxt: 'El competidor 2 responde al 41% de sus reseñas. Vosotras al 68%. Seguid así — es el rasgo que más pesa en los 4-5 estrellas.',
+      opportunityTxt: 'El competidor 2 responde al 41% de sus reseñas. Vosotras al 68%. Seguid así, es el rasgo que más pesa en los 4-5 estrellas.',
       proBadge: 'Solo en plan Pro',
     },
     health: {
@@ -317,7 +317,7 @@ const es: LandingLocale = {
     howto: {
       h2l1: 'Tres pasos. De registro',
       h2l2: 'a primera respuesta.',
-      lede: 'Sin manuales, sin tutorial de quince minutos, sin jerga SEO. Lo que tú haces ya — solo que más rápido.',
+      lede: 'Sin manuales, sin tutorial de quince minutos, sin jerga SEO. Lo que tú haces ya, solo que más rápido.',
     },
     forWho: {
       h2l1: 'Pensado para dueños.',
@@ -350,7 +350,7 @@ const es: LandingLocale = {
       foot: 'Plan gratis · 10 respuestas al mes · Sin tarjeta',
     },
     footer: {
-      tagline: 'No solo contesta tus reseñas — te dice qué mejorar vs tus vecinos.',
+      tagline: 'No solo contesta tus reseñas, te dice qué mejorar vs tus vecinos.',
       productCol: 'Producto',
       legalCol: 'Legal',
       productLinks: [
@@ -575,7 +575,7 @@ const es: LandingLocale = {
       noAnalysis: 'Genera el análisis IA para obtener recomendaciones personalizadas basadas en tus reseñas.',
       panelTitle: 'Panel de Salud',
       panelTitleFull: 'Panel de Salud completo',
-      panelTitleFullProOnly: 'Panel de Salud completo — solo Pro',
+      panelTitleFullProOnly: 'Panel de Salud completo, solo Pro',
       yourAvgRating: 'Tu nota media',
       globalAvgRating: 'Nota media global',
       avgRating: 'Nota media',
