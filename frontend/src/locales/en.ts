@@ -404,6 +404,7 @@ const en: LandingLocale = {
       h2l2: 'reply to itself.',
       sub: 'Almost does, though. Sign in with Google and you\u2019ll be replying your first review in two minutes.',
       foot: 'Free plan · 10 replies a month · No card',
+      seeDemo: 'Back to the demo',
     },
     footer: {
       tagline: 'Not just answering your reviews, telling you what to fix vs your neighbours.',

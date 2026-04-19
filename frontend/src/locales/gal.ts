@@ -404,6 +404,7 @@ const gal: LandingLocale = {
       h2l2: 'se contesta só.',
       sub: 'Pero case. Dáte de alta con Google e en dous minutos estás contestando a primeira recensión.',
       foot: 'Plan gratis · 10 respostas ao mes · Sen tarxeta',
+      seeDemo: 'Volver á demo',
     },
     footer: {
       tagline: 'Non só contesta as túas recensións, diche que mellorar fronte aos teus veciños.',

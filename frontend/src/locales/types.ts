@@ -314,6 +314,7 @@ export interface LandingLocale {
       h2l2: string
       sub: string
       foot: string
+      seeDemo: string
     }
     footer: {
       tagline: string

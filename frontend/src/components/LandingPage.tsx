@@ -326,6 +326,9 @@ export default function LandingPage() {
                 {l.hero.ctaEmail} →
               </Link>
             </div>
+            <Link href="#producto" className="hero-see-demo" style={{ alignSelf: 'center', marginTop: 18 }}>
+              ↑ {e.cta.seeDemo}
+            </Link>
             <p className="final-foot">{e.cta.foot}</p>
           </div>
         </section>

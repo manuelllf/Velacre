@@ -404,6 +404,7 @@ const es: LandingLocale = {
       h2l2: 'se contesta solo.',
       sub: 'Pero casi. Date de alta con Google y en dos minutos estás respondiendo la primera reseña.',
       foot: 'Plan gratis · 10 respuestas al mes · Sin tarjeta',
+      seeDemo: 'Volver a la demo',
     },
     footer: {
       tagline: 'No solo contesta tus reseñas, te dice qué mejorar vs tus vecinos.',
