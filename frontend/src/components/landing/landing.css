@@ -2341,46 +2341,49 @@
 }
 
 .vel-lp .compare-card {
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  padding: 18px;
-  background: var(--paper);
+  padding: 18px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--line);
+  position: relative;
 }
-.vel-lp .compare-card.us {
-  border-color: rgba(74, 111, 229, 0.4);
-  border-left: 3px solid var(--accent-strong);
-  background: rgba(74, 111, 229, 0.04);
+.vel-lp .compare-card:last-child { border-bottom: 1px solid var(--line); }
+.vel-lp .compare-card.us::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 3px;
+  background: var(--accent-strong);
 }
+.vel-lp .compare-card.us { padding-left: 12px; }
 .vel-lp .compare-card-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 12px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--line);
+  margin-bottom: 10px;
 }
 .vel-lp .compare-card-name {
   font-family: var(--f-mono);
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--mute);
   font-weight: 600;
 }
 .vel-lp .compare-card.us .compare-card-name { color: var(--accent-strong); }
 .vel-lp .compare-card-price {
-  font-family: var(--f-head);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.01em;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mute);
+  letter-spacing: 0.04em;
   line-height: 1;
 }
-.vel-lp .compare-card-price.us { color: var(--accent-strong); }
+.vel-lp .compare-card-price.us { color: var(--ink); }
 .vel-lp .compare-card-price .per {
-  font-family: var(--f-mono);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 500;
   color: var(--mute);
   letter-spacing: 0.08em;
