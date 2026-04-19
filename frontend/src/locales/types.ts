@@ -214,6 +214,12 @@ export interface LandingLocale {
       pricing: string
       start: string
     }
+    sectionsHelp: {
+      product: string
+      intel: string
+      health: string
+      pricing: string
+    }
     demo: {
       h2l1: string
       h2l2: string

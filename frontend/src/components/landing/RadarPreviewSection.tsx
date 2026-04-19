@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/lib/i18n'
+import { SectionHelp } from './SectionHelp'
 
 const MY_SCORES = [7.8, 8.1, 8.4, 7.2]
 const COMP_DATA = [
@@ -63,6 +64,7 @@ export default function RadarPreviewSection() {
         <div className="sec-idx">
           <span className="num">02</span>
           {e.sections.intel}
+          <SectionHelp text={e.sectionsHelp.intel} />
         </div>
         <div>
           <h2>

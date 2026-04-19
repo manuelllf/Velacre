@@ -276,6 +276,12 @@ const en: LandingLocale = {
       pricing: 'Pricing',
       start: 'Start',
     },
+    sectionsHelp: {
+      product: 'Every unanswered review is a customer who won\u2019t come back. Velacre answers for you in seconds, in the tone you pick, so your Google presence works while you run the business.',
+      intel: 'Finding out the place across the street dropped prices six months ago is already too late. One sentence a week tells you where you\u2019re losing ground and what to fix to get it back.',
+      health: 'Customers don\u2019t return for what shines, they leave over what fails. See at a glance what\u2019s burning the experience before 10 reviews spell it out.',
+      pricing: 'Start free to see if Velacre fits the way you work. If it helps, move to Core. If you want to track your neighbours, Pro. No fine print, no surprises.',
+    },
     demo: {
       h2l1: 'One review.',
       h2l2: 'Six ways to answer.',

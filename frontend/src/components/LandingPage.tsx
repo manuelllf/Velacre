@@ -8,6 +8,7 @@ import { useOAuthLoading } from '@/hooks/useOAuthLoading'
 import './landing/landing.css'
 import { GoogleIcon } from './landing/shared'
 import { VelacreMark } from './landing/VelacreMark'
+import { SectionHelp } from './landing/SectionHelp'
 import { NavBar } from './landing/NavBar'
 import { FooterEditorial } from './landing/FooterEditorial'
 import { CountUp } from './landing/CountUp'
@@ -101,6 +102,7 @@ export default function LandingPage() {
             <div className="sec-idx">
               <span className="num">03</span>
               {e.sections.health}
+              <SectionHelp text={e.sectionsHelp.health} />
             </div>
             <div>
               <h2>

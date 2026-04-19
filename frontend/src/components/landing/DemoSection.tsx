@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n'
 import { renderStars } from './shared'
+import { SectionHelp } from './SectionHelp'
 
 type ToneKey = 'profesional' | 'empatico' | 'cercano' | 'directo' | 'agradecido' | 'humoristico'
 const TONES: ToneKey[] = ['profesional', 'empatico', 'cercano', 'directo', 'agradecido', 'humoristico']
@@ -82,6 +83,7 @@ export default function DemoSection() {
         <div className="sec-idx">
           <span className="num">01</span>
           {e.sections.product}
+          <SectionHelp text={e.sectionsHelp.product} />
         </div>
         <div>
           <h2>

@@ -347,18 +347,18 @@
   line-height: 1.55;
 }
 .vel-lp .hero-cta {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
-  gap: 18px;
-  margin-top: 48px;
-  margin-bottom: 16px;
+  gap: 22px !important;
+  margin-top: 56px !important;
+  margin-bottom: 18px !important;
   width: 100%;
 }
 .vel-lp .hero-cta .btn {
-  width: 100%;
-  min-height: 62px;
-  font-size: 16px;
-  padding: 20px 28px;
+  width: 100% !important;
+  min-height: 68px !important;
+  font-size: 16.5px !important;
+  padding: 22px 30px !important;
   letter-spacing: 0.005em;
 }
 .vel-lp .hero-foot {
@@ -400,8 +400,8 @@
   }
   .vel-lp .hero h1       { margin: 14px 0 0; max-width: 20ch; text-align: left; }
   .vel-lp .hero-sub      { max-width: 52ch; margin: 20px 0 0; font-size: 17.5px; }
-  .vel-lp .hero-cta      { flex-direction: row; flex-wrap: wrap; width: auto; }
-  .vel-lp .hero-cta .btn { width: auto; min-height: 48px; }
+  .vel-lp .hero-cta      { flex-direction: row !important; flex-wrap: wrap; gap: 16px !important; width: auto; margin-top: 40px !important; margin-bottom: 0 !important; }
+  .vel-lp .hero-cta .btn { width: auto !important; min-height: 60px !important; padding: 20px 30px !important; font-size: 16px !important; }
   .vel-lp .hero-foot     { justify-content: flex-start; font-size: 13px; gap: 22px; margin-top: 24px; }
 
   /* Ticker visible a partir de tablet — módulo dark */
@@ -536,6 +536,78 @@
 @media (min-width: 1200px) {
   .vel-lp .stats-cell { padding: 44px 32px; }
   .vel-lp .stats-num  { font-size: 56px; }
+}
+
+/* ============================================================
+   SECTION HELP — "?" tooltip junto al sec-idx
+   ============================================================ */
+.vel-lp .sec-help {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.vel-lp .sec-help-btn {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--mute);
+  font-family: var(--f-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+  line-height: 1;
+}
+.vel-lp .sec-help-btn:hover,
+.vel-lp .sec-help-btn[aria-expanded="true"] {
+  color: var(--paper);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.vel-lp .sec-help-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  min-width: 240px;
+  max-width: min(320px, 86vw);
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(10, 14, 26, 0.18);
+}
+.vel-lp .sec-help-popover::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: var(--paper);
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+  transform: translateX(-50%) rotate(45deg);
+}
+@media (min-width: 720px) {
+  .vel-lp .sec-help-popover { left: 0; transform: none; }
+  .vel-lp .sec-help-popover::before { left: 16px; transform: rotate(45deg); }
 }
 
 /* ============================================================
@@ -1496,17 +1568,18 @@
   overflow: hidden;
 }
 .vel-lp .sector {
-  padding: 14px 12px;
+  padding: 22px 14px;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--muted-strong);
   transition: all 0.15s ease;
   cursor: default;
   background: var(--paper);
   text-align: center;
-  line-height: 1.3;
-  min-height: 48px;
+  line-height: 1.35;
+  min-height: 72px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1523,16 +1596,17 @@
     gap: 0;
     background: var(--paper);
     border: 1px solid var(--line-strong);
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
   }
   .vel-lp .sector {
     border-right: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
     border-radius: 0;
-    padding: 20px 16px;
-    font-size: 14px;
-    min-height: 64px;
+    padding: 36px 20px;
+    font-size: 15px;
+    min-height: 108px;
+    font-weight: 500;
   }
   .vel-lp .sector:nth-child(2n) { border-right: 1px solid var(--line); }
   .vel-lp .sector:nth-child(4n) { border-right: 0; }

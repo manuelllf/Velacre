@@ -276,6 +276,12 @@ const es: LandingLocale = {
       pricing: 'Precios',
       start: 'Empezar',
     },
+    sectionsHelp: {
+      product: 'Cada reseña sin contestar es un cliente que no vuelve. Velacre responde por ti en segundos, en el tono que tú eliges, para que tu presencia en Google trabaje mientras tú atiendes el negocio.',
+      intel: 'Enterarte de que el de enfrente baja precios a los 6 meses ya es tarde. Con una frase semanal sabes antes que ellos dónde estás perdiendo terreno y qué tocar para recuperarlo.',
+      health: 'Los clientes no vuelven por lo que brilla, se van por lo que falla. Ves en un vistazo qué está quemando la experiencia antes de que 10 reseñas te lo digan a gritos.',
+      pricing: 'Empiezas gratis para ver si Velacre encaja con tu forma de trabajar. Si te sirve, pasas a Core. Si quieres vigilar a tus vecinos, a Pro. Sin letra pequeña ni sorpresas.',
+    },
     demo: {
       h2l1: 'Una reseña.',
       h2l2: 'Seis formas de contestar.',

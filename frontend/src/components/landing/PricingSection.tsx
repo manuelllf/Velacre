@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n'
 import { CheckIcon } from './shared'
+import { SectionHelp } from './SectionHelp'
 
 function priceNumber(raw: string): string {
   const m = raw.match(/(\d+[.,]?\d*)/)
@@ -26,6 +27,7 @@ export default function PricingSection() {
         <div className="sec-idx">
           <span className="num">06</span>
           {e.sections.pricing}
+          <SectionHelp text={e.sectionsHelp.pricing} />
         </div>
         <div>
           <h2>
