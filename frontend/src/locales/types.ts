@@ -185,6 +185,7 @@ export interface LandingLocale {
       h1accent: string
       h1l2post: string
       sub: string
+      seeDemo: string
       foot: [string, string, string]
       ticker: {
         title: string
@@ -219,6 +220,24 @@ export interface LandingLocale {
       intel: string
       health: string
       pricing: string
+    }
+    data: {
+      label: string
+      items: Array<{ num: string; text: string; src: string }>
+    }
+    compare: {
+      label: string
+      lede: string
+      headers: [string, string, string]
+      priceRow: { lbl: string; values: [string, string, string] }
+      rows: Array<{ lbl: string; values: [boolean, boolean, boolean] }>
+      foot: string
+    }
+    faq: {
+      label: string
+      h2l1: string
+      h2l2: string
+      items: Array<{ q: string; a: string }>
     }
     demo: {
       h2l1: string

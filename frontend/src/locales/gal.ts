@@ -247,7 +247,8 @@ const gal: LandingLocale = {
       h1l2pre: 'son o',
       h1accent: 'boca a boca',
       h1l2post: 'moderno.',
-      sub: 'Velacre contéstaas, enténdeas e dinche que fan mellor os teus veciños. Pensado para donos de negocio, non para axencias de SEO.',
+      sub: 'Velacre contéstaas no teu tono, dinche que está fallando antes de que o noten os teus clientes e vixía que fan mellor os teus veciños.',
+      seeDemo: 'Ver como funciona primeiro',
       foot: ['Setup < 2 min', 'Sen tarxeta', 'Cancelas cando queiras'],
       ticker: {
         title: 'Bandexa en vivo',
@@ -282,6 +283,43 @@ const gal: LandingLocale = {
       health: 'Os clientes non volven polo que brilla, vanse polo que falla. Ves nun golpe de vista que está queimando a experiencia antes de que 10 recensións cho digan a berros.',
       pricing: 'Empezas gratis para ver se Velacre encaixa coa túa forma de traballar. Se che serve, pasas a Core. Se queres vixiar os teus veciños, a Pro. Sen letra pequena nin sorpresas.',
     },
+    data: {
+      label: 'O que din os datos',
+      items: [
+        { num: '87%', text: 'de consumidores mira recensións antes de ir a un negocio local', src: 'BrightLocal · Consumer Survey 2024' },
+        { num: '+0,12★', text: 'de media que gañan os negocios que responden ás súas recensións', src: 'Harvard Business School · 2017' },
+        { num: '2×', text: 'máis clicks en negocios con 40+ recensións fronte aos de menos de 10', src: 'Google Business Profile · data' },
+      ],
+    },
+    compare: {
+      label: 'Velacre fronte ao mercado',
+      lede: 'Sen nomes. Só feitos. Ti decides.',
+      headers: ['Competidor A', 'Competidor B', 'Velacre Pro'],
+      priceRow: { lbl: 'Prezo mensual', values: ['~€23', '€249+', '€49'] },
+      rows: [
+        { lbl: 'Plan gratis real', values: [false, false, true] },
+        { lbl: 'Respostas IA multi-tono', values: [true, true, true] },
+        { lbl: 'Filtro de seguridade en recensións críticas', values: [false, false, true] },
+        { lbl: 'Radar de competencia', values: [false, false, true] },
+        { lbl: 'Informes PDF con acción concreta', values: [false, false, true] },
+        { lbl: 'Publicación directa en Google (pendente)', values: [true, true, false] },
+        { lbl: 'Sen permanencia', values: [true, true, true] },
+      ],
+      foot: 'Fontes: webs públicas dos competidores (abril 2026). O dato "publicación directa" de Velacre actívase ao aprobarse Google Business Profile.',
+    },
+    faq: {
+      label: 'Preguntas frecuentes',
+      h2l1: 'Antes de rexistrarte,',
+      h2l2: 'respostas ao que che preocupa.',
+      items: [
+        { q: 'E se me meten recensións falsas ou graves?', a: 'O filtro de seguridade detecta e retén recensións críticas (intoxicacións, ameazas legais, acusacións graves) antes de responder. Revisa-las ti antes de publicar nada.' },
+        { q: 'Podo cancelar cando queira?', a: 'Si, sen permanencia nin letra pequena. O cobro detense ao final do ciclo en curso.' },
+        { q: 'Responde en galego, catalán ou inglés?', a: 'Si. Responde no mesmo idioma da recensión orixinal. Se o teu cliente escribe en galego, a resposta sae en galego.' },
+        { q: 'Necesito tarxeta para o plan gratis?', a: 'Non. 10 respostas IA ao mes, sen tarxeta, para sempre. O plan gratis é un plan, non unha demo.' },
+        { q: 'Como conecta Velacre con Google?', a: 'Buscas o teu local por nome en Google Maps, un clic e listo. Non fai falta técnico nin acceso especial a Google Business Profile.' },
+        { q: 'Podo velo funcionar antes de rexistrarme?', a: 'Si. Baixa ao demo desta mesma páxina: unha recensión real, seis tonos, elixe un e ve a resposta en vivo.' },
+      ],
+    },
     demo: {
       h2l1: 'Unha recensión.',
       h2l2: 'Seis formas de contestar.',
@@ -308,8 +346,8 @@ const gal: LandingLocale = {
       actionTxt: 'O teu ambiente puntúa alto (8.4), pero a relación calidade-prezo está quedando atrás. Revisa o menú do día: tres de cinco recensións compárano co competidor 1.',
       strengthLbl: 'Fortaleza',
       strengthTxt: 'Cociña (8.1) por riba de dous dos teus tres veciños. 14 de 32 recensións recentes mencionan o polbo e a empanada.',
-      opportunityLbl: 'Oportunidade',
-      opportunityTxt: 'O competidor 2 responde ao 41% das súas recensións. Vós ao 68%. Seguide así, é o trazo que máis pesa nas de 4-5 estrelas.',
+      opportunityLbl: 'Patrón detectado',
+      opportunityTxt: 'Respondes o 68% do total pero só o 25% das 5★. Son 12 clientes encantados sen resposta. Contestar as positivas é o maior multiplicador de ranking.',
       proBadge: 'Só no plan Pro',
     },
     health: {
@@ -326,8 +364,8 @@ const gal: LandingLocale = {
       lede: 'Sen manuais, sen tutorial de quince minutos, sen xerga de SEO. O que xa fas, só que máis rápido.',
     },
     forWho: {
-      h2l1: 'Pensado para donos.',
-      h2l2: 'Non para axencias.',
+      h2l1: 'Do asador á clínica.',
+      h2l2: 'Onde haxa recensións, funciona.',
       lede: 'Empezou na hostalaría galega e agora serve calquera PEME que viva do boca a boca.',
       sectors: [
         'Hostalaría & tabernas',

@@ -151,6 +151,49 @@ export default function PricingSection() {
       <p className="mono-sm" style={{ textAlign: 'center', marginTop: 24 }}>
         {l.pricing.vatNote}
       </p>
+
+      {/* Compare table — sin nombrar competencia */}
+      <div className="compare">
+        <div className="compare-head">
+          <span className="lbl">{e.compare.label}</span>
+          <p>{e.compare.lede}</p>
+        </div>
+        <div className="compare-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>{e.compare.headers[0]}</th>
+                <th>{e.compare.headers[1]}</th>
+                <th className="us">{e.compare.headers[2]}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{e.compare.priceRow.lbl}</td>
+                <td><span className="price">{e.compare.priceRow.values[0]}</span></td>
+                <td><span className="price">{e.compare.priceRow.values[1]}</span></td>
+                <td className="us"><span className="price us">{e.compare.priceRow.values[2]}</span></td>
+              </tr>
+              {e.compare.rows.map((row, i) => (
+                <tr key={i}>
+                  <td>{row.lbl}</td>
+                  <td className="center">
+                    <span className={row.values[0] ? 'yes' : 'no'}>{row.values[0] ? '✓' : '—'}</span>
+                  </td>
+                  <td className="center">
+                    <span className={row.values[1] ? 'yes' : 'no'}>{row.values[1] ? '✓' : '—'}</span>
+                  </td>
+                  <td className="us center">
+                    <span className={row.values[2] ? 'yes' : 'no'}>{row.values[2] ? '✓' : '—'}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="compare-foot">{e.compare.foot}</p>
+      </div>
     </section>
   )
 }

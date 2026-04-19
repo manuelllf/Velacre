@@ -216,29 +216,70 @@ export default function LandingPage() {
 
         {/* ===== FOR WHO ===== */}
         <section className="sec wrap sec-who">
-          <div className="sec-head">
-            <div className="sec-idx">
-              <span className="num">05</span>
-              {e.sections.who}
+          <div>
+            <div className="sec-head">
+              <div className="sec-idx">
+                <span className="num">05</span>
+                {e.sections.who}
+              </div>
+              <div>
+                <h2>
+                  {e.forWho.h2l1}
+                  <br />
+                  {e.forWho.h2l2}
+                </h2>
+                <p className="sec-lede">{e.forWho.lede}</p>
+              </div>
             </div>
-            <div>
-              <h2>
-                {e.forWho.h2l1}
-                <br />
-                {e.forWho.h2l2}
-              </h2>
-              <p className="sec-lede">{e.forWho.lede}</p>
+            <div className="sectors">
+              {e.forWho.sectors.map(s => (
+                <span className="sector" key={s}>{s}</span>
+              ))}
             </div>
           </div>
-          <div className="sectors">
-            {e.forWho.sectors.map(s => (
-              <span className="sector" key={s}>{s}</span>
+        </section>
+
+        {/* ===== DATA STRIP ===== */}
+        <section className="sec wrap sec-data">
+          <p className="data-head">{e.data.label}</p>
+          <div className="data-strip">
+            {e.data.items.map(item => (
+              <div className="data-stat" key={item.num}>
+                <div className="num">{item.num}</div>
+                <p className="txt">{item.text}</p>
+                <div className="src">{item.src}</div>
+              </div>
             ))}
           </div>
         </section>
 
         {/* ===== PRICING ===== */}
         <PricingSection />
+
+        {/* ===== FAQ ===== */}
+        <section className="sec wrap sec-faq">
+          <div className="sec-head">
+            <div className="sec-idx">
+              <span className="num">?</span>
+              {e.faq.label}
+            </div>
+            <div>
+              <h2>
+                {e.faq.h2l1}
+                <br />
+                {e.faq.h2l2}
+              </h2>
+            </div>
+          </div>
+          <div className="faq-list">
+            {e.faq.items.map((item, i) => (
+              <div className="faq-item" key={i}>
+                <div className="faq-q">{item.q}</div>
+                <p className="faq-a">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* ===== FINAL CTA ===== */}
         <section className="final sec-final">

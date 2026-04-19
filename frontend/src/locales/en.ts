@@ -247,7 +247,8 @@ const en: LandingLocale = {
       h1l2pre: 'the modern',
       h1accent: 'word of mouth',
       h1l2post: '.',
-      sub: 'Velacre answers them, understands them, and tells you what your neighbours are doing better. Built for business owners, not SEO agencies.',
+      sub: 'Velacre answers them in your tone, flags what\u2019s breaking before your customers notice, and tracks what your neighbours are doing better.',
+      seeDemo: 'See how it works first',
       foot: ['Setup < 2 min', 'No card', 'Cancel whenever'],
       ticker: {
         title: 'Live inbox',
@@ -282,6 +283,43 @@ const en: LandingLocale = {
       health: 'Customers don\u2019t return for what shines, they leave over what fails. See at a glance what\u2019s burning the experience before 10 reviews spell it out.',
       pricing: 'Start free to see if Velacre fits the way you work. If it helps, move to Core. If you want to track your neighbours, Pro. No fine print, no surprises.',
     },
+    data: {
+      label: 'What the data says',
+      items: [
+        { num: '87%', text: 'of consumers check online reviews before visiting a local business', src: 'BrightLocal \u00b7 Consumer Survey 2024' },
+        { num: '+0.12\u2605', text: 'average rating lift for businesses that reply to their reviews', src: 'Harvard Business School \u00b7 2017' },
+        { num: '2\u00d7', text: 'more clicks on businesses with 40+ reviews vs fewer than 10', src: 'Google Business Profile \u00b7 data' },
+      ],
+    },
+    compare: {
+      label: 'Velacre vs the market',
+      lede: 'No names. Just facts. You decide.',
+      headers: ['Competitor A', 'Competitor B', 'Velacre Pro'],
+      priceRow: { lbl: 'Monthly price', values: ['~\u20ac23', '\u20ac249+', '\u20ac49'] },
+      rows: [
+        { lbl: 'Real free plan', values: [false, false, true] },
+        { lbl: 'Multi-tone AI replies', values: [true, true, true] },
+        { lbl: 'Safety filter for critical reviews', values: [false, false, true] },
+        { lbl: 'Competition Radar', values: [false, false, true] },
+        { lbl: 'PDF reports with concrete action', values: [false, false, true] },
+        { lbl: 'Direct publishing to Google (pending)', values: [true, true, false] },
+        { lbl: 'No lock-in', values: [true, true, true] },
+      ],
+      foot: 'Sources: public competitor websites (April 2026). Velacre direct publishing activates upon Google Business Profile approval.',
+    },
+    faq: {
+      label: 'FAQ',
+      h2l1: 'Before you sign up,',
+      h2l2: 'answers to what you\u2019re worried about.',
+      items: [
+        { q: 'What about fake or severe reviews?', a: 'The safety filter detects and holds critical reviews (poisoning claims, legal threats, serious accusations) before replying. You review them before anything is published.' },
+        { q: 'Can I cancel anytime?', a: 'Yes, no lock-in or fine print. Billing stops at the end of the current cycle.' },
+        { q: 'Does it reply in Galician, Catalan, or English?', a: 'Yes. It replies in the same language as the original review. If your customer writes in Galician, the reply comes out in Galician.' },
+        { q: 'Do I need a card for the free plan?', a: 'No. 10 AI replies per month, no card, forever. The free plan is a plan, not a demo.' },
+        { q: 'How does Velacre connect to Google?', a: 'Search your business by name on Google Maps, one click and done. No tech needed, no special Google Business Profile access required.' },
+        { q: 'Can I see it working before signing up?', a: 'Yes. Scroll up to the demo on this page: a real review, six tones, pick one and see the response live.' },
+      ],
+    },
     demo: {
       h2l1: 'One review.',
       h2l2: 'Six ways to answer.',
@@ -308,8 +346,8 @@ const en: LandingLocale = {
       actionTxt: 'Your ambience scores high (8.4) but value is slipping. Review your set menu, three of five reviews compare it to Competitor 1.',
       strengthLbl: 'Strength',
       strengthTxt: 'Food (8.1) ahead of two of your three neighbours. 14 of 32 recent reviews mention the octopus and the empanada.',
-      opportunityLbl: 'Opportunity',
-      opportunityTxt: 'Competitor 2 replies to 41% of their reviews. You reply to 68%. Keep it up, that\u2019s what tips 4s into 5s.',
+      opportunityLbl: 'Pattern detected',
+      opportunityTxt: 'You reply to 68% overall but only 25% of 5\u2605 reviews. That\u2019s 12 happy customers ignored. Answering positives is the biggest ranking multiplier.',
       proBadge: 'Only on Pro',
     },
     health: {
@@ -326,8 +364,8 @@ const en: LandingLocale = {
       lede: 'No manuals, no fifteen-minute tutorial, no SEO jargon. What you already do, only faster.',
     },
     forWho: {
-      h2l1: 'Built for owners.',
-      h2l2: 'Not for agencies.',
+      h2l1: 'From steakhouse to clinic.',
+      h2l2: 'Wherever there are reviews, it works.',
       lede: 'Started with Galician hospitality and now serves any local SMB that lives on word of mouth.',
       sectors: [
         'Hospitality & taverns',

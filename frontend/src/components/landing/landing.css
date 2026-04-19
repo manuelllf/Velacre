@@ -2022,6 +2022,199 @@
 }
 
 /* ============================================================
+   HERO — Ver demo secondary link
+   ============================================================ */
+.vel-lp .hero-see-demo {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted-strong);
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 1px;
+  transition: all 0.15s ease;
+  align-self: center;
+}
+.vel-lp .hero-see-demo:hover {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+@media (min-width: 720px) {
+  .vel-lp .hero-see-demo { align-self: flex-start; margin-top: 18px; }
+}
+
+/* ============================================================
+   SEC DATA — stat strip externa con fuentes
+   ============================================================ */
+.vel-lp .data-head {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: 24px;
+  text-align: center;
+}
+.vel-lp .data-strip {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+}
+.vel-lp .data-stat { text-align: center; padding: 0; }
+.vel-lp .data-stat .num {
+  font-family: var(--f-head);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  line-height: 1;
+}
+.vel-lp .data-stat .txt {
+  font-size: 14px;
+  color: var(--muted-strong);
+  line-height: 1.45;
+  margin: 10px auto 0;
+  max-width: 32ch;
+}
+.vel-lp .data-stat .src {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-top: 8px;
+}
+@media (min-width: 720px) {
+  .vel-lp .data-head { margin-bottom: 36px; }
+  .vel-lp .data-strip { grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .vel-lp .data-stat .num { font-size: 48px; }
+}
+@media (min-width: 1200px) {
+  .vel-lp .data-stat .num { font-size: 56px; }
+}
+
+/* ============================================================
+   COMPARE TABLE — 3-col dentro de pricing
+   ============================================================ */
+.vel-lp .compare {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+.vel-lp .compare-head {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.vel-lp .compare-head .lbl {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.vel-lp .compare-head p {
+  font-size: 13.5px;
+  color: var(--muted-strong);
+  margin: 0;
+}
+.vel-lp .compare-wrap { overflow-x: auto; }
+.vel-lp .compare-table {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.vel-lp .compare-table th,
+.vel-lp .compare-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+  text-align: left;
+  vertical-align: middle;
+}
+.vel-lp .compare-table th {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-weight: 600;
+  background: var(--paper-2);
+}
+.vel-lp .compare-table th.us { color: var(--accent-strong); }
+.vel-lp .compare-table tr:last-child td { border-bottom: 0; }
+.vel-lp .compare-table td.center { text-align: center; font-size: 15px; }
+.vel-lp .compare-table td.us { background: rgba(74, 111, 229, 0.05); }
+.vel-lp .compare-table .price {
+  font-family: var(--f-head);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+}
+.vel-lp .compare-table .price.us { color: var(--accent-strong); }
+.vel-lp .compare-table .yes { color: var(--good); font-weight: 700; }
+.vel-lp .compare-table .no { color: var(--mute); }
+.vel-lp .compare-foot {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  margin-top: 14px;
+  text-align: center;
+  text-transform: none;
+  line-height: 1.5;
+}
+
+@media (min-width: 720px) {
+  .vel-lp .compare { margin-top: 48px; padding-top: 36px; }
+  .vel-lp .compare-table { min-width: 0; }
+  .vel-lp .compare-table th,
+  .vel-lp .compare-table td { padding: 14px 18px; font-size: 14px; }
+}
+
+/* ============================================================
+   SEC FAQ — preguntas frecuentes antes de CTA 07
+   ============================================================ */
+.vel-lp .faq-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.vel-lp .faq-item {
+  border-bottom: 1px solid var(--line);
+  padding: 20px;
+}
+.vel-lp .faq-item:last-child { border-bottom: 0; }
+.vel-lp .faq-q {
+  font-family: var(--f-head);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+.vel-lp .faq-a {
+  font-size: 14px;
+  color: var(--muted-strong);
+  line-height: 1.55;
+  margin: 0;
+}
+@media (min-width: 720px) {
+  .vel-lp .faq-item { padding: 24px 28px; }
+  .vel-lp .faq-q { font-size: 17.5px; }
+  .vel-lp .faq-a { font-size: 15px; }
+}
+
+/* ============================================================
    AUTH PAGES — crema, mobile-first. Compacto, cabe sin scroll.
    ============================================================ */
 .vel-lp .auth-screen {
@@ -2264,22 +2457,30 @@
   display: flex;
   flex-direction: column;
 }
+/* Fix: flex items con .wrap (margin:0 auto) encogían a su content-width
+   en vez de llenar el cross-axis. Force width:100% para todos los hijos
+   directos de .lp-main → auto margins no tienen holgura que consumir. */
+.vel-lp .lp-main > * { width: 100%; }
 .vel-lp .sec-demo  { order: 2; }
 .vel-lp .sec-stats { order: 3; }
 .vel-lp .sec-radar { order: 4; }
 .vel-lp .sec-health{ order: 5; }
 .vel-lp .sec-howto { order: 6; }
 .vel-lp .sec-who   { order: 7; }
-.vel-lp .sec-price { order: 8; }
-.vel-lp .sec-final { order: 9; }
-.vel-lp .sec-foot  { order: 10; }
+.vel-lp .sec-data  { order: 8; }
+.vel-lp .sec-price { order: 9; }
+.vel-lp .sec-faq   { order: 10; }
+.vel-lp .sec-final { order: 11; }
+.vel-lp .sec-foot  { order: 12; }
 
 /* Separadores editoriales entre secciones */
 .vel-lp .sec-radar,
 .vel-lp .sec-health,
 .vel-lp .sec-howto,
 .vel-lp .sec-who,
-.vel-lp .sec-price { border-top: 1px solid var(--line); }
+.vel-lp .sec-data,
+.vel-lp .sec-price,
+.vel-lp .sec-faq { border-top: 1px solid var(--line); }
 
 @media (min-width: 720px) {
   .vel-lp .sec-demo  { order: 3; }

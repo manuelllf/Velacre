@@ -65,6 +65,9 @@ export default function HeroSection({ googleLoading, onGoogleSignup }: HeroSecti
               {l.hero.ctaEmail} →
             </Link>
           </div>
+          <Link href="#producto" className="hero-see-demo">
+            ↓ {e.hero.seeDemo}
+          </Link>
           <div className="hero-foot">
             {e.hero.foot.map(f => (
               <span key={f}>{f}</span>
