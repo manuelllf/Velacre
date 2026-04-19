@@ -7,69 +7,45 @@ export default function ContactoPage() {
   const { t } = useLanguage()
   const c = t.app.legal.contact
 
-  const card: React.CSSProperties = {
-    background: 'var(--paper-2)',
-    border: '1px solid var(--line-strong)',
-    borderRadius: 4,
-    padding: 20,
-  }
-
-  const label: React.CSSProperties = {
-    color: 'var(--mute)',
-    marginBottom: 10,
-  }
-
-  const emailLink: React.CSSProperties = {
-    fontSize: 16,
-    fontWeight: 500,
-  }
-
   return (
     <PublicShell>
       <article className="wrap prose-legal">
         <h1>{c.title}</h1>
         <p className="updated">{c.subtitle}</p>
 
-        <div style={{ display: 'grid', gap: 16, marginBottom: 32 }}>
-          <div style={card}>
-            <div className="mono" style={label}>
-              {c.generalEmail}
+        <dl className="contact-list">
+          <div className="contact-row">
+            <p className="ctc-lbl">{c.generalEmail}</p>
+            <div>
+              <a href="mailto:info@velacre.com" className="ctc-val">info@velacre.com</a>
+              <p className="ctc-body">{c.generalEmailDesc}</p>
+              <p className="ctc-note">{c.generalEmailNote}</p>
             </div>
-            <a href="mailto:info@velacre.com" style={emailLink}>
-              info@velacre.com
-            </a>
-            <p style={{ marginTop: 10, marginBottom: 0 }}>{c.generalEmailDesc}</p>
-            <p className="mono-sm" style={{ marginTop: 12, marginBottom: 0 }}>{c.generalEmailNote}</p>
           </div>
 
-          <div style={card}>
-            <div className="mono" style={label}>
-              {c.privacyEmail}
+          <div className="contact-row">
+            <p className="ctc-lbl">{c.privacyEmail}</p>
+            <div>
+              <a href="mailto:privacidad@velacre.com" className="ctc-val">privacidad@velacre.com</a>
+              <p className="ctc-body">{c.privacyEmailDesc}</p>
             </div>
-            <a href="mailto:privacidad@velacre.com" style={emailLink}>
-              privacidad@velacre.com
-            </a>
-            <p style={{ marginTop: 10, marginBottom: 0 }}>{c.privacyEmailDesc}</p>
           </div>
 
-          <div style={card}>
-            <div className="mono" style={label}>
-              {c.locationTitle}
+          <div className="contact-row">
+            <p className="ctc-lbl">{c.locationTitle}</p>
+            <div>
+              <p className="ctc-val">Manuel Llao Freire</p>
+              <p className="ctc-body">{c.locationAddress}</p>
             </div>
-            <address style={{ fontStyle: 'normal', lineHeight: 1.6, color: 'var(--ink)' }}>
-              <strong>Manuel Llao Freire</strong>
-              <br />
-              {c.locationAddress}
-            </address>
           </div>
-        </div>
+        </dl>
 
         <h2>{c.faqTitle}</h2>
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div>
           {c.faqs.map((item, i) => (
-            <div key={i} style={card}>
-              <p style={{ color: 'var(--ink)', fontWeight: 500, marginBottom: 6 }}>{item.q}</p>
-              <p style={{ margin: 0 }}>{item.a}</p>
+            <div key={i} className="ctc-faq">
+              <h3>{item.q}</h3>
+              <p>{item.a}</p>
             </div>
           ))}
         </div>
