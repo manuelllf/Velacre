@@ -208,7 +208,7 @@ const es: LandingLocale = {
     },
     perMonth: '/mes',
     perYear: '/año',
-    vatNote: 'Precios sin IVA · Cobro gestionado por Lemon Squeezy · Cancela cuando quieras',
+    vatNote: 'Precios sin IVA · Cancela cuando quieras',
     transversalTitle: 'Incluido en todos los planes',
     transversalItems: [
       'Filtro de seguridad: retenemos automáticamente reseñas críticas (intoxicaciones, amenazas legales, acusaciones graves) para que las revises tú antes de publicar',

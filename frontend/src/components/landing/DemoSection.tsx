@@ -162,14 +162,14 @@ export default function DemoSection() {
                 </span>
               </div>
 
-              {/* Tone selector — scrollable horizontal en móvil, grid en desktop */}
-              <div className="flex sm:grid sm:grid-cols-3 gap-1.5 overflow-x-auto sm:overflow-visible scrollbar-hide -mx-1 sm:mx-0 px-1 sm:px-0 mb-4 snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
+              {/* Tone selector — grid 2x3 móvil, 3x2 desktop */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mb-4">
                 {TONES.map(k => (
                   <button
                     key={k}
                     type="button"
                     onClick={() => pickTone(k)}
-                    className={`shrink-0 sm:shrink min-h-[34px] px-3 sm:px-2 snap-start rounded font-mono text-[10px] tracking-[0.08em] uppercase border transition-colors whitespace-nowrap sm:whitespace-normal ${
+                    className={`min-h-[36px] px-2 rounded font-mono text-[10px] tracking-[0.06em] uppercase border transition-colors ${
                       tone === k
                         ? 'bg-white text-slate-950 border-white'
                         : 'bg-transparent text-slate-400 border-slate-700 hover:text-white hover:border-slate-500'

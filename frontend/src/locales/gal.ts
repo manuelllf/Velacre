@@ -208,7 +208,7 @@ const gal: LandingLocale = {
     },
     perMonth: '/mes',
     perYear: '/ano',
-    vatNote: 'Prezos sen IVE · Cobro xestionado por Lemon Squeezy · Cancela cando queiras',
+    vatNote: 'Prezos sen IVE · Cancela cando queiras',
     transversalTitle: 'Incluído en todos os plans',
     transversalItems: [
       'Filtro de seguridade: retemos automaticamente recensións críticas (intoxicacións, ameazas legais, acusacións graves) para que as revises ti antes de publicar',

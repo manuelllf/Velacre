@@ -208,7 +208,7 @@ const en: LandingLocale = {
     },
     perMonth: '/mo',
     perYear: '/yr',
-    vatNote: 'Prices exclude VAT · Billing handled by Lemon Squeezy · Cancel anytime',
+    vatNote: 'Prices exclude VAT · Cancel anytime',
     transversalTitle: 'Included in every plan',
     transversalItems: [
       'Safety filter: we automatically withhold critical reviews (food poisoning, legal threats, serious accusations) so you can review them before publishing',
