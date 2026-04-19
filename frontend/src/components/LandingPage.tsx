@@ -112,88 +112,64 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="dark">
-            {/* 4 KPI cards — grid 2×2 móvil, 4-col desktop. Estilo real dashboard */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {/* Nota media */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-                <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-slate-500 font-semibold mb-2">{l.health.kpi1}</p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-[28px] md:text-[34px] font-bold text-white tabular-nums leading-none">
-                    <CountUp value={4.3} decimals={1} />
-                  </span>
-                  <span className="text-amber-400 text-lg">★</span>
+          <div className="salud-mod">
+            {/* 4 KPIs — 1 módulo unificado con zonas en móvil, 4 cards desktop */}
+            <div className="salud-kpis">
+              <div className="salud-kpi">
+                <div className="lbl">{l.health.kpi1}</div>
+                <div className="val">
+                  <CountUp value={4.3} decimals={1} />
+                  <span className="star">★</span>
                 </div>
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <span className="font-mono text-[10px] text-emerald-400 tabular-nums">+0.2</span>
-                  <span className="text-[11px] text-slate-500">{l.health.prevMonth}</span>
+                <div>
+                  <span className="delta">+0.2</span>
+                  <span className="sub" style={{ marginLeft: 6 }}>{l.health.prevMonth}</span>
                 </div>
               </div>
-
-              {/* Índice de respuesta */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-                <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-slate-500 font-semibold mb-2">{l.health.kpi2}</p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-[28px] md:text-[34px] font-bold text-white tabular-nums leading-none">
-                    <CountUp value={68} />
-                  </span>
-                  <span className="text-slate-400 text-lg">%</span>
+              <div className="salud-kpi">
+                <div className="lbl">{l.health.kpi2}</div>
+                <div className="val">
+                  <CountUp value={68} />
+                  <span className="unit">%</span>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-1.5">{l.health.reviewsOf}</div>
+                <div className="sub">{l.health.reviewsOf}</div>
                 <div
-                  className="flex h-[4px] rounded-full overflow-hidden mt-2"
+                  className="salud-sent"
                   title={`${l.health.positive} 62% · ${l.health.neutral} 18% · ${l.health.negative} 20%`}
                 >
-                  <div className="bg-emerald-500" style={{ flex: 62 }} />
-                  <div className="bg-amber-500" style={{ flex: 18 }} />
-                  <div className="bg-red-500" style={{ flex: 20 }} />
+                  <div style={{ flex: 62, background: 'var(--good)' }} />
+                  <div style={{ flex: 18, background: 'var(--warn)' }} />
+                  <div style={{ flex: 20, background: 'var(--danger)' }} />
                 </div>
               </div>
-
-              {/* Reseñas este mes */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-                <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-slate-500 font-semibold mb-2">{l.health.kpi3}</p>
-                <div className="text-[28px] md:text-[34px] font-bold text-white tabular-nums leading-none">
-                  <CountUp value={12} />
-                </div>
-                <div className="text-[11px] text-slate-500 mt-1.5">{l.health.newReviews}</div>
+              <div className="salud-kpi">
+                <div className="lbl">{l.health.kpi3}</div>
+                <div className="val"><CountUp value={12} /></div>
+                <div className="sub">{l.health.newReviews}</div>
               </div>
-
-              {/* Velocidad */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-                <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-slate-500 font-semibold mb-2">{e.health.kpi4lbl}</p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-[28px] md:text-[34px] font-bold text-white tabular-nums leading-none">
-                    <CountUp value={14} />
-                  </span>
-                  <span className="text-slate-400 text-lg">h</span>
+              <div className="salud-kpi">
+                <div className="lbl">{e.health.kpi4lbl}</div>
+                <div className="val">
+                  <CountUp value={14} />
+                  <span className="unit">h</span>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-1.5">{e.health.kpi4sub}</div>
+                <div className="sub">{e.health.kpi4sub}</div>
               </div>
             </div>
 
-            {/* 3 AI cards — estilo real dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-              <div className="bg-emerald-950 border border-emerald-900 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                  <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-emerald-400 font-semibold">{l.health.brillaLabel}</p>
-                </div>
-                <p className="text-[13px] leading-relaxed text-slate-200">{l.health.brillaText}</p>
+            {/* 3 AI rows — stacked con barra lateral en móvil, cards desktop */}
+            <div className="salud-ai">
+              <div className="salud-ai-row ai-brilla">
+                <div className="lbl">{l.health.brillaLabel}</div>
+                <p>{l.health.brillaText}</p>
               </div>
-              <div className="bg-red-950 border border-red-900 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-                  <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-red-400 font-semibold">{l.health.quemaLabel}</p>
-                </div>
-                <p className="text-[13px] leading-relaxed text-slate-200">{l.health.quemaText}</p>
+              <div className="salud-ai-row ai-quema">
+                <div className="lbl">{l.health.quemaLabel}</div>
+                <p>{l.health.quemaText}</p>
               </div>
-              <div className="bg-blue-950 border border-blue-900 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                  <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-blue-400 font-semibold">{l.health.accionLabel}</p>
-                </div>
-                <p className="text-[13px] leading-relaxed text-slate-200">{l.health.accionText}</p>
+              <div className="salud-ai-row ai-accion">
+                <div className="lbl">{l.health.accionLabel}</div>
+                <p>{l.health.accionText}</p>
               </div>
             </div>
           </div>

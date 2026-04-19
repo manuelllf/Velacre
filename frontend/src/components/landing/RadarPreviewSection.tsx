@@ -78,7 +78,7 @@ export default function RadarPreviewSection() {
         <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden">
 
           {/* Mi negocio — card destacada */}
-          <div className="bg-blue-950/40 border border-blue-900/40 rounded-xl p-4 mb-3">
+          <div className="bg-blue-950 border border-blue-900 rounded-xl p-4 mb-3">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
@@ -102,7 +102,7 @@ export default function RadarPreviewSection() {
             {COMP_DATA.map((c, idx) => {
               const t = threatBadge[c.threat]
               return (
-                <div key={idx} className="bg-slate-800/40 border border-slate-800 rounded-xl p-4">
+                <div key={idx} className="bg-slate-800 border border-slate-700 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-medium text-slate-200 text-[14px]">{e.radar.competitors[idx]}</span>
                     <span className={`font-mono text-[9px] tracking-[0.1em] uppercase border rounded px-2 py-[3px] ${t.cls}`}>{t.label}</span>
@@ -130,32 +130,23 @@ export default function RadarPreviewSection() {
           </div>
         </div>
 
-        {/* Insights — 3 cards sobre crema (no dark) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
-          <InsightCard kind="action"      lbl={e.radar.actionLbl}      txt={e.radar.actionTxt} />
-          <InsightCard kind="strength"    lbl={e.radar.strengthLbl}    txt={e.radar.strengthTxt} />
-          <InsightCard kind="opportunity" lbl={e.radar.opportunityLbl} txt={e.radar.opportunityTxt} />
+      </div>
+
+      {/* Insights — móvil: 1 card con 3 zonas. Desktop: 3 cards de altura igual. */}
+      <div className="insights-mod">
+        <div className="insight-zone kind-action">
+          <div className="lbl">{e.radar.actionLbl}</div>
+          <p>{e.radar.actionTxt}</p>
+        </div>
+        <div className="insight-zone kind-strength">
+          <div className="lbl">{e.radar.strengthLbl}</div>
+          <p>{e.radar.strengthTxt}</p>
+        </div>
+        <div className="insight-zone kind-opportunity">
+          <div className="lbl">{e.radar.opportunityLbl}</div>
+          <p>{e.radar.opportunityTxt}</p>
         </div>
       </div>
     </section>
-  )
-}
-
-function InsightCard({ kind, lbl, txt }: { kind: 'action' | 'strength' | 'opportunity'; lbl: string; txt: string }) {
-  const palette = {
-    action:      { dot: 'bg-blue-500',    lbl: 'text-blue-400'    },
-    strength:    { dot: 'bg-emerald-500', lbl: 'text-emerald-400' },
-    opportunity: { dot: 'bg-amber-500',   lbl: 'text-amber-400'   },
-  }[kind]
-  return (
-    <div className="dark">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className={`w-2 h-2 rounded-full shrink-0 ${palette.dot}`} />
-          <p className={`font-mono text-[10px] tracking-[0.12em] uppercase ${palette.lbl}`}>{lbl}</p>
-        </div>
-        <p className="text-[13.5px] leading-relaxed text-slate-200">{txt}</p>
-      </div>
-    </div>
   )
 }
