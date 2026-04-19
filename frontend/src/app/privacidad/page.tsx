@@ -40,14 +40,14 @@ export default function PrivacidadPage() {
               }}
             >
               <thead>
-                <tr style={{ background: 'var(--ink-2)' }}>
+                <tr style={{ background: 'var(--paper-2)' }}>
                   <th
                     style={{
                       padding: '10px 14px',
                       textAlign: 'left',
-                      color: 'var(--paper)',
+                      color: 'var(--ink)',
                       fontWeight: 600,
-                      borderBottom: '1px solid var(--line)',
+                      borderBottom: '1px solid var(--line-strong)',
                     }}
                   >
                     {p.s3headers[0]}
@@ -56,9 +56,9 @@ export default function PrivacidadPage() {
                     style={{
                       padding: '10px 14px',
                       textAlign: 'left',
-                      color: 'var(--paper)',
+                      color: 'var(--ink)',
                       fontWeight: 600,
-                      borderBottom: '1px solid var(--line)',
+                      borderBottom: '1px solid var(--line-strong)',
                     }}
                   >
                     {p.s3headers[1]}
@@ -68,8 +68,8 @@ export default function PrivacidadPage() {
               <tbody>
                 {p.s3rows.map(([col1, col2], i) => (
                   <tr key={i} style={{ borderBottom: '1px solid var(--line)' }}>
-                    <td style={{ padding: '10px 14px', color: 'var(--paper-dim)' }}>{col1}</td>
-                    <td style={{ padding: '10px 14px', color: 'var(--paper-dim)' }}>{col2}</td>
+                    <td style={{ padding: '10px 14px', color: 'var(--muted-strong)' }}>{col1}</td>
+                    <td style={{ padding: '10px 14px', color: 'var(--muted-strong)' }}>{col2}</td>
                   </tr>
                 ))}
               </tbody>

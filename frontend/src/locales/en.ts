@@ -21,11 +21,11 @@ const en: LandingLocale = {
 
   stats: {
     s1val: '6',
-    s1label: 'reply tones, from professional to humorous',
+    s1label: 'reply tones — every answer sounds like you, not a robot',
     s2val: '< 10s',
-    s2label: 'to generate a reply ready to paste into Google',
+    s2label: 'from your review to a reply ready to paste',
     s3val: '3',
-    s3label: 'competitors watched in parallel with the Radar',
+    s3label: 'rivals watched — one concrete action per week',
   },
 
   demo: {
@@ -279,7 +279,7 @@ const en: LandingLocale = {
     demo: {
       h2l1: 'One review.',
       h2l2: 'Six ways to answer.',
-      lede: 'Pick a tone and Velacre drafts in the customer\u2019s language, slips in your keywords naturally and holds back what you shouldn\u2019t answer without thinking.',
+      lede: 'You stop rewriting the same apology ten times. Velacre drafts in the customer\u2019s language, slips in your keywords naturally and holds back what you shouldn\u2019t answer without thinking.',
       reviewLabel: 'Review — Google',
       responseLabel: 'Reply — Velacre',
       statusReady: 'Ready',
@@ -309,7 +309,7 @@ const en: LandingLocale = {
     health: {
       h2l1: 'One panel, four numbers',
       h2l2: 'that really matter.',
-      lede: 'No vanity charts. Just what you need every time you open the app: what you score, what you cover, what\u2019s growing, what\u2019s falling.',
+      lede: 'No vanity charts. You know what to fix before the customer notices: what you score, what you cover, what\u2019s growing, what\u2019s falling.',
       kpi4lbl: 'Average speed',
       kpi4val: '14',
       kpi4sub: 'to reply',

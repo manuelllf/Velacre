@@ -21,7 +21,7 @@ export default function PricingSection() {
   const proYMonthly = priceNumber(l.pricing.plans.pro.priceYearlyMonthly)
 
   return (
-    <section className="sec wrap" id="precios">
+    <section className="sec wrap sec-price" id="precios">
       <div className="sec-head">
         <div className="sec-idx">
           <span className="num">06</span>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
+import '@/components/landing/landing.css'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -17,15 +18,9 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // Supabase pone el token de recuperación en la sesión automáticamente
-    // cuando el usuario llega desde el enlace del correo
     supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setReady(true)
-      }
+      if (event === 'PASSWORD_RECOVERY') setReady(true)
     })
-
-    // Por si ya está en sesión de recovery al cargar
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true)
     })
@@ -53,78 +48,74 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
-        <div className="text-center space-y-4">
-          <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-7 h-7 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+      <div className="vel-lp">
+        <div className="auth-screen">
+          <div className="auth-col">
+            <div className="auth-success" style={{ padding: '48px 0' }}>
+              <div className="auth-success-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3>{rp.successTitle}</h3>
+              <p>{rp.successRedirecting}</p>
+            </div>
           </div>
-          <p className="text-lg font-semibold text-slate-900 dark:text-white">{rp.successTitle}</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{rp.successRedirecting}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{rp.title}</h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 mt-2">{rp.subtitle}</p>
-        </div>
+    <div className="vel-lp">
+      <div className="auth-screen">
+        <div className="auth-col">
+          <div className="auth-head">
+            <h1 className="auth-title">{rp.title}</h1>
+            <p className="auth-sub">{rp.subtitle}</p>
+          </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
-          {!ready ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  {rp.newPasswordLabel}
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={rp.placeholder}
-                />
-              </div>
+          <div className="auth-card">
+            {!ready ? (
+              <div className="auth-spinner" />
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className="auth-field">
+                  <label className="auth-label">{rp.newPasswordLabel}</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    className="auth-input"
+                    placeholder={rp.placeholder}
+                    autoComplete="new-password"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-                  {rp.repeatPasswordLabel}
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={confirm}
-                  onChange={e => setConfirm(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl text-base text-slate-900 dark:text-white bg-white dark:bg-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={rp.placeholder}
-                />
-              </div>
+                <div className="auth-field">
+                  <label className="auth-label">{rp.repeatPasswordLabel}</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={confirm}
+                    onChange={e => setConfirm(e.target.value)}
+                    className="auth-input"
+                    placeholder={rp.placeholder}
+                    autoComplete="new-password"
+                  />
+                </div>
 
-              {error && (
-                <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-xl">{error}</p>
-              )}
+                {error && <p className="auth-err">{error}</p>}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? rp.savingBtn : rp.saveBtn}
-              </button>
-            </form>
-          )}
+                <button type="submit" disabled={loading} className="auth-submit">
+                  {loading ? rp.savingBtn : rp.saveBtn}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </div>

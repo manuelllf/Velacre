@@ -21,11 +21,11 @@ const gal: LandingLocale = {
 
   stats: {
     s1val: '6',
-    s1label: 'tonos de resposta, do profesional ao humorístico',
+    s1label: 'tonos — cada resposta soa coma ti, non coma un robot',
     s2val: '< 10s',
-    s2label: 'para xerar unha resposta lista para pegar en Google',
+    s2label: 'da túa recensión a unha resposta lista para pegar',
     s3val: '3',
-    s3label: 'competidores vixiados en paralelo co Radar',
+    s3label: 'rivais vixiados — unha acción concreta por semana',
   },
 
   demo: {
@@ -279,7 +279,7 @@ const gal: LandingLocale = {
     demo: {
       h2l1: 'Unha recensión.',
       h2l2: 'Seis formas de contestar.',
-      lede: 'Escolle o tono e Velacre redacta no idioma do cliente, inclúe as túas palabras clave con naturalidade e retén o que non deberías contestar sen pensar.',
+      lede: 'Deixas de reescribir a mesma desculpa dez veces. Velacre redacta no idioma do cliente, inclúe as túas palabras clave con naturalidade e retén o que non deberías contestar sen pensar.',
       reviewLabel: 'Recensión — Google',
       responseLabel: 'Resposta — Velacre',
       statusReady: 'Listo',
@@ -309,7 +309,7 @@ const gal: LandingLocale = {
     health: {
       h2l1: 'Un panel, catro números',
       h2l2: 'que importan de verdade.',
-      lede: 'Sen gráficas vanidosas. O esencial cada vez que abres a app: que puntuades, que cubrides, que medra, que cae.',
+      lede: 'Sen gráficas vanidosas. Sabes que mellorar antes de que o note o cliente: que puntuades, que cubrides, que medra, que cae.',
       kpi4lbl: 'Velocidade media',
       kpi4val: '14',
       kpi4sub: 'para contestar',

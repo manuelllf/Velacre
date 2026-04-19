@@ -78,7 +78,7 @@ export default function DemoSection() {
   }
 
   return (
-    <section className="sec wrap" id="producto">
+    <section className="sec wrap sec-demo" id="producto">
       <div className="sec-head">
         <div className="sec-idx">
           <span className="num">01</span>
@@ -134,7 +134,7 @@ export default function DemoSection() {
         <div className="card card-ink demo-response">
           <div className="demo-label">
             <span className="mono">{e.demo.responseLabel}</span>
-            <span className="mono" style={{ color: status === 'ready' ? 'var(--accent)' : 'var(--paper-dim)' }}>
+            <span className="mono" style={{ color: status === 'ready' ? 'var(--accent)' : 'var(--mod-text-dim)' }}>
               {status === 'ready' ? e.demo.statusReady : e.demo.statusGenerating}
             </span>
           </div>
@@ -165,7 +165,7 @@ export default function DemoSection() {
           >
             <span className="mono-sm">
               {e.demo.languageLabel} ·{' '}
-              <span style={{ color: 'var(--paper-dim)' }}>{(l.lang || 'es').toUpperCase()}</span>
+              <span style={{ color: 'var(--mod-text-dim)' }}>{(l.lang || 'es').toUpperCase()}</span>
             </span>
             <Link href="/auth/register" className="btn btn-accent btn-sm">
               {e.demo.respondInGoogle}

@@ -24,7 +24,7 @@ export default function HeroSection({ googleLoading, onGoogleSignup }: HeroSecti
   }
 
   return (
-    <section className="hero wrap">
+    <section className="hero wrap sec-hero">
       <div className="hero-meta">
         <span className="mono">{e.hero.metaLangs}</span>
         <span className="sep" />

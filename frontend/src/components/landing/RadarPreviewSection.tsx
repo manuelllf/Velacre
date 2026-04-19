@@ -50,7 +50,7 @@ export default function RadarPreviewSection() {
   const cats = [e.radar.catCocina, e.radar.catServicio, e.radar.catAmbiente, e.radar.catPrecio]
 
   return (
-    <section className="sec wrap" id="radar">
+    <section className="sec wrap sec-radar" id="radar">
       <div className="sec-head">
         <div className="sec-idx">
           <span className="num">02</span>
