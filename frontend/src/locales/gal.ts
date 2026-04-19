@@ -290,7 +290,7 @@ const gal: LandingLocale = {
       lede: 'Tres datos públicos que explican por que contestalas ben move a agulla do negocio.',
       items: [
         { num: '87%', text: 'de consumidores mira recensións antes de ir a un negocio local', src: 'BrightLocal · Consumer Survey 2024' },
-        { num: '+0,12★', text: 'de media que gañan os negocios que responden ás súas recensións', src: 'Harvard Business School · 2017' },
+        { num: '+0.12★', text: 'de media que gañan os negocios que responden ás súas recensións', src: 'Harvard Business School · 2017' },
         { num: '2×', text: 'máis clicks en negocios con 40+ recensións fronte aos de menos de 10', src: 'Google Business Profile · data' },
       ],
     },
