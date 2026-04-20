@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
+import { armGoodbye } from '@/lib/welcome'
 import { VelacreMark } from './landing/VelacreMark'
 
 export type PlanKey = 'basic' | 'core' | 'pro'
@@ -39,6 +40,7 @@ export function AppHeader({ negocioNombre, plan, rightExtra, brandHref = '/inici
   const { t } = useLanguage()
 
   async function handleLogout() {
+    armGoodbye()
     await supabase.auth.signOut()
     router.replace('/')
   }

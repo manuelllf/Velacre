@@ -1,43 +1,62 @@
 'use client'
 
 /**
- * Rito de paso marketing → producto post-auth.
+ * Rito de paso entre marketing y producto — funciona en dos sentidos:
+ *
+ *   Welcome (entrada post-auth):  crema → navy.  "Bienvenido a velacre"
+ *   Goodbye (salida, logout):     navy → crema.  "Hasta luego"
  *
  * Se activa con:
  *  - Query param ?welcome=1 (login/register email pwd → redirect directo).
  *  - sessionStorage vel_welcome=1 (OAuth Google: armado antes del redirect
  *    externo, persiste a través de google.com → /auth/callback → /inicio).
+ *  - sessionStorage vel_goodbye=1 (logout: armado antes de signOut + redirect
+ *    a la landing, el overlay cubre el salto app → marketing).
  *
- * Coordinación con el pathname: cuando el flujo viene de Google el overlay
- * monta en /auth/callback y *espera* a que el router navegue a la ruta destino
- * (/inicio, /onboarding, /admin, /dashboard) antes de arrancar el fade-out.
- * Así no hay hueco entre "overlay gone" y "callback redirige" donde se vería
- * el fondo crema del callback sin cubrir.
+ * Welcome coordina con el pathname: si monta en /auth/callback *espera* al
+ * cambio de ruta (/inicio, /onboarding, …) antes del fade-out. Así no queda
+ * hueco entre "overlay gone" y "callback redirige" donde se vería el fondo
+ * crema del callback sin cubrir.
  *
- * Fases:
- *  - enter  (0→500)     bg crema, sello+copy fade-in + translateY.
- *  - hold   (500→1200)  sostén sobre crema (700ms).
- *  - morph  (1200→2200) bg crema → navy + color ink → paper, texto visible.
- *  - rest   (2200→…)    sostén sobre navy, espera navegación (o fallback 5s).
+ * Fases (idénticas en ambos modos; lo que cambia son los colores y el copy):
+ *  - enter  (0→500)     bg de inicio, sello+copy fade-in + translateY.
+ *  - hold   (500→1200)  sostén en bg de inicio (700ms).
+ *  - morph  (1200→2200) interpolación bg y color, texto visible.
+ *  - rest   (2200→…)    sostén en bg final, espera navegación (o fallback 5s).
  *  - fade   (+300)      sello+copy fade-out.
- *  - gone   (+300)      overlay fade-out revelando app.
+ *  - gone   (+300)      overlay fade-out revelando la página nueva.
  */
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from './landing/VelacreMark'
-import { consumeWelcome } from '@/lib/welcome'
+import { consumeGoodbye, consumeWelcome } from '@/lib/welcome'
 
 type Phase = 'enter' | 'hold' | 'morph' | 'rest' | 'fade' | 'gone'
+type Mode = 'welcome' | 'goodbye'
 
-const COPY: Record<string, { lead: string; brand: string }> = {
-  es:  { lead: 'Bienvenido a', brand: 'velacre' },
-  en:  { lead: 'Welcome to',   brand: 'velacre' },
-  gal: { lead: 'Benvido a',    brand: 'velacre' },
+const COPY: Record<Mode, Record<string, { lead: string; brand?: string }>> = {
+  welcome: {
+    es:  { lead: 'Bienvenido a', brand: 'velacre' },
+    en:  { lead: 'Welcome to',   brand: 'velacre' },
+    gal: { lead: 'Benvido a',    brand: 'velacre' },
+  },
+  goodbye: {
+    es:  { lead: 'Hasta luego' },
+    en:  { lead: 'See you soon' },
+    gal: { lead: 'Ata logo' },
+  },
 }
 
-const REST_FALLBACK_MS = 5000  // no dejar colgado el overlay si algo falla
+// Welcome va de crema a navy; goodbye al revés. enter/hold usan el primero,
+// morph/rest/fade/gone el segundo.
+const PALETTE: Record<Mode, { start: string; end: string; startText: string; endText: string }> = {
+  welcome: { start: '#E8E2D4', end: '#0A0E1A', startText: '#0A0E1A', endText: '#E8E2D4' },
+  goodbye: { start: '#0A0E1A', end: '#E8E2D4', startText: '#E8E2D4', endText: '#0A0E1A' },
+}
+
+const REST_FALLBACK_MS = 5000
 const REST_MIN_AFTER_NAV_MS = 300
 
 export default function WelcomeTransition() {
@@ -51,11 +70,11 @@ export default function WelcomeTransition() {
   const restAtRef = useRef<number | null>(null)
 
   const [active, setActive] = useState(false)
+  const [mode, setMode] = useState<Mode>('welcome')
   const [phase, setPhase] = useState<Phase>('enter')
 
   // Limpieza independiente del query ?welcome=1: siempre que aparezca, lo
-  // quitamos de la URL para que no quede visible en la barra ni se repita en
-  // reload (incluso si el overlay ya se disparó via sessionStorage).
+  // quitamos de la URL para que no quede visible ni se repita en reload.
   useEffect(() => {
     if (sp.get('welcome') !== '1') return
     const url = new URL(window.location.href)
@@ -68,11 +87,17 @@ export default function WelcomeTransition() {
     if (firedRef.current) return
 
     const hasQuery = sp.get('welcome') === '1'
-    const hasSession = consumeWelcome()
-    if (!hasQuery && !hasSession) return
+    const hasWelcome = consumeWelcome()
+    const hasGoodbye = consumeGoodbye()
+    if (!hasQuery && !hasWelcome && !hasGoodbye) return
+
+    // Goodbye tiene precedencia si por cualquier carrera ambos flags estuvieran
+    // activos (no debería pasar, pero queremos ver la salida del user).
+    const resolvedMode: Mode = hasGoodbye ? 'goodbye' : 'welcome'
 
     firedRef.current = true
     initialPathRef.current = pathname
+    setMode(resolvedMode)
     setActive(true)
     setPhase('enter')
 
@@ -83,15 +108,12 @@ export default function WelcomeTransition() {
       restAtRef.current = Date.now()
     }, 2200)
 
-    // Fallback: si la navegación nunca ocurre (email/pwd ya está en destino,
-    // o algo atasca el router), arrancamos fade automático.
     window.setTimeout(() => {
       if (!fadedRef.current) triggerFade()
     }, REST_FALLBACK_MS)
   }, [sp, pathname])
 
-  // Cuando la ruta cambia respecto a la inicial y ya estamos en rest,
-  // arrancamos el fade (asegurando un mínimo de sostén sobre navy).
+  // Fade automático al detectar cambio de ruta durante rest.
   useEffect(() => {
     if (!active) return
     if (fadedRef.current) return
@@ -114,10 +136,12 @@ export default function WelcomeTransition() {
 
   if (!active) return null
 
-  const { lead, brand } = COPY[locale] ?? COPY.es
-  const isInk = phase === 'morph' || phase === 'rest' || phase === 'fade' || phase === 'gone'
+  const copy = COPY[mode][locale] ?? COPY[mode].es
+  const palette = PALETTE[mode]
+  const atEnd = phase === 'morph' || phase === 'rest' || phase === 'fade' || phase === 'gone'
   const contentVisible = phase === 'hold' || phase === 'morph' || phase === 'rest'
-  const textColor = isInk ? '#E8E2D4' : '#0A0E1A'
+  const bg = atEnd ? palette.end : palette.start
+  const textColor = atEnd ? palette.endText : palette.startText
 
   return (
     <div
@@ -126,7 +150,7 @@ export default function WelcomeTransition() {
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: isInk ? '#0A0E1A' : '#E8E2D4',
+        background: bg,
         color: textColor,
         opacity: phase === 'gone' ? 0 : 1,
         transition:
@@ -167,16 +191,18 @@ export default function WelcomeTransition() {
             gap: '0.28em',
           }}
         >
-          <span style={{ letterSpacing: '-0.01em', fontWeight: 600 }}>{lead}</span>
-          <span
-            style={{
-              letterSpacing: '-0.02em',
-              fontSize: '1.15em',
-              fontWeight: 700,
-            }}
-          >
-            {brand}
-          </span>
+          <span style={{ letterSpacing: '-0.01em', fontWeight: 600 }}>{copy.lead}</span>
+          {copy.brand && (
+            <span
+              style={{
+                letterSpacing: '-0.02em',
+                fontSize: '1.15em',
+                fontWeight: 700,
+              }}
+            >
+              {copy.brand}
+            </span>
+          )}
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import SectionNav from '@/components/SectionNav'
 import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
 import { useLanguage } from '@/lib/i18n'
+import { armGoodbye } from '@/lib/welcome'
 import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
 
@@ -184,6 +185,7 @@ export default function SettingsPage() {
     setDeleting(true)
     try {
       await eliminarCuenta()
+      armGoodbye()
       await supabase.auth.signOut()
       router.replace('/')
     } catch {
