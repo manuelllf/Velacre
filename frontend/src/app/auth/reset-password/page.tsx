@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
 import '@/components/landing/landing.css'
@@ -71,6 +72,10 @@ export default function ResetPasswordPage() {
       <div className="auth-screen">
         <div className="auth-col">
           <div className="auth-head">
+            <Link href="/" className="auth-brand">
+              <img src="/icons/logo-64.png" alt="" />
+              <span className="auth-brand-name">velacre</span>
+            </Link>
             <h1 className="auth-title">{rp.title}</h1>
             <p className="auth-sub">{rp.subtitle}</p>
           </div>

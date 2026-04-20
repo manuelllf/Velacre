@@ -9,9 +9,35 @@ import {
   type PlaceResult, type GbpLocation,
 } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import { VelacreMark } from '@/components/landing/VelacreMark'
 
 type ConnectionMethod = 'none' | 'manual' | 'google'
 type GbpCallbackState = 'none' | 'connected' | 'select' | 'error'
+
+// Wordmark editorial: sello + "velacre" con el mismo tratamiento del header.
+function OnboardingBrand() {
+  return (
+    <Link href="/" className="inline-flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+      <VelacreMark size={30} />
+      <span
+        style={{
+          fontFamily: 'CalSansUI, ui-sans-serif',
+          fontSize: 20,
+          fontWeight: 700,
+          letterSpacing: '-0.02em',
+          display: 'inline-flex',
+          alignItems: 'center',
+          height: 30,
+          lineHeight: 1,
+          transform: 'translateY(-1px)',
+          color: '#E8E2D4',
+        }}
+      >
+        velacre
+      </span>
+    </Link>
+  )
+}
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -275,9 +301,10 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 py-12">
         <div className="w-full max-w-md">
-          <div className="text-center mb-6">
-            <h1 className="text-xl font-semibold text-white"><Link href="/" className="hover:opacity-80 transition-opacity">{op.selectYourLocal}</Link></h1>
-            <p className="text-sm text-slate-400 mt-1">{op.multipleLocalsFound}</p>
+          <div className="text-center mb-6 flex flex-col items-center gap-3">
+            <OnboardingBrand />
+            <h1 className="text-xl font-semibold text-white">{op.selectYourLocal}</h1>
+            <p className="text-sm text-slate-400 -mt-2">{op.multipleLocalsFound}</p>
           </div>
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6">
             {loadingGbp ? (
@@ -337,9 +364,9 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12 relative">
       <div className="w-full max-w-lg">
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-white"><Link href="/" className="hover:opacity-80 transition-opacity">{ob.title}</Link></h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{ob.subtitle}</p>
+        <div className="text-center mb-6 flex flex-col items-center gap-3">
+          <OnboardingBrand />
+          <p className="text-sm text-slate-500 dark:text-slate-400">{ob.subtitle}</p>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">

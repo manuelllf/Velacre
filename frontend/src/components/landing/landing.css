@@ -2575,8 +2575,11 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--ink);
-  line-height: 28px;
-  margin-top: -2px;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  line-height: 1;
+  transform: translateY(-1px);
 }
 .vel-lp .auth-title {
   font-family: var(--f-head);
