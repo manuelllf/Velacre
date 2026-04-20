@@ -305,9 +305,10 @@ const en: LandingLocale = {
         { lbl: 'Safety filter for critical reviews', values: [false, false, true] },
         { lbl: 'Competition Radar', values: [false, false, true] },
         { lbl: 'PDF reports with concrete action', values: [false, false, true] },
-        { lbl: 'Direct publishing to Google (pending)', values: [true, true, false] },
+        { lbl: 'Direct publishing to Google', values: [true, true, 'soon'] },
         { lbl: 'No lock-in', values: [true, true, true] },
       ],
+      soonLabel: 'Coming soon',
       foot: 'Sources: public competitor websites (April 2026). Velacre direct publishing activates upon Google Business Profile approval.',
     },
     founding: {

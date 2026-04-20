@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
 import { useOAuthLoading } from '@/hooks/useOAuthLoading'
 import './landing/landing.css'
-import { GoogleIcon } from './landing/shared'
+import { GoogleIcon, handleAnchorClick } from './landing/shared'
 import { VelacreMark } from './landing/VelacreMark'
 import { SectionHelp } from './landing/SectionHelp'
 import { NavBar } from './landing/NavBar'
@@ -326,7 +326,12 @@ export default function LandingPage() {
                 {l.hero.ctaEmail} →
               </Link>
             </div>
-            <Link href="#producto" className="hero-see-demo" style={{ alignSelf: 'center', marginTop: 18 }}>
+            <Link
+              href="#producto"
+              className="hero-see-demo"
+              style={{ alignSelf: 'center', marginTop: 18 }}
+              onClick={ev => handleAnchorClick(ev, '#producto')}
+            >
               ↑ {e.cta.seeDemo}
             </Link>
             <p className="final-foot">{e.cta.foot}</p>

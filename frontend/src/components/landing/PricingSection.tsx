@@ -203,14 +203,22 @@ export default function PricingSection() {
                 </span>
               </div>
               <ul className="compare-card-list">
-                {e.compare.rows.map((row, i) => (
-                  <li key={i}>
-                    <span className={row.values[idx] ? 'yes' : 'no'}>
-                      {row.values[idx] ? '✓' : '✗'}
-                    </span>
-                    <span className="lbl">{row.lbl}</span>
-                  </li>
-                ))}
+                {e.compare.rows.map((row, i) => {
+                  const v = row.values[idx]
+                  return (
+                    <li key={i}>
+                      {v === 'soon' ? (
+                        <span className="soon" aria-label={e.compare.soonLabel}>•</span>
+                      ) : (
+                        <span className={v ? 'yes' : 'no'}>{v ? '✓' : '✗'}</span>
+                      )}
+                      <span className="lbl">
+                        {row.lbl}
+                        {v === 'soon' && <span className="soon-badge">{e.compare.soonLabel}</span>}
+                      </span>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           ))}
@@ -234,20 +242,22 @@ export default function PricingSection() {
                 <td className="center"><span className="price">{e.compare.priceRow.values[1]}</span></td>
                 <td className="us center"><span className="price us">{e.compare.priceRow.values[2]}</span></td>
               </tr>
-              {e.compare.rows.map((row, i) => (
-                <tr key={i}>
-                  <td>{row.lbl}</td>
-                  <td className="center">
-                    <span className={row.values[0] ? 'yes' : 'no'}>{row.values[0] ? '✓' : '✗'}</span>
-                  </td>
-                  <td className="center">
-                    <span className={row.values[1] ? 'yes' : 'no'}>{row.values[1] ? '✓' : '✗'}</span>
-                  </td>
-                  <td className="us center">
-                    <span className={row.values[2] ? 'yes' : 'no'}>{row.values[2] ? '✓' : '✗'}</span>
-                  </td>
-                </tr>
-              ))}
+              {e.compare.rows.map((row, i) => {
+                const cell = (v: boolean | 'soon', us = false) =>
+                  v === 'soon' ? (
+                    <span className="soon-badge">{e.compare.soonLabel}</span>
+                  ) : (
+                    <span className={v ? (us ? 'yes us' : 'yes') : 'no'}>{v ? '✓' : '✗'}</span>
+                  )
+                return (
+                  <tr key={i}>
+                    <td>{row.lbl}</td>
+                    <td className="center">{cell(row.values[0])}</td>
+                    <td className="center">{cell(row.values[1])}</td>
+                    <td className="us center">{cell(row.values[2], true)}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

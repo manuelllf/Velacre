@@ -54,10 +54,10 @@ export default function LoginPage() {
 
     try {
       const u = await getMyUsuario()
-      if (u.isAdmin || u.rol === 'admin') router.replace('/admin')
-      else router.replace('/inicio')
+      if (u.isAdmin || u.rol === 'admin') router.replace('/admin?welcome=1')
+      else router.replace('/inicio?welcome=1')
     } catch {
-      router.replace('/dashboard')
+      router.replace('/dashboard?welcome=1')
     }
   }
 

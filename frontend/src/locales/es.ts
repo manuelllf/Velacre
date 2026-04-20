@@ -305,10 +305,11 @@ const es: LandingLocale = {
         { lbl: 'Filtro de seguridad en reseñas críticas', values: [false, false, true] },
         { lbl: 'Radar de competencia', values: [false, false, true] },
         { lbl: 'Informes PDF con acción concreta', values: [false, false, true] },
-        { lbl: 'Publicación directa en Google (pendiente)', values: [true, true, false] },
+        { lbl: 'Publicación directa en Google', values: [true, true, 'soon'] },
         { lbl: 'Sin permanencia', values: [true, true, true] },
       ],
-      foot: 'Fuentes: webs públicas de los competidores (abril 2026). El dato "publicación directa" de Velacre se activa al aprobarse Google Business Profile.',
+      soonLabel: 'Próximamente',
+      foot: 'Fuentes: webs públicas de los competidores (abril 2026). La publicación directa de Velacre se activa al aprobarse Google Business Profile.',
     },
     founding: {
       label: 'Founding price',

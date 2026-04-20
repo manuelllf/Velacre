@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LanguageProvider } from '@/lib/i18n'
 import PWAInstall from '@/components/PWAInstall'
 import LangSwitcher from '@/components/LangSwitcher'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import WelcomeTransition from '@/components/WelcomeTransition'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -25,6 +26,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           {children}
           <PWAInstall />
           <LangSwitcher />
+          <Suspense fallback={null}>
+            <WelcomeTransition />
+          </Suspense>
         </LanguageProvider>
       </QueryClientProvider>
     </ErrorBoundary>

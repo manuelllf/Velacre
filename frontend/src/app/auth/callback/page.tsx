@@ -37,8 +37,8 @@ export default function AuthCallback() {
         // Intentar obtener perfil existente
         try {
           const u = await getMyUsuario()
-          if (u.isAdmin) router.replace('/admin')
-          else router.replace('/inicio')
+          if (u.isAdmin) router.replace('/admin?welcome=1')
+          else router.replace('/inicio?welcome=1')
         } catch {
           // Usuario nuevo — crear perfil con nombre de Google si está disponible
           const { data: { session: s } } = await supabase.auth.getSession()
@@ -51,7 +51,7 @@ export default function AuthCallback() {
           } catch {
             // Si ya existe (carrera) ignoramos el error
           }
-          router.replace('/onboarding')
+          router.replace('/onboarding?welcome=1')
         }
       } catch (err) {
         console.error('[auth/callback]', err)

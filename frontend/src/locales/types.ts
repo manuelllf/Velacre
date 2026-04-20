@@ -233,7 +233,11 @@ export interface LandingLocale {
       lede: string
       headers: [string, string, string]
       priceRow: { lbl: string; values: [string, string, string] }
-      rows: Array<{ lbl: string; values: [boolean, boolean, boolean] }>
+      rows: Array<{
+        lbl: string
+        values: [boolean | 'soon', boolean | 'soon', boolean | 'soon']
+      }>
+      soonLabel: string
       foot: string
     }
     faq: {

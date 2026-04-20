@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from './VelacreMark'
+import { handleAnchorClick } from './shared'
 
 function IconProducto() {
   // Message / demo
@@ -74,15 +75,33 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
 
         {/* Anchor icons — móvil + desktop, icon-only bajo 960, icon+label arriba */}
         <nav className="nav-anchors">
-          <Link href={productHref} className="nav-anchor" title={e.nav.product} aria-label={e.nav.product}>
+          <Link
+            href={productHref}
+            className="nav-anchor"
+            title={e.nav.product}
+            aria-label={e.nav.product}
+            onClick={ev => handleAnchorClick(ev, productHref)}
+          >
             <IconProducto />
             <span className="lbl">{e.nav.product}</span>
           </Link>
-          <Link href={radarHref} className="nav-anchor" title={e.nav.radar} aria-label={e.nav.radar}>
+          <Link
+            href={radarHref}
+            className="nav-anchor"
+            title={e.nav.radar}
+            aria-label={e.nav.radar}
+            onClick={ev => handleAnchorClick(ev, radarHref)}
+          >
             <IconRadar />
             <span className="lbl">{e.nav.radar}</span>
           </Link>
-          <Link href={pricingHref} className="nav-anchor" title={e.nav.pricing} aria-label={e.nav.pricing}>
+          <Link
+            href={pricingHref}
+            className="nav-anchor"
+            title={e.nav.pricing}
+            aria-label={e.nav.pricing}
+            onClick={ev => handleAnchorClick(ev, pricingHref)}
+          >
             <IconPrecios />
             <span className="lbl">{e.nav.pricing}</span>
           </Link>

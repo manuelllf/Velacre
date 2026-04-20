@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n'
-import { GoogleIcon, renderStars } from './shared'
+import { GoogleIcon, renderStars, handleAnchorClick } from './shared'
 
 export interface HeroSectionProps {
   googleLoading: boolean
@@ -65,7 +65,11 @@ export default function HeroSection({ googleLoading, onGoogleSignup }: HeroSecti
               {l.hero.ctaEmail} →
             </Link>
           </div>
-          <Link href="#producto" className="hero-see-demo">
+          <Link
+            href="#producto"
+            className="hero-see-demo"
+            onClick={ev => handleAnchorClick(ev, '#producto')}
+          >
             ↓ {e.hero.seeDemo}
           </Link>
           <div className="hero-foot">

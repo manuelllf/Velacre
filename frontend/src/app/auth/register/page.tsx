@@ -60,7 +60,7 @@ export default function RegisterPage() {
       return
     }
 
-    router.replace('/onboarding')
+    router.replace('/onboarding?welcome=1')
   }
 
   const disabled = loading || googleLoading

@@ -91,3 +91,27 @@ export function ArrowIcon({ size = 16 }: { size?: number }) {
 export function renderStars(n: number) {
   return '\u2605'.repeat(n) + '\u2606'.repeat(5 - n)
 }
+
+export function scrollToAnchor(hash: string) {
+  const id = hash.startsWith('#') ? hash.slice(1) : hash
+  const el = document.getElementById(id)
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+export function handleAnchorClick(
+  e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>,
+  hash: string,
+) {
+  if (typeof window === 'undefined') return
+  const isHash = hash.startsWith('#')
+  const isRootHash = hash.startsWith('/#')
+  if (!isHash && !isRootHash) return
+  if (isRootHash && window.location.pathname !== '/') return
+  e.preventDefault()
+  const pureHash = isRootHash ? hash.slice(1) : hash
+  scrollToAnchor(pureHash)
+  if (window.location.hash !== pureHash) {
+    history.replaceState(null, '', pureHash)
+  }
+}
