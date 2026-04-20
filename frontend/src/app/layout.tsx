@@ -54,10 +54,11 @@ export const viewport: Viewport = {
   themeColor: "#0A0E1A",
 };
 
-// Script inline que corre ANTES del paint para pintar el html en el color
-// de arranque del overlay de bienvenida/despedida, evitando un flash entre
-// el reload y el montaje de React.
-// Welcome arranca en crema, goodbye en navy.
+// Script inline que corre ANTES del paint: si hay sessionStorage fresco con
+// vel_goodbye/vel_welcome, añade una clase al html para que el overlay
+// inline (#vel-prepaint) tape toda la página hasta que React hidrate y
+// WelcomeTransition tome el control. Evita el flash de landing entre el
+// hard reload y el montaje del overlay React.
 const PRE_PAINT_SCRIPT = `
 try {
   var now = Date.now();
@@ -66,9 +67,21 @@ try {
   var gTs = g ? Number(g) : 0;
   var wTs = w ? Number(w) : 0;
   var fresh = function(ts) { return ts > 0 && now - ts < 10000; };
-  if (fresh(gTs))      document.documentElement.style.backgroundColor = '#0A0E1A';
-  else if (fresh(wTs)) document.documentElement.style.backgroundColor = '#E8E2D4';
+  if (fresh(gTs))      document.documentElement.classList.add('vel-prepaint-goodbye');
+  else if (fresh(wTs)) document.documentElement.classList.add('vel-prepaint-welcome');
 } catch (e) {}
+`.trim();
+
+const PRE_PAINT_STYLE = `
+#vel-prepaint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+}
+html.vel-prepaint-goodbye #vel-prepaint { display: block; background: #0A0E1A; }
+html.vel-prepaint-welcome #vel-prepaint { display: block; background: #E8E2D4; }
 `.trim();
 
 export default function RootLayout({
@@ -83,8 +96,10 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: PRE_PAINT_SCRIPT }} />
+        <style dangerouslySetInnerHTML={{ __html: PRE_PAINT_STYLE }} />
       </head>
       <body className="min-h-full flex flex-col">
+        <div id="vel-prepaint" aria-hidden="true" />
         <Providers>{children}</Providers>
       </body>
     </html>

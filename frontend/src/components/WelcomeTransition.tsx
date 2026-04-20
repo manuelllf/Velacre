@@ -102,6 +102,10 @@ export default function WelcomeTransition() {
     setActive(true)
     setPhase('enter')
 
+    // Quitamos la cortina pre-paint ahora que el overlay React ya toma el
+    // relevo sobre la misma pantalla, con el mismo color de arranque.
+    document.documentElement.classList.remove('vel-prepaint-goodbye', 'vel-prepaint-welcome')
+
     window.setTimeout(() => setPhase('hold'), 500)
     window.setTimeout(() => setPhase('morph'), 1200)
     window.setTimeout(() => {
