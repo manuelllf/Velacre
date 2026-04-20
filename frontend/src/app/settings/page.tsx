@@ -187,7 +187,7 @@ export default function SettingsPage() {
       await eliminarCuenta()
       armGoodbye()
       await supabase.auth.signOut()
-      router.replace('/')
+      window.location.href = '/'
     } catch {
       setError(s.dangerZone.deletingMsg)
       setDeleting(false)

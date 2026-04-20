@@ -42,7 +42,10 @@ export function AppHeader({ negocioNombre, plan, rightExtra, brandHref = '/inici
   async function handleLogout() {
     armGoodbye()
     await supabase.auth.signOut()
-    router.replace('/')
+    // Hard reload en lugar de router.replace: garantiza un remount limpio de
+    // WelcomeTransition con sessionStorage consistente. router.replace dejaba
+    // el overlay sin disparar en algunos casos (firedRef persistente, StrictMode).
+    window.location.href = '/'
   }
 
   const planLabel = plan === 'pro' ? t.app.inicioPage.planPro : plan === 'core' ? t.app.inicioPage.planCore : plan === 'basic' ? t.app.inicioPage.planBasic : null
