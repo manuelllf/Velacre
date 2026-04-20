@@ -1,50 +1,77 @@
 'use client'
 
 /**
- * Overlay que cubre la pantalla con crema al entrar post-auth y hace
- * transición a navy antes de desaparecer — rito de paso marketing → producto.
+ * Rito de paso marketing → producto post-auth.
  *
- * Se dispara cuando la URL tiene ?welcome=1. Limpia el query al montar
- * para que un reload no repita la animación.
+ * Se activa con:
+ *  - Query param ?welcome=1 (login/register email pwd → redirect directo).
+ *  - sessionStorage vel_welcome=1 (OAuth Google: armado antes del redirect
+ *    externo, persiste a través de google.com → /auth/callback → /inicio).
+ *
+ * Fases (total ~2400ms):
+ *  - enter  (0→500)   bg crema, sello+copy fade-in + translateY.
+ *  - hold   (500→1400) sostén.
+ *  - fade   (1400→1800) sello+copy fade-out.
+ *  - morph  (1800→2200) bg crema → navy.
+ *  - gone   (2200→2500) overlay fade-out revelando app.
  */
 
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useLanguage } from '@/lib/i18n'
+import { VelacreMark } from './landing/VelacreMark'
+import { consumeWelcome } from '@/lib/welcome'
 
-type Phase = 'paper' | 'ink' | 'gone'
+type Phase = 'enter' | 'hold' | 'fade' | 'morph' | 'gone'
+
+const COPY: Record<string, { lead: string; brand: string }> = {
+  es:  { lead: 'Bienvenido a', brand: 'velacre' },
+  en:  { lead: 'Welcome to',   brand: 'velacre' },
+  gal: { lead: 'Benvido a',    brand: 'velacre' },
+}
 
 export default function WelcomeTransition() {
   const sp = useSearchParams()
+  const { locale } = useLanguage()
   const firedRef = useRef(false)
   const [active, setActive] = useState(false)
-  const [phase, setPhase] = useState<Phase>('paper')
+  const [phase, setPhase] = useState<Phase>('enter')
 
   useEffect(() => {
     if (firedRef.current) return
-    if (sp.get('welcome') !== '1') return
+
+    const hasQuery = sp.get('welcome') === '1'
+    const hasSession = consumeWelcome()
+    if (!hasQuery && !hasSession) return
+
     firedRef.current = true
-
     setActive(true)
-    setPhase('paper')
+    setPhase('enter')
 
-    // Limpiamos el query de la URL sin navegar (evita repetir en reload/back).
-    const url = new URL(window.location.href)
-    url.searchParams.delete('welcome')
-    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+    // Limpiar query de la URL sin navegar, para que reload no repita.
+    if (hasQuery) {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('welcome')
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+    }
 
-    window.setTimeout(() => setPhase('ink'), 180)
-    window.setTimeout(() => setPhase('gone'), 820)
-    window.setTimeout(() => setActive(false), 1100)
+    window.setTimeout(() => setPhase('hold'), 500)
+    window.setTimeout(() => setPhase('fade'), 1400)
+    window.setTimeout(() => setPhase('morph'), 1800)
+    window.setTimeout(() => setPhase('gone'), 2200)
+    window.setTimeout(() => setActive(false), 2500)
   }, [sp])
 
   if (!active) return null
 
-  const bg =
-    phase === 'paper'
-      ? '#E8E2D4'
-      : phase === 'ink'
-      ? '#0A0E1A'
-      : '#0A0E1A'
+  const { lead, brand } = COPY[locale] ?? COPY.es
+  const isInk = phase === 'morph' || phase === 'gone'
+  const contentVisible = phase === 'hold' || phase === 'fade'
+
+  // Durante morph y gone el bg ya es navy; el texto (si siguiese visible) iría
+  // blanco. Pero fade ya ocultó el contenido antes, así que el texto no
+  // necesita cambiar de color.
+  const textColor = isInk ? '#E8E2D4' : '#0A0E1A'
 
   return (
     <div
@@ -53,12 +80,58 @@ export default function WelcomeTransition() {
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: bg,
+        background: isInk ? '#0A0E1A' : '#E8E2D4',
         opacity: phase === 'gone' ? 0 : 1,
         transition:
-          'background-color 600ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 280ms ease-out',
+          'background-color 400ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 300ms ease-out',
         pointerEvents: phase === 'gone' ? 'none' : 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: 28,
       }}
-    />
+    >
+      <div
+        style={{
+          opacity: contentVisible ? 1 : 0,
+          transform: contentVisible ? 'translateY(0)' : 'translateY(12px)',
+          transition:
+            'opacity 500ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 22,
+        }}
+      >
+        <VelacreMark size={88} />
+        <div
+          style={{
+            fontFamily: 'CalSansUI, ui-sans-serif, system-ui, sans-serif',
+            fontSize: 'clamp(26px, 5.2vw, 42px)',
+            fontWeight: 700,
+            color: textColor,
+            textAlign: 'center',
+            lineHeight: 1.1,
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'baseline',
+            justifyContent: 'center',
+            gap: '0.28em',
+          }}
+        >
+          <span style={{ letterSpacing: '-0.01em', fontWeight: 600 }}>{lead}</span>
+          <span
+            style={{
+              letterSpacing: '-0.02em',
+              fontSize: '1.15em',
+              fontWeight: 700,
+            }}
+          >
+            {brand}
+          </span>
+        </div>
+      </div>
+    </div>
   )
 }

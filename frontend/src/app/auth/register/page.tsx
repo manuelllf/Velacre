@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { createUsuario } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
 import { useOAuthLoading } from '@/hooks/useOAuthLoading'
+import { armWelcome } from '@/lib/welcome'
 import { GoogleIcon } from '@/components/landing/shared'
 import '@/components/landing/landing.css'
 
@@ -25,6 +26,7 @@ export default function RegisterPage() {
   async function handleGoogleRegister() {
     setError('')
     setGoogleLoading(true)
+    armWelcome()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
