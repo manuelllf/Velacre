@@ -1,12 +1,19 @@
 /**
- * Coordina las transiciones de entrada (crema→navy, "Bienvenido") y salida
- * (navy→crema, "Hasta luego") entre auth y app. Para login/register con email
- * el query ?welcome=1 basta; para OAuth Google y para logout hace falta
- * persistir a través del redirect, por eso sessionStorage.
+ * Coordina las transiciones marketing↔producto:
+ *
+ *   welcome (entrada):  crema→navy, "Bienvenido a velacre".
+ *   goodbye (salida):   navy→crema, "Hasta luego".
+ *
+ * Welcome ATRAVIESA un redirect externo (google.com en OAuth) o un router
+ * redirect (email/pwd), así que persiste en sessionStorage. Goodbye se
+ * dispara en la página actual antes del signOut, así que no necesita
+ * persistencia — se envía por custom event directo, y el logout espera la
+ * animación antes de navegar.
  */
 
 const WELCOME_KEY = 'vel_welcome'
-const GOODBYE_KEY = 'vel_goodbye'
+export const WELCOME_EVENT = 'vel-welcome-trigger'
+export const GOODBYE_DURATION_MS = 3000
 
 export function armWelcome() {
   setFlag(WELCOME_KEY)
@@ -16,12 +23,14 @@ export function consumeWelcome(): boolean {
   return consumeFlag(WELCOME_KEY)
 }
 
+/**
+ * Dispara el overlay goodbye en la página actual. El caller (handleLogout)
+ * debe esperar GOODBYE_DURATION_MS antes de hacer signOut + redirect, para
+ * que la animación no se corte y no haya flash de la landing.
+ */
 export function armGoodbye() {
-  setFlag(GOODBYE_KEY)
-}
-
-export function consumeGoodbye(): boolean {
-  return consumeFlag(GOODBYE_KEY)
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent(WELCOME_EVENT, { detail: 'goodbye' }))
 }
 
 // Ventana máxima de validez del flag. Si algo impide consumirlo (recarga en

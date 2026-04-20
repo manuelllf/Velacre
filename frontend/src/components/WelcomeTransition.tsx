@@ -31,7 +31,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from './landing/VelacreMark'
-import { consumeGoodbye, consumeWelcome } from '@/lib/welcome'
+import { WELCOME_EVENT, consumeWelcome } from '@/lib/welcome'
 
 type Phase = 'enter' | 'hold' | 'morph' | 'rest' | 'fade' | 'gone'
 type Mode = 'welcome' | 'goodbye'
@@ -82,23 +82,11 @@ export default function WelcomeTransition() {
     window.history.replaceState(null, '', url.pathname + url.search + url.hash)
   }, [sp])
 
-  // Disparo principal del overlay.
-  // Deps incluyen `active` para que al terminar un ciclo (active → false) el
-  // efecto vuelva a correr y pueda arrancar uno nuevo — ej. goodbye tras un
-  // welcome previo en la misma sesión.
-  useEffect(() => {
-    if (active) return
+  // Helper que arranca un ciclo. Se invoca desde dos sitios:
+  //  1) useEffect inicial cuando detecta ?welcome=1 o sessionStorage.
+  //  2) Listener del custom event (goodbye disparado in-page por logout).
+  function startCycle(resolvedMode: Mode) {
     if (firedRef.current) return
-
-    const hasQuery = sp.get('welcome') === '1'
-    const hasWelcome = consumeWelcome()
-    const hasGoodbye = consumeGoodbye()
-    if (!hasQuery && !hasWelcome && !hasGoodbye) return
-
-    // Goodbye tiene precedencia si por cualquier carrera ambos flags estuvieran
-    // activos (no debería pasar, pero queremos ver la salida del user).
-    const resolvedMode: Mode = hasGoodbye ? 'goodbye' : 'welcome'
-
     firedRef.current = true
     fadedRef.current = false
     restAtRef.current = null
@@ -113,10 +101,33 @@ export default function WelcomeTransition() {
       setPhase('rest')
       restAtRef.current = Date.now()
     }, 2200)
-
     window.setTimeout(() => {
       if (!fadedRef.current) triggerFade()
     }, REST_FALLBACK_MS)
+  }
+
+  // Disparo desde el evento custom (goodbye): el logout llama armGoodbye en la
+  // misma página y espera que la animación termine antes de signOut+redirect.
+  useEffect(() => {
+    function onTrigger(e: Event) {
+      if (active) return
+      const detail = (e as CustomEvent).detail as Mode
+      startCycle(detail === 'goodbye' ? 'goodbye' : 'welcome')
+    }
+    window.addEventListener(WELCOME_EVENT, onTrigger)
+    return () => window.removeEventListener(WELCOME_EVENT, onTrigger)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, pathname])
+
+  // Disparo desde sessionStorage/?welcome=1 (login y OAuth Google).
+  useEffect(() => {
+    if (active) return
+    if (firedRef.current) return
+    const hasQuery = sp.get('welcome') === '1'
+    const hasWelcome = consumeWelcome()
+    if (!hasQuery && !hasWelcome) return
+    startCycle('welcome')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp, pathname, active])
 
   // Fade automático al detectar cambio de ruta durante rest.
