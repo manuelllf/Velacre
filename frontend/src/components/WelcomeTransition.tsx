@@ -8,18 +8,23 @@
  *  - sessionStorage vel_welcome=1 (OAuth Google: armado antes del redirect
  *    externo, persiste a través de google.com → /auth/callback → /inicio).
  *
- * Fases (total ~3200ms):
+ * Coordinación con el pathname: cuando el flujo viene de Google el overlay
+ * monta en /auth/callback y *espera* a que el router navegue a la ruta destino
+ * (/inicio, /onboarding, /admin, /dashboard) antes de arrancar el fade-out.
+ * Así no hay hueco entre "overlay gone" y "callback redirige" donde se vería
+ * el fondo crema del callback sin cubrir.
+ *
+ * Fases:
  *  - enter  (0→500)     bg crema, sello+copy fade-in + translateY.
  *  - hold   (500→1200)  sostén sobre crema (700ms).
- *  - morph  (1200→2200) bg crema → navy + color ink → paper, con texto
- *                       VISIBLE durante la interpolación (1000ms).
- *  - rest   (2200→2700) sostén sobre navy (500ms), para apreciar el cambio.
- *  - fade   (2700→3000) sello+copy fade-out.
- *  - gone   (3000→3200) overlay fade-out revelando app.
+ *  - morph  (1200→2200) bg crema → navy + color ink → paper, texto visible.
+ *  - rest   (2200→…)    sostén sobre navy, espera navegación (o fallback 5s).
+ *  - fade   (+300)      sello+copy fade-out.
+ *  - gone   (+300)      overlay fade-out revelando app.
  */
 
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from './landing/VelacreMark'
 import { consumeWelcome } from '@/lib/welcome'
@@ -32,13 +37,33 @@ const COPY: Record<string, { lead: string; brand: string }> = {
   gal: { lead: 'Benvido a',    brand: 'velacre' },
 }
 
+const REST_FALLBACK_MS = 5000  // no dejar colgado el overlay si algo falla
+const REST_MIN_AFTER_NAV_MS = 300
+
 export default function WelcomeTransition() {
   const sp = useSearchParams()
+  const pathname = usePathname()
   const { locale } = useLanguage()
+
   const firedRef = useRef(false)
+  const fadedRef = useRef(false)
+  const initialPathRef = useRef<string | null>(null)
+  const restAtRef = useRef<number | null>(null)
+
   const [active, setActive] = useState(false)
   const [phase, setPhase] = useState<Phase>('enter')
 
+  // Limpieza independiente del query ?welcome=1: siempre que aparezca, lo
+  // quitamos de la URL para que no quede visible en la barra ni se repita en
+  // reload (incluso si el overlay ya se disparó via sessionStorage).
+  useEffect(() => {
+    if (sp.get('welcome') !== '1') return
+    const url = new URL(window.location.href)
+    url.searchParams.delete('welcome')
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+  }, [sp])
+
+  // Disparo principal del overlay.
   useEffect(() => {
     if (firedRef.current) return
 
@@ -47,31 +72,50 @@ export default function WelcomeTransition() {
     if (!hasQuery && !hasSession) return
 
     firedRef.current = true
+    initialPathRef.current = pathname
     setActive(true)
     setPhase('enter')
 
-    // Limpiar query de la URL sin navegar, para que reload no repita.
-    if (hasQuery) {
-      const url = new URL(window.location.href)
-      url.searchParams.delete('welcome')
-      window.history.replaceState(null, '', url.pathname + url.search + url.hash)
-    }
-
     window.setTimeout(() => setPhase('hold'), 500)
     window.setTimeout(() => setPhase('morph'), 1200)
-    window.setTimeout(() => setPhase('rest'), 2200)
-    window.setTimeout(() => setPhase('fade'), 2700)
-    window.setTimeout(() => setPhase('gone'), 3000)
-    window.setTimeout(() => setActive(false), 3200)
-  }, [sp])
+    window.setTimeout(() => {
+      setPhase('rest')
+      restAtRef.current = Date.now()
+    }, 2200)
+
+    // Fallback: si la navegación nunca ocurre (email/pwd ya está en destino,
+    // o algo atasca el router), arrancamos fade automático.
+    window.setTimeout(() => {
+      if (!fadedRef.current) triggerFade()
+    }, REST_FALLBACK_MS)
+  }, [sp, pathname])
+
+  // Cuando la ruta cambia respecto a la inicial y ya estamos en rest,
+  // arrancamos el fade (asegurando un mínimo de sostén sobre navy).
+  useEffect(() => {
+    if (!active) return
+    if (fadedRef.current) return
+    if (phase !== 'rest') return
+    if (initialPathRef.current === null) return
+    if (pathname === initialPathRef.current) return
+    const elapsed = Date.now() - (restAtRef.current ?? Date.now())
+    const wait = Math.max(0, REST_MIN_AFTER_NAV_MS - elapsed)
+    const id = window.setTimeout(triggerFade, wait)
+    return () => window.clearTimeout(id)
+  }, [pathname, phase, active])
+
+  function triggerFade() {
+    if (fadedRef.current) return
+    fadedRef.current = true
+    setPhase('fade')
+    window.setTimeout(() => setPhase('gone'), 300)
+    window.setTimeout(() => setActive(false), 600)
+  }
 
   if (!active) return null
 
   const { lead, brand } = COPY[locale] ?? COPY.es
-  // isInk: bg/texto en navy; flip ocurre al entrar en 'morph' para que la
-  // transición CSS interpole crema→navy (bg) e ink→paper (color) en 1s.
   const isInk = phase === 'morph' || phase === 'rest' || phase === 'fade' || phase === 'gone'
-  // Contenido visible durante hold, morph y rest → se ve el cambio de color.
   const contentVisible = phase === 'hold' || phase === 'morph' || phase === 'rest'
   const textColor = isInk ? '#E8E2D4' : '#0A0E1A'
 
