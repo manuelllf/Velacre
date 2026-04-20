@@ -8,12 +8,14 @@
  *  - sessionStorage vel_welcome=1 (OAuth Google: armado antes del redirect
  *    externo, persiste a través de google.com → /auth/callback → /inicio).
  *
- * Fases (total ~2400ms):
- *  - enter  (0→500)   bg crema, sello+copy fade-in + translateY.
- *  - hold   (500→1400) sostén.
- *  - fade   (1400→1800) sello+copy fade-out.
- *  - morph  (1800→2200) bg crema → navy.
- *  - gone   (2200→2500) overlay fade-out revelando app.
+ * Fases (total ~3200ms):
+ *  - enter  (0→500)     bg crema, sello+copy fade-in + translateY.
+ *  - hold   (500→1200)  sostén sobre crema (700ms).
+ *  - morph  (1200→2200) bg crema → navy + color ink → paper, con texto
+ *                       VISIBLE durante la interpolación (1000ms).
+ *  - rest   (2200→2700) sostén sobre navy (500ms), para apreciar el cambio.
+ *  - fade   (2700→3000) sello+copy fade-out.
+ *  - gone   (3000→3200) overlay fade-out revelando app.
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -22,7 +24,7 @@ import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from './landing/VelacreMark'
 import { consumeWelcome } from '@/lib/welcome'
 
-type Phase = 'enter' | 'hold' | 'fade' | 'morph' | 'gone'
+type Phase = 'enter' | 'hold' | 'morph' | 'rest' | 'fade' | 'gone'
 
 const COPY: Record<string, { lead: string; brand: string }> = {
   es:  { lead: 'Bienvenido a', brand: 'velacre' },
@@ -56,21 +58,21 @@ export default function WelcomeTransition() {
     }
 
     window.setTimeout(() => setPhase('hold'), 500)
-    window.setTimeout(() => setPhase('fade'), 1400)
-    window.setTimeout(() => setPhase('morph'), 1800)
-    window.setTimeout(() => setPhase('gone'), 2200)
-    window.setTimeout(() => setActive(false), 2500)
+    window.setTimeout(() => setPhase('morph'), 1200)
+    window.setTimeout(() => setPhase('rest'), 2200)
+    window.setTimeout(() => setPhase('fade'), 2700)
+    window.setTimeout(() => setPhase('gone'), 3000)
+    window.setTimeout(() => setActive(false), 3200)
   }, [sp])
 
   if (!active) return null
 
   const { lead, brand } = COPY[locale] ?? COPY.es
-  const isInk = phase === 'morph' || phase === 'gone'
-  const contentVisible = phase === 'hold' || phase === 'fade'
-
-  // Durante morph y gone el bg ya es navy; el texto (si siguiese visible) iría
-  // blanco. Pero fade ya ocultó el contenido antes, así que el texto no
-  // necesita cambiar de color.
+  // isInk: bg/texto en navy; flip ocurre al entrar en 'morph' para que la
+  // transición CSS interpole crema→navy (bg) e ink→paper (color) en 1s.
+  const isInk = phase === 'morph' || phase === 'rest' || phase === 'fade' || phase === 'gone'
+  // Contenido visible durante hold, morph y rest → se ve el cambio de color.
+  const contentVisible = phase === 'hold' || phase === 'morph' || phase === 'rest'
   const textColor = isInk ? '#E8E2D4' : '#0A0E1A'
 
   return (
@@ -81,9 +83,10 @@ export default function WelcomeTransition() {
         inset: 0,
         zIndex: 9999,
         background: isInk ? '#0A0E1A' : '#E8E2D4',
+        color: textColor,
         opacity: phase === 'gone' ? 0 : 1,
         transition:
-          'background-color 400ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 300ms ease-out',
+          'background-color 1000ms cubic-bezier(0.45, 0.05, 0.35, 1), color 1000ms cubic-bezier(0.45, 0.05, 0.35, 1), opacity 260ms ease-out',
         pointerEvents: phase === 'gone' ? 'none' : 'auto',
         display: 'flex',
         alignItems: 'center',
@@ -110,7 +113,7 @@ export default function WelcomeTransition() {
             fontFamily: 'CalSansUI, ui-sans-serif, system-ui, sans-serif',
             fontSize: 'clamp(26px, 5.2vw, 42px)',
             fontWeight: 700,
-            color: textColor,
+            color: 'inherit',
             textAlign: 'center',
             lineHeight: 1.1,
             display: 'flex',

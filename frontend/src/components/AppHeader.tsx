@@ -52,12 +52,22 @@ export function AppHeader({ negocioNombre, plan, rightExtra, brandHref = '/inici
           <VelacreMark size={36} className="shrink-0" />
           <span
             className="font-bold text-xl tracking-tight text-slate-200 group-hover:text-white transition-colors"
-            style={{ fontFamily: 'CalSansUI, ui-sans-serif', lineHeight: '36px', marginTop: -2 }}
+            style={{
+              fontFamily: 'CalSansUI, ui-sans-serif',
+              display: 'inline-flex',
+              alignItems: 'center',
+              height: 36,
+              lineHeight: 1,
+              transform: 'translateY(-1px)',
+            }}
           >
             velacre
           </span>
           {negocioNombre && (
-            <span className="hidden sm:inline text-sm text-slate-500 truncate" style={{ lineHeight: '36px' }}>
+            <span
+              className="hidden sm:inline text-sm text-slate-500 truncate"
+              style={{ display: 'inline-flex', alignItems: 'center', height: 36, lineHeight: 1 }}
+            >
               · {negocioNombre}
             </span>
           )}
