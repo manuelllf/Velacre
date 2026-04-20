@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { getMyNegocio, getMyUsuario, getLemonCheckoutUrl } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
+import { VelacreMark } from '@/components/landing/VelacreMark'
 
 export default function OnboardingPlanPage() {
   const router = useRouter()
@@ -56,9 +58,28 @@ export default function OnboardingPlanPage() {
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12 relative">
       {/* Header */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 flex flex-col items-center gap-4">
+        <Link href="/" className="inline-flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <VelacreMark size={30} />
+          <span
+            style={{
+              fontFamily: 'CalSansUI, ui-sans-serif',
+              fontSize: 20,
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              height: 30,
+              lineHeight: 1,
+              transform: 'translateY(-1px)',
+              color: '#E8E2D4',
+            }}
+          >
+            velacre
+          </span>
+        </Link>
         <h1 className="text-3xl font-bold text-white">{ob.planTitle}</h1>
-        <p className="text-slate-400 text-base mt-2">{ob.planSubtitle}</p>
+        <p className="text-slate-400 text-base -mt-2">{ob.planSubtitle}</p>
       </div>
 
       {/* Toggle monthly / yearly */}

@@ -14,7 +14,7 @@ export default function IaUsageBar({ userPlan, iaUsed }: IaUsageBarProps) {
 
   if (userPlan !== 'basic' && userPlan !== 'core') return null
 
-  const limit = userPlan === 'core' ? 20 : 10
+  const limit = userPlan === 'core' ? 25 : 10
   const used = Math.min(iaUsed, limit)
   const pct = Math.round((used / limit) * 100)
   const atLimit = used >= limit

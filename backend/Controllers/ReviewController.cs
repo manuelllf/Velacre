@@ -289,10 +289,10 @@ public class ReviewController : ControllerBase
 
             // Límite por plan. Pro usa -1 (sin hard cap en la RPC) pero SÍ incrementa
             // el contador para que podamos detectar el cap soft (250 IA/mes) y avisar.
-            //   Basic: 10/mes     Core: 20/mes     Pro: sin límite duro, warning a 250
+            //   Basic: 10/mes     Core: 25/mes     Pro: sin límite duro, warning a 250
             int iaLimit;
             if (esProEfectivo)               iaLimit = -1;
-            else if (usuario.Plan == "core") iaLimit = 20;
+            else if (usuario.Plan == "core") iaLimit = 25;
             else                             iaLimit = 10;
 
             var preCount = usuario.RespuestasIaMes;

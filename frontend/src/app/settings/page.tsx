@@ -539,35 +539,41 @@ export default function SettingsPage() {
                     )}
                   </div>
 
-                  <div>
-                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      {s.toneSection}
-                      <Tooltip text="Cómo sonarán tus respuestas. Puedes cambiarlo cuando quieras." />
-                    </label>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{s.toneSubtitle}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      {TONOS.map(tono => (
-                        <button
-                          key={tono.value}
-                          type="button"
-                          onClick={() => setForm(f => ({ ...f, tonopredefinido: tono.value }))}
-                          className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
-                            form.tonopredefinido === tono.value
-                              ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                              : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                          }`}
-                        >
-                          <div className="text-sm font-semibold text-slate-900 dark:text-white">{tono.label}</div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tono.desc}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
 
               </section>
             </div>
           </div>
+
+          {/* Tono de respuestas — row full-width para no dejar hueco bajo la columna izquierda */}
+          <section className="mt-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
+                {s.toneSection}
+                <Tooltip text="Cómo sonarán tus respuestas. Puedes cambiarlo cuando quieras." />
+              </h2>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{s.toneSubtitle}</p>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {TONOS.map(tono => (
+                  <button
+                    key={tono.value}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, tonopredefinido: tono.value }))}
+                    className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
+                      form.tonopredefinido === tono.value
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`}
+                  >
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white">{tono.label}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tono.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
 
           {/* Save button — full width, independent */}
           <div className="mt-4 space-y-3">

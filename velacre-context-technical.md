@@ -282,7 +282,7 @@ app.Run($"http://0.0.0.0:{PORT ?? 5146}")
 | POST | `/api/review/generate` | Genera 3 respuestas (prof/cercano/directo) SIN guardar. Check plan + estado + límite manual (5/mes no-Pro). Filtro de seguridad IA. Race condition en contador manual (§10.1). |
 | POST | `/api/review/save-manual` | Guarda reseña manual con tono elegido |
 | GET | `/api/review/pending` | Lista sin respuesta |
-| POST | `/api/review/{id}/generate` | Genera **1** respuesta para reseña existente. **Usa RPC atómica `try_increment_ia_counter(p_user_id, p_limit)`**. Límites: Basic 10, Core 20, Pro ilimitado con soft cap warning a 250. Fallback keywords: carga **todas** las reseñas del negocio (N+1, §10.4). |
+| POST | `/api/review/{id}/generate` | Genera **1** respuesta para reseña existente. **Usa RPC atómica `try_increment_ia_counter(p_user_id, p_limit)`**. Límites: Basic 10, Core 25, Pro ilimitado con soft cap warning a 250. Fallback keywords: carga **todas** las reseñas del negocio (N+1, §10.4). |
 | GET | `/api/review/all` | Todas las reseñas del negocio |
 | POST | `/api/review/{id}/translate` | Traduce reseña original a ES |
 | POST | `/api/review/{id}/translate-response` | Traduce respuesta publicada a ES |

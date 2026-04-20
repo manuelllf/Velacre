@@ -99,8 +99,8 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 | | Basic | Core | Pro |
 |---|---|---|---|
 | Respuestas manuales/mes | 5 | 5 | Ilimitadas |
-| Respuestas IA/mes | 10 | 20 | Ilimitadas (cap soft 250 con warning) |
-| Panel Salud | Teaser blurred | Stats clave reales (4 KPIs + sentimiento) | Completo |
+| Respuestas IA/mes | 10 | 25 | Ilimitadas (cap soft 250 con warning) |
+| Panel Salud | Teaser blurred | Nota media + resumen básico de reseñas (sin análisis IA) | Completo (4 KPIs + sentimiento + análisis IA brilla/quema/acción) |
 | Radar Competencia | — | — | ✅ (3 competidores, 1 análisis/semana) |
 | PDFs benchmark | — | — | ✅ |
 | Análisis IA (brilla/quema/acción) | — | — | ✅ |
@@ -114,7 +114,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 ### Lógica del pricing
 
 - **Basic a 10 IA** (antes 3): que el dueño experimente el producto de verdad. Conversión Basic→Core esperada +20-40%.
-- **Core a €19 y 20 IA** (antes 18): 15% por debajo de wiReply (€22,50). 20 IA cuadra con ICP de 5-25 reseñas/mes; deja 5+ sin responder para empujar a Pro.
+- **Core a €19 y 25 IA** (rebalanceado 2026-04-20 desde 20 IA): 15% por debajo de wiReply (€22,50). 25 IA cuadra con ICP de 5-30 reseñas/mes. El ancla Pro es el Radar + análisis IA, no el volumen.
 - **Pro a €49**: 5× por debajo de RepScan (€249). Justificado por Radar + PDF + análisis IA. Cap soft 250/mes detecta posibles enterprise sin bloquear.
 - **Descuentos activos en LS:** 99% para test (tarjeta de colega) y 15% para primeros clientes captados.
 
