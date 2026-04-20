@@ -83,7 +83,11 @@ export default function WelcomeTransition() {
   }, [sp])
 
   // Disparo principal del overlay.
+  // Deps incluyen `active` para que al terminar un ciclo (active → false) el
+  // efecto vuelva a correr y pueda arrancar uno nuevo — ej. goodbye tras un
+  // welcome previo en la misma sesión.
   useEffect(() => {
+    if (active) return
     if (firedRef.current) return
 
     const hasQuery = sp.get('welcome') === '1'
@@ -96,6 +100,8 @@ export default function WelcomeTransition() {
     const resolvedMode: Mode = hasGoodbye ? 'goodbye' : 'welcome'
 
     firedRef.current = true
+    fadedRef.current = false
+    restAtRef.current = null
     initialPathRef.current = pathname
     setMode(resolvedMode)
     setActive(true)
@@ -111,7 +117,7 @@ export default function WelcomeTransition() {
     window.setTimeout(() => {
       if (!fadedRef.current) triggerFade()
     }, REST_FALLBACK_MS)
-  }, [sp, pathname])
+  }, [sp, pathname, active])
 
   // Fade automático al detectar cambio de ruta durante rest.
   useEffect(() => {
