@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
-import { GOODBYE_DURATION_MS, armGoodbye } from '@/lib/welcome'
+import { armGoodbye } from '@/lib/welcome'
 import { VelacreMark } from './landing/VelacreMark'
 
 export type PlanKey = 'basic' | 'core' | 'pro'
@@ -40,11 +40,7 @@ export function AppHeader({ negocioNombre, plan, rightExtra, brandHref = '/inici
   const { t } = useLanguage()
 
   async function handleLogout() {
-    // Dispara overlay goodbye IN-PAGE (sin sessionStorage) y esperamos a que
-    // la animación termine antes de hacer signOut + reload. Así no hay flash
-    // de landing ni salto entre páginas — la salida se ve fluida.
     armGoodbye()
-    await new Promise(r => setTimeout(r, GOODBYE_DURATION_MS))
     await supabase.auth.signOut()
     window.location.href = '/'
   }

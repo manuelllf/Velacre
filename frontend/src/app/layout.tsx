@@ -54,6 +54,23 @@ export const viewport: Viewport = {
   themeColor: "#0A0E1A",
 };
 
+// Script inline que corre ANTES del paint para pintar el html en el color
+// de arranque del overlay de bienvenida/despedida, evitando un flash entre
+// el reload y el montaje de React.
+// Welcome arranca en crema, goodbye en navy.
+const PRE_PAINT_SCRIPT = `
+try {
+  var now = Date.now();
+  var g = sessionStorage.getItem('vel_goodbye');
+  var w = sessionStorage.getItem('vel_welcome');
+  var gTs = g ? Number(g) : 0;
+  var wTs = w ? Number(w) : 0;
+  var fresh = function(ts) { return ts > 0 && now - ts < 10000; };
+  if (fresh(gTs))      document.documentElement.style.backgroundColor = '#0A0E1A';
+  else if (fresh(wTs)) document.documentElement.style.backgroundColor = '#E8E2D4';
+} catch (e) {}
+`.trim();
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -64,6 +81,9 @@ export default function RootLayout({
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: PRE_PAINT_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>

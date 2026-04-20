@@ -9,7 +9,7 @@ import SectionNav from '@/components/SectionNav'
 import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
 import { useLanguage } from '@/lib/i18n'
-import { GOODBYE_DURATION_MS, armGoodbye } from '@/lib/welcome'
+import { armGoodbye } from '@/lib/welcome'
 import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
 
@@ -186,7 +186,6 @@ export default function SettingsPage() {
     try {
       await eliminarCuenta()
       armGoodbye()
-      await new Promise(r => setTimeout(r, GOODBYE_DURATION_MS))
       await supabase.auth.signOut()
       window.location.href = '/'
     } catch {
