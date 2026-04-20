@@ -1,6 +1,6 @@
 # Velacre — Contexto del proyecto
 
-> **Última actualización:** 2026-04-18. Para detalle técnico exhaustivo (endpoints, servicios, seguridad, concurrencia), ver `velacre-context-technical.md`.
+> Retrato vigente del producto, mercado y decisiones. No es un diario — es la foto actual. Para detalle técnico exhaustivo (endpoints, servicios, seguridad, concurrencia), ver `velacre-context-technical.md`.
 
 ---
 
@@ -16,7 +16,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 
 **Mercado primario:** PYMEs de hostelería en Galicia (España) — restaurantes, asadores, cafeterías, bares con cocina. Dueño-operador que recibe 5-50 reseñas/mes, no tiene tiempo de contestarlas, y le preocupa lo que dicen de su negocio en Google.
 
-**Mercado secundario (validado para escalar):** cualquier PYME de servicios locales hispanohablante — clínicas pequeñas, talleres, peluquerías, academias, hoteles boutique. Los prompts de IA son neutrales por sector y mercado desde 2026-04-09.
+**Mercado secundario (validado para escalar):** cualquier PYME de servicios locales hispanohablante — clínicas pequeñas, talleres, peluquerías, academias, hoteles boutique. Los prompts de IA son neutrales por sector y mercado.
 
 **Perfil del decisor:** dueño de negocio de 30-55 años, vive del móvil, no sabe qué es "SEO" ni quiere saberlo, pero entiende que las reseñas de Google afectan a su negocio. Valora lenguaje directo sin jerga técnica.
 
@@ -49,7 +49,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 | Email | Bienvenida, reportes de error | Resend (info@velacre.com) |
 | Búsqueda de lugares | Onboarding, Mini Radar | Google Places API |
 
-**Estado del código (~21k líneas):** 49 endpoints, 11 controllers, 7 repositorios, 5 servicios, 9 entidades BD. ~12-15% cobertura de tests (53 tests: 18 backend xUnit, 35 frontend Vitest). Capa de repositorios + FluentValidation + React Query (frontend). RLS en 7 tablas (22 policies). Auth SSR con proxy.ts + @supabase/ssr. Error handling global (2026-04-12). Circuit breaker en Claude. Sin rate limiting aplicativo (backlog).
+**Estado del código (~21k líneas):** 49 endpoints, 11 controllers, 7 repositorios, 5 servicios, 9 entidades BD. ~12-15% cobertura de tests (53 tests: 18 backend xUnit, 35 frontend Vitest). Capa de repositorios + FluentValidation + React Query (frontend). RLS en 7 tablas (22 policies). Auth SSR con proxy.ts + @supabase/ssr. Error handling global. Circuit breaker en Claude. Sin rate limiting aplicativo (backlog).
 
 ---
 
@@ -114,7 +114,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 ### Lógica del pricing
 
 - **Basic a 10 IA** (antes 3): que el dueño experimente el producto de verdad. Conversión Basic→Core esperada +20-40%.
-- **Core a €19 y 25 IA** (rebalanceado 2026-04-20 desde 20 IA): 15% por debajo de wiReply (€22,50). 25 IA cuadra con ICP de 5-30 reseñas/mes. El ancla Pro es el Radar + análisis IA, no el volumen.
+- **Core a €19 y 25 IA:** 15% por debajo de wiReply (€22,50). 25 IA cuadra con ICP de 5-30 reseñas/mes. El ancla Pro es el Radar + análisis IA, no el volumen.
 - **Pro a €49**: 5× por debajo de RepScan (€249). Justificado por Radar + PDF + análisis IA. Cap soft 250/mes detecta posibles enterprise sin bloquear.
 - **Descuentos activos en LS:** 99% para test (tarjeta de colega) y 15% para primeros clientes captados.
 
@@ -127,7 +127,7 @@ Cuando se active la integración directa con Google Business Profile:
 
 ### Estado de pagos
 
-Checkout Lemon Squeezy **activo en producción (live mode) desde 2026-04-16**. Cobra con IVA correcto automáticamente (LS como Merchant of Record). Los prospects que conviertan pueden pagar Core/Pro directamente desde el onboarding sin workaround manual.
+Checkout Lemon Squeezy **activo en producción** (live mode). Cobra con IVA correcto automáticamente (LS como Merchant of Record). Los prospects que conviertan pueden pagar Core/Pro directamente desde el onboarding sin workaround manual.
 
 ---
 
@@ -192,8 +192,16 @@ Herramienta interna para generar informes gratuitos de cualquier negocio como le
 ### PWA instalable
 Service Worker + manifest. Instalable en Android (prompt nativo) e iOS (instrucciones "Compartir → Añadir"). Banner solo en landing/inicio, primera vez de por vida, auto-hide 10s.
 
+### Transiciones marketing ↔ producto
+Overlay fullscreen que cubre el salto entre landing y app con un rito de paso editorial:
+- **Welcome** (entrada post-auth): crema → navy, *"Bienvenido a velacre"* en 3 idiomas. Se activa con `?welcome=1` (login/register email-pwd) o sessionStorage `vel_welcome` (OAuth Google, armado antes del redirect externo para sobrevivir a `google.com`).
+- **Goodbye** (logout): navy → crema, *"Hasta luego"* / *"See you soon"* / *"Ata logo"*. Armado antes del `signOut` + hard reload a `/`.
+- 6 fases (enter → hold → morph → rest → fade → gone, ~2400-3200ms). La interpolación de color (bg + texto) ocurre durante el morph con el texto aún visible — se ve la marca pasar de ink sobre paper a paper sobre ink en directo.
+- Sincroniza con `usePathname`: si el overlay arranca en `/auth/callback` (Google OAuth), espera al cambio de ruta antes del fade. Fallback 5s para flujos sin navegación posterior.
+- Cortina anti-flash pre-paint: script inline en `<head>` del `RootLayout` lee sessionStorage antes del primer paint y muestra un `<div>` estático que cubre la landing SSR hasta que React hidrata el overlay. Imprescindible porque entre "HTML estático pintado" y "React hidratado" hay 100-500ms donde Next.js sirve la landing entera sin que WelcomeTransition pueda reaccionar aún.
+
 ### Modo oscuro forzado
-Siempre dark. Fondo #0f172a, acento blue. Cal Sans para headers, Geist para body.
+Siempre dark en app. Navy `#0A0E1A`, acento azul maduro `#4A6FE5`. Cal Sans para headers, Geist para body.
 
 ### Multiidioma (i18n)
 3 idiomas: castellano (por defecto), gallego e inglés. Sistema basado en `LanguageProvider` con persistencia en `localStorage`. Todos los textos visibles al usuario usan el sistema i18n (~800 claves tipadas en TypeScript). Páginas de error crítico (`global-error.tsx`) mantienen fallback en español por seguridad (Provider puede no estar disponible).
@@ -232,7 +240,7 @@ Registro (Google OAuth o email)
 | **Outscraper** | Scraping de reseñas de Google sin necesidad de OAuth. Pricing oficial: **~$0,003 por reseña scrapeada** (Reviews V3 endpoint), es decir ~$0,18 por llamada estándar de 60 reseñas y ~$0,09 por una de 30. Permite importar reseñas desde el día 1 sin aprobación de Google. | ✅ Activo. Fallback si GBP no está conectado. |
 | **Google Business Profile** | Importación nativa + publicación directa de respuestas en Google (sin copy-paste). Valor diferencial clave vs competencia. | 🟡 Implementado, pendiente aprobación Google. |
 | **Google Places** | Buscar negocios por nombre en onboarding y Mini Radar. | ✅ Activo. |
-| **Lemon Squeezy** | Pagos con IVA incluido (MoR), checkout, portal de gestión para el cliente, webhooks de suscripción. Sin necesidad de gestionar facturación propia. | ✅ **Activo en producción** (live mode, 2026-04-16). |
+| **Lemon Squeezy** | Pagos con IVA incluido (MoR), checkout, portal de gestión para el cliente, webhooks de suscripción. Sin necesidad de gestionar facturación propia. | ✅ **Activo en producción** (live mode). |
 | **Resend** | Emails transaccionales (bienvenida, reportes de error). Los emails de suscripción los envía LS directamente. | ✅ Activo. |
 | **Supabase Auth** | Auth con email+pwd y Google OAuth. JWT para el backend. Sin dependencia de auth propio. | ✅ Activo. |
 
@@ -278,318 +286,51 @@ Registro (Google OAuth o email)
 
 ## 11. Decisiones de diseño clave (con el porqué)
 
-### Producto y UX
-- **Modo oscuro forzado + paleta editorial (2026-04-18):** navy `#0A0E1A` + crema papel `#E8E2D4` + azul maduro `#4A6FE5` como acento único. Reemplaza el slate-950 + blue-600 anterior. Tokens Tailwind (`slate-*`, `blue-*`, `emerald-*`, `amber-*`, `red-*`, `white`) remapeados en `globals.css @theme inline` para propagar automáticamente a toda la app sin tocar JSX. Semánticos: good `#6E9E7E` (verde musgo), warn `#D4A84A` (dorado apagado), danger `#C46A5C` (terracota). Decisión contrarian vs el SaaS-azul-eléctrico genérico — diferenciación de marca deliberada, con riesgo asumido en vertical hostelería.
-- **Logo oficial: sello de lacre con "V" monograma.** PNG centrado simétricamente en bounding box (el original tenía 13px arriba / 8px abajo → se veía flotante en flex items-center, corregido con `trim` + `extend` simétrico). Pack PWA completo en `public/icons/` (18 ficheros: favicon.ico + 16/32/48, apple-touch 120/152/180, android-chrome 192/512, maskable 192/512 con safe zone 10%, mstile 150/310, og-image 1200×630, logo 64/128/256/1024).
-- **Wordmark "velacre" en minúsculas Cal Sans 700:** usado en navbar, footer, auth pages, mini-radar admin. Coherente entre landing y app.
-- **Shell unificado (2026-04-18):** `AppHeader` + `AppFooter` como componentes compartidos en `/inicio`, `/dashboard`, `/dashboard/salud`, `/settings`, `/admin`. Mismo tono `rgba(10,14,26,0.96)` + blur 14px que el NavBar de la landing — al navegar landing → app el header se queda quieto visualmente. `PublicShell` para páginas marketing/legal (`/contacto`, `/privacidad`, `/terminos`).
-- **Plan badge en header** (Basic/Core/Pro) junto al wordmark en todas las páginas app — redondeado (pill) para diferenciarse de los badges mono cuadrados de la landing editorial. Outline slate en Basic/Core, outline accent en Pro.
+### Marca y shell
+- **Paleta editorial navy + crema:** navy `#0A0E1A` + crema papel `#E8E2D4` + azul maduro `#4A6FE5` como acento único. Tokens Tailwind (`slate-*`, `blue-*`, `emerald-*`, `amber-*`, `red-*`, `white`) remapeados en `globals.css @theme inline` para propagar automáticamente a toda la app sin tocar JSX. Semánticos: good `#6E9E7E`, warn `#D4A84A`, danger `#C46A5C`. Decisión contrarian vs el SaaS-azul-eléctrico genérico — diferenciación de marca deliberada.
+- **Landing invertida (crema base + módulos dark):** la landing usa crema como papel editorial y solo los módulos que simulan la app real (demo, radar, salud, card Pro, ticker) van en navy. Principio: *"el fondo es tu papel, lo oscuro es el producto"*. Webapp autenticada queda íntegra en dark.
+- **Logo oficial: sello de lacre con "V" monograma.** Master PNG centrado simétricamente (corregido trim + extend porque el original tenía padding asimétrico que descolocaba el flex-alignment). Pack PWA en `public/icons/`: favicon.ico + 16/32/48, apple-touch 120/152/180, android-chrome 192/512, maskable 192/512 con safe zone 10%, mstile 150/310, og-image, logo 64/128/256/1024.
+- **Wordmark "velacre" en minúsculas Cal Sans 700** letter-spacing -0.02em. Unificado en todos los encabezados con el mismo approach de centrado óptico (`display: inline-flex; align-items: center; height: [sello]; line-height: 1; transform: translateY(-1px)`) — reemplazó el hack anterior de `line-height + margin-top` que se rompía entre navegadores. Aplicado en: NavBar landing, AppHeader app, `auth/login` + `auth/register` + `auth/reset-password`, `onboarding` (formulario y GBP select) y `onboarding/plan`.
+- **Shell app unificado:** `AppHeader` + `AppFooter` compartidos en `/inicio`, `/dashboard`, `/dashboard/salud`, `/settings`, `/admin`. Mismo tono `rgba(10,14,26,0.96)` + blur 14px que el NavBar de la landing — la navegación landing → app no tiene salto. `PublicShell` (NavBar editorial + FooterEditorial) para `/contacto`, `/privacidad`, `/terminos`.
+- **Plan badge en header** (Basic/Core/Pro) junto al wordmark en todas las páginas app — pill redondeado vs los badges mono cuadrados de la landing. Outline slate en Basic/Core, outline accent en Pro.
+- **Transiciones welcome/goodbye:** rito de paso deliberado entre marketing y producto (ver §7). El objetivo es que el usuario perciba el cambio de contexto, no un salto abrupto entre dos webs distintas. Coste bajo (CSS + sessionStorage) y marca diferenciadora.
 
-- **6 tonos:** Profesional, Empático, Cercano, Directo, Agradecido y Humorístico. Agradecido pensado para reseñas positivas (4-5 estrellas), incluye keywords del negocio con naturalidad. Gap vs RepScan (9 tonos) reducido significativamente.
-- **Filtro seguridad transversal (no solo Pro):** coste cero (misma llamada Claude) y es el mejor argumento de marca. Desde 2026-04-10 comunicado como feature de todos los planes en la landing.
-- **GBP deshabilitado con "Próximamente":** todo el código está listo. La UI muestra badges y elementos con opacity reducida. Activación será quitar CSS, no desarrollar nada nuevo.
-- **Copy-paste como flujo interino:** mientras no haya GBP, botón "Responder en Google" abre business.google.com. Con PWA en el móvil, el flujo generar→copiar→pegar es razonable para ≤50 reseñas/mes.
+### Producto
+- **6 tonos:** Profesional, Empático, Cercano, Directo, Agradecido y Humorístico. Agradecido para reseñas positivas (4-5★), incluye keywords con naturalidad. Gap vs RepScan (9 tonos) reducido significativamente.
+- **Filtro seguridad transversal (no solo Pro):** coste cero (misma llamada Claude) y es el mejor argumento de marca. Comunicado como feature de todos los planes en la landing.
+- **GBP deshabilitado con "Próximamente":** todo el código está listo. La UI muestra badges y elementos con opacity reducida. Activación = quitar CSS, no desarrollar. En la tabla comparativa de la landing, la fila "Publicación directa en Google" muestra badge "Próximamente" (warn dorado, mono) en la columna Velacre — deliberado para no auto-sabotear con un ✗ rojo.
+- **Copy-paste como flujo interino:** mientras no haya GBP, botón "Responder en Google" abre business.google.com. Con PWA en el móvil, el flujo generar → copiar → pegar es razonable para ≤50 reseñas/mes.
+- **Core no tiene análisis IA en Panel Salud:** Core solo da nota media + resumen básico de reseñas (sin IA brilla/quema/acción, sin sentimiento, sin evolución). El claim "Panel de Salud con estadísticas clave" se eliminó de todas las descripciones Core por ser engañoso. Anclar Pro con análisis IA + Radar + PDFs, no con volumen.
 
-### Pricing
-- **Core a €19:** 15% por debajo de wiReply deliberadamente. Post-GBP subirá a €29 (justificado por auto-publicación).
-- **Pro a €49:** 5× por debajo de RepScan. El Radar + PDF justifican el precio por sí solos. Post-GBP subirá a €69.
-- **Cap soft 250/mes Pro:** no bloquea, solo avisa. Detecta casos enterprise para pricing custom futuro.
+### Pricing y límites
+- **Core €19/mes · 25 IA/mes** (subido desde 20): 15% por debajo de wiReply (€22,50), deja margen para cubrir ICP de 5-30 reseñas/mes sin que el límite sea fricción constante. Post-GBP subirá a €29.
+- **Pro €49/mes · IA ilimitadas con cap soft 250:** 5× por debajo de RepScan (€249). Radar + PDFs justifican el precio por sí solos. Cap soft avisa sin bloquear — detecta enterprise para pricing custom futuro. Post-GBP subirá a €69.
+- **Basic 10 IA/mes gratis, sin tarjeta, para siempre:** plan de verdad, no trial. Conversión Basic→Core esperada +20-40% vs el "3 IA trial" original.
+- **Founding price −20% para siempre · primeros 20:** código `VELFOUND20`. Core €19 → €15/mes, Pro €49 → €39/mes. Vs precio futuro post-GBP (€29/€69), el founding lock equivale a ~48% off del precio futuro.
 
 ### Técnicas
-- **Prompts sin hardcodes geográficos:** desde 2026-04-09 los prompts de Claude no mencionan "Galicia" ni "hostelería". El contexto se inyecta vía descripción del negocio + keywords + reseñas del cliente. Permite escalar a cualquier sector.
-- **Prompts sin jerga SEO:** el Mini Radar prohíbe expresamente "SEO", "CTR", "ranking", "KPI", etc. Usa lenguaje de "vecino que quiere echar una mano". Incluye ejemplos buenos/malos y auto-revisión.
-- **Contador IA atómico:** RPC PostgreSQL para evitar race conditions. Check + increment en una operación SQL.
+- **Prompts sin hardcodes geográficos:** prompts de Claude no mencionan "Galicia" ni "hostelería". Contexto vía descripción del negocio + keywords + reseñas. Permite escalar a cualquier sector.
+- **Prompts sin jerga SEO (Mini Radar):** prohíbe "SEO", "CTR", "ranking", "KPI", etc. Usa lenguaje de "vecino que quiere echar una mano". Incluye ejemplos buenos/malos y auto-revisión.
+- **Contador IA atómico:** RPC PostgreSQL (`try_increment_ia_counter`) con check + increment en una operación SQL. Pro usa `p_limit=-1` para no bloquear por resultado RPC.
 - **Checkout LS con redirect_url en product_options:** no en atributos raíz (particularidad de la API de Lemon Squeezy).
-- **Eliminación de cuenta transaccional:** RPC Postgres que borra todo en una transacción. La cancelación de LS y delete de auth.users quedan fuera por ser APIs externas.
-- **Error handling global (2026-04-12):** el usuario nunca ve pantalla en blanco. Error → mensaje amable + botón "Reportar problema" → email a info@velacre.com con contexto (sin stack trace).
+- **Eliminación de cuenta transaccional:** RPC Postgres que borra todo en una transacción. Cancelación LS y delete `auth.users` quedan fuera (APIs externas).
+- **Error handling global:** el usuario nunca ve pantalla en blanco. Error → mensaje amable + botón "Reportar problema" → email a info@velacre.com con contexto (sin stack trace).
+- **Flags welcome/goodbye con TTL 10s:** los flags en sessionStorage incluyen timestamp. `consumeFlag` borra al leer y descarta si tiene más de 10s, evitando que un flag "zombie" (por dev tools, error del overlay, etc.) dispare la animación al abrir la landing horas después.
 
 ---
 
-## 12. Cronología estratégica de decisiones
 
-### 2026-04-09
-- **Pro sube a €49/mes** (antes €39). Posicionamiento competitivo vs RepScan (€249) con margen para justificar Radar.
-- **Prompts IA neutralizados:** eliminadas referencias a Galicia/hostelería. Velacre puede servir a cualquier PYME hispanohablante.
-- **PWA instalable:** Service Worker + manifest + banner de instalación. Presencia en home del móvil = acceso 1 tap a reseñas.
-- **Fix flujo móvil:** teasers Basic/Core en salud + redirect post-checkout LS.
-
-### 2026-04-10 (sesión 1)
-- **Mini Radar v1:** herramienta de prospección B2B. Genera informes PDF de cualquier negocio como lead magnet. Buscador Google Places, prompt humanizado, email pitch pre-redactado. Coste real ~€0,13-0,18 (inicialmente documentado como ~€0,05 por subestimación del pricing de Outscraper, corregido 2026-04-15).
-- **Calculadora landing recalibrada:** tiempos realistas (6 min sin Velacre → 5 seg con Velacre).
-- **Email unificado:** `info@velacre.com` en todas las superficies.
-- **Banner PWA reescrito:** solo landing/inicio, primera vez de por vida, 10s auto-hide.
-
-### 2026-04-10 (sesión 2)
-- **Rebalanceo de límites:** Basic 3→10 IA, Core 18→20 IA, Pro ilimitado con cap soft 250/mes.
-- **Filtro seguridad comunicado como transversal:** nuevo bloque "Incluido en todos los planes" en la landing.
-- **Copy del Radar mejorado:** vende el valor ("descubre qué hacen mejor tus 3 rivales y qué hacer esta semana").
-- **Emails redundantes de LS resueltos:** Lemon Squeezy envía los suyos, Velacre ya no duplica.
-
-### 2026-04-12
-- **Doc técnico exhaustivo:** `velacre-context-technical.md` como retrato técnico completo del proyecto.
-- **Error handling global:** middleware backend + ErrorBoundary frontend + modal "Reportar problema" + email a admin.
-- **Hardening:** sync nunca borra reseñas, logs saneados, circuit breaker en Claude, delete-me atómico, N+1 keywords resuelto, bulk delete, fire-and-forget con logging.
-- **Fix RPC Pro bloqueado:** la RPC `try_increment_ia_counter` en producción devolvía `false` con `p_limit=-1`. Fix doble: RPC actualizada en Supabase + backend nunca bloquea Pro por resultado de RPC.
-- **Filtro seguridad ampliado:** 2 nuevas categorías — acusación de fraude/estafa y discriminación (6 categorías totales).
-- **i18n completo:** 3 idiomas (ES/GAL/EN), ~800 claves tipadas, selector de idioma en todas las páginas, cero textos hardcodeados visibles al usuario. 28 ficheros migrados.
-- **6 tonos de respuesta:** añadidos Empático, Agradecido y Humorístico. Modal manual simplificado: genera 1 respuesta en tono del negocio (antes generaba 3 y pedía elegir). Misma UX que reseñas Google. Menos tokens, menos fricción.
-
-### 2026-04-13
-- **Tests básicos:** primera infraestructura de tests del proyecto. 25 tests iniciales con mocks (9 backend xUnit, 16 frontend Vitest).
-
-### 2026-04-13/14 — Refactorización arquitectónica
-- **Rama `202604_refactor`**, 10 de 11 puntos ejecutados. Nota media de calidad: 3.2/10 → 7.7/10.
-- **Backend:** capa de repositorios (7 interfaces + 7 implementaciones), FluentValidation (7 validators), .NET 9→10.
-- **Frontend:** React Query (5 hooks), api.ts modular (8 módulos), god components rotos (dashboard 1324→555, landing 744→227), proxy.ts SSR con @supabase/ssr (sin flashing).
-- **Seguridad:** RLS activado en 7 tablas (22 policies por auth.uid()). Defense-in-depth.
-- **Tests:** 25→53 (backend: +9 controllers, frontend: +19 api modules + hooks).
-- **Pospuestos:** R3 (eliminar proxy CRUD — depende de migrar a anon key), R10 (cola emails — tolerable en MVP).
-
-### 2026-04-14 — CI/CD + limpieza backlog
-- **GitHub Actions CI:** tests automáticos en cada push (18 backend + 35 frontend + tsc). Deploy bloqueado si fallan.
-- **Limpieza:** `html lang` dinámico (accesibilidad), Stripe.net eliminado, `GetUserId()` helper (33 repeticiones eliminadas), prompt mini-radar movido a ClaudeService.
-
-### 2026-04-15 — Pipeline research outreach + fix pricing
-- **Pipeline outreach research:** 3 scripts Node standalone en `scripts/outreach/` (sourcing Google Places + verificación Outscraper + scoring local). Config en `queries.json` editable. Sin dependencias npm, lee directamente `backend/.env`. Skip logic y guardado parcial cada 10. Output a `velacre-outreach/raw/` (gitignored) + `prospects.md` (versionado).
-- **Batch parcial ejecutado:** 125 candidatos sourced (80 hostelería + 45 hoteles boutique, post-filtro clínicas) · 30 verificados con métricas reales Outscraper (10 Pro + 10 Core + 10 Discard, densidad de candidatos 66%). Batch detenido al 40/125 por control de coste tras error de estimación inicial.
-- **Top 15 enriquecido con búsqueda web manual:** ciudad, especialidades, dueños identificados (Rubén Rey en Taberna de Cunqueiro), reconocimientos (Solete Repsol 2025 en O Gato Negro, Bib Gourmand en Casa Marco, Michelin Guide en Noa Boutique), historia (centenaria 1922 en O Gato Negro, 300 años en O Sendeiro). Resultado en `velacre-outreach/prospects.md`.
-- **11 DMs personalizados** basados en Template E de Fogar da Carne. 7 restaurantes + 4 hotelitos boutique independientes (verificados sin cadena vía búsqueda web). Orden de ataque definido. En `velacre-outreach/dms-top11.md` + Google Doc subido al Drive del fundador.
-- **Fix pricing Outscraper en velacre-context.md:** corregido el shorthand incorrecto "~€0,02/llamada" (4 puntos afectados) al pricing oficial real **~$0,003 por reseña scrapeada** (Outscraper cobra por reseña, no por llamada). Esto implica ~$0,18 por llamada de 60 reseñas. Mini Radar real ~€0,13-0,18 (antes documentado como €0,05). Radar competencia real ~€0,22-0,28 (antes €0,02-0,06).
-- **Aprendizaje:** 2 errores consecutivos con Outscraper costaron ~$11 (modelo de pricing mal estimado + relanzar tras bug parseDate sin smoke test previo). Regla guardada en memoria del fundador: autorización explícita obligatoria para cualquier gasto en APIs de pago.
-
-### 2026-04-16 — Sesión intensiva: landing rework + Mini Radar arreglado + outreach en marcha
-- **Calculadora ROI eliminada** de la landing (hardcoded ES, no i18n, no resonaba con el target). Reemplazada por **Radar Preview dummy** con 3 competidores ficticios, 4 categorías con barras de score (0-10), badges de amenaza (Alta/Media/Baja) y overlay "Disponible en Pro". Genera FOMO mostrando lo que el plan Pro ofrece.
-- **Panel de Salud en landing ampliado:** añadidas 3 tarjetas dummy de análisis IA (brilla/quema/acción) con badge "Solo en Pro", replicando el aspecto real del dashboard Pro.
-- **Badges de pricing corregidos:** Core tenía "Más popular" hardcoded en español → ahora i18n (`core.badge`). Pro en EN decía "Most popular" (colisión con Core) → cambiado a "Top choice". Ambos badges usan claves de locale correctas en ES/EN/GAL.
-- **Onboarding: logo duplicado en móvil corregido.** Había un `<Link>Velacre</Link>` + `<h1>{ob.title}</h1>` que renderizaban "Velacre" dos veces. Eliminado el redundante, h1 ahora es clickable. Fix aplicado en las 3 ramas condicionales del mismo fichero (loading, GBP select, formulario).
-- **i18n completo:** todos los textos nuevos tienen claves en ES/EN/GAL. Gallego revisado (servizo, prezo, ameaza, queixan, recensions). 0 strings hardcodeados en componentes nuevos.
-- **Fix PDF em-dash:** los 3 generadores de PDF (mini radar, mensual, anual) ahora sustituyen em-dash/en-dash de LLMs por coma antes del strip WinAnsi, eliminando los huecos raros que aparecían en texto generado por IA.
-
-#### Mini Radar — rediseño crítico (bug + feature + fix timeout)
-
-- **Bug crítico resuelto**: el Mini Radar mostraba `% Respondidas: 0%` siempre. Causa: `AdminController.MiniRadar` llamaba a `GetCompetitorReviewsAsync` que construía el record `OutscraperReview` con solo 5 campos (sin `owner_answer`). Al contestar 0% en todos los PDFs, Velacre mentía a los prospects. Cabañitas del Bosque (83% real) y Porto Santo (0% real) tenían el mismo PDF falso hasta el fix.
-- **Nuevo método `GetRecentReviewsAsync(placeId, dias, maxReviews)`** en OutscraperService: usa `cutoff` server-side de Outscraper v3 + filtro client-side por fecha. Mapeo completo incluyendo `owner_answer` y `lang`. Helper privado `MapReview` compartido entre los 3 métodos del servicio (elimina duplicación).
-- **Fix del fix (timeout)**: primera versión usaba `maxReviews=200` que causaba `TaskCanceledException` a los 100s en Outscraper síncrono. Bajado a **60**, valor ya validado por el pipeline outreach (queries.json).
-- **Transparencia de fechas en el PDF**: la tarjeta KPI ahora dice "Reseñas analizadas: N / del X al Y". Header de página 1: *"Análisis de las N reseñas más recientes, del X al Y"*. Elimina el engaño potencial de "30 reseñas del último mes" cuando el sample cubría menos de 30 días (caso Cabañitas: 60 reseñas en 17 días) o cuando el negocio tenía menos volumen. Layout pasó de 4 tarjetas 2x2 (con "Últimos 30 días" redundante) a 3 tarjetas en fila.
-- **Nuevo campo `oportunidad`** en el análisis IA: Claude detecta UN patrón de mejora concreto (respuestas clonadas, positivas sin contestar, queja repetida ignorada, respuestas impersonales, velocidad asimétrica, falta firma) con título + descripción + 3 ejemplos reales extraídos de las reseñas. Se renderiza en pág 2 del PDF. Si no hay patrón claro, Claude devuelve `null` y la sección no aparece (regla estricta anti-alucinación). Llena la página 2 que antes quedaba casi vacía en negocios sin reseñas negativas pendientes — es el hook comercial más potente del informe.
-- **Polisher fixes PDF**: eliminado doble guión en bullets de fortalezas/debilidades ("+ - Texto" ahora es solo "+ Texto"). Añadida regex `/\s+([,.;:!?])/g → $1` en `safe()` de ambos PDF (mini-radar + report) para eliminar espacios antes de puntuación que Claude a veces mete.
-
-#### Outreach en marcha — primera oleada enviada
-
-- **DMs enviados**: el top 11 generado el 15 abril + Gumer (añadido tras Mini Radar) están casi todos enviados vía IG DM y email.
-- **Respuestas iniciales**: Porto Santo (Vigo) y Cabañitas del Bosque respondieron por IG → pidieron el PDF por email → clavan "visto" en correo (fase de evaluación).
-- **Research nuevo** añadido a la memoria de outreach:
-  - **Tiagos Churrasco** (Santiago) — chef Fran, churrascaria grande (200 comensales), 30 reseñas/mes, 40% respondidas → ICP ideal, pitch "no respondéis"
-  - **Lola & Lía** (Vigo) — hermanas Nazaret y Sheila Silva, cadena de 3 locales → fuera de ICP actual (multi-ubicación en backlog), parkeado hasta implementación
-  - **Gumer** (Pontevedra) — chef Andrés Virgós + sala Javier Coya, #1 TripAdvisor Pontevedra, 95% respondidas → pitch "ya respondéis pero..." como Hotel Plaza, ángulo Radar Competencia
-
-#### Infraestructura email operativa
-
-- **Gmail "Send as" con Resend SMTP configurado**: puedes enviar desde `info@velacre.com` a mano (móvil + desktop) manteniendo la app de Gmail. Setup: Resend SMTP (smtp.resend.com:465, user `resend`, password = RESEND_API_KEY) + "Treat as alias" marcado para headers limpios.
-- **Email Forwarding de Namecheap activado**: `info@velacre.com` → `infovelacre@gmail.com`. DNS MX del apex publicado (`eforward*.registrar-servers.com`), SPF apex auto-generado. Resend en `send.velacre.com` (subdominio aislado) sigue intacto — el MX de `send` pendiente de re-añadir manualmente en Host Records (Namecheap lo borró al cambiar preset). No bloquea envío, solo afecta tracking de bounces.
-
-#### Saldado de deuda en docs
-
-- **Auditoría completa** de `velacre-context.md` y `velacre-context-technical.md`: 20+ items stale corregidos (métricas de código, conteo de endpoints, descripción de Providers frontend, estado de Stripe.net eliminado, etc.).
-- **5 endpoints faltantes documentados** en ReviewController (analysis GET/POST, publish-google, summary alias, estado PUT). Header de controller corregido: 7→13 endpoints.
-- **Métricas actualizadas**: LOC ~18k→~21k, endpoints 45→49, claves i18n ~550→~800.
-
-#### Preparación para primer cliente de pago
-
-- **Lemon Squeezy tienda activa en producción** — los prospects que contesten "sí, me registro" pueden pagar directamente Core/Pro sin workaround.
-- **`SendRetainedReviewAlertAsync` documentado como dormant por diseño**: la retención ocurre síncronamente cuando el usuario pulsa "generar respuesta", ve el banner ⚠️ en directo. El método queda documentado con comentario explícito para evitar falsos positivos en auditorías futuras. Se conectará cuando exista auto-publicación o cron de generación batch.
-- **Backlog técnico pre-cliente**: verificado. **Cero bloqueantes técnicos** para primer registro. Smoke test end-to-end en móvil pendiente (responsabilidad operativa del fundador, no del código).
-
-### 2026-04-18 — Rediseño editorial completo (rama `20260418_redefine`)
-
-Reescritura de marca y shell visual de toda la webapp sin tocar lógica de negocio. 30+ commits en una rama dedicada. `20260418_mainbase` creada como snapshot del MVP previo por seguridad.
-
-#### Nueva identidad de marca
-
-- **Paleta editorial navy + crema** sustituye al slate-950/blue-600 genérico. Valores exactos: `#0A0E1A` ink, `#0F1729` ink-2, `#1A2236` ink-3, `#E8E2D4` paper, `#B8B1A0` paper-dim, `#6E7689` mute, `#4A6FE5` accent, `#6E9E7E` good, `#D4A84A` warn, `#C46A5C` danger.
-- **Logo oficial: sello de lacre con "V" monograma** (pack PWA entregado por el fundador en `images/Velacre/logo-options/pwa/`). Adoptado en todos los sitios de marca. Master PNG re-centrado simétricamente (trim + extend) porque el original tenía padding asimétrico que descolocaba el flex-alignment. Regenerados los 18 iconos del pack (favicon 16/32/48, apple-touch 120/152/180, android-chrome 192/512, maskable con 10% safe zone, mstile, og-image, logos 64-1024).
-- **Wordmark "velacre" minúsculas Cal Sans 700** reemplaza al "Velacre" capitalizado. Usado en NavBar, AppHeader, footer, auth pages.
-
-#### Landing completamente rediseñada
-
-7 secciones numeradas `01`–`07` con sistema editorial:
-- **Hero** con meta `ES · GAL · EN / V · 2026.04`, pill "Sin permanencia · plan gratis real", H1 con acento en color, ticker de 4 reseñas en vivo (oculto en móvil), hero-foot de 3 chips.
-- **Stats 4 celdas**: 6 tonos / <10s / 3 vecinos / 0€.
-- **01 Producto**: demo interactivo con 3 reseñas y 6 tonos con typing animation; swipe horizontal móvil para navegar entre reseñas (threshold 48px, `touch-action: pan-y`).
-- **02 Inteligencia**: Radar con 3 competidores dummy (`Competidor 1/2/3`, antes usaba nombres reales de restaurantes gallegos — despersonalizado), barras animadas por IntersectionObserver. 3 cards de insights (Acción/Fortaleza/Oportunidad) con franja lateral de color temático.
-- **03 Salud**: 4 KPIs (nota media / respondidas con mini-barra de sentimiento colapsada / nuevas / velocidad), 3 cards IA brilla/quema/acción.
-- **04 Flujo**: 3 pasos con hover (barra accent izquierda + color accent en numeral).
-- **05 Público**: 8 sectores agrupados (hostelería & tabernas, cafeterías, hoteles & casas rurales, clínicas & dentistas, peluquerías & estética, talleres mecánicos, academias & fisio, tiendas de barrio).
-- **06 Precios**: toggle mensual/anual centrado con pill "2 meses gratis" debajo, 3 planes con Pro destacado (fondo con gradient sutil accent + borde accent), caja transversal "Incluido en todos los planes".
-- **07 Empezar**: CTA final con watermark del sello al fondo, misma gramática de sec-idx que el resto.
-
-Anti-plantilla: cero glows, `blur-3xl`, `rounded-2xl`, `shadow-2xl`. Rules finas, numeración mono, small caps, bordes rectos radius 2-4px. Fade-in por IntersectionObserver en secciones/cards.
-
-#### Propagación de paleta a toda la app sin tocar JSX
-
-- Tokens Tailwind (`slate-*` 50-950, `blue-*` 50-950, `emerald-*`, `green-*`, `amber-*`, `yellow-*`, `red-*`, `indigo-*`, `white`) remapeados en `globals.css @theme inline` a los valores editoriales.
-- Los componentes siguen usando `bg-slate-900 text-blue-400` etc. pero renderizan con la paleta nueva. Dashboard, settings, onboarding, auth, admin, inicio, sales, health → todo migrado automáticamente.
-- PDFs intactos (jsPDF usa colores hardcoded).
-
-#### Shell unificado cross-app
-
-- `AppHeader` (logo VelacreMark + wordmark + negocio + plan badge + logout) y `AppFooter` (copyright mono + 3 legal links) como componentes compartidos.
-- Aplicados en `/inicio`, `/dashboard`, `/dashboard/salud`, `/settings`, `/admin`. Admin mantiene badge propio "Admin" como `rightExtra`.
-- `PublicShell` (NavBar editorial + FooterEditorial) en `/contacto`, `/privacidad`, `/terminos`.
-- `/admin/mini-radar` con header ad-hoc pero mismo tono editorial.
-- Mismo `rgba(10,14,26,0.96)` + blur 14px + border cream 12% que el NavBar de la landing — navegación sin saltos de tono.
-
-#### i18n: bloque editorial + limpieza copy
-
-- Nuevo bloque `landingEditorial` en los 3 locales (ES/EN/GAL) con ~60 claves: nav, hero, stats, sections, demo, radar, health, howto, forWho, pricing, cta, footer.
-- Gallego nativo (boca a boca, recensions, veciños, prezo).
-- Copy limpio:
-  - "ES-GL" → "GAL" en meta del hero.
-  - "PYME hispanohablante" → "PYME" (sin adjetivar).
-  - "único SaaS español" fuera del footer (no lo somos, en todo caso gallego).
-  - "Hecho en Santiago" → "Hecho en Ferrol" — luego retirado, footer minimal solo con copyright + Galicia ES.
-  - "IVA incluido" → "Sin tarjeta" (Velacre cobra sin IVA via Lemon Squeezy Merchant of Record, el anterior wording era incorrecto).
-  - Badges de plan normalizados por eje: Core "Más elegido" / Pro "Más completo" (antes "Más popular" + "El más elegido" solapaban).
-  - Precios anuales redondeados en display: 16€ y 41€ (antes 15,83 y 40,83 — precios reales 190/490 año no cambian).
-- Competidores del Radar demo despersonalizados (eran nombres reales de restaurantes gallegos, podían confundir).
-
-#### Micro-interacciones editoriales
-
-- Hovers sutiles (sin scale/shadow): ticker rows, radar rows no-mine, AI cards (border del color temático), plan cards Basic/Core, step rows (barra accent izquierda + numeral accent), nav links.
-- Fade-in de secciones con IntersectionObserver + transiciones `cubic-bezier(0.2, 0.7, 0.2, 1)`.
-- LangSwitcher y HelpButton con estética editorial (círculo 44px navy, border crema 22%, hover ink-3). Ambos globales vía globals.css. En móvil 38px con blur; lang izquierda, help derecha, sin solape.
-- **CountUp en los 4 KPIs del panel 03 Salud**: los números (4.3★, 68%, 12, 14h) cuentan desde 0 al valor objetivo cuando entran en viewport. IntersectionObserver + `requestAnimationFrame` con easing `cubic-out` (1.4s). Da sensación de "se está cargando el panel real" — refuerza el concepto del dashboard Pro antes de que el usuario haya entrado.
-
-#### Polish móvil exhaustivo
-
-- Gutter lateral `.wrap` 24px (antes 18-22), breakpoint adicional a 380px.
-- Section indices (01-07) y H2 centrados en móvil; sec-lede queda left-aligned.
-- Meta-bar del hero oculta en móvil (ruido en pantalla pequeña).
-- Hero-foot con bullets visibles, centrado, gap 10×18, wrap si no cabe.
-- Radar restructurado: cada competidor como sub-card stacked con labels mono de categoría a la izquierda, barra al medio, score a la derecha.
-- KPI 2×2 con border-left solo en columnas pares (antes todas, creaba línea fantasma al inicio de cada fila).
-- Pricing cards independientes con gap 12px (antes celdas pegadas en un grid con bordes compartidos).
-- Ticker oculto en móvil.
-
-#### Bug fixes de sesión
-
-- **OAuth loading state**: hook `useOAuthLoading` resetea el estado vía `pageshow` con `event.persisted` (bfcache restore) + `visibilitychange`. Antes: al pulsar "Entrar con Google" y volver atrás, el botón quedaba girando para siempre. Aplicado en landing, auth/login y auth/register.
-- **Logo descentrado**: fix descrito arriba (PNG re-centrado + AppHeader con lineHeight: 36px en spans para matchear altura del sello).
-- **Pro badge invisible**: había dos reglas CSS duplicadas `.plan.pro .plan-badge`, la posterior sobrescribía con `color: accent` sobre bg accent. Consolidada.
-- **Demo typing loop infinito**: `TypedBody` entraba en bucle porque `onDone` se re-creaba cada render. Fixed con `useCallback` + `useRef` interno.
-
-#### Estado de ramas al cierre
-
-- `main` = MVP funcional pre-rediseño.
-- `20260418_mainbase` = snapshot de `main` (mismo SHA).
-- `20260418_redefine` = todos los commits del rediseño, pushed a origin. Mergeable a main vía `git merge --no-ff` cuando se valide.
-
-### 2026-04-19/20 — Landing iteración 2 + cambio de límites (rama `20260418_redefine`)
-
-Continuación del rediseño editorial del 18 abril. Manuel revisa en móvil, detecta que la landing funciona en desktop pero se cae en móvil ("asquerosa"). Sesión dedicada a inversión de paleta, mobile-first real, enganche comercial y ajuste de límites de producto. ~20 commits sobre los 30 previos de la rama.
-
-#### Paleta invertida: crema base + módulos dark
-
-Ejecutado el spec `velacre-landing-redesign-spec.md` (escrito el 18, ejecutado el 19/20). Inversión de la paleta de la landing — de navy-everywhere a **crema (`#E8E2D4`) como fondo principal + módulos dark (`#0F1729`) solo donde hay producto real** (sec 01 Demo, 02 Radar, 03 Salud, card Pro de pricing, ticker hero). Secciones editoriales (hero, stats, 04 Flujo, 05 Público, 06 Precios crema, 07 CTA final, footer) todas en crema. Principio: **"el fondo es tu papel, lo oscuro es el producto"**.
-
-Webapp autenticada (`/inicio`, `/dashboard`, `/settings`, `/admin`) queda intacta en dark. Al entrar tras login el usuario no percibe salto porque ya vio esos módulos dark en la landing.
-
-#### Módulos renderizan UI real del dashboard
-
-Secciones 01/02/03 de la landing dejan de ser mockups estilizados con CSS editorial: **renderizan los mismos componentes, mismos tokens, mismas cards que `/dashboard`, `/dashboard/salud`** — solo con datos dummy. Técnica: envolver cada módulo en `<div className="dark">` para activar las variantes Tailwind `dark:*`, y copiar el JSX del dashboard (ReviewList, DetailPanel, KPIs, AI analysis cards, Radar table). Sin screenshots, sin imágenes fake. Lo que ves es lo que compras.
-
-#### Bugs de shorthand CSS con `padding` (2×)
-
-Bug raíz que aparece DOS veces a lo largo de la sesión:
-1. **`.sec { padding: 56px 0 }`** era shorthand y pisaba el padding horizontal de `.wrap` (`0 var(--gutter)`). Por eso cambiar el gutter de 16 a 36 no producía ningún efecto visible — el padding lateral siempre volvía a 0. Fix: separar `padding-top` / `padding-bottom`, sin shorthand.
-2. **Idéntico bug en `.prose-legal { padding: 56px 0 72px }`** una semana después. Páginas legales edge-to-edge hasta que se replica el fix. Regla aprendida: nunca `padding: X Y Z` shorthand en una clase que comparte elemento con `.wrap`.
-
-Un tercer bug relacionado: **flex-column shrinking con margin auto**. `.lp-main > *` con `.wrap { margin: 0 auto }` encogía a content-width en vez de llenar el cross-axis del flex. Fix: `.lp-main > * { width: 100% }` — auto margins ya no tienen holgura que consumir.
-
-#### Nav sin hamburguesa: iconos en todos los anchos
-
-La hamburguesa se descartó — "me parece feísima". Sustituida por **3 iconos mini** (producto, radar, precios) en la nav-row siempre visibles. Login agrupado con el CTA "Empezar gratis" en la derecha. En móvil (<380): iconos 32px sin label + CTA icon-only. Tablet+: iconos con label. Desktop 960+: icon+label completos. Se sacrifica visibilidad de los anchors por ahorro de toque; la alternativa hamburguesa era peor UX.
-
-#### Módulos unificados en móvil (Salud, Radar insights, Sectores, Flujo)
-
-Corrección tras feedback "en móvil salen las 3 en cards distintas, deberían salir juntas para dar legibilidad":
-- **Salud**: un solo card dark con 4 KPIs (grid 2×2 con borders internos) + separador + 3 filas AI con border-left color. Desktop: 4+3 cards separadas con fondos tintados emerald-950/red-950/blue-950.
-- **Radar insights**: 1 card crema con 3 zonas y border-left color. Desktop: 3 cards alturas iguales (`height: 100%`).
-- **Sectores** (sec 05): 1 card crema con 8 zonas grid 2×4. Desktop: 4×2 chips grandes (min-height 140-164px).
-- **Flujo** (sec 04): 1 card crema con 3 rows editorial. Desktop: 3 columnas igual altura.
-
-Todas siguen el mismo patrón: card unificado móvil / separated cards desktop, via media query en el propio contenedor.
-
-#### FOMO + enganche comercial (auditoría + cambios)
-
-Auditoría estructurada de FOMO/engagement concluyó landing 7.8/10 — sólida pero sin palancas conversoras. Ejecutados 4 cambios de alto ROI:
-
-1. **Sec "Datos del sector"** (nueva, entre sec 05 y sec 06). 3 stats externos con fuente:
-   - 87% de consumidores mira reseñas (BrightLocal 2024)
-   - +0.12★ media respondedores (Harvard Business School 2017)
-   - 2× clicks en negocios con 40+ reseñas (Google Business Profile)
-   Validación externa antes de la decisión de precio.
-
-2. **Tabla comparativa anonimizada** dentro de sec 06. 3 columnas "Competidor A (~€23)", "Competidor B (€249+)", "Velacre Pro (€49)" × 7 filas de features. Sin nombrar wiReply/RepScan explícitamente — el lector googlea si quiere. En móvil la tabla se rompe en 3 cards apiladas estilo **listado** (no cards de pricing — el usuario confundía con "segunda ronda de precios" la primera iteración).
-
-3. **Sec FAQ** (nueva, entre sec 06 y sec 07). 6 preguntas que desarman objeciones (reseñas falsas, cancelación, idiomas, tarjeta, conexión Google, ver antes). Card editorial crema.
-
-4. **Founding Price Banner** entre toggle y cards de pricing: **"−20% para siempre · primeros 20 negocios"**. Código `VELFOUND20` con botón Copiar (navigator.clipboard). Operativa en LS: crear discount con `Duration: Forever`, `Usage limit: 20`. Efectivo Core €19 → €15/mes para siempre, Pro €49 → €39/mes para siempre. Vs precio futuro post-GBP (Core €29, Pro €69), el founding lock equivale a ~48% off del precio futuro.
-
-**Help buttons "?"** añadidos en sec 01/02/03/06 (sec-idx). Click abre popover editorial con explicación de "cómo te ayuda esta feature" en tono vecino (sin tecnicismos), copy específico por sección. Respaldados por click-outside y Escape.
-
-**Ver demo link** "↓ Ver cómo funciona primero" en hero (scrollea a #producto) + "↑ Volver a la demo" en sec 07 CTA cierre. **Smooth scroll global** (`html { scroll-behavior: smooth }`) — anchors ya no saltan.
-
-#### Backend: cambio de límites de producto
-
-1. **Análisis IA** (panel Salud, endpoint `POST /api/review/analysis`): de **3/día (+1 bonus con 5+ reseñas nuevas)** a **1/día fijo**. Simplificación total: un análisis al día, se restablece a las 00:00 UTC.
-2. **Radar Competencia** (endpoint `POST /api/radar/analizar`): de **2/mes natural** a **1/semana ISO (lunes UTC)**. Nuevo helper privado `GetIsoWeekStart(DateTimeOffset)` en RadarController. Cambio de response shape: `analisisEsteMes` → `analisisEstaSemana` (con propagación a frontend types, salud/page.tsx, copy i18n ES/EN/GAL).
-3. Error string `ya_analizado_este_mes` → `ya_analizado_esta_semana`.
-4. Copy landing + in-app actualizado: `radarTooltip` "Hasta 2 análisis al mes" → "1 análisis a la semana"; `radarAlreadyAnalyzed` "este mes / mes que viene" → "esta semana / lunes que viene"; `aiLimitReached` "3 análisis/día" → "1 análisis/día"; helptext "cada mes" → "cada semana".
-
-Motivo: hacer que el plan Pro se sienta "premium acotado" en lugar de "barra libre con cap raro 250". Los límites nuevos son **fáciles de explicar** al prospect ("1 análisis al día, 1 radar a la semana") y previenen abuso sin bloquear uso legítimo.
-
-#### Polish transversal
-
-- **Hero CTAs**: iteraciones sucesivas de aire. Resuelto tras confirmar que padding shorthand NO estaba pisando (esta vez). Values finales: min-height 48, padding 14/20, font 14.5, gap 12, max-width 360 centrado móvil. Proporciones alineadas con el resto de botones del sitio (pricing .plan-cta, auth-submit).
-- **Wordmark "velacre"** alineado con el logo vía `line-height: [logo-size]px + margin-top: -2px` para compensar descender. Aplicado en NavBar editorial, AppHeader dashboard (ya lo tenía), auth-brand de login/register.
-- **Pro card pricing**: contraste reducido. bg `--mod-bg` (#0F1729) → `--ink-3` (#1A2236, más claro). Border accent sólido → rgba(74,111,229,0.55) translúcido. Más armónico con crema sin perder jerarquía.
-- **Sec 07 watermark** (sello de lacre fondo): opacity 0.05 → 0.11. Antes casi invisible, ahora perceptible sin dominar.
-- **Copy microedits ES/EN/GAL**:
-  - Em-dashes `—` y en-dashes `–` barridos (firma IA). Reemplazados por comas/puntos. Labels "Reseña — Google" → "Reseña · Google" con interpuncto.
-  - Stats labels: "6 tonos, de profesional a humorístico" → "tonos, cada respuesta suena como tú". Pasa de describir mecánica a describir beneficio.
-  - Hero sub: "Velacre las contesta, las entiende y te dice qué hacen mejor" → "Velacre las contesta en tu tono, te dice qué está fallando antes de que lo noten tus clientes y vigila qué hacen mejor tus vecinos." Tres verbos concretos.
-  - Sec 05 H2: "Pensado para dueños. No para agencias." → "Del asador a la clínica. Donde haya reseñas, funciona." (eliminada duplicación con hero sub).
-  - Sec 02 "Oportunidad" → "Patrón detectado" con copy que demuestra capacidad pattern-detection del mini-radar ("respondes 68% total pero solo 25% de 5★, 12 clientes ignorados").
-  - "0,12★" → "0.12★" (punto, no coma, en ES/GAL).
-  - "baja al demo" → "baja a la demo" (feminino correcto en español estándar).
-  - `vatNote`: removido "Cobro gestionado por Lemon Squeezy" (los prospects que quieran comprobar se leen los términos).
-
-#### Legal / auth / contacto — todo editorial, no bloggy
-
-- **Prose-legal** (privacidad, términos, contacto): H1 Cal Sans 36→56→64px, H2 22→30→34px con margin-top 56→80 (pausas amplias), body 15.5→16.5 line-height 1.78, margins p/ul más generosos. Links: fuera accent-azul-underline, ahora ink + border-bottom sutil (mismo patrón editorial que auth pages).
-- **Contacto** rediseñado de 3 cards paper-2 con boxes a **definition-list** editorial. Mobile: mono label arriba → email Cal Sans grande con underline → body + note. Desktop: label 180px baseline-left + content right. Sin boxes.
-- **Auth pages** (login/register/reset-password) migradas a crema con `.auth-*` utilities. Register compacto para caber sin scroll en 375×812. Links sin azul subrayado.
-
-#### Estado de ramas al cierre
-
-- `20260418_redefine` con ~20 commits nuevos sobre los 30 del 18 abril. Pushed a origin.
-- Build limpio (`next build` 22 rutas + `dotnet build`) al cerrar. Tests no afectados.
-- Pendiente: smoke test en móvil físico real (spec pedía iPhone SE 2020, iPhone 14, Pixel 7, Galaxy S23 mínimo) antes de merge. Preview emulado validado durante la sesión.
-
----
-
-## 13. Pendiente estratégico y técnico
+## 12. Pendiente estratégico y técnico
 
 ### Prioridad máxima — Activar GBP
 - Aprobación de Google enviada (7-10 días hábiles). Backend listo.
-- Al activar: quitar CSS de badges "Próximamente" + subir precios Core/Pro.
+- Al activar: quitar CSS de badges "Próximamente" + subir precios Core/Pro (€19→€29, €49→€69).
 - Cierra el flanco abierto #1 vs wiReply.
 
-### ~~Prioridad máxima — Activar pagos~~ ✅ Resuelto 2026-04-16
-- Tienda Lemon Squeezy **activa en producción (live mode)**. Los prospects pueden pagar Core/Pro directamente.
-- Descuentos creados (99% test para QA, 15% primeros clientes para outreach).
-- Próximo paso operativo: cuando cierre el primer cliente, generarle el cupón 15% antes de mandarle el link de checkout.
+### Pagos operativos
+- Tienda Lemon Squeezy **activa en producción** (live mode). Los prospects pueden pagar Core/Pro directamente desde el onboarding.
+- Descuentos creados: 99% para test/QA, 15% para primeros clientes captados por outreach, `VELFOUND20` (−20% forever) para los primeros 20.
+- Próximo paso operativo al cerrar el primer cliente: generarle el cupón 15% antes de mandarle el link de checkout.
 
 ### Prioridad alta — Outreach / Captación
 
@@ -611,7 +352,8 @@ Motivo: hacer que el plan Pro se sienta "premium acotado" en lugar de "barra lib
 - **Eliminación de reseñas (Pro):** Claude genera texto de reclamación según políticas de Google → usuario copia y pega en formulario oficial. Velacre no elimina, Google decide.
 - **Modo supervisado + auto-publicación:** supervisado es el modo por defecto (decidido). Auto-publicar requiere toggle activo en Settings + guardar. Implementar cuando GBP esté activo.
 - **Multi-ubicación:** soporte `negocio[]` por usuario, pricing por local adicional (~€20/mes).
-- **Tests:** ~12-15% cobertura (53 tests, 2026-04-14). Backend: ClaudeService + NegocioController + UsuarioController. Frontend: API client + modules + hooks + componentes. Próximos: ReviewController, LemonController, flujos e2e.
+- **Panel Salud Core (decidir):** o activamos una versión mínima real (nota media + % respondidas + conteo, sin IA) o unificamos Basic+Core en el teaser blurred. Hoy Core muestra lo mismo que Basic salvo el bullet de marketing (que ya está corregido).
+- **Tests:** ~12-15% cobertura (53 tests). Backend: ClaudeService, NegocioController, UsuarioController. Frontend: API client + modules + hooks + componentes. Próximos: ReviewController, LemonController, flujos e2e.
 - **Rate limiting aplicativo:** no crítico sin atacantes, buena práctica para producción.
 
 ### Ideas futuras (post-tracción)
@@ -623,7 +365,7 @@ Motivo: hacer que el plan Pro se sienta "premium acotado" en lugar de "barra lib
 
 ---
 
-## 14. Objetivos de negocio
+## 13. Objetivos de negocio
 
 - **2026:** empezar a facturar para no depender de un empleador. Meta: 25.000€ ARR.
 - **Primer hito:** 1 cliente de pago cerrado antes de escalar outreach.
@@ -632,7 +374,7 @@ Motivo: hacer que el plan Pro se sienta "premium acotado" en lugar de "barra lib
 
 ---
 
-## 15. Outreach — herramientas disponibles
+## 14. Outreach — herramientas disponibles
 
 - **Mini Radar** (`/admin/mini-radar`): genera informe PDF de cualquier negocio en ~10s. Incluye stats, diagnóstico IA, email pitch pre-personalizado.
 - **Word de templates** (`velacre-email-templates-outreach.docx`): 5 plantillas (A-E) con workflow. Template E es el DM exacto para O Fogar da Carne.
