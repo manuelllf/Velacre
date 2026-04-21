@@ -1,4 +1,6 @@
-﻿namespace backend.Interfaces;
+﻿using backend.Models.Responses;
+
+namespace backend.Interfaces;
 
 public interface IReviewAiService
 {
@@ -24,19 +26,20 @@ public interface IReviewAiService
         string reviewText, string businessDesc);
 
     /// <summary>
-    /// Genera un análisis comparativo de reputación frente a competidores.
-    /// Devuelve JSON con tuFortaleza, tuDebilidad, competidores[], oportunidades[], accion.
+    /// Análisis comparativo de reputación frente a competidores.
+    /// Structured output vía Anthropic tool-use: el SDK valida el schema antes de devolver,
+    /// por lo que el resultado es siempre un objeto tipado válido (o se lanza excepción).
     /// </summary>
-    Task<string> GenerateRadarAnalysisAsync(
+    Task<RadarAnalysis> AnalyzeRadarAsync(
         string miNegocioNombre,
         List<string> misResenas,
         List<(string Nombre, List<string> Resenas)> competidores);
 
     /// <summary>
-    /// Genera un análisis rápido para el mini-radar (admin/prospección).
-    /// Devuelve JSON con fortalezas, debilidades, accion, resumen, emailPitch.
+    /// Análisis rápido para el mini-radar (admin/prospección).
+    /// Structured output vía Anthropic tool-use con schema forzado. Garantía de JSON válido.
     /// </summary>
-    Task<string> GenerateMiniRadarAnalysisAsync(string nombreNegocio, string resenasText,
+    Task<MiniRadarAnalysis> AnalyzeMiniRadarAsync(string nombreNegocio, string resenasText,
         double ratingAvg, int pctRespondidas, int totalAnalizadas,
         DateTimeOffset fechaDesde, DateTimeOffset fechaHasta);
 }

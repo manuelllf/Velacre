@@ -180,9 +180,9 @@ export interface MiniRadarPeorResena {
 }
 
 export interface MiniRadarOportunidad {
-  titulo: string           // MAYÚSCULAS, max 50 chars
-  descripcion: string      // 2-3 frases, max 400 chars
-  ejemplos: string[] | null // 0-3 extractos reales, max 140 chars cada uno
+  titulo: string        // MAYÚSCULAS, max 50 chars
+  descripcion: string   // 2-3 frases, max 400 chars
+  ejemplos: string[]    // 2-3 extractos reales, max 140 chars cada uno (schema-garantizado)
 }
 
 export interface MiniRadarAnalisis {
@@ -199,7 +199,6 @@ export interface MiniRadarResult {
   nombre?: string
   stats: MiniRadarStats
   peoresSinResponder: MiniRadarPeorResena[]
-  analisis: MiniRadarAnalisis | null
-  analisisRaw?: string | null
+  analisis: MiniRadarAnalisis
   generadoEn: string
 }

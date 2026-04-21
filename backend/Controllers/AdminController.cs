@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Infrastructure;
@@ -275,37 +274,20 @@ public class AdminController : ControllerBase
 
         var nombreDisplay = string.IsNullOrWhiteSpace(request.Nombre) ? "el negocio" : request.Nombre;
 
-        string analisisRaw;
+        backend.Models.Responses.MiniRadarAnalysis analisis;
         try
         {
-            analisisRaw = await _aiService.GenerateMiniRadarAnalysisAsync(
+            analisis = await _aiService.AnalyzeMiniRadarAsync(
                 nombreDisplay, resenasText, ratingAvg, pctRespondidas, total, fechaDesde, fechaHasta);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[MiniRadar] Error en Claude");
-            return StatusCode(500, new { error = "ai_error", mensaje = "Error al analizar con IA. Inténtalo de nuevo." });
+            _logger.LogError(ex, "[MiniRadar] Claude falló tras reintentos");
+            return StatusCode(502, new { error = "ai_unavailable", mensaje = "El servicio de IA no pudo completar el análisis. Inténtalo de nuevo en unos segundos." });
         }
 
-        var jsonStart = analisisRaw.IndexOf('{');
-        var jsonEnd = analisisRaw.LastIndexOf('}');
-        var analisisLimpio = jsonStart >= 0 && jsonEnd > jsonStart
-            ? analisisRaw[jsonStart..(jsonEnd + 1)]
-            : "{}";
-
-        JsonElement? analisisParsed = null;
-        try
-        {
-            using var doc = JsonDocument.Parse(analisisLimpio);
-            analisisParsed = doc.RootElement.Clone();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "[MiniRadar] No se pudo parsear el JSON de Claude, devolviendo raw");
-        }
-
-        _logger.LogInformation("[MiniRadar] OK — total={Total} respondidas={Pct}% rating={Rating:F2}",
-            total, pctRespondidas, ratingAvg);
+        _logger.LogInformation("[MiniRadar] OK — total={Total} respondidas={Pct}% rating={Rating:F2} oportunidad={Op}",
+            total, pctRespondidas, ratingAvg, analisis.Oportunidad?.Titulo ?? "—");
 
         return Ok(new
         {
@@ -321,8 +303,7 @@ public class AdminController : ControllerBase
                 fechaHasta,
             },
             peoresSinResponder,
-            analisis = analisisParsed,
-            analisisRaw = analisisParsed == null ? analisisLimpio : null,
+            analisis,
             generadoEn = DateTimeOffset.UtcNow,
         });
     }

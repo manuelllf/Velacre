@@ -1,7 +1,11 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Anthropic.SDK;
 using Anthropic.SDK.Messaging;
 using backend.Interfaces;
+using backend.Models.Responses;
 using Microsoft.Extensions.Logging;
+using SdkCommon = Anthropic.SDK.Common;
 
 namespace backend.Services;
 
@@ -262,12 +266,119 @@ public class ClaudeService : IReviewAiService
         throw new InvalidOperationException("Claude API overloaded tras 3 intentos");
     }
 
-    public async Task<string> GenerateRadarAnalysisAsync(
+    // ─── Structured output helper ────────────────────────────────────────────
+    // Fuerza a Claude a llamar a un tool con schema JSON estricto. La API valida
+    // los argumentos contra el schema antes de devolvernos la respuesta, así que
+    // el objeto deserializado siempre cumple el contrato (o la llamada falla).
+    // Reintenta ante errores transitorios (overloaded / red) y logea el uso real
+    // de tokens para poder ajustar MaxTokens con datos empíricos.
+    // ─────────────────────────────────────────────────────────────────────────
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+    };
+
+    private async Task<T> GetStructuredOutputAsync<T>(
+        string systemPrompt,
+        string userPrompt,
+        string toolName,
+        string toolDescription,
+        JsonNode inputSchema,
+        int maxTokens,
+        string logContext,
+        decimal temperature = 0.5m) where T : class
+    {
+        SdkCommon.Tool tool = new SdkCommon.Function(toolName, toolDescription, inputSchema);
+
+        var parameters = new MessageParameters
+        {
+            Messages    = [new Message(RoleType.User, userPrompt)],
+            Model       = _model,
+            MaxTokens   = maxTokens,
+            Temperature = temperature,
+            System      = string.IsNullOrEmpty(systemPrompt) ? null : [new SystemMessage(systemPrompt)],
+            Tools       = [tool],
+            ToolChoice  = new ToolChoice { Type = ToolChoiceType.Tool, Name = toolName },
+        };
+
+        const int maxAttempts = 2;
+        Exception? lastEx = null;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                var response = await _client.Messages.GetClaudeMessageAsync(parameters);
+
+                if (response.Usage is not null)
+                {
+                    _logger.LogInformation(
+                        "[ClaudeService] {Ctx} usage in={In} out={Out} (maxTokens={Max}, stop={Stop})",
+                        logContext, response.Usage.InputTokens, response.Usage.OutputTokens,
+                        maxTokens, response.StopReason ?? "?");
+                }
+
+                var toolUse = response.Content?
+                    .OfType<ToolUseContent>()
+                    .FirstOrDefault(c => c.Name == toolName);
+
+                if (toolUse?.Input is null)
+                {
+                    lastEx = new InvalidOperationException(
+                        $"Claude no emitió tool_use '{toolName}' (stop={response.StopReason})");
+                    _logger.LogWarning("[ClaudeService] {Ctx} sin tool_use (intento {N}/{Max})",
+                        logContext, attempt, maxAttempts);
+                    continue;
+                }
+
+                var parsed = toolUse.Input.Deserialize<T>(JsonOpts);
+                if (parsed is null)
+                {
+                    lastEx = new InvalidOperationException("Deserialización de tool_use.Input devolvió null");
+                    _logger.LogWarning("[ClaudeService] {Ctx} deserialize null (intento {N}/{Max}). Raw: {Raw}",
+                        logContext, attempt, maxAttempts, toolUse.Input.ToJsonString());
+                    continue;
+                }
+
+                return parsed;
+            }
+            catch (Exception ex) when (attempt < maxAttempts && IsTransient(ex))
+            {
+                lastEx = ex;
+                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt));
+                _logger.LogWarning(ex, "[ClaudeService] {Ctx} transient (intento {N}/{Max}), reintentando en {Delay}s",
+                    logContext, attempt, maxAttempts, delay.TotalSeconds);
+                await Task.Delay(delay);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[ClaudeService] {Ctx} error no recuperable", logContext);
+                throw;
+            }
+        }
+
+        _logger.LogError(lastEx, "[ClaudeService] {Ctx} agotó reintentos", logContext);
+        throw new InvalidOperationException(
+            $"[ClaudeService] {logContext} falló tras {maxAttempts} intentos: {lastEx?.Message}", lastEx);
+    }
+
+    private static bool IsTransient(Exception ex)
+    {
+        var msg = ex.Message ?? string.Empty;
+        return msg.Contains("overloaded_error", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("rate_limit", StringComparison.OrdinalIgnoreCase)
+            || ex is HttpRequestException
+            || ex is TaskCanceledException;
+    }
+
+    public async Task<RadarAnalysis> AnalyzeRadarAsync(
         string miNegocioNombre,
         List<string> misResenas,
         List<(string Nombre, List<string> Resenas)> competidores)
     {
-        _logger.LogInformation("[ClaudeService] GenerateRadarAnalysisAsync — negocio={Negocio}, competidores={Count}", miNegocioNombre, competidores.Count);
+        _logger.LogInformation("[ClaudeService] AnalyzeRadarAsync — negocio={Negocio}, competidores={Count}",
+            miNegocioNombre, competidores.Count);
 
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($"## Tu negocio: {miNegocioNombre}");
@@ -281,45 +392,81 @@ public class ClaudeService : IReviewAiService
             foreach (var r in resenas.Take(20)) sb.AppendLine($"- {r}");
         }
 
-        var competidoresSchema = string.Join(",", competidores.Select(c =>
-            $"{{\"nombre\":\"{c.Nombre}\",\"fortaleza\":\"...\",\"debilidad\":\"...\",\"amenaza\":\"alta|media|baja\"}}"));
-
         var systemPrompt =
-            "Eres un experto en gestión de reputación online. Analiza las reseñas reales de un negocio y sus competidores." +
-            "Sé específico, directo y accionable — nada de frases genéricas. Máximo 2 frases por campo. " +
-            "Identifica las 4 categorías más relevantes que emergen de las reseñas (p.ej: comida, trato, limpieza, precio, ambiente, servicio, rapidez...). " +
-            "Para cada categoría puntúa el sentimiento de 0-10 (0=muy negativo, 10=muy positivo) basándote en las reseñas reales. " +
-            "Devuelve ÚNICAMENTE este JSON (sin markdown):\n" +
-            "{\"tuFortaleza\":\"...\",\"tuDebilidad\":\"...\"," +
-            "\"competidores\":[{\"nombre\":\"...\",\"fortaleza\":\"...\",\"debilidad\":\"...\",\"amenaza\":\"alta|media|baja\"}]," +
-            "\"oportunidades\":[\"...\",\"...\"]," +
-            "\"accion\":\"Una acción concreta que puedes hacer esta semana\"," +
-            "\"categorias\":[{\"nombre\":\"...\",\"yo\":8.5,\"rivales\":[{\"nombre\":\"...\",\"score\":7.2}],\"insight\":\"1 frase accionable basada en la diferencia\"}]," +
-            "\"accionPro\":\"Acción concreta y específica basada en donde tu competencia falla esta semana\"}";
+            "Eres un experto en gestión de reputación online. Analizas las reseñas reales de un negocio y sus competidores. " +
+            "Sé específico, directo y accionable — nada de frases genéricas. Máximo 2 frases por campo de texto. " +
+            "Identifica exactamente 4 categorías que emergen de las reseñas (comida, trato, limpieza, precio, ambiente, servicio, rapidez, u otras que realmente aparezcan). " +
+            "Para cada categoría puntúa el sentimiento de 0.0 a 10.0 (0=muy negativo, 10=muy positivo) basándote en las reseñas reales del negocio y de cada competidor mencionado. " +
+            "El campo 'amenaza' de cada competidor debe ser exactamente uno de: 'alta', 'media', 'baja'. " +
+            "Llama a la herramienta 'registrar_analisis_radar' con los resultados. No devuelvas texto fuera de la herramienta.";
 
-        var parameters = new MessageParameters
-        {
-            Messages = [new Message(RoleType.User, sb.ToString())],
-            Model    = _model,
-            MaxTokens = 2200,
-            Temperature = 0.5m,
-            System = [new SystemMessage(systemPrompt)]
-        };
-
-        try
-        {
-            var response = await _client.Messages.GetClaudeMessageAsync(parameters);
-            var raw = response.Content.FirstOrDefault()?.ToString() ?? "{}";
-            var jsonStart = raw.IndexOf('{');
-            var jsonEnd   = raw.LastIndexOf('}');
-            return jsonStart >= 0 && jsonEnd > jsonStart ? raw[jsonStart..(jsonEnd + 1)] : raw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[ClaudeService] Error en GenerateRadarAnalysisAsync");
-            throw;
-        }
+        return await GetStructuredOutputAsync<RadarAnalysis>(
+            systemPrompt:    systemPrompt,
+            userPrompt:      sb.ToString(),
+            toolName:        "registrar_analisis_radar",
+            toolDescription: "Registra el análisis comparativo de reputación del negocio frente a sus competidores.",
+            inputSchema:     BuildRadarSchema(),
+            maxTokens:       2500,
+            logContext:      "AnalyzeRadarAsync",
+            temperature:     0.4m);
     }
+
+    private static JsonNode BuildRadarSchema() => JsonNode.Parse("""
+    {
+      "type": "object",
+      "properties": {
+        "tuFortaleza":  { "type": "string", "description": "Mayor fortaleza del negocio frente a competidores, basada en reseñas reales. Máx 2 frases." },
+        "tuDebilidad":  { "type": "string", "description": "Mayor debilidad del negocio frente a competidores, concreta y accionable. Máx 2 frases." },
+        "competidores": {
+          "type": "array",
+          "description": "Un item por competidor analizado. Respeta el orden y los nombres recibidos.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "nombre":    { "type": "string", "description": "Nombre del competidor, tal como fue recibido." },
+              "fortaleza": { "type": "string", "description": "Fortaleza clara de este competidor. Máx 1-2 frases." },
+              "debilidad": { "type": "string", "description": "Debilidad clara de este competidor. Máx 1-2 frases." },
+              "amenaza":   { "type": "string", "enum": ["alta", "media", "baja"], "description": "Nivel de amenaza competitiva." }
+            },
+            "required": ["nombre", "fortaleza", "debilidad", "amenaza"]
+          }
+        },
+        "oportunidades": {
+          "type": "array",
+          "description": "Oportunidades concretas que emergen del análisis. 2-4 items, cada uno una frase accionable.",
+          "items": { "type": "string" }
+        },
+        "accion":       { "type": "string", "description": "Una acción concreta que puedes hacer esta semana. Máx 2 frases." },
+        "categorias": {
+          "type": "array",
+          "description": "Exactamente 4 categorías relevantes con puntuaciones 0-10.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "nombre":  { "type": "string", "description": "Nombre corto de la categoría (ej: 'comida', 'trato', 'limpieza')." },
+              "yo":      { "type": "number", "description": "Puntuación 0.0-10.0 del negocio propio en esta categoría." },
+              "rivales": {
+                "type": "array",
+                "description": "Un item por competidor con su score 0-10 en esta categoría.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "nombre": { "type": "string" },
+                    "score":  { "type": "number", "description": "0.0-10.0" }
+                  },
+                  "required": ["nombre", "score"]
+                }
+              },
+              "insight": { "type": "string", "description": "Una frase accionable basada en la diferencia entre tu score y el de los rivales." }
+            },
+            "required": ["nombre", "yo", "rivales", "insight"]
+          }
+        },
+        "accionPro":    { "type": "string", "description": "Acción concreta basada en dónde tu competencia falla esta semana. Máx 2 frases." }
+      },
+      "required": ["tuFortaleza", "tuDebilidad", "competidores", "oportunidades", "accion", "categorias", "accionPro"]
+    }
+    """)!;
 
     private async Task<string> GenerateSingleAsync(
         string reviewText, string businessDesc, string tone, string toneInstructions)
@@ -357,44 +504,92 @@ public class ClaudeService : IReviewAiService
         }
     }
 
-    public async Task<string> GenerateMiniRadarAnalysisAsync(string nombreNegocio, string resenasText,
-        double ratingAvg, int pctRespondidas, int totalAnalizadas, DateTimeOffset fechaDesde, DateTimeOffset fechaHasta)
+    public async Task<MiniRadarAnalysis> AnalyzeMiniRadarAsync(string nombreNegocio, string resenasText,
+        double ratingAvg, int pctRespondidas, int totalAnalizadas,
+        DateTimeOffset fechaDesde, DateTimeOffset fechaHasta)
     {
-        var systemPrompt =
+        // El system prompt ya no describe la estructura JSON — eso vive en el schema.
+        // Aquí solo las reglas de tono, contenido y qué evitar. Esto reduce input tokens
+        // y concentra al modelo en el contenido en lugar de en la forma.
+        const string systemPrompt =
             "Eres un asesor de confianza que ayuda a dueños de bares, restaurantes, hoteles y clínicas pequeñas a entender qué dicen sus clientes en Google. " +
-            "IMPORTANTE — Lenguaje: tu audiencia son dueños de negocio de PYMEs gallegas que NO son técnicos. NO uses NUNCA jerga como 'SEO', 'CTR', 'ranking', 'visibilidad orgánica', 'posicionamiento web', 'keywords', 'engagement', 'conversion', 'call-to-action', 'KPI', 'sentiment', 'review management'. " +
-            "En lugar de eso, habla como hablaría un amigo del dueño: 'salir antes cuando alguien busca en Google', 'que más gente te vea y entre a comer', 'aparecer arriba del todo cuando buscan restaurantes en tu zona', 'que Google recomiende tu negocio', 'la gente que te busca en el móvil', 'la primera impresión que dan las estrellas', 'lo que leen los clientes antes de reservar'. " +
-            "Frases cortas. Palabras normales. Como le hablarías a alguien en la barra del bar. Puedes usar expresiones gallegas naturales si encajan pero sin forzar. " +
-            "Analiza las reseñas proporcionadas Y las respuestas del propietario. Devuelve ÚNICAMENTE un JSON válido (sin markdown, sin prefijo) con esta estructura EXACTA:\n" +
-            "{\n" +
-            "  \"fortalezas\": [\"breve fortaleza 1 en lenguaje humano (max 90 chars)\", \"breve fortaleza 2\"],\n" +
-            "  \"debilidades\": [\"breve debilidad 1 en lenguaje humano (max 90 chars)\", \"breve debilidad 2\"],\n" +
-            "  \"accion\": \"una acción concreta y accionable para esta semana, en lenguaje de dueño de bar (max 140 chars). Ejemplo bueno: 'Responded a las 5 últimas reseñas negativas hoy mismo — cada respuesta que ponéis hace que Google os enseñe a más gente'. Ejemplo malo: 'Optimizar CTR mediante respuestas proactivas para mejorar SEO local'.\",\n" +
-            "  \"resumen\": \"3 frases resumen del estado actual, en lenguaje humano sin tecnicismos (max 300 chars). Habla de estrellas, de qué dicen los clientes, y de qué está pasando con las respuestas — nada de 'reputación online' ni 'presencia digital'.\",\n" +
-            "  \"emailPitch\": \"2 párrafos cortos de mensaje dirigido al dueño, como si fuera un vecino que ha notado algo y quiere echarle una mano. Menciona 1 hallazgo concreto de las reseñas. Propón mandarle el informe PDF gratis sin compromiso. Firma: Manuel, Velacre.com. NO menciones precios. NO uses jerga. NO seas comercial estándar — sé cercano y honesto.\",\n" +
-            "  \"oportunidad\": null o un objeto { \"titulo\": \"NOMBRE CORTO EN MAYÚSCULAS del patrón detectado (max 50 chars). Ej: 'RESPUESTAS CLONADAS', 'POSITIVAS SIN CONTESTAR', 'QUEJA REPETIDA IGNORADA'\", \"descripcion\": \"2-3 frases explicando el patrón y por qué le importa al dueño (max 400 chars). Lenguaje humano, concreto, con datos de las reseñas reales.\", \"ejemplos\": [\"ejemplo concreto extraído de UNA reseña real, mencionando nombre del cliente si aparece (max 140 chars)\", \"ejemplo 2\", \"ejemplo 3\"] }\n" +
-            "}\n" +
-            "SOBRE 'oportunidad': busca UN patrón de mejora claro que el dueño no ve y que se puede arreglar con acción específica. Ejemplos de patrones válidos:\n" +
-            " - Respuestas clonadas: todas las respuestas del propietario empiezan con la misma plantilla o dicen casi lo mismo.\n" +
-            " - Positivas sin contestar: reseñas de 4-5★ sin respuesta mientras que hay respuesta en otras (oportunidad perdida).\n" +
-            " - Queja repetida ignorada: 3+ reseñas mencionan el mismo problema (espera, ruido, precio) pero las respuestas no lo abordan.\n" +
-            " - Respuestas impersonales: no mencionan lo que el cliente cuenta, solo agradecen genérico.\n" +
-            " - Velocidad asimétrica: las 5★ se contestan rápido, las 1-2★ se dejan días.\n" +
-            " - Falta de firma personal: el dueño nunca firma con su nombre, respuestas anónimas.\n" +
-            "Regla dura sobre 'oportunidad': si NO hay un patrón claro y evidente en los datos reales, devuelve \"oportunidad\": null. PROHIBIDO inventar patrones o exagerar. Si hay dudas, null.\n" +
-            "Reglas duras generales: (1) No inventes datos que no estén en las reseñas. (2) No uses comillas dobles dentro de los valores de los strings JSON, usa apóstrofes si necesitas. (3) Si encuentras la palabra 'SEO' o 'ranking' o 'CTR' en tu borrador, reescríbelo en lenguaje humano antes de devolverlo. (4) Los 'ejemplos' del campo oportunidad deben ser extractos reales, no invenciones. (5) Puntuación correcta: NUNCA pongas espacio antes de coma, punto, punto y coma o dos puntos. Escribe 'hola, qué tal' NO 'hola , qué tal'. Escribe 'final.' NO 'final .'. Tampoco empieces los items de arrays con guión ('-') porque el layout del PDF ya los rendera con su propio bullet.";
+            "LENGUAJE: tu audiencia son dueños de PYMEs gallegas que NO son técnicos. NO uses NUNCA jerga como 'SEO', 'CTR', 'ranking', 'visibilidad orgánica', 'posicionamiento web', 'keywords', 'engagement', 'conversion', 'call-to-action', 'KPI', 'sentiment', 'review management', 'reputación online', 'presencia digital'. " +
+            "Habla como hablaría un amigo del dueño: 'salir antes cuando alguien busca en Google', 'que más gente te vea y entre a comer', 'aparecer arriba cuando buscan en tu zona', 'que Google recomiende tu negocio', 'la primera impresión que dan las estrellas', 'lo que leen los clientes antes de reservar'. Frases cortas. Palabras normales. Puedes usar expresiones gallegas naturales si encajan pero sin forzar.\n\n" +
+            "SOBRE 'oportunidad': busca UN patrón de mejora claro que el dueño no ve y que se puede arreglar con acción específica. Patrones válidos típicos: respuestas clonadas (todas iguales), positivas sin contestar (4-5★ sin respuesta), queja repetida ignorada (3+ reseñas mencionan lo mismo sin que las respuestas lo aborden), respuestas impersonales (solo agradecen genérico), velocidad asimétrica (5★ contestadas rápido, 1-2★ dejadas días), falta de firma personal. " +
+            "Si NO hay un patrón claro y evidente, devuelve oportunidad=null. PROHIBIDO inventar patrones o exagerar.\n\n" +
+            "REGLAS DURAS: (1) No inventes datos que no estén en las reseñas. (2) Si usas la palabra 'SEO'/'ranking'/'CTR' reescríbelo en lenguaje humano antes de devolver. (3) Los ejemplos de oportunidad deben ser extractos reales, mencionando nombre del cliente si aparece. (4) Puntuación correcta: sin espacio antes de coma/punto ('hola, qué tal' no 'hola , qué tal'). (5) No empieces items de arrays con guión — el PDF ya pinta su bullet.\n\n" +
+            "El emailPitch debe ser 2 párrafos cortos dirigidos al dueño como si fueras un vecino que ha notado algo, mencionar 1 hallazgo concreto de las reseñas, proponer mandarle el informe PDF gratis sin compromiso, firmado 'Manuel, Velacre.com'. Sin precios, sin jerga, cercano y honesto.";
 
-        // Formato de fechas en español (ej: "17 mar 2026")
-        var desdeStr = fechaDesde.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-ES"));
-        var hastaStr = fechaHasta.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-ES"));
+        var desdeStr  = fechaDesde.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-ES"));
+        var hastaStr  = fechaHasta.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-ES"));
         var rangoDias = (int)Math.Round((fechaHasta - fechaDesde).TotalDays);
 
         var userPrompt =
             $"Negocio: {nombreNegocio}\n" +
             $"Stats: {totalAnalizadas} reseñas analizadas (publicadas entre {desdeStr} y {hastaStr}, rango de {rangoDias} días), rating medio {ratingAvg:F2}/5, {pctRespondidas}% respondidas por el propietario.\n\n" +
             $"IMPORTANTE sobre el alcance: NO digas 'últimos 30 días' ni 'último mes'. Di 'las reseñas analizadas', 'las últimas N reseñas', o menciona el rango real (ej: 'desde mediados de marzo'). El sample puede cubrir menos de 30 días si el negocio tiene mucha actividad.\n\n" +
-            $"Reseñas analizadas (más recientes primero):\n{resenasText}";
+            $"Reseñas analizadas (más recientes primero):\n{resenasText}\n\n" +
+            $"Llama a la herramienta 'registrar_analisis_mini_radar' con el resultado completo.";
 
-        return await GetClaudeMessageAsync(userPrompt, systemPrompt);
+        return await GetStructuredOutputAsync<MiniRadarAnalysis>(
+            systemPrompt:    systemPrompt,
+            userPrompt:      userPrompt,
+            toolName:        "registrar_analisis_mini_radar",
+            toolDescription: "Registra el análisis del mini-radar con fortalezas, debilidades, acción, resumen, email pitch y (si procede) una oportunidad detectada.",
+            inputSchema:     BuildMiniRadarSchema(),
+            maxTokens:       1500,
+            logContext:      "AnalyzeMiniRadarAsync",
+            temperature:     0.5m);
     }
+
+    private static JsonNode BuildMiniRadarSchema() => JsonNode.Parse("""
+    {
+      "type": "object",
+      "properties": {
+        "fortalezas": {
+          "type": "array",
+          "description": "Exactamente 2 fortalezas, cada una una frase humana y concreta extraída de las reseñas. Máx 90 chars cada una. Sin jerga.",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "debilidades": {
+          "type": "array",
+          "description": "Exactamente 2 debilidades, cada una una frase humana y concreta. Máx 90 chars cada una. Sin jerga.",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "accion": {
+          "type": "string",
+          "description": "Una acción concreta y accionable para esta semana, en lenguaje de dueño de bar (máx 140 chars). Ejemplo bueno: 'Responded a las 5 últimas reseñas negativas hoy mismo'. Sin jerga tipo 'optimizar CTR'."
+        },
+        "resumen": {
+          "type": "string",
+          "description": "3 frases resumen del estado actual, en lenguaje humano sin tecnicismos (máx 300 chars). Habla de estrellas, qué dicen los clientes y qué pasa con las respuestas."
+        },
+        "emailPitch": {
+          "type": "string",
+          "description": "2 párrafos cortos dirigidos al dueño como vecino que quiere ayudar. Menciona 1 hallazgo concreto. Propone enviar el informe PDF gratis. Firma 'Manuel, Velacre.com'. Sin precios ni jerga."
+        },
+        "oportunidad": {
+          "type": ["object", "null"],
+          "description": "Un patrón claro detectado en los datos. null si no hay patrón evidente (prohibido inventar).",
+          "properties": {
+            "titulo":      { "type": "string", "description": "Nombre corto EN MAYÚSCULAS del patrón (máx 50 chars). Ej: 'POSITIVAS SIN CONTESTAR', 'QUEJA REPETIDA IGNORADA'." },
+            "descripcion": { "type": "string", "description": "2-3 frases explicando el patrón y por qué le importa al dueño (máx 400 chars). Concreto, con datos reales." },
+            "ejemplos":    {
+              "type": "array",
+              "description": "2-3 extractos reales de las reseñas. Cada ejemplo menciona nombre del cliente si aparece (máx 140 chars).",
+              "items": { "type": "string" },
+              "minItems": 2,
+              "maxItems": 3
+            }
+          },
+          "required": ["titulo", "descripcion", "ejemplos"]
+        }
+      },
+      "required": ["fortalezas", "debilidades", "accion", "resumen", "emailPitch", "oportunidad"]
+    }
+    """)!;
 }

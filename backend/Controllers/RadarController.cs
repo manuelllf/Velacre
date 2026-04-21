@@ -156,11 +156,22 @@ public class RadarController : ControllerBase
         var competidoresResults = await Task.WhenAll(competidoresTasks);
         var competidoresData = competidoresResults.ToList();
 
-        // 3. Claude genera el análisis
+        // 3. Claude genera el análisis (structured output con schema forzado — JSON siempre válido)
         _logger.LogInformation("[RadarController] Lanzando análisis IA radar para negocio={NegocioId}", negocio.Id);
-        var resultJson = await _aiService.GenerateRadarAnalysisAsync(negocio.Nombre, misResenas, competidoresData);
+
+        Models.Responses.RadarAnalysis analisis;
+        try
+        {
+            analisis = await _aiService.AnalyzeRadarAsync(negocio.Nombre, misResenas, competidoresData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[RadarController] Claude falló tras reintentos para negocio={NegocioId}", negocio.Id);
+            return StatusCode(502, new { error = "ai_unavailable", mensaje = "El servicio de IA no pudo completar el análisis. Inténtalo de nuevo en unos segundos." });
+        }
 
         // 4. Guardar (conserva los 2 más recientes, borra el resto)
+        var resultJson = JsonSerializer.Serialize(analisis, RadarJsonOpts);
         var nuevo = new RadarAnalisisEntity
         {
             Id            = Guid.NewGuid(),
@@ -180,10 +191,15 @@ public class RadarController : ControllerBase
         {
             id                  = nuevo.Id,
             createdAt           = nuevo.CreatedAt,
-            resultado           = ParseAnalisisJson(resultJson),
+            resultado           = analisis,
             analisisEstaSemana  = thisWeekCount + 1,
         });
     }
+
+    private static readonly JsonSerializerOptions RadarJsonOpts = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     private async Task<(NegocioEntity? Negocio, IActionResult? Error)> GetNegocioAndCheckPlanAsync()
     {
