@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -1329,38 +1329,69 @@ export default function SaludPage() {
                       </div>
                     </div>
 
-                    {/* Competidores */}
+                    {/* Competidores — tabla en desktop, cards apiladas en móvil */}
                     {radarResultado.competidores && radarResultado.competidores.length > 0 && (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b border-slate-700">
-                              <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{sl.competitorHeader}</th>
-                              <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{sl.strengthHeader}</th>
-                              <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{sl.weaknessHeader}</th>
-                              <th className="text-left py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">{sl.threatHeader}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {radarResultado.competidores.map((c, i) => (
-                              <tr key={i} className="border-b border-slate-800 last:border-0">
-                                <td className="py-2.5 pr-4 font-medium text-slate-200">{c.nombre}</td>
-                                <td className="py-2.5 pr-4 text-slate-400">{c.fortaleza}</td>
-                                <td className="py-2.5 pr-4 text-slate-400">{c.debilidad}</td>
-                                <td className="py-2.5">
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                    c.amenaza === 'alta' ? 'bg-red-900/50 text-red-300' :
-                                    c.amenaza === 'media' ? 'bg-yellow-900/50 text-yellow-300' :
-                                    'bg-slate-700 text-slate-400'
-                                  }`}>
-                                    {c.amenaza}
-                                  </span>
-                                </td>
+                      <>
+                        {/* Desktop: tabla */}
+                        <div className="hidden md:block overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-slate-700">
+                                <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{sl.competitorHeader}</th>
+                                <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{sl.strengthHeader}</th>
+                                <th className="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{sl.weaknessHeader}</th>
+                                <th className="text-left py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">{sl.threatHeader}</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                            </thead>
+                            <tbody>
+                              {radarResultado.competidores.map((c, i) => (
+                                <tr key={i} className="border-b border-slate-800 last:border-0">
+                                  <td className="py-2.5 pr-4 font-medium text-slate-200">{c.nombre}</td>
+                                  <td className="py-2.5 pr-4 text-slate-400">{c.fortaleza}</td>
+                                  <td className="py-2.5 pr-4 text-slate-400">{c.debilidad}</td>
+                                  <td className="py-2.5">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                      c.amenaza === 'alta' ? 'bg-red-900/50 text-red-300' :
+                                      c.amenaza === 'media' ? 'bg-yellow-900/50 text-yellow-300' :
+                                      'bg-slate-700 text-slate-400'
+                                    }`}>
+                                      {c.amenaza}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Móvil: cards apiladas — tipografía y espaciado pensados para lectura, no para compactación */}
+                        <div className="md:hidden space-y-3">
+                          {radarResultado.competidores.map((c, i) => (
+                            <div key={i} className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+                              <div className="flex items-start justify-between gap-3 mb-3">
+                                <p className="text-[15px] font-semibold text-slate-100 leading-snug min-w-0 break-words">{c.nombre}</p>
+                                <span className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                                  c.amenaza === 'alta'  ? 'bg-red-900/60 text-red-200 ring-1 ring-red-700/50' :
+                                  c.amenaza === 'media' ? 'bg-yellow-900/60 text-yellow-200 ring-1 ring-yellow-700/50' :
+                                                          'bg-slate-700/80 text-slate-200 ring-1 ring-slate-600/50'
+                                }`}>
+                                  {c.amenaza}
+                                </span>
+                              </div>
+                              <div className="space-y-2.5">
+                                <div className="flex gap-2.5">
+                                  <span className="text-emerald-400 shrink-0 font-bold leading-relaxed">+</span>
+                                  <p className="text-sm text-slate-200 leading-relaxed">{c.fortaleza}</p>
+                                </div>
+                                <div className="flex gap-2.5">
+                                  <span className="text-red-400 shrink-0 font-bold leading-relaxed">−</span>
+                                  <p className="text-sm text-slate-200 leading-relaxed">{c.debilidad}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
                     )}
 
                     {/* Oportunidades + Acción */}
@@ -1386,11 +1417,13 @@ export default function SaludPage() {
                       )}
                     </div>
 
-                    {/* Matriz de sentimiento por categorías */}
+                    {/* Matriz de sentimiento por categorías — tabla en desktop, cards apiladas en móvil */}
                     {radarResultado.categorias && radarResultado.categorias.length > 0 && (
                       <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{sl.sentimentByCategory}</p>
-                        <div className="overflow-x-auto">
+
+                        {/* Desktop: tabla */}
+                        <div className="hidden md:block overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-slate-700">
@@ -1417,6 +1450,36 @@ export default function SaludPage() {
                               ))}
                             </tbody>
                           </table>
+                        </div>
+
+                        {/* Móvil: una card por categoría, diseñada para lectura cómoda no para caber */}
+                        <div className="md:hidden space-y-3">
+                          {radarResultado.categorias.map((cat: RadarCategoria, i: number) => (
+                            <div key={i} className="bg-slate-950/50 border border-slate-800 rounded-xl p-4">
+                              <p className="text-[15px] font-bold text-slate-100 capitalize mb-3.5">{cat.nombre}</p>
+
+                              {/* Tú + rivales: nombre + score en filas anchas */}
+                              <div className="space-y-2 mb-3.5">
+                                <div className="flex items-center justify-between gap-3 bg-emerald-950/30 border border-emerald-900/40 rounded-lg px-3 py-2">
+                                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{sl.youHeader}</span>
+                                  <ScoreBadge score={cat.yo} />
+                                </div>
+                                {cat.rivales.map((r, ri) => (
+                                  <div key={ri} className="flex items-center justify-between gap-3 bg-slate-900/50 border border-slate-800 rounded-lg px-3 py-2">
+                                    <span className="text-xs font-medium text-slate-300 min-w-0 truncate" title={r.nombre}>{r.nombre}</span>
+                                    <ScoreBadge score={r.score} />
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Insight con más peso: no es metadato, es el valor de esta fila */}
+                              {cat.insight && (
+                                <p className="text-sm text-slate-300 leading-relaxed pt-3 border-t border-slate-800/80">
+                                  {cat.insight}
+                                </p>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
