@@ -1,14 +1,15 @@
 'use client'
 
 import { useLanguage } from '@/lib/i18n'
-import { PublicShell } from '@/components/PublicShell'
+
+// PublicShell lo pone el layout de (legal).
 
 export default function TerminosPage() {
   const { t } = useLanguage()
   const terms = t.app.legal.terms
 
   return (
-    <PublicShell>
+    <>
       <article className="wrap prose-legal">
         <h1>{terms.title}</h1>
         <p className="updated">{terms.lastUpdated}</p>
@@ -28,6 +29,6 @@ export default function TerminosPage() {
           </section>
         ))}
       </article>
-    </PublicShell>
+    </>
   )
 }

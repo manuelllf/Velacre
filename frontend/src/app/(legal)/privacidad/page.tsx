@@ -1,14 +1,15 @@
 'use client'
 
 import { useLanguage } from '@/lib/i18n'
-import { PublicShell } from '@/components/PublicShell'
+
+// PublicShell lo pone el layout de (legal) — así el auth check es server-side sin flash.
 
 export default function PrivacidadPage() {
   const { t } = useLanguage()
   const p = t.app.legal.privacy
 
   return (
-    <PublicShell>
+    <>
       <article className="wrap prose-legal">
         <h1>{p.title}</h1>
         <p className="updated">{p.lastUpdated}</p>
@@ -119,6 +120,6 @@ export default function PrivacidadPage() {
           <p>{p.s9text}</p>
         </section>
       </article>
-    </PublicShell>
+    </>
   )
 }

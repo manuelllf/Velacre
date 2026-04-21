@@ -42,7 +42,18 @@ function ArrowRightIcon() {
   )
 }
 
-export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing' }) {
+export function NavBar({
+  variant = 'default',
+  authed = false,
+}: {
+  variant?: 'default' | 'landing'
+  /**
+   * Si true: usuario ya autenticado. Ocultamos anchors de landing + login/register CTA
+   * (no tiene sentido mostrarle "Empezar gratis" a alguien ya logueado) y mostramos un
+   * único "Volver a la app" como salida natural.
+   */
+  authed?: boolean
+}) {
   const { t: l } = useLanguage()
   const e = l.landingEditorial
 
@@ -57,7 +68,7 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
         <span className="nav-brand-name">velacre</span>
       </button>
     ) : (
-      <Link href="/" className="nav-brand" style={{ textDecoration: 'none' }}>
+      <Link href={authed ? '/inicio' : '/'} className="nav-brand" style={{ textDecoration: 'none' }}>
         <VelacreMark size={30} className="wm" />
         <span className="nav-brand-name">velacre</span>
       </Link>
@@ -73,47 +84,58 @@ export function NavBar({ variant = 'default' }: { variant?: 'default' | 'landing
       <div className="wrap nav-row">
         {Brand}
 
-        {/* Anchor icons — móvil + desktop, icon-only bajo 960, icon+label arriba */}
-        <nav className="nav-anchors">
-          <Link
-            href={productHref}
-            className="nav-anchor"
-            title={e.nav.product}
-            aria-label={e.nav.product}
-            onClick={ev => handleAnchorClick(ev, productHref)}
-          >
-            <IconProducto />
-            <span className="lbl">{e.nav.product}</span>
-          </Link>
-          <Link
-            href={radarHref}
-            className="nav-anchor"
-            title={e.nav.radar}
-            aria-label={e.nav.radar}
-            onClick={ev => handleAnchorClick(ev, radarHref)}
-          >
-            <IconRadar />
-            <span className="lbl">{e.nav.radar}</span>
-          </Link>
-          <Link
-            href={pricingHref}
-            className="nav-anchor"
-            title={e.nav.pricing}
-            aria-label={e.nav.pricing}
-            onClick={ev => handleAnchorClick(ev, pricingHref)}
-          >
-            <IconPrecios />
-            <span className="lbl">{e.nav.pricing}</span>
-          </Link>
-        </nav>
+        {/* Anchors de landing solo cuando NO estás dentro de la app */}
+        {!authed && (
+          <nav className="nav-anchors">
+            <Link
+              href={productHref}
+              className="nav-anchor"
+              title={e.nav.product}
+              aria-label={e.nav.product}
+              onClick={ev => handleAnchorClick(ev, productHref)}
+            >
+              <IconProducto />
+              <span className="lbl">{e.nav.product}</span>
+            </Link>
+            <Link
+              href={radarHref}
+              className="nav-anchor"
+              title={e.nav.radar}
+              aria-label={e.nav.radar}
+              onClick={ev => handleAnchorClick(ev, radarHref)}
+            >
+              <IconRadar />
+              <span className="lbl">{e.nav.radar}</span>
+            </Link>
+            <Link
+              href={pricingHref}
+              className="nav-anchor"
+              title={e.nav.pricing}
+              aria-label={e.nav.pricing}
+              onClick={ev => handleAnchorClick(ev, pricingHref)}
+            >
+              <IconPrecios />
+              <span className="lbl">{e.nav.pricing}</span>
+            </Link>
+          </nav>
+        )}
 
-        {/* Login + CTA — agrupado en la derecha */}
+        {/* Derecha: Login + Start cuando público, "Volver a la app" cuando authed */}
         <div className="nav-auth">
-          <Link href="/auth/login" className="nav-login">{l.nav.login}</Link>
-          <Link href="/auth/register" className="nav-cta">
-            <span className="nav-cta-label">{l.nav.start}</span>
-            <span className="nav-cta-icon-only"><ArrowRightIcon /></span>
-          </Link>
+          {authed ? (
+            <Link href="/inicio" className="nav-cta">
+              <span className="nav-cta-label">{e.nav.backToApp}</span>
+              <span className="nav-cta-icon-only"><ArrowRightIcon /></span>
+            </Link>
+          ) : (
+            <>
+              <Link href="/auth/login" className="nav-login">{l.nav.login}</Link>
+              <Link href="/auth/register" className="nav-cta">
+                <span className="nav-cta-label">{l.nav.start}</span>
+                <span className="nav-cta-icon-only"><ArrowRightIcon /></span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

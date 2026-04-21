@@ -17,6 +17,7 @@ export function AppFooter() {
           {e.footer.bottomLeft}
         </span>
         <div className="flex gap-5 text-slate-400">
+          {/* Same-tab: el layout de (legal) detecta la sesión y pinta esas páginas con paleta invertida — no hay flash */}
           <Link href="/privacidad" className="hover:text-slate-200 transition-colors">{t.footer.privacy}</Link>
           <Link href="/terminos" className="hover:text-slate-200 transition-colors">{t.footer.terms}</Link>
           <Link href="/contacto" className="hover:text-slate-200 transition-colors">{t.footer.contact}</Link>

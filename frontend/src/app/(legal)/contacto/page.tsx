@@ -1,14 +1,15 @@
 'use client'
 
 import { useLanguage } from '@/lib/i18n'
-import { PublicShell } from '@/components/PublicShell'
+
+// PublicShell lo pone el layout de (legal).
 
 export default function ContactoPage() {
   const { t } = useLanguage()
   const c = t.app.legal.contact
 
   return (
-    <PublicShell>
+    <>
       <article className="wrap prose-legal">
         <h1>{c.title}</h1>
         <p className="updated">{c.subtitle}</p>
@@ -50,6 +51,6 @@ export default function ContactoPage() {
           ))}
         </div>
       </article>
-    </PublicShell>
+    </>
   )
 }
