@@ -8,13 +8,15 @@
 
 SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google con IA. Genera respuestas en 6 tonos, detecta reseñas críticas antes de contestar, y ofrece inteligencia competitiva con un Radar que analiza a los rivales del negocio.
 
+Objetivo de Fundador: no depender de empleador toda la vida. 
+
 **Nombre legal:** Velacre · **Dominio:** velacre.com · **Email:** info@velacre.com
 
 ---
 
 ## 2. ICP y mercado objetivo
 
-**Mercado primario:** PYMEs de hostelería en Galicia (España) — restaurantes, asadores, cafeterías, bares con cocina. Dueño-operador que recibe 5-50 reseñas/mes, no tiene tiempo de contestarlas, y le preocupa lo que dicen de su negocio en Google.
+**Mercado primario:** PYMEs de hostelería en Galicia (España) — restaurantes, asadores, cafeterías, bares con cocina. Dueño-operador que recibe 15-50 reseñas/mes, no tiene tiempo de contestarlas, y le preocupa lo que dicen de su negocio en Google.
 
 **Mercado secundario (validado para escalar):** cualquier PYME de servicios locales hispanohablante — clínicas pequeñas, talleres, peluquerías, academias, hoteles boutique. Los prompts de IA son neutrales por sector y mercado.
 
@@ -116,13 +118,13 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 - **Basic a 10 IA** (antes 3): que el dueño experimente el producto de verdad. Conversión Basic→Core esperada +20-40%.
 - **Core a €19 y 25 IA:** 15% por debajo de wiReply (€22,50). 25 IA cuadra con ICP de 5-30 reseñas/mes. El ancla Pro es el Radar + análisis IA, no el volumen.
 - **Pro a €49**: 5× por debajo de RepScan (€249). Justificado por Radar + PDF + análisis IA. Cap soft 250/mes detecta posibles enterprise sin bloquear.
-- **Descuentos activos en LS:** 99% para test (tarjeta de colega) y 15% para primeros clientes captados.
+- **Descuentos activos en LS:** 99% para test (tarjeta de colega) y 20% para primeros clientes captados.
 
 ### Estrategia de precios post-GBP
 
 Cuando se active la integración directa con Google Business Profile:
-- Core sube a **€29/mes** (incluye auto-publicación en Google)
-- Pro sube a **€69/mes** (incluye auto-publicación + Radar)
+- Core sube a **€29/mes** (incluye auto-publicación en Google). Revisar (quizá a 22'5 igualando competencia o 25 dando análisis ia en panel salud) 
+- Pro sube a **€69/mes** (incluye auto-publicación + Radar). Revisar (quizá es demasiado salto y deberíamos poner 44 pre gbp y 55 post gbp? Me empieza a parecer caro 49/69 aunque sepa que tiene valor) 
 - Basic mantiene gratis (importa reseñas de GBP pero publica manualmente vía copy-paste)
 
 ### Estado de pagos
@@ -172,13 +174,13 @@ Modal separado para TripAdvisor, Yelp, etc. Genera 1 respuesta en el tono del ne
 ### Sync de reseñas
 - Inicial: 60 reseñas vía Outscraper
 - Incremental: hasta 500, detecta reseñas respondidas directamente en Google
-- Cron semanal automático (martes)
+- Cron diario a medianoche. 
 - Si GBP conectado: usa API nativa de Google (pendiente activación)
 
 ### Google Business Profile (implementado, deshabilitado)
 Backend completo: OAuth flow, listar locales, publicar respuestas directamente en Google. Frontend deshabilitado con badges "Próximamente" en onboarding, settings y dashboard. Botón "Responder en Google" activo que abre business.google.com para copy-paste manual.
 
-**Bloqueante:** aprobación "Application for Basic API Access" de Google (enviada, plazo 7-10 días hábiles).
+**Bloqueante:** aprobación "Application for Basic API Access" de Google (enviada, plazo 7-10 días hábiles). Rechazada por no tener antigüedad de +60 días. 
 
 **Modo de publicación (diseño decidido, pendiente de implementar):** por defecto, modo supervisado — el usuario revisa y aprueba cada respuesta antes de publicar en Google. Para activar auto-publicación, el usuario debe marcar un toggle en Settings y guardar cambios. Esto es deliberado: los dueños de negocio tienen miedo a que la IA publique sin su control. El modo supervisado es el estándar, auto-publicar es opt-in explícito.
 
@@ -240,7 +242,7 @@ Registro (Google OAuth o email)
 | **Outscraper** | Scraping de reseñas de Google sin necesidad de OAuth. Pricing oficial: **~$0,003 por reseña scrapeada** (Reviews V3 endpoint), es decir ~$0,18 por llamada estándar de 60 reseñas y ~$0,09 por una de 30. Permite importar reseñas desde el día 1 sin aprobación de Google. | ✅ Activo. Fallback si GBP no está conectado. |
 | **Google Business Profile** | Importación nativa + publicación directa de respuestas en Google (sin copy-paste). Valor diferencial clave vs competencia. | 🟡 Implementado, pendiente aprobación Google. |
 | **Google Places** | Buscar negocios por nombre en onboarding y Mini Radar. | ✅ Activo. |
-| **Lemon Squeezy** | Pagos con IVA incluido (MoR), checkout, portal de gestión para el cliente, webhooks de suscripción. Sin necesidad de gestionar facturación propia. | ✅ **Activo en producción** (live mode). |
+| **Lemon Squeezy** | Pagos con IVA NO incluido en el precio de pantalla (MoR), checkout, portal de gestión para el cliente, webhooks de suscripción. Sin necesidad de gestionar facturación propia. | ✅ **Activo en producción** (live mode). |
 | **Resend** | Emails transaccionales (bienvenida, reportes de error). Los emails de suscripción los envía LS directamente. | ✅ Activo. |
 | **Supabase Auth** | Auth con email+pwd y Google OAuth. JWT para el backend. Sin dependencia de auth propio. | ✅ Activo. |
 
@@ -251,13 +253,13 @@ Registro (Google OAuth o email)
 ### wiReply (SocialwiBox) — competidor directo
 - **Target:** negocios locales multi-ubicación, hostelería/hoteles/retail
 - **Precio:** ~€22,50/mes (calculadora dinámica, trial 7d sin tarjeta)
-- **Nos gana en:** integración GBP real con publicación automática, multi-ubicación nativa, presencia mediática
+- **Nos gana en:** integración GBP real con publicación automática, multi-ubicación nativa (importante), presencia mediática (podemos replicar?) 
 - **Le ganamos en:** Radar de Competencia, filtro de seguridad, PDF benchmark, plan gratis, pricing transparente, precio 15% menor
 
 ### RepScan — referencia premium
 - **Target:** restaurantes, clínicas, hoteles, cadenas, personal branding
 - **Precio:** SaaS €249/mes (5× más caro que Velacre Pro). Servicios extra: eliminar reseñas €99, auditoría GBP €80
-- **Nos gana en:** servicios de eliminación de reseñas (legal), marca consolidada, 9 tonos, modo supervisado, multi-perfil
+- **Nos gana en:** servicios de eliminación de reseñas (legal), marca consolidada, 9 tonos, modo supervisado (aunque también funcionaría así el nuestro), multi-perfil
 - **Le ganamos en:** precio (5× menor), plan gratis, Radar competencia, filtro seguridad, onboarding self-service
 
 ### Matriz resumen
@@ -367,7 +369,7 @@ Registro (Google OAuth o email)
 
 ## 13. Objetivos de negocio
 
-- **2026:** empezar a facturar para no depender de un empleador. Meta: 25.000€ ARR.
+- **2026:** empezar a facturar para no depender de un empleador.
 - **Primer hito:** 1 cliente de pago cerrado antes de escalar outreach.
 - **Segundo hito:** 3-5 clientes con testimonios → sección "Clientes actuales" en landing.
 - **Métrica norte star:** MRR (Monthly Recurring Revenue).
