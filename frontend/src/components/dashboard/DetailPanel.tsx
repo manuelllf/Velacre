@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '@/lib/i18n'
 import type { PendingReview } from '@/lib/api'
 
@@ -37,26 +37,35 @@ export default function DetailPanel({
   const { t } = useLanguage()
   const d = t.app.dashboard
 
-  // ── Edición in-place de la respuesta con autosave on blur ──
+  // ── Edición in-place de la respuesta con autosave ──
   // `generated` viene del padre. Mantenemos una copia local editable y nos resincronizamos
   // cuando cambia la reseña seleccionada o el texto de `generated` (p.ej. tras regenerar).
+  // Dos disparadores de guardado: debounced 2s sin escribir, o inmediato al perder foco.
   const [editedText, setEditedText] = useState<string>(generated ?? '')
   // idle: sin cambios pendientes. dirty: editado sin guardar. saving: persistiendo.
   // saved: guardado recientemente (fade a idle tras 2s). error: fallo al guardar.
   const [saveState, setSaveState] = useState<'idle' | 'dirty' | 'saving' | 'saved' | 'error'>('idle')
   // Double-click inline confirm para regenerar (evita window.confirm nativo feo).
   const [confirmingRegen, setConfirmingRegen] = useState(false)
+  // Timer del autosave debounced. Usamos ref para poder cancelarlo en cada tecla / blur / unmount.
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setEditedText(generated ?? '')
     setSaveState('idle')
+    if (saveTimerRef.current) { clearTimeout(saveTimerRef.current); saveTimerRef.current = null }
   }, [review.id, generated])
+
+  useEffect(() => () => {
+    // Cleanup del timer al desmontar para no guardar sobre una reseña que ya no está seleccionada.
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+  }, [])
 
   const isEditable = !!onSaveResponse && review.tonoGenerado !== 'google'
 
-  async function handleBlurSave() {
+  async function persistEdit(candidate: string) {
     if (!onSaveResponse) return
-    const trimmed = editedText.trim()
+    const trimmed = candidate.trim()
     if (trimmed.length === 0 || trimmed === (generated ?? '').trim()) {
       setSaveState('idle')
       return
@@ -72,6 +81,20 @@ export default function DetailPanel({
     } catch {
       setSaveState('error')
     }
+  }
+
+  function scheduleAutosave(candidate: string) {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      saveTimerRef.current = null
+      persistEdit(candidate)
+    }, 2000)
+  }
+
+  function handleBlurSave() {
+    // Blur siempre lanza el guardado de forma inmediata — si había un timer debounced, lo cancelamos.
+    if (saveTimerRef.current) { clearTimeout(saveTimerRef.current); saveTimerRef.current = null }
+    persistEdit(editedText)
   }
 
   function handleRegenerateClick() {
@@ -178,10 +201,20 @@ export default function DetailPanel({
                 const v = e.target.value
                 setEditedText(v)
                 // Marcamos dirty solo si el texto difiere del "último guardado" (que coincide con
-                // el valor de `generated` tras un save exitoso — ver handleBlurSave + useEffect).
+                // el valor de `generated` tras un save exitoso — ver persistEdit + useEffect).
                 const changed = v.trim() !== (generated ?? '').trim()
                 if (saveState === 'saving') return
                 setSaveState(changed ? 'dirty' : 'idle')
+                // Autosave debounced: 2s sin escribir y se guarda solo (sin tener que blur-ear).
+                // Cada tecla resetea el timer. onBlur sigue disparando guardado inmediato.
+                // El textarea solo se renderiza si isEditable=true, por lo que onSaveResponse
+                // está garantizado definido aquí; persistEdit hace un check defensivo de todos
+                // modos.
+                if (changed) scheduleAutosave(v)
+                else if (saveTimerRef.current) {
+                  clearTimeout(saveTimerRef.current)
+                  saveTimerRef.current = null
+                }
               }}
               onBlur={handleBlurSave}
               rows={Math.max(3, Math.min(10, editedText.split('\n').length + Math.ceil(editedText.length / 90)))}
