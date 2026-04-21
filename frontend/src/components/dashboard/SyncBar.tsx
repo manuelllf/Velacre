@@ -25,16 +25,16 @@ export default function SyncBar({
   const d = t.app.dashboard
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 px-5 py-4">
-      <div className="flex items-center justify-between gap-4">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
           {syncLoading ? (
             <div>
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-slate-500 dark:text-slate-400">{d.syncLoading}</span>
                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400">{syncProgress}%</span>
               </div>
-              <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div className="h-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-500 rounded-full transition-all duration-200"
                   style={{ width: `${syncProgress}%` }}
@@ -42,19 +42,13 @@ export default function SyncBar({
               </div>
             </div>
           ) : syncMessage ? (
-            <p className="text-sm text-slate-600 dark:text-slate-300">{syncMessage}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 truncate">{syncMessage}</p>
           ) : (
-            <div>
-              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                {negocio?.nombre ?? d.defaultBusinessName}
-                {negocio?.tonopredefinido && (
-                  <span className="ml-2 text-xs font-normal text-slate-400">· {negocio.tonopredefinido}</span>
-                )}
-              </p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                {d.reviewCount.replace('{pending}', String(counts.pendiente)).replace('{answered}', String(counts.respondida))}
-              </p>
-            </div>
+            // El nombre del negocio y el tono ya viven en AppHeader, no los duplicamos aquí.
+            // Solo dejamos el contador pendientes / respondidas que sí es info de trabajo diario.
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+              {d.reviewCount.replace('{pending}', String(counts.pendiente)).replace('{answered}', String(counts.respondida))}
+            </p>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">

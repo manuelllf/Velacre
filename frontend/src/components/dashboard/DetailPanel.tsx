@@ -41,7 +41,11 @@ export default function DetailPanel({
   // `generated` viene del padre. Mantenemos una copia local editable y nos resincronizamos
   // cuando cambia la reseña seleccionada o el texto de `generated` (p.ej. tras regenerar).
   const [editedText, setEditedText] = useState<string>(generated ?? '')
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  // idle: sin cambios pendientes. dirty: editado sin guardar. saving: persistiendo.
+  // saved: guardado recientemente (fade a idle tras 2s). error: fallo al guardar.
+  const [saveState, setSaveState] = useState<'idle' | 'dirty' | 'saving' | 'saved' | 'error'>('idle')
+  // Double-click inline confirm para regenerar (evita window.confirm nativo feo).
+  const [confirmingRegen, setConfirmingRegen] = useState(false)
 
   useEffect(() => {
     setEditedText(generated ?? '')
@@ -53,16 +57,32 @@ export default function DetailPanel({
   async function handleBlurSave() {
     if (!onSaveResponse) return
     const trimmed = editedText.trim()
-    if (trimmed.length === 0 || trimmed === (generated ?? '').trim()) return
+    if (trimmed.length === 0 || trimmed === (generated ?? '').trim()) {
+      setSaveState('idle')
+      return
+    }
     setSaveState('saving')
+    // Mostrar el estado 'saving' un mínimo de 450ms aunque el backend responda en 50ms.
+    // Sin esto el "Guardando…" parpadea sin que el usuario lo perciba.
+    const minVisible = new Promise(r => setTimeout(r, 450))
     try {
-      await onSaveResponse(trimmed)
+      await Promise.all([onSaveResponse(trimmed), minVisible])
       setSaveState('saved')
-      // Fade el pill "Guardado" a idle tras 2s para no saturar visualmente.
       setTimeout(() => setSaveState(prev => (prev === 'saved' ? 'idle' : prev)), 2000)
     } catch {
       setSaveState('error')
     }
+  }
+
+  function handleRegenerateClick() {
+    if (!confirmingRegen) {
+      setConfirmingRegen(true)
+      // Auto-reset del confirm si el usuario no hace el 2º click en 4s.
+      setTimeout(() => setConfirmingRegen(false), 4000)
+      return
+    }
+    setConfirmingRegen(false)
+    onRegenerateIA()
   }
 
   const MOTIVO_LABELS: Record<string, string> = {
@@ -154,7 +174,15 @@ export default function DetailPanel({
           {isEditable ? (
             <textarea
               value={editedText}
-              onChange={e => { setEditedText(e.target.value); if (saveState !== 'saving') setSaveState('idle') }}
+              onChange={e => {
+                const v = e.target.value
+                setEditedText(v)
+                // Marcamos dirty solo si el texto difiere del "último guardado" (que coincide con
+                // el valor de `generated` tras un save exitoso — ver handleBlurSave + useEffect).
+                const changed = v.trim() !== (generated ?? '').trim()
+                if (saveState === 'saving') return
+                setSaveState(changed ? 'dirty' : 'idle')
+              }}
               onBlur={handleBlurSave}
               rows={Math.max(3, Math.min(10, editedText.split('\n').length + Math.ceil(editedText.length / 90)))}
               className="w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 text-sm text-slate-800 dark:text-slate-200 leading-relaxed resize-y p-0 mb-3 whitespace-pre-wrap font-[inherit]"
@@ -178,14 +206,33 @@ export default function DetailPanel({
               )}
             </button>
 
-            {/* Estado de autosave: visible solo cuando hay algo que decir */}
+            {/* Estado de autosave: dot + label según dirty / saving / saved / error.
+                Idle no muestra nada (el textarea limpio es feedback suficiente). */}
             {isEditable && saveState !== 'idle' && (
-              <span className={`text-xs font-medium ${
+              <span className={`flex items-center gap-1.5 text-xs font-medium ${
+                saveState === 'dirty'  ? 'text-amber-600 dark:text-amber-400' :
                 saveState === 'saving' ? 'text-slate-500 dark:text-slate-400' :
                 saveState === 'saved'  ? 'text-emerald-600 dark:text-emerald-400' :
                                          'text-red-600 dark:text-red-400'
               }`}>
-                {saveState === 'saving' ? d.states.editSaving :
+                {saveState === 'dirty' && (
+                  <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" aria-hidden="true" />
+                )}
+                {saveState === 'saving' && (
+                  <span className="inline-block w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                )}
+                {saveState === 'saved' && (
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {saveState === 'error' && (
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                {saveState === 'dirty'  ? d.states.editDirty  :
+                 saveState === 'saving' ? d.states.editSaving :
                  saveState === 'saved'  ? d.states.editSaved  :
                                           d.states.editError}
               </span>
@@ -264,8 +311,9 @@ export default function DetailPanel({
         </div>
       )}
 
-      {/* Actions footer */}
-      <div className="px-6 pb-5 flex items-center justify-between gap-3 flex-wrap">
+      {/* Actions footer — sticky al fondo del scroll container en desktop.
+          Siempre visible sin scrollear: Copiar, Regenerar/Reabrir, Ignorar al alcance directo. */}
+      <div className="px-6 py-4 flex items-center justify-between gap-3 flex-wrap lg:sticky lg:bottom-0 lg:bg-white/95 lg:dark:bg-slate-900/95 lg:backdrop-blur-sm lg:border-t lg:border-slate-200 lg:dark:border-slate-800 lg:rounded-b-2xl">
         <div>
           {!isRetenida && !hasGenerated && !hasError && estado === 'respondida' && (
             review.tonoGenerado === 'google' ? (
@@ -332,15 +380,29 @@ export default function DetailPanel({
           {estado !== 'pendiente' && (
             isVelacreRespondida ? (
               // Respondida con IA de Velacre: "Regenerar con IA" fuerza nueva llamada a Claude
-              // (consume 1 IA, vuelve la reseña a pendiente con la respuesta fresca).
+              // (consume 1 IA, sobreescribe el texto en el textarea sin mover la reseña de estado).
+              // Doble-click inline: 1er click muestra "Toca de nuevo para confirmar", 2º ejecuta.
               <button
-                onClick={() => {
-                  if (window.confirm(d.actions.regenerateConfirm)) onRegenerateIA()
-                }}
+                onClick={handleRegenerateClick}
                 disabled={isUpdating || isGenerating}
-                className="text-sm px-3 py-2 rounded-xl border border-blue-200 dark:border-blue-900/60 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                className={`text-sm px-3 py-2 rounded-xl border font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+                  isGenerating
+                    ? 'border-blue-200 dark:border-blue-900/60 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20'
+                    : confirmingRegen
+                    ? 'border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-950/50'
+                    : 'border-blue-200 dark:border-blue-900/60 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                }`}
               >
-                {d.actions.regenerateIA}
+                {isGenerating ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    {d.actions.regenerating}
+                  </>
+                ) : confirmingRegen ? (
+                  d.actions.regenerateConfirmInline
+                ) : (
+                  d.actions.regenerateIA
+                )}
               </button>
             ) : (
               <button

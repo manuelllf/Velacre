@@ -524,6 +524,8 @@ const en: LandingLocale = {
       selectReviewDesc: 'to see details and generate a response',
       iaBar: {
         title: 'AI responses this month',
+        tooltipBasic: 'Your Basic plan includes 10 AI responses per month. If you run short, you can view the Core and Pro plans in Settings.',
+        tooltipCore: 'Your Core plan includes 25 AI responses per month. If you run short, upgrade to Pro for unlimited responses.',
         limitReached: 'Limit reached',
         limitBasic: 'No AI responses until next month. Upgrade to Core or Pro to keep responding.',
         limitCore: 'No AI responses until next month. Upgrade to Pro for unlimited responses.',
@@ -601,6 +603,8 @@ const en: LandingLocale = {
         reopen: 'Reopen',
         regenerateIA: 'Regenerate with AI',
         regenerateConfirm: 'A new response will be generated and will use 1 AI credit from your plan. Continue?',
+        regenerateConfirmInline: 'Tap again to confirm',
+        regenerating: 'Regenerating…',
       },
       states: {
         answeredGoogle: 'Replied directly on Google.',
@@ -612,6 +616,7 @@ const en: LandingLocale = {
         retainedTitle: 'Review retained for safety',
         retainedDesc: 'This review requires your personal attention before replying. No automatic response has been generated.',
         otherPlatformBadge: 'Other platform',
+        editDirty: 'Unsaved',
         editSaving: 'Saving…',
         editSaved: 'Saved',
         editError: 'Couldn\'t save',

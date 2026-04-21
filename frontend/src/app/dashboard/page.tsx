@@ -203,14 +203,6 @@ export default function DashboardPage() {
         setContextos(prev => ({ ...prev, [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! } }))
       }
       if (result.softCapWarning) setProSoftCapVisible(true)
-
-      // Regeneración forzada sobre respondida: el backend vuelve la reseña a 'pendiente'.
-      // Reflejamos el cambio en local state para que la UI no vaya desincronizada.
-      if (force) {
-        setReviews(prev => prev.map(r => r.id === reviewId && r.estado === 'respondida'
-          ? { ...r, estado: 'pendiente' as const }
-          : r))
-      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
         const d = err.data as { plan?: string; limit?: number; used?: number } | undefined
@@ -375,7 +367,7 @@ export default function DashboardPage() {
 
       <SectionNav />
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-4">
+      <main className="max-w-screen-xl mx-auto px-4 py-4 space-y-3">
 
         {/* Pro soft cap warning */}
         {proSoftCapVisible && (
@@ -407,8 +399,9 @@ export default function DashboardPage() {
 
         <IaUsageBar userPlan={userPlan} iaUsed={iaUsed} />
 
-        {/* Two-column layout: list + detail */}
-        <div className="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-16rem)]">
+        {/* Two-column layout: list + detail. Altura fija en desktop → scroll interno
+            en la lista y en el detalle, acciones sticky al fondo del detalle siempre visibles. */}
+        <div className="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-13rem)]">
 
           <ReviewList
             reviews={reviews}

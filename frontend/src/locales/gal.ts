@@ -524,6 +524,8 @@ const gal: LandingLocale = {
       selectReviewDesc: 'para ver o detalle e xerar resposta',
       iaBar: {
         title: 'Respostas IA este mes',
+        tooltipBasic: 'O teu plan Basic inclúe 10 respostas IA ao mes. Se che queda curto, en Configuración podes ver os plans Core e Pro.',
+        tooltipCore: 'O teu plan Core inclúe 25 respostas IA ao mes. Se che queda curto, pásate a Pro para ter respostas ilimitadas.',
         limitReached: 'Límite alcanzado',
         limitBasic: 'Sen respostas IA ata o próximo mes. Pásate a Core ou Pro para seguir respondendo.',
         limitCore: 'Sen respostas IA ata o próximo mes. Pásate a Pro e xera sen límite.',
@@ -601,6 +603,8 @@ const gal: LandingLocale = {
         reopen: 'Reabrir',
         regenerateIA: 'Xerar de novo con IA',
         regenerateConfirm: 'Vaise xerar unha resposta nova e consumirá 1 IA do teu plan. Continuar?',
+        regenerateConfirmInline: 'Toca de novo para confirmar',
+        regenerating: 'Xerando de novo…',
       },
       states: {
         answeredGoogle: 'Respondida directamente en Google.',
@@ -612,6 +616,7 @@ const gal: LandingLocale = {
         retainedTitle: 'Recensión retida por seguridade',
         retainedDesc: 'Esta recensión require atención persoal antes de responder. Non se xerou resposta automática.',
         otherPlatformBadge: 'Outra plataforma',
+        editDirty: 'Sen gardar',
         editSaving: 'Gardando…',
         editSaved: 'Gardado',
         editError: 'Non se puido gardar',

@@ -524,6 +524,8 @@ const es: LandingLocale = {
       selectReviewDesc: 'para ver el detalle y generar respuesta',
       iaBar: {
         title: 'Respuestas IA este mes',
+        tooltipBasic: 'Tu plan Basic incluye 10 respuestas IA al mes. Si te quedas corto, en Configuración puedes ver los planes Core y Pro.',
+        tooltipCore: 'Tu plan Core incluye 25 respuestas IA al mes. Si te quedas corto, pásate a Pro para tener respuestas ilimitadas.',
         limitReached: 'L\u00edmite alcanzado',
         limitBasic: 'Sin respuestas IA hasta el pr\u00f3ximo mes. P\u00e1sate a Core o Pro para seguir respondiendo.',
         limitCore: 'Sin respuestas IA hasta el pr\u00f3ximo mes. P\u00e1sate a Pro y genera sin l\u00edmite.',
@@ -601,6 +603,8 @@ const es: LandingLocale = {
         reopen: 'Reabrir',
         regenerateIA: 'Regenerar con IA',
         regenerateConfirm: 'Se generará una respuesta nueva y consumirá 1 IA de tu plan. ¿Continuar?',
+        regenerateConfirmInline: 'Toca de nuevo para confirmar',
+        regenerating: 'Regenerando…',
       },
       states: {
         answeredGoogle: 'Respondida directamente en Google.',
@@ -612,6 +616,7 @@ const es: LandingLocale = {
         retainedTitle: 'Rese\u00f1a retenida por seguridad',
         retainedDesc: 'Esta rese\u00f1a requiere atenci\u00f3n personal antes de responder. No se ha generado respuesta autom\u00e1tica.',
         otherPlatformBadge: 'Otra plataforma',
+        editDirty: 'Sin guardar',
         editSaving: 'Guardando…',
         editSaved: 'Guardado',
         editError: 'No se pudo guardar',

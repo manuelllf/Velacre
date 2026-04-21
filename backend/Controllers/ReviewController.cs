@@ -435,11 +435,9 @@ public class ReviewController : ControllerBase
             review.ActualizadoFecha = DateTimeOffset.UtcNow;
             review.KeywordsUsadas = keywordsUsadas;
 
-            // Regeneración sobre una respondida (force=true o por cambio de tono): volvemos a
-            // pendiente para que el usuario apruebe la respuesta nueva antes de marcarla otra vez.
-            if (review.Estado == "respondida" && (force || !toneMatches))
-                review.Estado = "pendiente";
-
+            // Nota: NO cambiamos review.Estado tras regenerar. "Regenerar con IA" es una acción
+            // de reemplazo de texto, no de reapertura — la reseña sigue donde estaba (respondida,
+            // pendiente, lo que fuera). El textarea muestra el texto nuevo y el usuario decide.
             await _reviewRepo.UpdateAsync(review);
 
             _logger.LogInformation("[ReviewController] Respuesta generada y guardada para reviewId={ReviewId}", id);

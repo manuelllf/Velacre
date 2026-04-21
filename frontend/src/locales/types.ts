@@ -405,6 +405,8 @@ export interface LandingLocale {
       selectReviewDesc: string
       iaBar: {
         title: string
+        tooltipBasic: string
+        tooltipCore: string
         limitReached: string
         limitBasic: string
         limitCore: string
@@ -482,6 +484,8 @@ export interface LandingLocale {
         reopen: string
         regenerateIA: string
         regenerateConfirm: string
+        regenerateConfirmInline: string
+        regenerating: string
       }
       states: {
         answeredGoogle: string
@@ -493,6 +497,7 @@ export interface LandingLocale {
         retainedTitle: string
         retainedDesc: string
         otherPlatformBadge: string
+        editDirty: string
         editSaving: string
         editSaved: string
         editError: string

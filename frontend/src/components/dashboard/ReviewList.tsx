@@ -49,22 +49,22 @@ export default function ReviewList({
   return (
     <div className={`w-full lg:w-80 xl:w-96 shrink-0 flex-col lg:h-full gap-3 ${selectedId ? 'hidden lg:flex' : 'flex'}`}>
 
-      {/* Filter tabs — 4 columnas iguales, sin scroll */}
-      <div className="grid grid-cols-4 gap-1 shrink-0">
+      {/* Filter tabs — segmented control compacto, 1 fila horizontal */}
+      <div className="grid grid-cols-4 gap-1 shrink-0 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-lg p-1">
         {FILTER_ORDER.map(f => (
           <button
             key={f}
             onClick={() => { onFilterChange(f); onSelect(null) }}
-            className={`flex flex-col items-center justify-center px-1 py-2 rounded-lg text-xs font-medium transition-colors ${
+            className={`flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-semibold transition-colors ${
               estadoFilter === f
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
-            <span className={`text-sm font-bold mb-0.5 ${
-              estadoFilter === f ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300'
+            <span className="truncate">{filterLabels[f]}</span>
+            <span className={`tabular-nums text-[10px] font-bold ${
+              estadoFilter === f ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
             }`}>{counts[f]}</span>
-            <span className="leading-none truncate w-full text-center">{filterLabels[f]}</span>
           </button>
         ))}
       </div>
