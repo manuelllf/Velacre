@@ -253,7 +253,7 @@ Registro (Google OAuth o email)
 ### wiReply (SocialwiBox) — competidor directo
 - **Target:** negocios locales multi-ubicación, hostelería/hoteles/retail
 - **Precio:** ~€22,50/mes (calculadora dinámica, trial 7d sin tarjeta)
-- **Nos gana en:** integración GBP real con publicación automática, multi-ubicación nativa (importante), presencia mediática (podemos replicar?) 
+- **Nos gana en:** integración GBP real con publicación automática, multi-ubicación nativa (importante), presencia mediática
 - **Le ganamos en:** Radar de Competencia, filtro de seguridad, PDF benchmark, plan gratis, pricing transparente, precio 15% menor
 
 ### RepScan — referencia premium
@@ -274,6 +274,16 @@ Registro (Google OAuth o email)
 | Radar competencia | ✅ único | ❌ | ❌ |
 | PDF benchmark | ✅ único | 🟡 | ❌ |
 | Multi-ubicación | ❌ | ✅ | ✅ |
+
+### Presencia mediática — cómo replicar barato
+
+No competir con wiReply en volumen de notas clásicas (ferias, revistas del sector). Ángulos con apalancamiento real:
+
+- **Casos de estudio con datos propios.** Cuando haya 3 clientes con mejora medible (ej: "respondió 40 reseñas acumuladas, rating 4.1 → 4.4 en 60 días"), ese es el gancho para La Voz de Galicia / Praza / El Ideal Gallego / medios sectoriales de hostelería. Gratis, credibilidad máxima.
+- **Contenido derivado del Mini Radar.** El Mini Radar ya genera insights reales sobre reseñas. Agregado a escala (ej: "analizamos 500 reseñas de 20 bares gallegos") es formato periodístico listo para pitch a medios o post viral en LinkedIn.
+- **Ángulo gallego.** wiReply es neutro nacional; Velacre es el único SaaS de reseñas *hecho en Galicia*. Eso es titular en medios locales. Aprovecharlo explícitamente antes de diluir el origen para no quemarlo después.
+
+Descartado por ahora: SEO serio, ads pagadas, ferias presenciales, eventos. El budget no llega y el ROI es incierto vs los ángulos de arriba.
 
 ### Dónde podemos ganar ya (sin GBP)
 - PYMEs con 5-30 reseñas/mes → Basic gratis o Core €19 (más barato que wiReply)
@@ -354,7 +364,7 @@ Registro (Google OAuth o email)
 - **Eliminación de reseñas (Pro):** Claude genera texto de reclamación según políticas de Google → usuario copia y pega en formulario oficial. Velacre no elimina, Google decide.
 - **Modo supervisado + auto-publicación:** supervisado es el modo por defecto (decidido). Auto-publicar requiere toggle activo en Settings + guardar. Implementar cuando GBP esté activo.
 - **Multi-ubicación:** soporte `negocio[]` por usuario, pricing por local adicional (~€20/mes).
-- **Panel Salud Core (decidir):** o activamos una versión mínima real (nota media + % respondidas + conteo, sin IA) o unificamos Basic+Core en el teaser blurred. Hoy Core muestra lo mismo que Basic salvo el bullet de marketing (que ya está corregido).
+- **Panel Salud Core:** versión mínima real activada. Core ve: nota media, % respondidas, reseñas este mes, tendencia vs mes anterior, distribución positivo/neutro/negativo y mini-evolución 6 meses (barras compactas con rating + conteo mensual). Análisis IA / Radar / PDFs / categorías de sentimiento / keywords / tabla histórica completa / métricas de impacto siguen siendo Pro con teasers blurred.
 - **Tests:** ~12-15% cobertura (53 tests). Backend: ClaudeService, NegocioController, UsuarioController. Frontend: API client + modules + hooks + componentes. Próximos: ReviewController, LemonController, flujos e2e.
 - **Rate limiting aplicativo:** no crítico sin atacantes, buena práctica para producción.
 
@@ -363,7 +373,7 @@ Registro (Google OAuth o email)
 - **QR anti-reseñas negativas:** si 4-5★ → Google Maps; si 1-2★ → nota interna. Descartado para corto plazo (cambio de paradigma de producto).
 - **WhatsApp/Gmail semanal:** cron los lunes con recuento + respuestas preparadas.
 - **Plan "Chains":** €99-129/mes para cadenas 2-5 locales. Gap entre wiReply y RepScan.
-- **Lead magnet público:** `/informe-gratis?place_id=X` (Mini Radar desateado de admin). Valorar tras 5 clientes.
+- **Lead magnet público** `/informe-gratis?place_id=X` (Mini Radar desatado de admin). **Diferir hasta 5 clientes cerrados**. Motivo: coste real por informe ~€0,105 (Outscraper ~$0,09 + Claude Sonnet ~$0,023). Sin 3 capas de defensa (rate limit IP 3/día, cap global 30/día, email obligatorio + honeypot), un script malicioso puede costar €3.000+/mes. Con las 3 capas el peor caso es ~€95/mes, asumible — pero solo tiene sentido activarlo cuando haya ingresos que lo cubran y feedback de los primeros clientes que ilumine si el formato convierte. Diseño previo listo; implementación diferida por prioridad de outreach directo.
 
 ---
 

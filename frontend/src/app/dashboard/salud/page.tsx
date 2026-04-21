@@ -599,6 +599,45 @@ export default function SaludPage() {
             </div>
           </div>
 
+          {/* ── Mini evolución 6 meses (Core) — barras compactas, sin tabla ni IA ── */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">{sl.last6MonthsTitle}</p>
+            {(() => {
+              const lastSix = allMonths.slice(0, 6)
+              const hasAny = lastSix.some(m => m.avgRating != null)
+              if (!hasAny) {
+                return <p className="text-xs text-slate-500 leading-relaxed">{sl.last6MonthsEmpty}</p>
+              }
+              return (
+                <div className="space-y-2.5">
+                  {lastSix.map(m => (
+                    <div key={`${m.year}-${m.month}`} className="flex items-center gap-3">
+                      <span className="capitalize text-xs text-slate-400 w-14 shrink-0 tabular-nums">{m.label}</span>
+                      <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        {m.avgRating != null && (
+                          <div
+                            className="h-2 bg-amber-400 rounded-full transition-all"
+                            style={{ width: `${Math.max(4, (m.avgRating / 5) * 100)}%` }}
+                          />
+                        )}
+                      </div>
+                      <div className="w-24 text-right text-xs tabular-nums shrink-0">
+                        {m.avgRating != null ? (
+                          <>
+                            <span className="text-amber-400 font-semibold">{m.avgRating.toFixed(2)}</span>
+                            <span className="text-slate-600 ml-1.5">· {m.count}</span>
+                          </>
+                        ) : (
+                          <span className="text-slate-700">—</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
+          </div>
+
           {/* ── CARDS PRO BLOQUEADAS ── */}
           <div className="grid sm:grid-cols-2 gap-4">
 
