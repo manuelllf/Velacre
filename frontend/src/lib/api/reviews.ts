@@ -53,8 +53,20 @@ export async function setReviewEstado(id: string, estado: 'pendiente' | 'respond
   await fetchApi<void>('PUT', `/api/review/${id}/estado`, { estado })
 }
 
-export async function generateForReview(reviewId: string): Promise<GenerateForReviewResult> {
-  const res = await fetch(`${API_URL}/api/review/${reviewId}/generate`, {
+/**
+ * Guarda la edición manual del texto de respuesta sobre el campo del tono actual.
+ * No se puede usar sobre respuestas cuya fuente es Google (tonoGenerado='google').
+ */
+export async function updateReviewResponse(id: string, texto: string): Promise<void> {
+  await fetchApi<void>('PUT', `/api/review/${id}/response`, { texto })
+}
+
+export async function generateForReview(reviewId: string, force = false): Promise<GenerateForReviewResult> {
+  // force=true fuerza regeneración aunque ya exista respuesta para el tono actual.
+  // Consume 1 IA del plan y, si la reseña estaba respondida, la vuelve a pendiente
+  // para que el usuario revise la respuesta nueva antes de aprobarla.
+  const url = `${API_URL}/api/review/${reviewId}/generate${force ? '?force=true' : ''}`
+  const res = await fetch(url, {
     method: 'POST',
     headers: await authHeaders(),
   })

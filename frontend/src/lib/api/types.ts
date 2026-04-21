@@ -37,9 +37,7 @@ export interface PendingReview {
   starRating?: number
   reviewDate: string
   clientereview: string
-  respuestaProfesional?: string
-  respuestaCercano?: string
-  respuestaDirecto?: string
+  respuesta?: string
   tonoGenerado?: string
   reviewLanguage?: string
   estado?: string

@@ -236,10 +236,8 @@ public class GoogleBusinessService : IGoogleBusinessService
                 // Actualizar si Google tiene ahora una respuesta del propietario que no teníamos
                 if (!string.IsNullOrWhiteSpace(gr.OwnerReply) && existing.TonoGenerado != "google")
                 {
-                    existing.RespuestaProfesional = gr.OwnerReply;
-                    existing.RespuestaCercano     = gr.OwnerReply;
-                    existing.RespuestaDirecto     = gr.OwnerReply;
-                    existing.TonoGenerado         = "google";
+                    existing.Respuesta    = gr.OwnerReply;
+                    existing.TonoGenerado = "google";
                     existing.Estado               = "respondida";
                     existing.ActualizadoPor       = userId;
                     existing.ActualizadoFecha     = DateTimeOffset.UtcNow;
@@ -261,10 +259,8 @@ public class GoogleBusinessService : IGoogleBusinessService
                 ReviewDate           = gr.CreateTime,
                 ClienteReview        = gr.Comment ?? "",
                 ReviewLanguage       = gr.Language,
-                RespuestaProfesional = yaRespondida ? gr.OwnerReply : null,
-                RespuestaCercano     = yaRespondida ? gr.OwnerReply : null,
-                RespuestaDirecto     = yaRespondida ? gr.OwnerReply : null,
-                TonoGenerado         = yaRespondida ? "google" : null,
+                Respuesta    = yaRespondida ? gr.OwnerReply : null,
+                TonoGenerado = yaRespondida ? "google" : null,
                 Estado               = yaRespondida ? "respondida" : "pendiente",
                 Plataforma           = "Google",
                 CreadoPor            = userId,

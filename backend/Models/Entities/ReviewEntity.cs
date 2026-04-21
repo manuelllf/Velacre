@@ -18,14 +18,12 @@ public class ReviewEntity : BaseModel
     [Column("clientereview")]
     public string ClienteReview { get; set; } = string.Empty;
 
-    [Column("respuestaprofesional")]
-    public string? RespuestaProfesional { get; set; }
-
-    [Column("respuestacolegueo")]
-    public string? RespuestaCercano { get; set; }
-
-    [Column("respuestaorgullosa")]
-    public string? RespuestaDirecto { get; set; }
+    /// <summary>
+    /// Respuesta del propietario (generada por IA o importada desde Google).
+    /// La identidad del tono se guarda en <see cref="TonoGenerado"/>, no en el nombre de la columna.
+    /// </summary>
+    [Column("respuesta")]
+    public string? Respuesta { get; set; }
 
     [Column("tono")]
     public string? Tono { get; set; }

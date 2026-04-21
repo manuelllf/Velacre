@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useLanguage } from '@/lib/i18n'
 import type { PendingReview } from '@/lib/api'
 
@@ -15,11 +16,14 @@ export interface DetailPanelProps {
   userPlan: string
   isOtraPlatforma: boolean
   onGenerate: () => void
+  onRegenerateIA: () => void
   onLoad: () => void
   onSetEstado: (e: 'pendiente' | 'respondida' | 'ignorada') => void
   onCopy: (text: string) => void
   onPublish: (texto: string) => void
   onRetry: () => void
+  /** Autosave de la edición manual del texto de respuesta. Si no se pasa, el textarea es read-only. */
+  onSaveResponse?: (texto: string) => Promise<void>
   commonError: string
 }
 
@@ -27,10 +31,39 @@ export default function DetailPanel({
   review, generated, generatedError, contexto,
   isGenerating, isUpdating, copiedId,
   gbpConnected, userPlan, isOtraPlatforma,
-  onGenerate, onLoad, onSetEstado, onCopy, onPublish, onRetry,
+  onGenerate, onRegenerateIA, onLoad, onSetEstado, onCopy, onPublish, onRetry,
+  onSaveResponse,
 }: DetailPanelProps) {
   const { t } = useLanguage()
   const d = t.app.dashboard
+
+  // ── Edición in-place de la respuesta con autosave on blur ──
+  // `generated` viene del padre. Mantenemos una copia local editable y nos resincronizamos
+  // cuando cambia la reseña seleccionada o el texto de `generated` (p.ej. tras regenerar).
+  const [editedText, setEditedText] = useState<string>(generated ?? '')
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+
+  useEffect(() => {
+    setEditedText(generated ?? '')
+    setSaveState('idle')
+  }, [review.id, generated])
+
+  const isEditable = !!onSaveResponse && review.tonoGenerado !== 'google'
+
+  async function handleBlurSave() {
+    if (!onSaveResponse) return
+    const trimmed = editedText.trim()
+    if (trimmed.length === 0 || trimmed === (generated ?? '').trim()) return
+    setSaveState('saving')
+    try {
+      await onSaveResponse(trimmed)
+      setSaveState('saved')
+      // Fade el pill "Guardado" a idle tras 2s para no saturar visualmente.
+      setTimeout(() => setSaveState(prev => (prev === 'saved' ? 'idle' : prev)), 2000)
+    } catch {
+      setSaveState('error')
+    }
+  }
 
   const MOTIVO_LABELS: Record<string, string> = {
     intoxicacion:     d.retention.intoxicacion,
@@ -45,6 +78,10 @@ export default function DetailPanel({
   const hasGenerated = !!generated
   const hasError = !!generatedError
   const isRetenida = !!review.retenida
+  // Respondidas importadas desde Google (sync): son registro histórico, no acciona nada el usuario.
+  const isGoogleHistorical = estado === 'respondida' && review.tonoGenerado === 'google'
+  // Respondida con tono de Velacre (no Google): el usuario puede forzar regenerar (consume 1 IA).
+  const isVelacreRespondida = estado === 'respondida' && !!review.tonoGenerado && review.tonoGenerado !== 'google'
 
   return (
     <div className={`bg-white dark:bg-slate-900 rounded-2xl border ${
@@ -111,15 +148,27 @@ export default function DetailPanel({
         </div>
       )}
 
-      {/* Generated response */}
+      {/* Generated response — editable in-place con autosave on blur */}
       {hasGenerated && (
         <div className="mx-6 mb-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-5">
-          <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-4 whitespace-pre-wrap">
-            {generated}
-          </p>
+          {isEditable ? (
+            <textarea
+              value={editedText}
+              onChange={e => { setEditedText(e.target.value); if (saveState !== 'saving') setSaveState('idle') }}
+              onBlur={handleBlurSave}
+              rows={Math.max(3, Math.min(10, editedText.split('\n').length + Math.ceil(editedText.length / 90)))}
+              className="w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 text-sm text-slate-800 dark:text-slate-200 leading-relaxed resize-y p-0 mb-3 whitespace-pre-wrap font-[inherit]"
+              style={{ fontFamily: 'inherit' }}
+              spellCheck
+            />
+          ) : (
+            <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-4 whitespace-pre-wrap">
+              {generated}
+            </p>
+          )}
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => onCopy(generated!)}
+              onClick={() => onCopy(isEditable ? editedText : generated!)}
               className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
             >
               {copiedId === review.id ? (
@@ -128,6 +177,19 @@ export default function DetailPanel({
                 <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> {d.actions.copyResponse}</>
               )}
             </button>
+
+            {/* Estado de autosave: visible solo cuando hay algo que decir */}
+            {isEditable && saveState !== 'idle' && (
+              <span className={`text-xs font-medium ${
+                saveState === 'saving' ? 'text-slate-500 dark:text-slate-400' :
+                saveState === 'saved'  ? 'text-emerald-600 dark:text-emerald-400' :
+                                         'text-red-600 dark:text-red-400'
+              }`}>
+                {saveState === 'saving' ? d.states.editSaving :
+                 saveState === 'saved'  ? d.states.editSaved  :
+                                          d.states.editError}
+              </span>
+            )}
 
             {/* Publicar en Google — Próximamente / No aplica para otra plataforma */}
             <span
@@ -208,10 +270,7 @@ export default function DetailPanel({
           {!isRetenida && !hasGenerated && !hasError && estado === 'respondida' && (
             review.tonoGenerado === 'google' ? (
               <p className="text-xs text-slate-400 dark:text-slate-500">
-                {d.states.answeredGoogle}{' '}
-                <button onClick={() => onSetEstado('pendiente')} className="underline hover:text-slate-600 dark:hover:text-slate-300">
-                  {d.actions.reopen}
-                </button>
+                {d.states.answeredGoogle}
               </p>
             ) : review.tonoGenerado ? (
               <button
@@ -263,20 +322,36 @@ export default function DetailPanel({
           {estado !== 'ignorada' && (
             <button
               onClick={() => onSetEstado('ignorada')}
-              disabled={isUpdating}
-              className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium"
+              disabled={isUpdating || isGoogleHistorical}
+              title={isGoogleHistorical ? d.states.historicalGoogle : undefined}
+              className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent font-medium"
             >
               {d.ignore}
             </button>
           )}
           {estado !== 'pendiente' && (
-            <button
-              onClick={() => onSetEstado('pendiente')}
-              disabled={isUpdating}
-              className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium"
-            >
-              {d.actions.reopen}
-            </button>
+            isVelacreRespondida ? (
+              // Respondida con IA de Velacre: "Regenerar con IA" fuerza nueva llamada a Claude
+              // (consume 1 IA, vuelve la reseña a pendiente con la respuesta fresca).
+              <button
+                onClick={() => {
+                  if (window.confirm(d.actions.regenerateConfirm)) onRegenerateIA()
+                }}
+                disabled={isUpdating || isGenerating}
+                className="text-sm px-3 py-2 rounded-xl border border-blue-200 dark:border-blue-900/60 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+              >
+                {d.actions.regenerateIA}
+              </button>
+            ) : (
+              <button
+                onClick={() => onSetEstado('pendiente')}
+                disabled={isUpdating || isGoogleHistorical}
+                title={isGoogleHistorical ? d.states.historicalGoogle : undefined}
+                className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent font-medium"
+              >
+                {d.actions.reopen}
+              </button>
+            )
           )}
         </div>
       </div>

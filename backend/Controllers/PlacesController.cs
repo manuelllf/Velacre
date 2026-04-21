@@ -123,10 +123,8 @@ public class PlacesController : ControllerBase
                     existingByGoogleId.TryGetValue(review.ReviewId, out var existing) &&
                     existing.TonoGenerado != "google")
                 {
-                    existing.RespuestaProfesional = review.OwnerAnswer;
-                    existing.RespuestaCercano     = review.OwnerAnswer;
-                    existing.RespuestaDirecto     = review.OwnerAnswer;
-                    existing.TonoGenerado         = "google";
+                    existing.Respuesta    = review.OwnerAnswer;
+                    existing.TonoGenerado = "google";
                     existing.Estado               = "respondida";
                     existing.ActualizadoPor        = userId;
                     existing.ActualizadoFecha      = DateTimeOffset.UtcNow;
@@ -147,10 +145,8 @@ public class PlacesController : ControllerBase
                 ReviewDate           = review.PublishedAt,
                 ClienteReview        = review.Text,
                 ReviewLanguage       = review.Language,
-                RespuestaProfesional = yaRespondida ? review.OwnerAnswer : null,
-                RespuestaCercano     = yaRespondida ? review.OwnerAnswer : null,
-                RespuestaDirecto     = yaRespondida ? review.OwnerAnswer : null,
-                TonoGenerado         = yaRespondida ? "google" : null,
+                Respuesta    = yaRespondida ? review.OwnerAnswer : null,
+                TonoGenerado = yaRespondida ? "google" : null,
                 Estado               = yaRespondida ? "respondida" : "pendiente",
                 CreadoPor            = userId,
                 CreadoFecha          = DateTimeOffset.UtcNow

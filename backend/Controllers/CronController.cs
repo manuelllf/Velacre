@@ -87,10 +87,8 @@ public class CronController : ControllerBase
                         ClienteReview  = review.Text,
                         ReviewLanguage = review.Language,
                         Estado         = yaRespondida ? "respondida" : "pendiente",
-                        RespuestaProfesional = yaRespondida ? review.OwnerAnswer : null,
-                        RespuestaCercano     = yaRespondida ? review.OwnerAnswer : null,
-                        RespuestaDirecto     = yaRespondida ? review.OwnerAnswer : null,
-                        TonoGenerado         = yaRespondida ? "google" : null,
+                        Respuesta      = yaRespondida ? review.OwnerAnswer : null,
+                        TonoGenerado   = yaRespondida ? "google" : null,
                         CreadoPor            = ownerId,
                         CreadoFecha          = DateTimeOffset.UtcNow
                     };

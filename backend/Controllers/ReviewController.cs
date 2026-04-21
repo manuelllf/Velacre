@@ -156,9 +156,7 @@ public class ReviewController : ControllerBase
                 Codigo = "BFK" + Guid.NewGuid().ToString("N")[..7].ToUpper(),
                 IdNegocio = negocio.Id,
                 ClienteReview = request.ReviewText,
-                RespuestaProfesional = (tonoLower == "cercano" || tonoLower == "directo") ? null : request.Respuesta,
-                RespuestaCercano = tonoLower == "cercano" ? request.Respuesta : null,
-                RespuestaDirecto = tonoLower == "directo" ? request.Respuesta : null,
+                Respuesta = request.Respuesta,
                 TonoGenerado = tonoCapitalized,
                 Plataforma = "Otra",
                 Estado = estado,
@@ -196,9 +194,7 @@ public class ReviewController : ControllerBase
                 reviewDate = entity.CreadoFecha,
                 clientereview = entity.ClienteReview,
                 estado = entity.Estado,
-                respuestaProfesional = entity.RespuestaProfesional,
-                respuestaCercano = entity.RespuestaCercano,
-                respuestaDirecto = entity.RespuestaDirecto,
+                respuesta = entity.Respuesta,
                 tonoGenerado = entity.TonoGenerado,
                 plataforma = entity.Plataforma,
                 respondidaFecha = entity.RespondidaFecha,
@@ -232,7 +228,7 @@ public class ReviewController : ControllerBase
         var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
 
         var pending = reviews
-            .Where(r => r.RespuestaProfesional == null && r.RespuestaCercano == null && r.RespuestaDirecto == null)
+            .Where(r => r.Respuesta == null)
             .OrderByDescending(r => r.ReviewDate ?? r.CreadoFecha)
             .Select(r => new
             {
@@ -244,9 +240,7 @@ public class ReviewController : ControllerBase
                 clientereview = r.ClienteReview,
                 reviewLanguage = r.ReviewLanguage,
                 estado = r.Estado,
-                respuestaProfesional = r.RespuestaProfesional,
-                respuestaCercano = r.RespuestaCercano,
-                respuestaDirecto = r.RespuestaDirecto,
+                respuesta = r.Respuesta,
                 tonoGenerado = r.TonoGenerado
             })
             .ToList();
@@ -256,10 +250,10 @@ public class ReviewController : ControllerBase
     }
 
     [HttpPost("{id}/generate")]
-    public async Task<IActionResult> GenerateForReview(Guid id)
+    public async Task<IActionResult> GenerateForReview(Guid id, [FromQuery] bool force = false)
     {
         var userId = User.GetUserId();
-        _logger.LogInformation("[ReviewController] POST /{ReviewId}/generate — userId={UserId}", id, userId);
+        _logger.LogInformation("[ReviewController] POST /{ReviewId}/generate — userId={UserId} force={Force}", id, userId, force);
 
         var negocio = await _negocioRepo.GetByUserIdAsync(userId);
 
@@ -339,21 +333,26 @@ public class ReviewController : ControllerBase
         var tone = negocio.TonoPredefinido;
         var toneLower = tone.ToLower();
 
-        // Only generate if that tone field is still null
-        var alreadyGenerated = toneLower switch
-        {
-            "cercano" => review.RespuestaCercano,
-            "directo" => review.RespuestaDirecto,
-            _ => review.RespuestaProfesional
-        };
+        var alreadyGenerated = review.Respuesta;
+        var savedToneLower = review.TonoGenerado?.ToLower();
+        var toneMatches = !string.IsNullOrEmpty(savedToneLower) && savedToneLower == toneLower;
 
-        if (!string.IsNullOrEmpty(alreadyGenerated))
+        // Short-circuit: ya hay respuesta Y es del tono actual → devolver existente sin consumir IA.
+        // Si el tono guardado NO coincide con el del negocio (p.ej. el dueño cambió el tono en Settings
+        // desde la última generación), regeneramos con el nuevo tono aunque no haya force.
+        // Con force=true siempre regenera, incluso si coinciden (el usuario pide respuesta nueva).
+        if (!force && !string.IsNullOrEmpty(alreadyGenerated) && toneMatches)
         {
-            _logger.LogInformation("[ReviewController] Tono {Tone} ya generado para reviewId={ReviewId}", tone, id);
-            // Revertir incremento si la respuesta ya existía
+            _logger.LogInformation("[ReviewController] Tono {Tone} ya generado para reviewId={ReviewId}, devolviendo existente", tone, id);
             if (incrementedCounter)
                 await _usuarioRepo.UpdateIaCounterRollbackAsync(userId, Math.Max(0, usuario!.RespuestasIaMes));
             return Ok(new { response = alreadyGenerated, tono = tone });
+        }
+
+        if (!string.IsNullOrEmpty(alreadyGenerated))
+        {
+            var motivo = force ? "force=true" : $"tono cambió ({savedToneLower ?? "sin_tono"} → {toneLower})";
+            _logger.LogInformation("[ReviewController] Regenerando respuesta reviewId={ReviewId} motivo={Motivo}", id, motivo);
         }
 
         _logger.LogDebug("[ReviewController] Generando respuesta para reviewId={ReviewId}, tono={Tone}", id, tone);
@@ -428,24 +427,18 @@ public class ReviewController : ControllerBase
             }
             // ─────────────────────────────────────────────────────────────────
 
-            switch (toneLower)
-            {
-                case "cercano":
-                    review.RespuestaCercano = generated;
-                    break;
-                case "directo":
-                    review.RespuestaDirecto = generated;
-                    break;
-                default:
-                    review.RespuestaProfesional = generated;
-                    break;
-            }
+            review.Respuesta = generated;
             review.TonoGenerado = tone;
             review.ContextoCliente = contextoCliente;
             review.ContextoRespuesta = contextoRespuesta;
             review.ActualizadoPor = userId;
             review.ActualizadoFecha = DateTimeOffset.UtcNow;
             review.KeywordsUsadas = keywordsUsadas;
+
+            // Regeneración sobre una respondida (force=true o por cambio de tono): volvemos a
+            // pendiente para que el usuario apruebe la respuesta nueva antes de marcarla otra vez.
+            if (review.Estado == "respondida" && (force || !toneMatches))
+                review.Estado = "pendiente";
 
             await _reviewRepo.UpdateAsync(review);
 
@@ -504,9 +497,7 @@ public class ReviewController : ControllerBase
                 reviewDate = r.ReviewDate ?? r.CreadoFecha,
                 clientereview = r.ClienteReview,
                 estado = r.Estado,
-                respuestaProfesional = r.RespuestaProfesional,
-                respuestaCercano = r.RespuestaCercano,
-                respuestaDirecto = r.RespuestaDirecto,
+                respuesta = r.Respuesta,
                 tonoGenerado = r.TonoGenerado,
                 plataforma = r.Plataforma,
                 keywordsUsadas = r.KeywordsUsadas ?? Array.Empty<string>(),
@@ -568,15 +559,7 @@ public class ReviewController : ControllerBase
         var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
         if (review == null) return NotFound("Reseña no encontrada.");
 
-        // Leer la respuesta generada según el tono usado
-        var toneLower = (review.TonoGenerado ?? negocio.TonoPredefinido).ToLower();
-        var responseText = toneLower switch
-        {
-            "cercano" => review.RespuestaCercano,
-            "directo" => review.RespuestaDirecto,
-            _         => review.RespuestaProfesional
-        };
-
+        var responseText = review.Respuesta;
         if (string.IsNullOrWhiteSpace(responseText))
             return BadRequest("No hay respuesta generada para traducir.");
 
@@ -808,7 +791,45 @@ public class ReviewController : ControllerBase
         await _reviewRepo.UpdateAsync(review);
         return Ok(new { id, estado = request.Estado });
     }
+
+    /// <summary>
+    /// Actualiza el texto de la respuesta generada por IA (o manual) de una reseña.
+    /// Escribe sobre el campo respuestaX correspondiente al tono_generado actual.
+    /// No permite editar respuestas 'google' (esas viven en GBP, nuestro edit no las alcanzaría).
+    /// </summary>
+    [HttpPut("{id}/response")]
+    public async Task<IActionResult> UpdateResponse(Guid id, [FromBody] UpdateResponseRequest request)
+    {
+        var texto = request.Texto?.Trim() ?? string.Empty;
+        if (texto.Length == 0)
+            return BadRequest(new { error = "texto_vacio", mensaje = "La respuesta no puede estar vacía." });
+        if (texto.Length > 2000)
+            return BadRequest(new { error = "texto_largo", mensaje = "La respuesta supera el máximo permitido (2000 caracteres)." });
+
+        var userId = User.GetUserId();
+        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        if (negocio == null) return NotFound("Negocio no encontrado");
+
+        var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
+        if (review == null) return NotFound("Reseña no encontrada");
+
+        var tono = review.TonoGenerado;
+        if (string.IsNullOrEmpty(tono))
+            return BadRequest(new { error = "sin_tono", mensaje = "No hay respuesta previa que editar en esta reseña." });
+        if (string.Equals(tono, "google", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "respuesta_google", mensaje = "No se pueden editar las respuestas ya publicadas directamente en Google." });
+
+        review.Respuesta        = texto;
+        review.ActualizadoPor   = userId;
+        review.ActualizadoFecha = DateTimeOffset.UtcNow;
+
+        await _reviewRepo.UpdateAsync(review);
+
+        _logger.LogInformation("[ReviewController] Respuesta editada manualmente para reviewId={ReviewId} tono={Tono} len={Len}", id, tono, texto.Length);
+        return Ok(new { id, tono, texto });
+    }
 }
 
 public record SetEstadoRequest(string Estado);
+public record UpdateResponseRequest(string Texto);
 public record PublishGoogleRequest(string RespuestaEditada);

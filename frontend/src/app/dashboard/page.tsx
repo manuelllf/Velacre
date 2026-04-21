@@ -13,6 +13,7 @@ import {
   generateForReview,
   syncReviews,
   setReviewEstado,
+  updateReviewResponse,
   getGbpStatus,
   ApiError,
   type ReviewResponses,
@@ -140,12 +141,8 @@ export default function DashboardPage() {
         if (r.contextoCliente && r.contextoRespuesta) {
           newContextos[r.id] = { cliente: r.contextoCliente, respuesta: r.contextoRespuesta }
         }
-        if (r.tonoGenerado && r.tonoGenerado !== 'google') {
-          const toneLower = r.tonoGenerado.toLowerCase()
-          const text = toneLower === 'cercano' ? r.respuestaCercano
-            : toneLower === 'directo' ? r.respuestaDirecto
-            : r.respuestaProfesional
-          if (text) newGenerated[r.id] = text
+        if (r.tonoGenerado && r.tonoGenerado !== 'google' && r.respuesta) {
+          newGenerated[r.id] = r.respuesta
         }
       }
       setContextos(newContextos)
@@ -187,11 +184,11 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleGenerate(reviewId: string) {
-    trackLastAction(`dashboard:generate_review:${reviewId}`)
+  async function handleGenerate(reviewId: string, force = false) {
+    trackLastAction(`dashboard:generate_review:${reviewId}${force ? ':force' : ''}`)
     setGeneratingIds(prev => new Set(prev).add(reviewId))
     try {
-      const result = await generateForReview(reviewId)
+      const result = await generateForReview(reviewId, force)
 
       if (result.retenida) {
         setReviews(prev => prev.map(r => r.id === reviewId
@@ -206,6 +203,14 @@ export default function DashboardPage() {
         setContextos(prev => ({ ...prev, [reviewId]: { cliente: result.contextoCliente!, respuesta: result.contextoRespuesta! } }))
       }
       if (result.softCapWarning) setProSoftCapVisible(true)
+
+      // Regeneración forzada sobre respondida: el backend vuelve la reseña a 'pendiente'.
+      // Reflejamos el cambio en local state para que la UI no vaya desincronizada.
+      if (force) {
+        setReviews(prev => prev.map(r => r.id === reviewId && r.estado === 'respondida'
+          ? { ...r, estado: 'pendiente' as const }
+          : r))
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
         const d = err.data as { plan?: string; limit?: number; used?: number } | undefined
@@ -441,12 +446,18 @@ export default function DashboardPage() {
                 userPlan={userPlan}
                 isOtraPlatforma={selectedReview.plataforma === 'Otra'}
                 onGenerate={() => handleGenerate(selectedReview.id)}
+                onRegenerateIA={() => handleGenerate(selectedReview.id, true)}
+                onSaveResponse={async (texto) => {
+                  // Persiste la edición manual y actualiza los campos locales + el cache
+                  // de respuestas para que el textarea no se resetee al re-renderizar.
+                  await updateReviewResponse(selectedReview.id, texto)
+                  setGeneratedResponses(prev => ({ ...prev, [selectedReview.id]: texto }))
+                  setReviews(prev => prev.map(r => r.id === selectedReview.id ? { ...r, respuesta: texto } : r))
+                }}
                 onLoad={() => {
-                  const tono = selectedReview.tonoGenerado?.toLowerCase()
-                  const resp = tono === 'cercano' ? selectedReview.respuestaCercano
-                             : tono === 'directo' ? selectedReview.respuestaDirecto
-                             : selectedReview.respuestaProfesional
-                  if (resp) setGeneratedResponses(prev => ({ ...prev, [selectedReview.id]: resp }))
+                  if (selectedReview.respuesta) {
+                    setGeneratedResponses(prev => ({ ...prev, [selectedReview.id]: selectedReview.respuesta! }))
+                  }
                 }}
                 onSetEstado={(e) => handleSetEstado(selectedReview.id, e)}
                 onCopy={(text) => {

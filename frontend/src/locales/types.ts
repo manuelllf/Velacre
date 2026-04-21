@@ -176,6 +176,7 @@ export interface LandingLocale {
       product: string
       radar: string
       pricing: string
+      backToApp: string
     }
     hero: {
       metaLangs: string
@@ -479,9 +480,12 @@ export interface LandingLocale {
         sync: string
         answered: string
         reopen: string
+        regenerateIA: string
+        regenerateConfirm: string
       }
       states: {
         answeredGoogle: string
+        historicalGoogle: string
         answeredIA: string
         loadResponse: string
         noResponse: string
@@ -489,6 +493,9 @@ export interface LandingLocale {
         retainedTitle: string
         retainedDesc: string
         otherPlatformBadge: string
+        editSaving: string
+        editSaved: string
+        editError: string
       }
     }
 
@@ -571,6 +578,8 @@ export interface LandingLocale {
       thisMonthVsLast: string
       noVariation: string
       monthlyEvolution: string
+      last6MonthsTitle: string
+      last6MonthsEmpty: string
       tableMonth: string
       tableReviews: string
       tableRating: string

@@ -4,9 +4,6 @@ namespace backend.Interfaces;
 
 public interface IReviewAiService
 {
-    Task<(string Profesional, string Cercano, string Directo)> GenerateThreeResponsesAsync(
-        string reviewText, string businessDesc);
-
     Task<string> GenerateSingleResponseAsync(string reviewText, string businessDesc, string tone);
 
     /// <summary>
@@ -17,13 +14,6 @@ public interface IReviewAiService
         string reviewText, string businessDesc, string tone, string reviewLanguage, string[]? keywords = null);
 
     Task<string> GetClaudeMessageAsync(string userPrompt, string systemPrompt);
-
-    /// <summary>
-    /// Genera 3 respuestas (Profesional, Cercano, Directo) con filtro de seguridad integrado.
-    /// Si detecta contenido crítico devuelve Retenida=true y las respuestas vacías.
-    /// </summary>
-    Task<(string Profesional, string Cercano, string Directo, string ContextoCliente, string ContextoRespuesta, bool Retenida, string MotivoRetencion)> GenerateThreeResponsesWithSafeFilterAsync(
-        string reviewText, string businessDesc);
 
     /// <summary>
     /// Análisis comparativo de reputación frente a competidores.
