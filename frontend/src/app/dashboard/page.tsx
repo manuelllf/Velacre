@@ -385,19 +385,20 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <SyncBar
-          negocio={negocio}
-          syncLoading={syncLoading}
-          syncProgress={syncProgress}
-          syncMessage={syncMessage}
-          loadingReviews={loadingReviews}
-          counts={counts}
-          onRefresh={() => loadReviews()}
-          onManual={() => setManualModalOpen(true)}
-          onSync={handleSync}
-        />
-
-        <IaUsageBar userPlan={userPlan} iaUsed={iaUsed} />
+        {/* Toolbar compacta: IA usage pill (solo Basic/Core con margen) a la izquierda,
+            sync/refresh/otra plataforma a la derecha. Misma fila cuando cabe. */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <IaUsageBar userPlan={userPlan} iaUsed={iaUsed} />
+          <SyncBar
+            syncLoading={syncLoading}
+            syncProgress={syncProgress}
+            syncMessage={syncMessage}
+            loadingReviews={loadingReviews}
+            onRefresh={() => loadReviews()}
+            onManual={() => setManualModalOpen(true)}
+            onSync={handleSync}
+          />
+        </div>
 
         {/* Two-column layout: list + detail. Altura fija en desktop → scroll interno
             en la lista y en el detalle, acciones sticky al fondo del detalle siempre visibles. */}

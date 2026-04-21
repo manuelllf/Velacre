@@ -193,7 +193,7 @@ export default function DetailPanel({
 
       {/* Generated response — editable in-place con autosave on blur */}
       {hasGenerated && (
-        <div className="mx-6 mb-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-5">
+        <div className="mx-6 mb-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-5">
           {isEditable ? (
             <textarea
               value={editedText}
@@ -345,8 +345,9 @@ export default function DetailPanel({
       )}
 
       {/* Actions footer — sticky al fondo del scroll container en desktop.
-          Siempre visible sin scrollear: Copiar, Regenerar/Reabrir, Ignorar al alcance directo. */}
-      <div className="px-6 py-4 flex items-center justify-between gap-3 flex-wrap lg:sticky lg:bottom-0 lg:bg-white/95 lg:dark:bg-slate-900/95 lg:backdrop-blur-sm lg:border-t lg:border-slate-200 lg:dark:border-slate-800 lg:rounded-b-2xl">
+          Sin border-top (corte duro); en su lugar una sombra sutil hacia arriba que se
+          percibe solo cuando hay contenido scrollado debajo. */}
+      <div className="px-6 py-3 flex items-center justify-between gap-3 flex-wrap lg:sticky lg:bottom-0 lg:bg-white/95 lg:dark:bg-slate-900/95 lg:backdrop-blur-sm lg:rounded-b-2xl lg:shadow-[0_-8px_14px_-6px_rgba(0,0,0,0.22)]">
         <div>
           {!isRetenida && !hasGenerated && !hasError && estado === 'respondida' && (
             review.tonoGenerado === 'google' ? (

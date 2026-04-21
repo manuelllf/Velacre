@@ -104,6 +104,14 @@
   background: rgba(10, 14, 26, 0.94);
 }
 
+/* El hover del CTA "Volver a la app" está hardcodeado a #000 en la base, que con la
+   paleta invertida (texto navy sobre bg crema) dejaba texto negro sobre fondo negro. */
+.vel-lp.vel-lp--authed .nav-cta:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 .vel-lp ::selection { background: var(--accent); color: var(--paper); }
 .vel-lp a           { color: inherit; text-decoration: none; }
 .vel-lp button      { font-family: inherit; }

@@ -49,19 +49,20 @@ export default function ReviewList({
   return (
     <div className={`w-full lg:w-80 xl:w-96 shrink-0 flex-col lg:h-full gap-3 ${selectedId ? 'hidden lg:flex' : 'flex'}`}>
 
-      {/* Filter tabs — segmented control compacto, 1 fila horizontal */}
-      <div className="grid grid-cols-4 gap-1 shrink-0 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-lg p-1">
+      {/* Filter tabs — segmented control de 1 fila. Usamos flex con flex-1 para que los
+          labels largos (Respondidas, Ignoradas) tengan espacio natural sin truncarse. */}
+      <div className="flex gap-1 shrink-0 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-lg p-1">
         {FILTER_ORDER.map(f => (
           <button
             key={f}
             onClick={() => { onFilterChange(f); onSelect(null) }}
-            className={`flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-semibold transition-colors ${
+            className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-1.5 py-1.5 rounded-md text-[11px] font-semibold transition-colors whitespace-nowrap ${
               estadoFilter === f
                 ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
-            <span className="truncate">{filterLabels[f]}</span>
+            <span>{filterLabels[f]}</span>
             <span className={`tabular-nums text-[10px] font-bold ${
               estadoFilter === f ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
             }`}>{counts[f]}</span>
