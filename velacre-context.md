@@ -102,7 +102,7 @@ Objetivo de Fundador: no depender de empleador toda la vida.
 |---|---|---|---|
 | Respuestas manuales/mes | 5 | 5 | Ilimitadas |
 | Respuestas IA/mes | 10 | 25 | Ilimitadas (cap soft 250 con warning) |
-| Panel Salud | Teaser blurred | Nota media + resumen básico de reseñas (sin análisis IA) | Completo (4 KPIs + sentimiento + análisis IA brilla/quema/acción) |
+| Panel Salud | Teaser blurred (nota media real + resto mockeado) | Básico: rating, % respondidas, reseñas este mes, tendencia, sentimiento positivo/neutro/negativo y mini-evolución 6 meses | Completo: lo anterior + métricas de impacto, análisis IA brilla/quema/acción, categorías de sentimiento detalladas, Radar de Competencia, tabla histórica, palabras clave, keywords usadas |
 | Radar Competencia | — | — | ✅ (3 competidores, 1 análisis/semana) |
 | PDFs benchmark | — | — | ✅ |
 | Análisis IA (brilla/quema/acción) | — | — | ✅ |
@@ -156,8 +156,8 @@ Si detecta: retiene la reseña, no genera respuesta, hace rollback del contador 
 Modal separado para TripAdvisor, Yelp, etc. Genera 1 respuesta en el tono del negocio (mismo flujo que reseñas Google). Bottom-sheet en móvil, centrado en desktop.
 
 ### Panel de Salud (Core/Pro)
-- **Core:** nota media real, 4 KPIs, sentimiento, cards Pro bloqueadas con skeleton (sin datos reales bajo el blur)
-- **Pro:** todo lo anterior + análisis IA bajo demanda (brilla/quema/acción, 1/día), velocidad de respuesta, evolución mensual, Radar de Competencia, PDFs descargables
+- **Core (básico real, no teaser):** rating medio, % respondidas, reseñas este mes, tendencia vs mes anterior, barra de distribución positivo/neutro/negativo y mini-evolución en barras horizontales de los últimos 6 meses (label, rating, conteo). Cards Pro (Análisis IA, Radar, Categorías de sentimiento, PDFs) blurred con "Desbloquear con Pro".
+- **Pro:** todo lo anterior + análisis IA bajo demanda (brilla/quema/acción, 1/día), métricas de impacto Velacre (% respondidas con IA, horas ahorradas, SEO keywords usadas), categorías de sentimiento detalladas con tooltips, tabla de evolución histórica completa (6 columnas: mes/reseñas/rating/positivas/negativas/respondidas), Radar de Competencia, palabras clave con tag cloud, PDFs mensual y anual descargables.
 
 ### Radar de Competencia (Pro)
 1. Añadir hasta 3 competidores buscando por nombre (Google Places)
