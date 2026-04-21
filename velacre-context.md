@@ -80,7 +80,7 @@ Objetivo de Fundador: no depender de empleador toda la vida.
 **Modelo de datos (entidades principales):**
 - `usuario` — perfil, plan, estado, contadores de uso, datos suscripción LS
 - `negocio` — nombre, tono, place_id, palabras clave SEO (hasta 5)
-- `review` — reseña importada con estado (pendiente/respondida/ignorada), 3 respuestas generadas, filtro seguridad (retenida/motivoRetencion)
+- `review` — reseña importada con estado (pendiente/respondida/ignorada), 1 campo `respuesta` con el texto + `tono_generado` que indica qué tono/origen usó (profesional/cercano/directo/empatico/agradecido/humoristico/`google`), filtro seguridad (retenida/motivoRetencion)
 - `analisis_ia` — diagnóstico IA del panel salud (brilla/quema/acción)
 - `competidor` + `radar_analisis` — competidores y análisis comparativo (Pro)
 
@@ -140,6 +140,8 @@ Checkout Lemon Squeezy **activo en producción** (live mode). Cobra con IVA corr
 - Idioma automático: responde en el mismo idioma de la reseña
 - Palabras clave SEO: hasta 5 por negocio, se incluyen con naturalidad en las respuestas (Claude decide cuáles encajan). Fallback: si no hay keywords, usa las 6 más frecuentes de respuestas previas; si tampoco, usa el nombre del negocio.
 - Contexto generado: "Lo que dijo el cliente" + "Lo que respondiste" para cada reseña
+- **Edición in-place con autosave**: el textarea de la respuesta en el dashboard es editable. Se guarda automáticamente (a) tras 2s sin escribir (debounce) o (b) al perder foco, lo que antes ocurra. Indicador visual con dot + label: ámbar "Sin guardar" → spinner "Guardando…" (mínimo 450ms visible) → check verde "Guardado" (2s). Las respondidas desde Google (`tono_generado='google'`) son read-only — no podemos alcanzar lo publicado en GBP vía edit local.
+- **Regenerar con IA**: en reseñas respondidas con tono Velacre, botón "Regenerar con IA" con doble-click inline para confirmar (1er click pasa a ámbar "Toca de nuevo para confirmar" con reset en 4s; 2º ejecuta). Consume 1 IA. No cambia el estado de la reseña — es reemplazo de texto, no reapertura. Si el tono del negocio cambió desde la generación anterior, el endpoint detecta mismatch y regenera automáticamente aunque no sea force (consume también, usuario ve texto nuevo en el textarea).
 
 ### Filtro de seguridad (transversal)
 Detecta en la misma llamada IA (sin coste extra) reseñas que describen:
@@ -165,6 +167,8 @@ Modal separado para TripAdvisor, Yelp, etc. Genera 1 respuesta en el tono del ne
 3. Claude genera: fortaleza/debilidad propias, tabla competidores con amenaza, oportunidades, acción semanal, matriz de sentimiento 0-10 por 4 categorías dinámicas, acción Pro estratégica
 4. Límite: 1 análisis por semana (ISO, empieza lunes UTC)
 5. Coste real por análisis: ~€0,22-0,28 · Desglose: 3 competidores × 20 reseñas cada uno = 60 reseñas Outscraper (~$0,18 ≈ €0,17) + 1 llamada a Claude Sonnet (~€0,05-0,10 según longitud de reseñas propias incluidas). Anteriormente documentado como "~€0,02-0,06" por error de modelo de pricing (Outscraper cobra por reseña, no por llamada).
+6. **Tool use / structured output**: Claude devuelve el análisis llamando a una herramienta con schema JSON forzado (`registrar_analisis_radar`). La API de Anthropic valida los argumentos contra el schema antes de devolvérnoslos — imposible recibir JSON roto o truncado. El `amenaza` está restringido por enum a `alta|media|baja`. MaxTokens 2500, con retry 2× ante overloaded/rate_limit/red.
+7. **Vista móvil**: tanto la tabla de competidores (4 cols) como la matriz de sentimiento (6+ cols) se convierten en cards apiladas en móvil (`hidden md:block` + `md:hidden`). Cards con nombre + badge de amenaza + fortaleza/debilidad; matriz por categoría con rivales listados por nombre (no "Competidor 2" anónimo). Desktop mantiene las tablas.
 
 ### PDFs benchmark (Pro)
 - **PDF mensual:** cabecera Atlantic Blue, 6 KPIs, velocidad de respuesta, distribución estrellas con comparativa, evolución, keywords, diagnóstico IA, matriz competitiva si hay Radar
@@ -191,6 +195,8 @@ Herramienta interna para generar informes gratuitos de cualquier negocio como le
 
 **Coste real por informe**: ~€0,13-0,18 (Outscraper reviews-v3 ≈ $0,003 por reseña devuelta, ~$0,09-0,18 dependiendo del volumen + 1 llamada Claude Sonnet ≈ €0,05-0,10). Sin persistencia. Prompt con auto-revisión que prohíbe tecnicismos ("SEO", "CTR", "ranking", etc.) y obliga a lenguaje de "vecino que quiere echar una mano".
 
+**Robustez**: Claude devuelve el análisis vía tool use con schema forzado (`registrar_analisis_mini_radar`). La API de Anthropic valida los argumentos contra el schema antes de devolvernos el resultado — se elimina por diseño el bug histórico del "análisis vacío" (JSON truncado por `max_tokens` demasiado bajo). MaxTokens 1500, retry 2× ante errores transitorios, log del usage real (`in=X out=Y`) por llamada. Si tras reintentos falla, 502 honesto al frontend en vez de generar un PDF medio vacío.
+
 ### PWA instalable
 Service Worker + manifest. Instalable en Android (prompt nativo) e iOS (instrucciones "Compartir → Añadir"). Banner solo en landing/inicio, primera vez de por vida, auto-hide 10s.
 
@@ -201,6 +207,19 @@ Overlay fullscreen que cubre el salto entre landing y app con un rito de paso ed
 - 6 fases (enter → hold → morph → rest → fade → gone, ~2400-3200ms). La interpolación de color (bg + texto) ocurre durante el morph con el texto aún visible — se ve la marca pasar de ink sobre paper a paper sobre ink en directo.
 - Sincroniza con `usePathname`: si el overlay arranca en `/auth/callback` (Google OAuth), espera al cambio de ruta antes del fade. Fallback 5s para flujos sin navegación posterior.
 - Cortina anti-flash pre-paint: script inline en `<head>` del `RootLayout` lee sessionStorage antes del primer paint y muestra un `<div>` estático que cubre la landing SSR hasta que React hidrata el overlay. Imprescindible porque entre "HTML estático pintado" y "React hidratado" hay 100-500ms donde Next.js sirve la landing entera sin que WelcomeTransition pueda reaccionar aún.
+
+### Páginas legales con paleta auto-adaptada
+`/privacidad`, `/terminos`, `/contacto` están en un route group `app/(legal)/` con `layout.tsx` server component. El layout detecta sesión via Supabase SSR (`isAuthenticatedSSR()` lee cookies `sb-*` con `cookies()` de `next/headers`) y pasa `authed` al `PublicShell`.
+- **Authed false** (visitante público): paleta editorial normal crema + módulos dark.
+- **Authed true** (viene desde la app): `.vel-lp--authed` invierte tokens `--paper` ↔ `--ink` + `color-scheme: dark`. El `.nav` que tenía crema hardcoded se sobrescribe a navy. El CTA del header pasa de "Login + Empezar" a solo "Volver a la app" → `/inicio`. Hover del CTA va a accent azul (no #000 que dejaba texto navy invisible sobre negro).
+- **Sin flash** porque la detección es SSR → el HTML inicial ya trae la clase correcta. Funciona en PC, móvil y PWA sin distinción.
+
+### Panel de Reseñas (dashboard)
+Layout compacto pensado para que el trabajo diario quepa en un viewport sin scroll de página.
+- Top toolbar en 1 fila: pill IA usage (Basic/Core con margen; bloque expandido al ≥70%; Pro la oculta entera) a la izquierda, 3 acciones como icon-buttons compactos a la derecha (refrescar · otra plataforma · sincronizar).
+- Filter tabs segmented control de 1 fila (Pendientes / Respondidas / Ignoradas / Todas con sus conteos).
+- Split view lista + detalle con altura fija `calc(100vh-13rem)` y scroll interno en cada panel.
+- Detalle con sticky footer en desktop: acciones (Copiar, Regenerar con IA, Ignorar, Respondida) siempre visibles al fondo sin tener que scrollear por respuestas largas. Shadow sutil hacia arriba en vez de border-top duro para suavizar la transición.
 
 ### Modo oscuro forzado
 Siempre dark en app. Navy `#0A0E1A`, acento azul maduro `#4A6FE5`. Cal Sans para headers, Geist para body.

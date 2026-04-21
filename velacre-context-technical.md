@@ -268,12 +268,13 @@ Todos con `[Authorize]` salvo marcados. Todos los métodos devuelven `Task<IActi
 | Método | Ruta | Propósito |
 |---|---|---|
 | POST | `/api/review/generate` | 1 respuesta SIN guardar (modal manual). Plan+estado+límite manual (5/mes no-Pro). Tono = request.Tono ?? negocio.TonoPredefinido. MaxTokens 500. Filtro seguridad IA. Race teórica en contador manual. |
-| POST | `/api/review/save-manual` | Guarda manual con 1 campo `Respuesta` + tono. Mapeo BD: cercano→`RespuestaCercano`, directo→`RespuestaDirecto`, resto→`RespuestaProfesional`. |
-| GET | `/api/review/pending` | Lista sin respuesta |
-| POST | `/api/review/{id}/generate` | Genera 1 respuesta para reseña existente. **RPC atómica `try_increment_ia_counter(userId, iaLimit)`**. Límites: **Basic 10, Core 25, Pro -1 (ilimitado con soft cap warning a 250)**. Fallback keywords vía RPC `get_top_keywords`. Pro nunca bloqueado por RPC: `allowed = esProEfectivo \|\| rpcAllowed`. Si RPC throws: Pro pasa, non-Pro bloquea. Parsing robusto: `.Trim('"').Equals("true", StringComparison.OrdinalIgnoreCase)`. |
+| POST | `/api/review/save-manual` | Guarda manual con 1 campo `Respuesta` + tono. Escribe sobre la única columna `respuesta` de la tabla (migración 004 consolidó las 3 columnas legacy profesional/colegueo/orgullosa). |
+| GET | `/api/review/pending` | Lista sin respuesta (WHERE `respuesta IS NULL`) |
+| POST | `/api/review/{id}/generate` | Genera respuesta para reseña existente. **Query param `force=bool`** para forzar regeneración sobrescribiendo la anterior. **Detección de cambio de tono**: si existe `respuesta` pero `tono_generado` != tono actual del negocio → regenera con tono nuevo y consume IA aunque no se haya pasado force. Si match + !force → devuelve existente + rollback del contador. **RPC atómica `try_increment_ia_counter(userId, iaLimit)`**. Límites: **Basic 10, Core 25, Pro -1 (ilimitado con soft cap warning a 250)**. Fallback keywords vía RPC `get_top_keywords`. Pro nunca bloqueado por RPC: `allowed = esProEfectivo \|\| rpcAllowed`. No cambia `estado` tras force-regenerate (es reemplazo de texto, no reapertura). |
+| PUT | `/api/review/{id}/response` | Edición manual del texto de la respuesta (autosave desde dashboard). Escribe sobre `review.respuesta`. Valida: texto no vacío, ≤2000 chars, `tono_generado` existe y ≠ `google` (Google answers read-only desde aquí). |
 | GET | `/api/review/all` | Todas las reseñas del negocio |
 | POST | `/api/review/{id}/translate` | Traduce original a ES |
-| POST | `/api/review/{id}/translate-response` | Traduce respuesta publicada a ES |
+| POST | `/api/review/{id}/translate-response` | Traduce `review.respuesta` a ES |
 | GET | `/api/review/metrics` | `velacreCount`, `timeSaved` (×3.75 min), response rate histórico vs 3m |
 | GET | `/api/review/analysis` | Carga último análisis IA de BD. `{analysis, currentReviewCount, analysisReviewCount}` |
 | POST | `/api/review/analysis` | Genera análisis (últimas 50 reseñas). **Límite: 1/día fijo** (`if (todayCount >= 1)`). Guarda en `analisis_ia`. |
@@ -298,19 +299,21 @@ Todos con `[Authorize]` salvo marcados. Todos los métodos devuelven `Task<IActi
 
 #### `ClaudeService` (`IReviewAiService`)
 - Modelo: `AI_MODEL` env, default `claude-sonnet-4-6`.
-- MaxTokens 500-2200 según endpoint; temp 0.5-0.7.
-- Retry exponencial x3 solo en `overloaded_error`.
+- MaxTokens 500-2500 según endpoint; temp 0.4-0.7.
+- Retry exponencial x3 solo en `overloaded_error` para endpoints de texto libre; 2× para structured output (overloaded + rate_limit + HttpRequestException + TaskCanceledException).
 - HttpClient inyectado con `Timeout=90s` + circuit breaker Polly.
-- Métodos:
-  - `GenerateThreeResponsesAsync` / `GenerateThreeResponsesWithSafeFilterAsync` (ya no se llama desde endpoints activos, conservado por compatibilidad).
-  - `GenerateSingleResponseAsync` / `GenerateSingleResponseWithContextAsync`.
-  - `GenerateRadarAnalysisAsync`.
-  - `GenerateMiniRadarAnalysisAsync` (system prompt vive aquí, no en controller).
-  - `GetClaudeMessageAsync` (helper).
+- Métodos activos:
+  - `GenerateSingleResponseAsync` / `GenerateSingleResponseWithContextAsync` (respuesta individual a reseña; prompt JSON en texto libre + parse defensivo).
+  - `AnalyzeRadarAsync` (Pro radar): **tool use** con schema forzado `registrar_analisis_radar`, MaxTokens 2500.
+  - `AnalyzeMiniRadarAsync` (admin prospección): **tool use** con schema forzado `registrar_analisis_mini_radar`, MaxTokens 1500.
+  - `GetClaudeMessageAsync` (helper texto plano, p.ej. traducciones).
+- **Helper privado `GetStructuredOutputAsync<T>`**: punto de entrada común para tool use. Construye `Common.Function(toolName, description, inputSchema)` con JSON Schema a mano (JsonNode), la envuelve en `Common.Tool`, y fuerza `ToolChoice { Type = ToolChoiceType.Tool, Name = toolName }`. Deserializa `ToolUseContent.Input` a `T` con `JsonSerializerOptions { PropertyNamingPolicy = CamelCase }`. La API de Anthropic valida los argumentos contra el schema antes de devolverlos → imposible recibir JSON truncado o malformado. Log de `Usage.InputTokens` / `Usage.OutputTokens` + `StopReason` en cada llamada para ajustar MaxTokens con datos empíricos.
+- Schemas construidos con `JsonNode.Parse(...)` inline en `BuildMiniRadarSchema()` y `BuildRadarSchema()`. El `amenaza` del radar está restringido por `enum` del schema a `["alta","media","baja"]`.
+- Records tipados en `Models/Responses/`: `MiniRadarAnalysis` + `MiniRadarOportunidad`; `RadarAnalysis` + `RadarCompetidorAnalisis` + `RadarCategoria` + `RadarRivalScore`.
 - **6 tonos**: Profesional, Empático, Cercano, Directo, Agradecido, Humorístico (switch con y sin tilde). Agradecido incluye keywords del negocio con naturalidad.
 - **Filtro de seguridad** — categorías de retención: `intoxicacion`, `maltrato`, `amenaza_legal`, `datos_personales`, `acusacion_fraude` (distingue de queja de precio), `discriminacion` (raza/etnia/nacionalidad/género/orientación/religión/discapacidad). Devuelve `{retenida, motivoRetencion}`. Cuando se retiene, el controller revierte el contador vía RPC.
 - **Bomba de relojería documentada (modal manual)**: `handleSaveManual` envía `tonoSeleccionado = negocio.tonopredefinido`. Funciona porque `handleGenerateManual` usa el mismo tono. Si se añade selector de tono dentro del modal manual, ese campo DEBE reflejar el tono real usado en la generación, si no `TonoGenerado` en BD no coincidirá con la respuesta almacenada.
-- Parsing: busca primer `{` y último `}` sin validar JSON estructuralmente.
+- Parsing de respuestas de Claude fuera de tool use: busca primer `{` y último `}` sin validar JSON estructuralmente (legacy de `GenerateSingleResponse*`). Las features de radar y mini-radar ya no usan este parsing — todo va por structured output.
 
 #### `GooglePlacesService`
 - `https://places.googleapis.com/v1/places:searchText`.
@@ -395,7 +398,9 @@ src/
 │   ├── settings/
 │   ├── admin/{page.tsx, mini-radar/}
 │   ├── health/             Página pública health check
-│   ├── privacidad/, terminos/, contacto/
+│   ├── (legal)/            route group con layout.tsx server component
+│   │   ├── layout.tsx      isAuthenticatedSSR() → <PublicShell authed={bool}>
+│   │   ├── privacidad/, terminos/, contacto/
 │   ├── error.tsx           per-route error boundary
 │   ├── global-error.tsx    root error boundary (fallback ES)
 │   └── globals.css         tokens editoriales + remap Tailwind + utilities
@@ -421,6 +426,8 @@ src/
 │   ├── i18n.tsx            LanguageContext + useLanguage, sincroniza document.documentElement.lang
 │   ├── errorReporter.ts    useErrorReporter + trackLastAction
 │   ├── supabase.ts         cliente supabase-js (createBrowserClient @supabase/ssr)
+│   ├── auth-ssr.ts         isAuthenticatedSSR() — createServerClient + cookies() de next/headers,
+│   │                       usado por (legal)/layout.tsx para detectar sesión sin flash
 │   ├── lemon.ts · report-pdf.ts · mini-radar-pdf.ts
 └── locales/
     ├── types.ts            LandingLocale (~550 claves, incluye landingEditorial)
@@ -476,6 +483,17 @@ src/
 - React Query cachea usuario, negocio, reseñas (staleTime 30s).
 - Contexts: `LanguageProvider` + `QueryClientProvider`.
 - `dashboard/page.tsx` mantiene ~15 `useState` locales (reviews, filters, sync progress, modals, upsell, softCap, etc.).
+
+### 4.5.bis Dashboard UX patterns
+
+- **Layout compacto PC**: main `py-4 space-y-3` con toolbar 1-fila (IaUsageBar pill a la izquierda, SyncBar icon-buttons a la derecha, `flex-wrap` si no caben). Split view con `h-[calc(100vh-13rem)]` y scroll interno en lista + detalle para que la página no scrollee.
+- **SyncBar sin card**: los 3 botones (refresh / otra plataforma / sincronizar) son icon-only 36×36 con tooltips; sincronizar mantiene label en desktop por ser acción primaria. El contador `N pendientes · M respondidas` se eliminó (redundante con filter tabs).
+- **IaUsageBar dos variantes**: pill compacto cuando `pct<70%` (badge inline con mini-progress), bloque expandido ámbar/rojo cuando `≥70%` o `limitReached`. Pro devuelve null (sin barra).
+- **Filter tabs compactos**: segmented control 1 fila dentro de la lista, `flex + flex-1 + whitespace-nowrap` para que "Pendientes", "Respondidas", "Ignoradas", "Todas" se lean enteros sin truncar.
+- **DetailPanel con sticky footer (desktop)**: acciones (Copiar · Regenerar con IA / Reabrir · Ignorar · Respondida) `lg:sticky lg:bottom-0 lg:bg-white/95 lg:backdrop-blur-sm` + sombra top suave (`lg:shadow-[0_-8px_14px_-6px_rgba(0,0,0,0.22)]`) en vez de `border-t` duro. Móvil mantiene flujo normal.
+- **Edición in-place con autosave** (`DetailPanel.tsx`): textarea reemplaza el `<p>` cuando hay respuesta. Estado local `editedText` + `saveState ('idle'|'dirty'|'saving'|'saved'|'error')`. Dos disparadores: debounce 2s vía `useRef<setTimeout>` reseteado en cada tecla, o `onBlur` inmediato (cancela el timer). `persistEdit` + `Promise.all([onSaveResponse, minVisible450ms])` para que el "Guardando…" sea perceptible aunque el backend responda en 50ms. Cleanup del timer en unmount y al cambiar de reseña. Sincroniza con `generated` prop via `useEffect([review.id, generated])` para que regenerar resetee el textarea.
+- **Regenerar con IA**: estado local `confirmingRegen` para doble-click inline (1er click → amber "Toca de nuevo para confirmar", setTimeout 4s reset; 2º → `onRegenerateIA()`). Durante `isGenerating` el botón muestra spinner + "Regenerando…" y está disabled. No se cambia `estado` — es reemplazo de texto, no cambio de flow.
+- **Históricas Google**: cuando `estado='respondida' && tonoGenerado==='google'`, los botones Ignorar/Reabrir van disabled con `title={d.states.historicalGoogle}` + `opacity-40 cursor-not-allowed`. El textarea pasa a `<p>` plano read-only (no editable porque no podemos alcanzar lo publicado en GBP desde aquí).
 
 ### 4.6 i18n custom (sin next-intl)
 
@@ -570,7 +588,7 @@ HttpClients registrados con `AddHttpClient<T>()` → pooling gestionado por `Htt
 |---|---|---|
 | `usuario` | Usuarios | id (Guid), email, nombre, rol (`cliente`\|`admin`\|`sales`), plan (`basic`\|`core`\|`pro`), estado (`activo`\|`baneado`\|`prueba`), pruebaHasta, activoDesde, proOverride, proOverrideHasta, respuestasManualesMes, respuestasMesReset, respuestasIaMes, lsSubscriptionId, lsStatus, lsRenewsAt, lsEndsAt |
 | `negocio` | Establecimiento | id, idUsuario (FK), codigo (NEG+7), nombre, email, telefono, descripcion, tonoPredefinido, placeId, palabrasClave (string[]) |
-| `review` | Reseñas | id, idNegocio, googleReviewId (null si manual), autor, rating, texto, fecha, plataforma, estado (`pendiente`\|`respondida`\|`ignorada`), tonoGenerado (null\|`Profesional`\|`Cercano`\|`Directo`\|`google`), respuestaProfesional/Cercano/Directo, publicadaEnGoogle, publicadaFecha, respuestaPublicada, retenida, motivoRetencion |
+| `review` | Reseñas | id, idNegocio, googleReviewId (null si manual), autor, rating, texto, fecha, plataforma, estado (`pendiente`\|`respondida`\|`ignorada`), tonoGenerado (null\|`Profesional`\|`Empatico`\|`Cercano`\|`Directo`\|`Agradecido`\|`Humoristico`\|`google`), **respuesta** (1 columna tras migración 004 — antes 3 columnas `respuestaprofesional`/`respuestacolegueo`/`respuestaorgullosa` con duplicación en sync Google + catch-all en profesional para 4 tonos), publicadaEnGoogle, publicadaFecha, respuestaPublicada, retenida, motivoRetencion |
 | `google_connection` | Tokens OAuth | negocioId (PK), googleAccountId, locationName, displayName, accessToken, refreshToken, tokenExpiry, isActive, connectedAt |
 | `competidor` | Radar | id, idNegocio, placeId, nombre |
 | `radar_analisis` | Resultados Radar | id, idNegocio, createdAt, resultado (jsonb) |
@@ -602,7 +620,10 @@ Ninguna a nivel aplicativo desde .NET. Operaciones multi-paso se manejan con RPC
 
 ### 6.5 Migraciones
 
-Sin herramienta de migraciones integrada en el proyecto .NET. Cambios aplicados manualmente vía Supabase dashboard; SQL del RLS en `supabase/migrations/003_rls_policies.sql`.
+Sin herramienta de migraciones integrada en el proyecto .NET. Cambios aplicados manualmente vía Supabase dashboard; SQL versionado en `supabase/migrations/`:
+- `002_plan.sql` — columnas de plan
+- `003_rls_policies.sql` — RLS activado en 7 tablas (22 policies)
+- `004_consolidate_respuesta.sql` (2026-04-22) — consolida `respuestaprofesional`/`respuestacolegueo`/`respuestaorgullosa` en una sola columna `respuesta`. `COALESCE` para preservar datos, luego `DROP COLUMN × 3`. Ejecutado en prod sin tráfico real todavía. Motivo: schema legacy de un flujo antiguo donde se generaban 3 tonos upfront; hoy solo se genera 1 y las sync desde Google duplicaban el `owner_answer` en las 3 columnas "por si cambia el tono" (absurdo). La identidad del tono vive en `tono_generado`.
 
 ---
 
