@@ -1,6 +1,35 @@
-# Velacre — Diseño multi-local (pendiente de activar)
+# Velacre — Diseño multi-local
 
-> Doc de arquitectura. **NO implementado.** Congelar hasta tener 3+ clientes reales pidiéndolo (ver `velacre-context.md` §12 "Ideas futuras"). Este archivo existe para que cuando llegue el momento no redecidamos desde cero y no se cuele un bug obvio en LS.
+> **Fase 1 implementada** (rama `20260422_multinegocio`): infraestructura 1:N usuario→negocio, provider, dropdown, ocultos, restore, principal, scope header. Ver `velacre-context.md` §7.
+> **Fase 2 pendiente** (este doc): billing por volumen en LS, gate real de slots, webhook de downgrade/upgrade. Congelar hasta tener primer cliente Pro cerrado (o 2º cliente multi-local intent).
+
+---
+
+## ⚠️ Agujero de ingresos abierto — cerrar antes del primer cliente Pro
+
+**Estado actual (placeholder):** `NegocioController.CreateNegocio` llama a `try_create_negocio` con `p_unlimited = esProEfectivo`. Esto significa que cualquier usuario Pro (€49) puede crear locales ilimitados **sin pagar un euro extra**.
+
+**Por qué está así:** los variants Pro+N aún no existen en LS (ver §2). Sin variants, no hay manera de que el usuario pague el sobreprecio al añadir un local — y bloquearle sería peor UX que dejarle testear gratis. El bypass es consciente.
+
+**Coste marginal por local extra en bolsillo de Velacre:** ≈ €5-7.50/mes (Outscraper cron diario + Claude Salud/Radar si usa). Multiplicado por N locales "regalados" = MRR perdido por cada local que el usuario añade sin pagar los €20 correspondientes.
+
+**Riesgo hoy:** cero (0 clientes Pro reales). Riesgo en cuanto haya primer Pro cerrado: alto — basta que el dueño diga "tengo 3 sitios" y se los meta todos en una cuenta para que perdamos €40/mes × duración de suscripción.
+
+**Cierre mecánico** (≈ 1 día efectivo cuando toque):
+1. Crear los 4 variants en LS (§2).
+2. Poblar env vars `LEMONSQUEEZY_VARIANT_ID_PRO_PLUS{1..4}_MONTHLY`.
+3. Extender handler de webhook `subscription_updated` (§4.1.c): mapear `variant_id` → `usuario.locales_contratados` (1/2/3/4/5).
+4. Añadir endpoint `POST /api/lemonsqueezy/change-locales` (§4.1.b) con PATCH de variant.
+5. Cambiar `p_unlimited=esProEfectivo` por `p_unlimited=false` en `NegocioController.CreateNegocio`.
+6. UI en Settings: modal "Pasar a Pro+N (+€20/mes)" cuando no cabe slot en lugar del 403 genérico.
+
+**Checklist operacional:** cada vez que se cierre un Pro, verificar que tiene 1 solo local o que ha pagado el variant correspondiente. Hasta que esto esté automatizado, es vigilancia manual.
+
+---
+
+## Nota sobre este documento
+
+Es un doc vivo. Fase 1 ya quedó obsoleta aquí abajo para efectos de "qué construir" (ya está construido), pero se mantiene como referencia del diseño. Lo que sigue activo son §2, §4.1.b, §4.1.c, §6, §7, §8, §9 de fase 2.
 
 ---
 

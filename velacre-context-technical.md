@@ -631,6 +631,7 @@ HttpClients registrados con `AddHttpClient<T>()` → pooling gestionado por `Htt
   - plpgsql `SECURITY DEFINER`. Atómico: `SELECT ... FOR UPDATE` sobre `usuario` para serializar creaciones concurrentes, check `COUNT(estado='activo') < locales_contratados` (salvo `p_unlimited=true` para Pro), INSERT con `estado='activo'`, set `es_principal=TRUE` si es el primer negocio del usuario.
   - Lanza `slot_limit_reached` (SQLSTATE P0001) si no cabe — el repo lo convierte a `SlotLimitReachedException`, el controller a 403.
   - Usado por `NegocioController.CreateNegocio`.
+  - ⚠️ **Agujero de ingresos hasta fase 2:** `NegocioController.CreateNegocio` pasa `p_unlimited=esProEfectivo`, por lo que cualquier Pro bypasa el check de slot y crea locales ilimitados gratis. Es placeholder consciente mientras no existan variants Pro+N en LS (ver `velacre-multilocal-design.md`). **Cerrar antes del primer cliente Pro cerrado**: cambiar `p_unlimited=esProEfectivo` por `p_unlimited=false` y subir `usuario.locales_contratados` desde el webhook LS cuando llegue cada variant Pro+N.
 
 - **`set_negocio_principal(p_user_id uuid, p_negocio_id uuid) → void`** (migración 005)
   - plpgsql `SECURITY DEFINER`. Valida ownership + estado activo, UPDATE unset del anterior principal + set del nuevo, todo en una transacción. Garantiza no-zero-no-dos principales.
