@@ -491,7 +491,17 @@ src/
 - Contexts: `LanguageProvider` + `QueryClientProvider` + **`NegocioActivoProvider`** (multi-local).
 - `dashboard/page.tsx` mantiene ~15 `useState` locales (reviews, filters, sync progress, modals, upsell, softCap, etc.).
 
-**`NegocioActivoProvider`** (`src/lib/negocio-activo.tsx`) — gestiona qué local está "activo" para el usuario multi-local. Fuente de verdad en cascada: (1) query param `?negocio=<id>` de la URL, (2) `localStorage.vel_negocio_activo`, (3) primer negocio activo del usuario (primario). Al cambiar el activo: actualiza URL (via `router.replace`, sin navegar), escribe en localStorage, llama `setActiveNegocioId(id)` en el módulo del cliente API (inyecta `X-Negocio-Id` en todas las requests siguientes), e invoca `queryClient.invalidateQueries()` para que dashboard/salud/radar re-fetcheen con el scope nuevo. Hook `useNegocioActivo()` expone `{negocios, activo, setActivo, isLoading, refetch}` con defaults null-safe si no hay provider (páginas públicas).
+**`NegocioActivoProvider`** (`src/lib/negocio-activo.tsx`) — gestiona qué local está "activo" para el usuario multi-local. Fuente de verdad en cascada: (1) query param `?negocio=<id>`, (2) `localStorage.vel_negocio_activo`, (3) `es_principal=TRUE`, (4) primer activo por creación ASC.
+
+Diseño **single-source-of-truth**: `setActivo` solo actualiza la URL (`router.replace`). El **resolver useEffect** observa el cambio de `searchParams` y escribe `activoId` (estado), `localStorage`, `setActiveNegocioId(id)` (inyecta `X-Negocio-Id` en todas las requests siguientes) y dispara `invalidateQueries` **scoped** vía `predicate` que **excluye** `['negocios', ...]` y `['usuario', ...]` (queries user-level, no dependen del local activo). Sin exclusión se producía un bucle de refetch ↔ resolver al invalidar la propia lista del provider.
+
+Otro guardrail del resolver: **no toca `activoId` mientras `isLoading=true`** — evita wipear el activo durante el primer tick tras F5 cuando `useQuery` aún no ha resuelto (la data default es `[]`).
+
+Hook `useNegocioActivo()` expone `{negocios, activo, setActivo, isLoading, refetch}` con defaults null-safe si no hay provider (páginas públicas).
+
+**Cómo reaccionan Dashboard y Panel Salud al cambio de activo**: ninguno usa React Query para reseñas/métricas (storage en `useState` local con `useEffect(init)`). Para que re-carguen al cambiar de local, cada uno tiene **dos efectos**:
+- **Init** (no scoped): sesión + `getMyUsuario()` + `getGbpStatus()`. Se ejecuta una vez al montar.
+- **Scoped** (keyeado por `activo?.id`): re-fetchea `getAllReviews()`, `getMetrics()`, `getAnalysis()`, `getRadar()`. Limpia estados derivados del local anterior (summary, analysisData, radarData) antes del re-fetch para evitar mezcla visual.
 
 **`NegocioDropdown`** (`src/components/NegocioDropdown.tsx`) — selector en AppHeader. Si `negocios.length < 2`, renderiza el nombre plano (no hay nada que elegir). Con 2+ muestra caret + dropdown con la lista + separador + link "+ Añadir local" a `/onboarding?add=1`. Click-outside cierra.
 
@@ -594,6 +604,10 @@ HttpClients registrados con `AddHttpClient<T>()` → pooling gestionado por `Htt
 - SDK: `supabase-csharp` v0.16.2 (Postgrest + Functions + Auth Admin). Sin EF Core, sin Dapper, sin raw SQL aplicativo.
 - `Supabase.Client` Singleton inicializado síncronamente en `Program.cs`. Auth admin (delete `auth.users`) via service key.
 - **RLS activado en 7 tablas (22 policies)** por `auth.uid()` / negocio del usuario. Backend usa service_role que las bypassa → RLS es defense-in-depth. SQL en `supabase/migrations/003_rls_policies.sql`.
+
+**⚠️ Gotcha de `supabase-csharp` en queries multi-predicado:**
+Nunca poner 3 o más predicados `&&` dentro de un mismo `.Where(lambda)` — el SDK genera un logic-tree inválido tipo `((and.(a,b),c))` que Postgrest rechaza con `PGRST100 "unexpected . expecting ("`. Con 2 funciona, con 3+ peta.
+Patrón correcto: **encadenar `.Where()` una vez por predicado** — el SDK los serializa como filtros top-level independientes (AND implícito del servidor), sin bug de paréntesis. Ejemplo en `NegocioRepository.GetByUserIdAsync`/`GetHiddenByPlaceIdAsync`/`CountByUserIdAsync`. Los tests con mocks NO detectan esto (bug de serialización URL, solo visible contra Postgrest real).
 
 ### 6.2 Entidades (Models/Entities/)
 
@@ -808,15 +822,22 @@ Escenarios principales — todos sobre la relación 1:N usuario→negocio.
 
 A) Cambio de local activo (dashboard, panel salud, radar)
    Usuario click dropdown AppHeader → NegocioActivoProvider.setActivo(id)
-     ├─ URL: router.replace(`${pathname}?negocio=${id}`)
+     └─ router.replace(`${pathname}?negocio=${id}`)   // única escritura explícita
+   searchParams cambia → resolver useEffect del provider:
+     ├─ setActivoIdState(id)                          // single-source del estado
      ├─ localStorage.vel_negocio_activo = id
-     ├─ setActiveNegocioId(id)   // módulo de api/client.ts
-     └─ queryClient.invalidateQueries()   // re-fetch dashboard/salud/radar
+     ├─ setActiveNegocioId(id)                        // api/client.ts → header X-Negocio-Id
+     └─ queryClient.invalidateQueries({predicate: excluir 'negocios'/'usuario'})
+   Dashboard / Panel Salud: useEffect keyeado por activo?.id re-fetchea
+     reviews/metrics/analysis/radar con el scope nuevo (no van por React Query).
    Backend (cualquier controller scoped):
      authHeaders() inyecta X-Negocio-Id
      NegocioScopeExtensions.ResolveScopedAsync(HttpContext, userId):
        header X-Negocio-Id presente → GetByIdAndUserIdAsync (valida ownership)
                           ausente → GetByUserIdAsync (es_principal=TRUE, fallback más antiguo activo)
+     NOTA: header TIENE PRIORIDAD sobre ?negocio_id= query. En flujos de creación
+     donde se quiere scope explícito al id recién creado, hay que llamar a
+     setActiveNegocioId(nuevoId) antes del request (ver flujo B).
 
 B) Crear local adicional (Pro)
    Settings > "+ Añadir local" → /onboarding?add=1
@@ -832,8 +853,10 @@ B) Crear local adicional (Pro)
          Basic/Core: si activos >= locales_contratados → EXCEPTION slot_limit_reached → 403
          Si es el 1º negocio del user → es_principal=TRUE automático
      PUT /api/negocio/{nuevoId} { placeId, nombre }   // idempotente, set inicial
-     POST /api/places/sync?negocio_id={nuevoId}       // query explícito (el activo puede seguir siendo el primario)
-   → router.replace('/settings?tab=locales')
+     setActiveNegocioId(nuevoId)                       // IMPORTANTE: header antes del sync
+     POST /api/places/sync?negocio_id={nuevoId}        // header coincide con query
+     await queryClient.invalidateQueries(['negocios','all'])  // refresca lista del provider
+   → router.replace('/settings?tab=locales&negocio={nuevoId}')
 
 C) Ocultar un local (soft delete)
    Settings > Mis locales > Ocultar → modal confirmación → DELETE /api/negocio/{id}
