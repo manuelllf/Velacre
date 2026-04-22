@@ -10,6 +10,13 @@
 --   · RPC try_create_negocio      — creación atómica con check de slot + set es_principal en el 1º
 -- ─────────────────────────────────────────────────────────────────────────
 
+-- 0. ⚠️ Quita el UNIQUE(idusuario) del schema original 1:1.
+--    Este constraint se creó directamente en Supabase (no versionado en migraciones)
+--    cuando el proyecto se diseñó 1 usuario = 1 negocio. Sin este DROP, cualquier
+--    intento de crear un 2º negocio reventaba con 23505 duplicate_key_violation
+--    aunque la RPC try_create_negocio pasara el check de slot.
+ALTER TABLE negocio DROP CONSTRAINT IF EXISTS negocio_idusuario_unique;
+
 -- 1. Slots contratados por usuario. Por defecto 1 (Basic/Core/Pro base).
 --    Cuando existan variants Pro+N, el webhook subscription_updated lo sube.
 ALTER TABLE usuario
