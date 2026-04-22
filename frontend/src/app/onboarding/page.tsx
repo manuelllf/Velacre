@@ -188,14 +188,17 @@ export default function OnboardingPage() {
 
   async function finalizeCreatedNegocio(negocioId: string) {
     setCurrentStep(2)
+    // Importante: establecer el header X-Negocio-Id ANTES del sync. En modo add=1
+    // el header apunta todavía al local previo (el activo cuando el usuario pulsó
+    // "+ Añadir local"), y el backend prioriza el header sobre ?negocio_id=, así
+    // que sin esto el sync importaría reseñas al local antiguo en vez del nuevo.
+    setActiveNegocioId(negocioId)
     await syncReviews(negocioId)
     setDoneSteps([0, 1, 2])
     stopLoadingUI()
     if (isAddMode) {
-      // Marca el recién creado como activo para que Settings y el dropdown lo reflejen
-      // al renderizar, y fuerza refetch de la lista del provider — sin esto la cache
-      // del provider (staleTime 60s) no se entera del nuevo local hasta F5 manual.
-      setActiveNegocioId(negocioId)
+      // Fuerza refetch de la lista del provider — sin esto la cache (staleTime 60s)
+      // no incluye el nuevo local al aterrizar en Settings hasta F5.
       await queryClient.invalidateQueries({ queryKey: ['negocios', 'all'] })
       router.replace(`/settings?tab=locales&negocio=${negocioId}`)
     } else {
