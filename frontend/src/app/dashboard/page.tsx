@@ -125,19 +125,21 @@ export default function DashboardPage() {
 
   // Carga scoped: negocio activo + reseñas. Se dispara cada vez que el usuario
   // cambia de local desde el dropdown (activo.id cambia) → re-fetchea sus reseñas.
+  // userPlan va como dep para resolver la race: el useState arranca en 'basic' y
+  // si activo?.id resuelve antes que getMyUsuario(), loadReviews() recortaría la
+  // lista a 10 pensando que eres Basic. Al actualizarse userPlan el efecto se
+  // re-ejecuta con el plan real. El coste extra (1 fetch) es irrelevante.
   useEffect(() => {
-    // Esperar a que el provider termine de cargar la lista
     if (activoLoading) return
-    // Sin negocio activo → sin negocios → onboarding
     if (!activo) {
       if (!loadingInit) router.replace('/onboarding')
       return
     }
     setNegocio(activo)
-    setSelectedId(null) // reset selección al cambiar de local
-    loadReviews().finally(() => setLoadingInit(false))
+    setSelectedId(null)
+    loadReviews(userPlan).finally(() => setLoadingInit(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activo?.id, activoLoading])
+  }, [activo?.id, activoLoading, userPlan])
 
   function openReportModal(info: ErrorInfoLike) {
     setReportModalContext(info)
