@@ -3,18 +3,16 @@
 /**
  * NegocioActivoProvider — gestiona el "local activo" del usuario multi-local.
  *
- * Fuente de verdad en cascada (del más fuerte al más débil):
+ * Fuente de verdad en cascada:
  *   1. Query param `?negocio=<id>` en la URL (bookmarkable, compartible)
  *   2. `localStorage.vel_negocio_activo` (persistencia entre sesiones)
- *   3. Primer negocio del usuario ordenado por creación ASC (primario)
+ *   3. El negocio con `es_principal=TRUE` (elegido por el usuario)
+ *   4. Primer negocio por creación ASC (fallback)
  *
- * El provider:
- *   - Mantiene la lista completa de negocios via React Query.
- *   - Expone `activo`, `setActivo`, `negocios`, `isLoading`.
- *   - Escribe el id activo al store del api client (`setActiveNegocioId`) → todas las
- *     requests incluyen el header X-Negocio-Id automáticamente.
- *   - Invalida las queries en memoria al cambiar de activo → el dashboard/salud/radar
- *     re-fetchean con el nuevo scope sin necesidad de incluir negocioId en cada key.
+ * Diseño single-source-of-truth: el ÚNICO que escribe `activoId` en estado es el
+ * resolver (useEffect). `setActivo` solo actualiza la URL; el resolver observa
+ * el cambio de searchParams y ajusta el estado. Así no hay doble escritura ni
+ * condiciones de carrera entre el setter y el resolver.
  */
 
 import {
@@ -38,7 +36,7 @@ const QUERY_PARAM = 'negocio'
 interface NegocioActivoCtx {
   negocios: Negocio[]
   activo: Negocio | null
-  /** Cambia el local activo. Actualiza URL, localStorage, header y refresca queries. */
+  /** Cambia el local activo. Solo actualiza la URL; el resolver lee el nuevo estado. */
   setActivo: (id: string) => void
   isLoading: boolean
   refetch: () => Promise<unknown>
@@ -61,27 +59,31 @@ export function NegocioActivoProvider({ children }: { children: React.ReactNode 
   const [activoId, setActivoIdState] = useState<string | null>(null)
   const prevActivoRef = useRef<string | null>(null)
 
-  // Resolver el id activo al cargar negocios o cambiar query param
+  // ── Resolver: decide activoId a partir de URL / storage / principal / fallback ───
+  // Importante: si isLoading=true, no toca activoId. De lo contrario, en el primer
+  // render la data todavía es [] (default) y el resolver lo pondría a null, borrando
+  // el local activo durante un tick. Eso se manifestaba como "pierde los negocios al
+  // recargar" porque cualquier request entre medio salía sin header X-Negocio-Id.
   useEffect(() => {
+    if (isLoading) return
+
     if (negocios.length === 0) {
-      setActivoIdState(null)
-      setActiveNegocioId(null)
+      if (activoId !== null) setActivoIdState(null)
       return
     }
 
     const fromQuery = searchParams?.get(QUERY_PARAM)
     const fromStorage = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null
-    const primary = negocios[0].id
+    // Principal explícito > primer negocio por creación (para casos pre-migración sin es_principal)
+    const principal = negocios.find(n => n.esPrincipal)?.id ?? negocios[0].id
 
-    const candidateIds = [fromQuery, fromStorage, primary].filter(Boolean) as string[]
-    const resolved = candidateIds.find(id => negocios.some(n => n.id === id)) ?? primary
+    const candidates = [fromQuery, fromStorage, principal].filter(Boolean) as string[]
+    const resolved = candidates.find(id => negocios.some(n => n.id === id)) ?? principal
 
-    if (resolved !== activoId) {
-      setActivoIdState(resolved)
-    }
-  }, [negocios, searchParams, activoId])
+    if (resolved !== activoId) setActivoIdState(resolved)
+  }, [isLoading, negocios, searchParams, activoId])
 
-  // Propagar el activoId al api client + invalidar queries al cambiar
+  // ── Efectos al cambiar activoId: header API + localStorage + invalidación scoped ─
   useEffect(() => {
     setActiveNegocioId(activoId)
 
@@ -89,23 +91,32 @@ export function NegocioActivoProvider({ children }: { children: React.ReactNode 
       window.localStorage.setItem(STORAGE_KEY, activoId)
     }
 
-    // Solo invalidar si de verdad cambió (no en el primer render)
+    // Solo invalidar si cambió (no en la transición null→primer id del primer render).
+    // Y NUNCA invalidar la propia lista del provider ni `usuario` (son user-level, no
+    // dependen del scope del negocio activo). Invalidar esas dispara un bucle de
+    // refetch → resolver → re-render que causa la sensación de "loco" en UI.
     if (prevActivoRef.current !== null && prevActivoRef.current !== activoId) {
-      queryClient.invalidateQueries()
+      queryClient.invalidateQueries({
+        predicate: (q) => {
+          const key = q.queryKey
+          if (!Array.isArray(key) || typeof key[0] !== 'string') return true
+          const prefix = key[0]
+          // Excluir queries user-level (no dependen del negocio activo)
+          if (prefix === 'negocios' || prefix === 'usuario') return false
+          return true
+        },
+      })
     }
     prevActivoRef.current = activoId
   }, [activoId, queryClient])
 
+  // ── setActivo: único cambio es la URL. El resolver se encarga del state. ─────────
   const setActivo = useCallback((id: string) => {
     if (!negocios.some(n => n.id === id)) return
-    setActivoIdState(id)
-
-    // Sincronizar URL (sin navegar, solo query param)
-    if (pathname) {
-      const params = new URLSearchParams(searchParams?.toString() ?? '')
-      params.set(QUERY_PARAM, id)
-      router.replace(`${pathname}?${params.toString()}`)
-    }
+    if (!pathname) return
+    const params = new URLSearchParams(searchParams?.toString() ?? '')
+    params.set(QUERY_PARAM, id)
+    router.replace(`${pathname}?${params.toString()}`)
   }, [negocios, pathname, router, searchParams])
 
   const activo = useMemo(
@@ -123,8 +134,7 @@ export function NegocioActivoProvider({ children }: { children: React.ReactNode 
 
 /**
  * Hook para consumir el contexto. Devuelve null-safe defaults si no hay provider
- * (ej. en páginas públicas como la landing), de modo que importar este hook desde
- * cualquier sitio no rompe.
+ * (ej. páginas públicas landing) para que importar el hook no rompa renders SSR.
  */
 export function useNegocioActivo(): NegocioActivoCtx {
   const ctx = useContext(Ctx)
