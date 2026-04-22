@@ -11,6 +11,8 @@ export interface ReviewResponses {
   directo?: string
 }
 
+export type NegocioEstado = 'activo' | 'oculto_usuario' | 'deshabilitado_plan'
+
 export interface Negocio {
   id: string
   codigo: string
@@ -21,6 +23,10 @@ export interface Negocio {
   tonopredefinido: string
   placeId?: string
   palabrasClave?: string[]
+  /** Ciclo de vida multi-local. 'activo' por defecto; 'oculto_usuario' tras soft delete; 'deshabilitado_plan' tras downgrade. */
+  estado?: NegocioEstado
+  /** True si es el local principal del usuario (BD garantiza máx 1 por usuario). */
+  esPrincipal?: boolean
 }
 
 export interface PlaceResult {

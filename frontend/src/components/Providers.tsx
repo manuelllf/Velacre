@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LanguageProvider } from '@/lib/i18n'
+import { NegocioActivoProvider } from '@/lib/negocio-activo'
 import PWAInstall from '@/components/PWAInstall'
 import LangSwitcher from '@/components/LangSwitcher'
 import ErrorBoundary from '@/components/ErrorBoundary'
@@ -23,7 +24,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
-          {children}
+          <Suspense fallback={null}>
+            <NegocioActivoProvider>
+              {children}
+            </NegocioActivoProvider>
+          </Suspense>
           <PWAInstall />
           <LangSwitcher />
           <Suspense fallback={null}>

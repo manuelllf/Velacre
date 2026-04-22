@@ -4,10 +4,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  createNegocio, updateNegocio, searchPlaces, syncReviews, getMyNegocio,
+  createNegocio, searchPlaces, syncReviews, getMyNegocio,
   getGbpAuthUrl, getGbpLocations, finalizeGbpConnection,
   type PlaceResult, type GbpLocation,
 } from '@/lib/api'
+import { updateNegocioById, restoreNegocio } from '@/lib/api/negocio'
+import { ApiError } from '@/lib/api/client'
 import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from '@/components/landing/VelacreMark'
 
@@ -123,8 +125,13 @@ export default function OnboardingPage() {
       return
     }
 
-    // Flujo normal: si ya tiene negocio, redirigir al inicio
-    getMyNegocio().then(n => { if (n) router.replace('/inicio') }).catch(() => {})
+    // Flujo normal: si ya tiene negocio, redirigir al inicio.
+    // Excepción: ?add=1 indica que venimos de "Añadir local" en Settings — el usuario ya tiene
+    // un primario y quiere crear uno adicional (feature multi-local Pro). No redirigir.
+    const addParam = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('add') === '1'
+    if (!addParam) {
+      getMyNegocio().then(n => { if (n) router.replace('/inicio') }).catch(() => {})
+    }
   }, [router])
 
   // ── Close dropdown on outside click ──
@@ -173,6 +180,39 @@ export default function OnboardingPage() {
   }
   function stopLoadingUI() { clearInterval(progressIntervalRef.current!); setProgress(100) }
 
+  // Restore flow: si el usuario ya tuvo este place_id oculto, el backend devuelve 409 existe_oculto.
+  const [restorePrompt, setRestorePrompt] = useState<{ id: string; nombre: string } | null>(null)
+  const isAddMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('add') === '1'
+
+  async function finalizeCreatedNegocio(negocioId: string) {
+    setCurrentStep(2)
+    await syncReviews(negocioId)
+    setDoneSteps([0, 1, 2])
+    stopLoadingUI()
+    router.replace(isAddMode ? '/settings?tab=locales' : '/onboarding/plan')
+  }
+
+  async function handleRestoreExisting() {
+    if (!restorePrompt) return
+    setError('')
+    setLoading(true)
+    setDoneSteps([])
+    startLoadingUI()
+    try {
+      setCurrentStep(0)
+      await restoreNegocio(restorePrompt.id)
+      setDoneSteps([0, 1])
+      setRestorePrompt(null)
+      await finalizeCreatedNegocio(restorePrompt.id)
+    } catch (err) {
+      stopLoadingUI()
+      setError(err instanceof Error ? err.message : t.app.common.error)
+      setLoading(false)
+      setCurrentStep(-1)
+      setDoneSteps([])
+    }
+  }
+
   // ── Submit: manual path ──
   async function handleSubmitManual(e: React.FormEvent) {
     e.preventDefault()
@@ -183,17 +223,31 @@ export default function OnboardingPage() {
     startLoadingUI()
     try {
       setCurrentStep(0)
-      await createNegocio({ nombre: selectedPlace.name, tonoPredefinido: tono, descripcion: descripcion || undefined, palabrasClave: palabrasClave.length > 0 ? palabrasClave : undefined })
+      // Pasamos placeId en el create para que el backend pueda detectar existe_oculto → 409.
+      const created = await createNegocio({
+        nombre: selectedPlace.name,
+        tonoPredefinido: tono,
+        descripcion: descripcion || undefined,
+        palabrasClave: palabrasClave.length > 0 ? palabrasClave : undefined,
+        placeId: selectedPlace.placeId,
+      })
       setDoneSteps([0])
       setCurrentStep(1)
-      await updateNegocio({ placeId: selectedPlace.placeId, nombre: selectedPlace.name })
+      // El backend aún no setea place_id en try_create_negocio → hacemos update separado (idempotente).
+      await updateNegocioById(created.id, { placeId: selectedPlace.placeId, nombre: selectedPlace.name })
       setDoneSteps([0, 1])
-      setCurrentStep(2)
-      await syncReviews()
-      setDoneSteps([0, 1, 2])
-      stopLoadingUI()
-      router.replace('/onboarding/plan')
+      await finalizeCreatedNegocio(created.id)
     } catch (err) {
+      // 409 existe_oculto → el usuario ya tuvo este place_id; ofrecer restore.
+      if (err instanceof ApiError && err.status === 409 && (err.data as { error?: string } | undefined)?.error === 'existe_oculto') {
+        const data = err.data as { id: string; nombre: string }
+        stopLoadingUI()
+        setLoading(false)
+        setCurrentStep(-1)
+        setDoneSteps([])
+        setRestorePrompt({ id: data.id, nombre: data.nombre })
+        return
+      }
       stopLoadingUI()
       setError(err instanceof Error ? err.message : t.app.common.error)
       setLoading(false)
@@ -603,6 +657,29 @@ export default function OnboardingPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal restore: el usuario ya tuvo este place_id oculto */}
+      {restorePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => !loading && setRestorePrompt(null)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">Este local ya lo tuviste</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Ya añadiste <strong>{restorePrompt.nombre}</strong> en el pasado y lo ocultaste. Puedes restaurarlo con todo su historial de reseñas y análisis.
+            </p>
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={() => setRestorePrompt(null)} disabled={loading}
+                className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
+                Cancelar
+              </button>
+              <button type="button" onClick={handleRestoreExisting} disabled={loading}
+                className="flex-1 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors disabled:opacity-50">
+                {loading ? 'Restaurando…' : 'Restaurar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

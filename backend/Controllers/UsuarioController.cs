@@ -122,9 +122,9 @@ public class UsuarioController : ControllerBase
 
         if (!rpcOk)
         {
-            // Fallback manual (no transaccional)
-            var negocio = await _negocioRepo.GetByUserIdAsync(userId);
-            if (negocio != null)
+            // Fallback manual (no transaccional) — multi-negocio: iterar todos los del usuario.
+            var negocios = await _negocioRepo.GetAllByUserIdAsync(userId);
+            foreach (var negocio in negocios)
             {
                 await _reviewRepo.DeleteByNegocioIdAsync(negocio.Id);
                 _logger.LogInformation("[UsuarioController] [fallback] Reviews eliminadas para negocioId={NegocioId}", negocio.Id);

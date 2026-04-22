@@ -53,7 +53,7 @@ public class PlacesController : ControllerBase
         var userId = User.GetUserId();
         _logger.LogInformation("[PlacesController] POST /sync — userId={UserId}", userId);
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
 
         if (negocio == null)
         {

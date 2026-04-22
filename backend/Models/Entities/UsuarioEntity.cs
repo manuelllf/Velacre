@@ -95,4 +95,12 @@ public class UsuarioEntity : BaseModel
     /// <summary>Fecha en que expira el acceso (se rellena cuando se cancela)</summary>
     [Column("ls_ends_at")]
     public DateTimeOffset? LsEndsAt { get; set; }
+
+    /// <summary>
+    /// Número de locales contratados por el usuario. Base = 1. Cuando existan variants de volumen
+    /// en LS (Pro+1, Pro+2…), el webhook subscription_updated lo actualiza. Para Pro sin variants
+    /// de volumen, el backend bypasa el gate (ver try_create_negocio p_unlimited).
+    /// </summary>
+    [Column("locales_contratados")]
+    public short LocalesContratados { get; set; } = 1;
 }

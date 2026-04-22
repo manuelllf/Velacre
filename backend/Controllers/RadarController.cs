@@ -215,7 +215,7 @@ public class RadarController : ControllerBase
         if (!esProEfectivo)
             return (null, StatusCode(403, new { error = "plan_required", requiredPlan = "pro" }));
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return (null, NotFound("Negocio no encontrado."));
 
         return (negocio, null);

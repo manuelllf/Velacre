@@ -9,12 +9,29 @@ export class ApiError extends Error {
   }
 }
 
+// ─── Multi-negocio: store del local activo ────────────────────────────────
+// El NegocioActivoProvider llama a setActiveNegocioId(id) cuando el usuario
+// cambia de local. authHeaders() inyecta el id como X-Negocio-Id en cada
+// request. Backend lo lee antes del fallback a "negocio primario".
+let _activeNegocioId: string | null = null
+
+export function setActiveNegocioId(id: string | null) {
+  _activeNegocioId = id
+}
+
+export function getActiveNegocioId(): string | null {
+  return _activeNegocioId
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 export async function authHeaders(): Promise<HeadersInit> {
   const { data: { session } } = await supabase.auth.getSession()
-  return {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${session?.access_token ?? ''}`,
   }
+  if (_activeNegocioId) headers['X-Negocio-Id'] = _activeNegocioId
+  return headers
 }
 
 export async function fetchApi<T>(

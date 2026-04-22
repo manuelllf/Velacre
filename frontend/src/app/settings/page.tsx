@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, getLemonCheckoutUrl, getGbpStatus, getGbpAuthUrl, getGbpLocations, finalizeGbpConnection, disconnectGbp, type Negocio, type GbpStatus, type GbpLocation } from '@/lib/api'
+import { deleteNegocio, getMyNegociosIncludingHidden, restoreNegocio, markNegocioPrincipal, updateNegocioById } from '@/lib/api/negocio'
+import { useNegocioActivo } from '@/lib/negocio-activo'
+import { ApiError } from '@/lib/api/client'
 import SectionNav from '@/components/SectionNav'
 import Tooltip from '@/components/Tooltip'
 import { HelpButton } from '@/components/HelpModal'
@@ -17,6 +20,10 @@ export default function SettingsPage() {
   const router = useRouter()
   const { t } = useLanguage()
   const s = t.app.settings
+
+  // Multi-local: el formulario edita el local ACTIVO (no el principal). Al cambiar
+  // activo desde el dropdown, el useEffect re-carga el form con los datos del nuevo.
+  const { activo } = useNegocioActivo()
 
   const TONOS = [
     { value: 'Profesional', label: s.tonos.Profesional.label, desc: s.tonos.Profesional.desc },
@@ -68,21 +75,14 @@ export default function SettingsPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.replace('/auth/login'); return }
       try {
-        const [u, n, gbp] = await Promise.all([getMyUsuario(), getMyNegocio(), getGbpStatus().catch(() => null)])
+        const [u, gbp] = await Promise.all([getMyUsuario(), getGbpStatus().catch(() => null)])
         setNombre(u.nombre ?? '')
         setPlan(u.plan ?? 'basic')
         setLsStatus(u.lsStatus ?? null)
         setLsRenewsAt(u.lsRenewsAt ?? null)
         setLsEndsAt(u.lsEndsAt ?? null)
         setLsCustomerPortal(u.lsCustomerPortal ?? null)
-        if (n) {
-          setNegocio(n)
-          setForm({
-            descripcion: n.descripcion ?? '',
-            tonopredefinido: n.tonopredefinido ?? 'Profesional',
-          })
-          setPalabrasClave(n.palabrasClave ?? [])
-        }
+        // El negocio para el form se toma del NegocioActivoProvider (ver useEffect abajo).
         if (gbp) setGbpStatus(gbp)
 
         // Handle GBP OAuth callback params
@@ -110,6 +110,17 @@ export default function SettingsPage() {
     }
     load()
   }, [router])
+
+  // Reload form cuando cambia el negocio activo (o cuando se carga inicialmente)
+  useEffect(() => {
+    if (!activo) return
+    setNegocio(activo)
+    setForm({
+      descripcion: activo.descripcion ?? '',
+      tonopredefinido: activo.tonopredefinido ?? 'Profesional',
+    })
+    setPalabrasClave(activo.palabrasClave ?? [])
+  }, [activo])
 
 
   // ── GBP handlers ─────────────────────────────────────────────────────────
@@ -163,14 +174,19 @@ export default function SettingsPage() {
     setSaved(false)
     setError('')
     try {
-      await Promise.all([
-        updateUsuario({ nombre }),
-        updateNegocio({
-          descripcion: form.descripcion,
-          tonoPredefinido: form.tonopredefinido,
-          palabrasClave,
-        }),
-      ])
+      // Multi-local: guardamos sobre el local ACTIVO. Si aún no ha cargado (raro), usa /me.
+      const negocioSave = activo
+        ? updateNegocioById(activo.id, {
+            descripcion: form.descripcion,
+            tonoPredefinido: form.tonopredefinido,
+            palabrasClave,
+          })
+        : updateNegocio({
+            descripcion: form.descripcion,
+            tonoPredefinido: form.tonopredefinido,
+            palabrasClave,
+          })
+      await Promise.all([updateUsuario({ nombre }), negocioSave])
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch {
@@ -598,6 +614,9 @@ export default function SettingsPage() {
           </div>
         </form>
 
+        {/* Mis locales — multi-negocio */}
+        <MisLocalesSection plan={plan} />
+
         {/* Danger Zone */}
         <section className="bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/60">
           <div className="px-5 py-4 border-b border-red-100 dark:border-red-900/40">
@@ -740,5 +759,196 @@ export default function SettingsPage() {
 
       <AppFooter />
     </div>
+  )
+}
+
+// ─── Mis locales (multi-negocio) ────────────────────────────────────────────
+// Lista de locales activos + ocultos del usuario:
+//   · Activos: "Usar" (cambia activo), "Marcar principal", "Ocultar" (soft delete)
+//   · Ocultos: "Restaurar" (si hay slot libre)
+// "+ Añadir local" visible solo en Pro. Basic/Core: CTA a upgrade.
+function MisLocalesSection({ plan }: { plan: string }) {
+  const { negocios, activo, setActivo, refetch, isLoading } = useNegocioActivo()
+  const [hidden, setHidden] = useState<Negocio[]>([])
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; nombre: string } | null>(null)
+
+  const esPro = plan === 'pro'
+
+  async function loadHidden() {
+    try {
+      const all = await getMyNegociosIncludingHidden()
+      setHidden(all.filter(n => n.estado && n.estado !== 'activo'))
+    } catch { /* sin ruido — la sección ocultos simplemente no aparece */ }
+  }
+
+  useEffect(() => { loadHidden() }, [negocios])
+
+  async function doDelete(id: string) {
+    setBusyId(id); setErr(null)
+    try {
+      await deleteNegocio(id)
+      await Promise.all([refetch(), loadHidden()])
+      setConfirmDelete(null)
+    } catch (e) {
+      const msg = e instanceof ApiError && e.data && typeof (e.data as Record<string, unknown>).error === 'string'
+        ? String((e.data as Record<string, unknown>).error)
+        : (e instanceof Error ? e.message : 'Error')
+      setErr(msg === 'last_active'
+        ? 'No puedes ocultar tu único local activo. Para eliminar la cuenta usa la Zona de peligro.'
+        : `Error al ocultar: ${msg}`)
+    } finally { setBusyId(null) }
+  }
+
+  async function handleMarkPrincipal(id: string) {
+    setBusyId(id); setErr(null)
+    try {
+      await markNegocioPrincipal(id)
+      await refetch()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Error al marcar principal')
+    } finally { setBusyId(null) }
+  }
+
+  async function handleRestore(id: string) {
+    setBusyId(id); setErr(null)
+    try {
+      await restoreNegocio(id)
+      await Promise.all([refetch(), loadHidden()])
+    } catch (e) {
+      const msg = e instanceof ApiError && e.data && typeof (e.data as Record<string, unknown>).error === 'string'
+        ? String((e.data as Record<string, unknown>).error)
+        : (e instanceof Error ? e.message : 'Error')
+      setErr(msg === 'slot_limit_reached'
+        ? 'No tienes slots libres. Sube de plan o elimina otro local antes de restaurar.'
+        : `Error al restaurar: ${msg}`)
+    } finally { setBusyId(null) }
+  }
+
+  if (isLoading || negocios.length === 0) return null
+
+  return (
+    <>
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">Mis locales</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {negocios.length === 1 ? 'Tienes 1 local activo.' : `Tienes ${negocios.length} locales activos.`}
+              {!esPro && ' Multi-local es feature Pro.'}
+            </p>
+          </div>
+          {esPro ? (
+            <Link
+              href="/onboarding?add=1"
+              className="shrink-0 px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
+            >
+              + Añadir local
+            </Link>
+          ) : (
+            <span className="shrink-0 text-[11px] font-mono uppercase tracking-widest text-slate-400">Requiere Pro</span>
+          )}
+        </div>
+
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+          {negocios.map(n => {
+            const isActive = activo?.id === n.id
+            const isPrincipal = !!n.esPrincipal
+            const canDelete = negocios.length > 1
+            return (
+              <li key={n.id} className="px-5 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex items-center gap-2.5">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-slate-400 dark:bg-slate-600'}`} aria-hidden />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                      {n.nombre}
+                      {isPrincipal && (
+                        <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded border border-blue-400/50 text-blue-500 dark:text-blue-400">
+                          Principal
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+                      {isActive ? 'Activo' : 'Inactivo'}
+                      {n.placeId ? ' · Google conectado' : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {!isActive && (
+                    <button type="button" onClick={() => setActivo(n.id)}
+                      className="px-3 py-1.5 text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      Usar
+                    </button>
+                  )}
+                  {!isPrincipal && (
+                    <button type="button" onClick={() => handleMarkPrincipal(n.id)} disabled={busyId === n.id}
+                      className="px-3 py-1.5 text-xs font-semibold border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50">
+                      {busyId === n.id ? '...' : 'Marcar principal'}
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button type="button" onClick={() => setConfirmDelete({ id: n.id, nombre: n.nombre })} disabled={busyId === n.id}
+                      className="px-3 py-1.5 text-xs font-semibold border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50">
+                      Ocultar
+                    </button>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+        {err && <p className="px-5 py-3 text-xs text-red-500">{err}</p>}
+
+        {hidden.length > 0 && (
+          <div className="border-t border-slate-100 dark:border-slate-800">
+            <div className="px-5 py-3">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Locales ocultos</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Sus reseñas e historial se conservan. Puedes restaurarlos si tienes slot libre.</p>
+            </div>
+            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+              {hidden.map(h => (
+                <li key={h.id} className="px-5 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{h.nombre}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                      {h.estado === 'deshabilitado_plan' ? 'Deshabilitado por plan' : 'Oculto por ti'}
+                    </p>
+                  </div>
+                  <button type="button" onClick={() => handleRestore(h.id)} disabled={busyId === h.id}
+                    className="shrink-0 px-3 py-1.5 text-xs font-semibold border border-emerald-300 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50">
+                    {busyId === h.id ? '...' : 'Restaurar'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+
+      {/* Modal de confirmación ocultar */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => busyId === null && setConfirmDelete(null)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">Ocultar &quot;{confirmDelete.nombre}&quot;</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              El local se ocultará y dejará de contar para tus slots. <strong>No se eliminan datos</strong> — si más adelante vuelves a añadir el mismo Google Place te ofreceremos restaurarlo con todo su historial de reseñas.
+            </p>
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={() => setConfirmDelete(null)} disabled={busyId !== null}
+                className="flex-1 py-2.5 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
+                Cancelar
+              </button>
+              <button type="button" onClick={() => doDelete(confirmDelete.id)} disabled={busyId !== null}
+                className="flex-1 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors disabled:opacity-50">
+                {busyId !== null ? 'Ocultando…' : 'Ocultar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

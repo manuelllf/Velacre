@@ -194,7 +194,7 @@ Pipeline:
 
 No hay: políticas `ProblemDetails` nativas (shape custom), `AddRateLimiter` aplicativo, `UseHsts`/`UseHttpsRedirection` (Railway termina TLS), health check oficial de ASP.NET Core (`HealthController` es el análisis IA, no liveness).
 
-### 3.3 Controllers — tabla completa (49 endpoints)
+### 3.3 Controllers — tabla completa (54 endpoints)
 
 Todos con `[Authorize]` salvo marcados. Todos los métodos devuelven `Task<IActionResult>`.
 
@@ -238,12 +238,18 @@ Todos con `[Authorize]` salvo marcados. Todos los métodos devuelven `Task<IActi
 | POST | `/api/lemonsqueezy/cancelar` | JWT | DELETE en LS API + update BD |
 | POST | `/api/lemonsqueezy/webhook` | Anónimo | HMAC-SHA256 verify `X-Signature`. Eventos: created/resumed/updated/cancelled/expired/paused |
 
-**`NegocioController`** — 3 endpoints
+**`NegocioController`** — 8 endpoints (soporte multi-local)
 | Método | Ruta | Propósito |
 |---|---|---|
-| GET | `/api/negocio/me` | Lee negocio |
-| POST | `/api/negocio` | Crea (código `NEG` + 7 chars random) |
-| PUT | `/api/negocio/me` | Update; `PlaceId` bloqueado tras setup salvo admin |
+| GET | `/api/negocio/me` | Lee el **primario** del usuario (`es_principal=TRUE`, fallback al más antiguo `activo`). Compat para callers mono-negocio. |
+| GET | `/api/negocio` | Lista todos los negocios `estado='activo'`. Query `?includeHidden=true` incluye ocultos/deshabilitados (usado en Settings > Locales ocultos). |
+| GET | `/api/negocio/{id}` | Negocio concreto validando ownership. |
+| POST | `/api/negocio` | Crea vía RPC atómica `try_create_negocio` (check slot + insert + set `es_principal` si es el 1º del usuario). Pro bypasa gate (`p_unlimited=true`) hasta que existan variants de volumen. Si llega `placeId` que coincide con uno oculto del mismo usuario → **409 `existe_oculto` `{id, nombre}`** para que el frontend ofrezca restaurar. Si no cabe slot → **403 `slot_limit_reached`**. |
+| PUT | `/api/negocio/me` | Legacy: update del primario. |
+| PUT | `/api/negocio/{id}` | Update multi-local del negocio indicado. `PlaceId` bloqueado tras setup salvo admin (403 Forbid). |
+| DELETE | `/api/negocio/{id}` | **Soft delete** → `estado='oculto_usuario'` + `es_principal=FALSE`. Preserva historial de reseñas/análisis para posible restore. **409 `last_active`** si queda 1 solo activo (CTA a eliminar cuenta). 400 `already_hidden` si ya lo estaba. |
+| POST | `/api/negocio/{id}/restaurar` | Reactiva un oculto → `estado='activo'`. Valida slot (Pro bypasa). 403 `slot_limit_reached` si no cabe. 400 `already_active`. |
+| POST | `/api/negocio/{id}/principal` | Cambia el principal vía RPC transaccional `set_negocio_principal` (unset anterior + set nuevo). 400 si el negocio está oculto. |
 
 **`NotifyController`** — 1 endpoint
 | Método | Ruta | Propósito |
@@ -477,12 +483,17 @@ src/
 - `authHeaders()` obtiene sesión fresca de Supabase en cada request.
 - Clase `ApiError(status, message, data?)`.
 - 401 handling: cada página lo interpreta (`err.status === 401` → `router.replace('/auth/login')`). Sin refresh automático aplicativo (supabase-js gestiona refresh de token).
+- **Multi-local — inyección de `X-Negocio-Id`**: módulo-level `_activeNegocioId` en `client.ts` con setter `setActiveNegocioId(id)` (llamado por NegocioActivoProvider). `authHeaders()` añade `X-Negocio-Id: <id>` en TODAS las requests cuando hay id activo. Backend `NegocioScopeExtensions.ResolveScopedAsync(HttpContext, userId)` lo lee (prioridad sobre query param `?negocio_id=`), valida ownership con `GetByIdAndUserIdAsync`, fallback a primario si no llega. Módulo `api/negocio.ts` expone además `getMyNegocios`, `getMyNegociosIncludingHidden`, `getNegocioById`, `updateNegocioById`, `deleteNegocio`, `restoreNegocio`, `markNegocioPrincipal`. `syncReviews(negocioId?)` acepta id explícito como query (usado en onboarding de local adicional — el activo aún puede ser el primario).
 
 ### 4.5 Estado global / data
 
 - React Query cachea usuario, negocio, reseñas (staleTime 30s).
-- Contexts: `LanguageProvider` + `QueryClientProvider`.
+- Contexts: `LanguageProvider` + `QueryClientProvider` + **`NegocioActivoProvider`** (multi-local).
 - `dashboard/page.tsx` mantiene ~15 `useState` locales (reviews, filters, sync progress, modals, upsell, softCap, etc.).
+
+**`NegocioActivoProvider`** (`src/lib/negocio-activo.tsx`) — gestiona qué local está "activo" para el usuario multi-local. Fuente de verdad en cascada: (1) query param `?negocio=<id>` de la URL, (2) `localStorage.vel_negocio_activo`, (3) primer negocio activo del usuario (primario). Al cambiar el activo: actualiza URL (via `router.replace`, sin navegar), escribe en localStorage, llama `setActiveNegocioId(id)` en el módulo del cliente API (inyecta `X-Negocio-Id` en todas las requests siguientes), e invoca `queryClient.invalidateQueries()` para que dashboard/salud/radar re-fetcheen con el scope nuevo. Hook `useNegocioActivo()` expone `{negocios, activo, setActivo, isLoading, refetch}` con defaults null-safe si no hay provider (páginas públicas).
+
+**`NegocioDropdown`** (`src/components/NegocioDropdown.tsx`) — selector en AppHeader. Si `negocios.length < 2`, renderiza el nombre plano (no hay nada que elegir). Con 2+ muestra caret + dropdown con la lista + separador + link "+ Añadir local" a `/onboarding?add=1`. Click-outside cierra.
 
 ### 4.5.bis Dashboard UX patterns
 
@@ -541,17 +552,19 @@ Reemplaza hack anterior de line-height + margin-top. Aplicado en `AppHeader` (da
 
 ### 4.11 Tests
 
-- **Backend** (`backend.Tests/` xUnit + Moq, 18 tests):
+- **Backend** (`backend.Tests/` xUnit + Moq, 48 tests):
   - `Services/ClaudeServiceTests.cs` (9): parseo JSON, filtro seguridad, fallback raw, mapeo 6 tonos. `FakeHttpMessageHandler`.
-  - `Controllers/NegocioControllerTests.cs` (5): CRUD básico.
+  - `Controllers/NegocioControllerTests.cs` (28): CRUD, multi-local (soft delete + last_active 409, restore + slot check + Pro bypass, principal + ownership, create + slot_limit + existe_oculto payload, placeId gate admin/non-admin), legacy PUT /me.
   - `Controllers/UsuarioControllerTests.cs` (4): GetMe, admin role, pro override.
-- **Frontend** (`frontend/src/test/` Vitest + @testing-library/react + jsdom, 35 tests):
+  - `Infrastructure/NegocioScopeExtensionsTests.cs` (7): header vs query priority, GUID inválido, ownership, usuario sin negocios.
+- **Frontend** (`frontend/src/test/` Vitest + @testing-library/react + jsdom, 57 tests):
   - `lib/api.test.ts` (8): ApiError, generateResponses, saveManualReview.
   - `lib/api-modules.test.ts` (14): negocio, usuario, radar, reviews.
+  - `lib/negocio-multi.test.ts` (22): nuevos endpoints multi-local + error paths (409 existe_oculto, 403 slot_limit, 400 already_hidden, 404 ownership) + inyección de `X-Negocio-Id` header.
   - `components/ResponseCard.test.tsx` (4).
   - `components/Tooltip.test.tsx` (4).
   - `hooks/useReviews.test.ts` (5).
-- Cobertura ~12-15%. CI en `.github/workflows/ci.yml`: `dotnet build + test` + `npm test` + `tsc --noEmit` en push a main y PRs.
+- Cobertura ~18%. CI en `.github/workflows/ci.yml`: `dotnet build + test` + `npm test` + `tsc --noEmit` en push a main y PRs.
 
 ---
 
@@ -586,8 +599,8 @@ HttpClients registrados con `AddHttpClient<T>()` → pooling gestionado por `Htt
 
 | Tabla | Propósito | Campos clave |
 |---|---|---|
-| `usuario` | Usuarios | id (Guid), email, nombre, rol (`cliente`\|`admin`\|`sales`), plan (`basic`\|`core`\|`pro`), estado (`activo`\|`baneado`\|`prueba`), pruebaHasta, activoDesde, proOverride, proOverrideHasta, respuestasManualesMes, respuestasMesReset, respuestasIaMes, lsSubscriptionId, lsStatus, lsRenewsAt, lsEndsAt |
-| `negocio` | Establecimiento | id, idUsuario (FK), codigo (NEG+7), nombre, email, telefono, descripcion, tonoPredefinido, placeId, palabrasClave (string[]) |
+| `usuario` | Usuarios | id (Guid), email, nombre, rol (`cliente`\|`admin`\|`sales`), plan (`basic`\|`core`\|`pro`), estado (`activo`\|`baneado`\|`prueba`), pruebaHasta, activoDesde, proOverride, proOverrideHasta, respuestasManualesMes, respuestasMesReset, respuestasIaMes, lsSubscriptionId, lsStatus, lsRenewsAt, lsEndsAt, **localesContratados** (smallint, default 1 — slots multi-local; Pro bypasa el gate hasta que existan variants de volumen) |
+| `negocio` | Establecimiento (1:N por usuario) | id, idUsuario (FK **sin UNIQUE** → N negocios por usuario), codigo (NEG+7), nombre, email, telefono, descripcion, tonoPredefinido, placeId, palabrasClave (string[]), **estado** (`activo`\|`oculto_usuario`\|`deshabilitado_plan`, default `activo` — solo los activos cuentan para slot), **esPrincipal** (bool, índice único parcial `WHERE es_principal = TRUE` garantiza máx 1 por usuario) |
 | `review` | Reseñas | id, idNegocio, googleReviewId (null si manual), autor, rating, texto, fecha, plataforma, estado (`pendiente`\|`respondida`\|`ignorada`), tonoGenerado (null\|`Profesional`\|`Empatico`\|`Cercano`\|`Directo`\|`Agradecido`\|`Humoristico`\|`google`), **respuesta** (1 columna tras migración 004 — antes 3 columnas `respuestaprofesional`/`respuestacolegueo`/`respuestaorgullosa` con duplicación en sync Google + catch-all en profesional para 4 tonos), publicadaEnGoogle, publicadaFecha, respuestaPublicada, retenida, motivoRetencion |
 | `google_connection` | Tokens OAuth | negocioId (PK), googleAccountId, locationName, displayName, accessToken, refreshToken, tokenExpiry, isActive, connectedAt |
 | `competidor` | Radar | id, idNegocio, placeId, nombre |
@@ -611,7 +624,16 @@ HttpClients registrados con `AddHttpClient<T>()` → pooling gestionado por `Htt
 - **`delete_user_cascade(p_user_id uuid) → void`**
   - plpgsql `SECURITY DEFINER`, `SET search_path = public`.
   - Borra en una transacción: `review → radar_analisis → competidor → google_connection → analisis_ia → negocio → anonimiza usuario`. Rollback automático si algo falla.
-  - Usado por `UsuarioController.DeleteMe()` con fallback manual por si no está desplegada.
+  - Usado por `UsuarioController.DeleteMe()` con fallback manual (ahora itera `GetAllByUserIdAsync` para multi-local).
+  - `GRANT EXECUTE` a `authenticated, service_role`.
+
+- **`try_create_negocio(p_user_id uuid, p_codigo, p_nombre, p_email, p_telefono, p_descripcion, p_tono, p_palabras_clave text[], p_unlimited boolean) → uuid`** (migración 005)
+  - plpgsql `SECURITY DEFINER`. Atómico: `SELECT ... FOR UPDATE` sobre `usuario` para serializar creaciones concurrentes, check `COUNT(estado='activo') < locales_contratados` (salvo `p_unlimited=true` para Pro), INSERT con `estado='activo'`, set `es_principal=TRUE` si es el primer negocio del usuario.
+  - Lanza `slot_limit_reached` (SQLSTATE P0001) si no cabe — el repo lo convierte a `SlotLimitReachedException`, el controller a 403.
+  - Usado por `NegocioController.CreateNegocio`.
+
+- **`set_negocio_principal(p_user_id uuid, p_negocio_id uuid) → void`** (migración 005)
+  - plpgsql `SECURITY DEFINER`. Valida ownership + estado activo, UPDATE unset del anterior principal + set del nuevo, todo en una transacción. Garantiza no-zero-no-dos principales.
   - `GRANT EXECUTE` a `authenticated, service_role`.
 
 ### 6.4 Transacciones
@@ -624,6 +646,7 @@ Sin herramienta de migraciones integrada en el proyecto .NET. Cambios aplicados 
 - `002_plan.sql` — columnas de plan
 - `003_rls_policies.sql` — RLS activado en 7 tablas (22 policies)
 - `004_consolidate_respuesta.sql` (2026-04-22) — consolida `respuestaprofesional`/`respuestacolegueo`/`respuestaorgullosa` en una sola columna `respuesta`. `COALESCE` para preservar datos, luego `DROP COLUMN × 3`. Ejecutado en prod sin tráfico real todavía. Motivo: schema legacy de un flujo antiguo donde se generaban 3 tonos upfront; hoy solo se genera 1 y las sync desde Google duplicaban el `owner_answer` en las 3 columnas "por si cambia el tono" (absurdo). La identidad del tono vive en `tono_generado`.
+- `005_multinegocio.sql` (2026-04-23) — soporte multi-local. `usuario.locales_contratados SMALLINT DEFAULT 1` + `negocio.estado TEXT` (enum: `activo`|`oculto_usuario`|`deshabilitado_plan`) + `negocio.es_principal BOOLEAN` con índice único parcial `WHERE es_principal=TRUE`. Backfill: para cada usuario con negocios, el más antiguo queda marcado principal. RPCs atómicas `try_create_negocio` y `set_negocio_principal` (§6.3). Idempotente (`IF NOT EXISTS`, `CREATE OR REPLACE`).
 
 ---
 
@@ -777,7 +800,65 @@ DELETE /api/usuario/me
 Frontend: armGoodbye() → window.location.href='/' (igual que logout)
 ```
 
-### 8.7 Error report
+### 8.7 Multi-local (scope, crear/ocultar/restaurar, principal)
+
+```
+Escenarios principales — todos sobre la relación 1:N usuario→negocio.
+
+A) Cambio de local activo (dashboard, panel salud, radar)
+   Usuario click dropdown AppHeader → NegocioActivoProvider.setActivo(id)
+     ├─ URL: router.replace(`${pathname}?negocio=${id}`)
+     ├─ localStorage.vel_negocio_activo = id
+     ├─ setActiveNegocioId(id)   // módulo de api/client.ts
+     └─ queryClient.invalidateQueries()   // re-fetch dashboard/salud/radar
+   Backend (cualquier controller scoped):
+     authHeaders() inyecta X-Negocio-Id
+     NegocioScopeExtensions.ResolveScopedAsync(HttpContext, userId):
+       header X-Negocio-Id presente → GetByIdAndUserIdAsync (valida ownership)
+                          ausente → GetByUserIdAsync (es_principal=TRUE, fallback más antiguo activo)
+
+B) Crear local adicional (Pro)
+   Settings > "+ Añadir local" → /onboarding?add=1
+     addParam=1 evita redirect a /inicio (onboarding normal haría eso si había negocio)
+   Manual path:
+     POST /api/negocio { nombre, tono, placeId, ... }
+       backend: si placeId coincide con un negocio oculto del usuario → 409 existe_oculto {id, nombre}
+         frontend captura ApiError.status===409 + data.error==='existe_oculto'
+         → modal "Este local ya lo tuviste → Restaurar" → restoreNegocio(id)
+       sin match:
+         RPC try_create_negocio (FOR UPDATE de usuario + check slot + INSERT)
+         Pro: p_unlimited=true → bypass slot check
+         Basic/Core: si activos >= locales_contratados → EXCEPTION slot_limit_reached → 403
+         Si es el 1º negocio del user → es_principal=TRUE automático
+     PUT /api/negocio/{nuevoId} { placeId, nombre }   // idempotente, set inicial
+     POST /api/places/sync?negocio_id={nuevoId}       // query explícito (el activo puede seguir siendo el primario)
+   → router.replace('/settings?tab=locales')
+
+C) Ocultar un local (soft delete)
+   Settings > Mis locales > Ocultar → modal confirmación → DELETE /api/negocio/{id}
+     backend: if estado != activo → 400 already_hidden
+              if COUNT(estado=activo) <= 1 → 409 last_active (CTA a Zona de peligro)
+              UPDATE estado=oculto_usuario, es_principal=false
+     frontend: refetch, aparece en "Locales ocultos"
+
+D) Restaurar oculto
+   Settings > Locales ocultos > Restaurar → POST /api/negocio/{id}/restaurar
+     backend: ownership check
+              if estado == activo → 400 already_active
+              if !esProEfectivo && COUNT(activos) >= locales_contratados → 403 slot_limit_reached
+              UPDATE estado=activo
+
+E) Marcar principal
+   Settings > Mis locales > Marcar principal → POST /api/negocio/{id}/principal
+     backend: ownership + activo → RPC set_negocio_principal(userId, id)
+       UPDATE unset anterior + set nuevo en una tx (idx único parcial protege consistencia)
+
+F) Editar local activo (form central de Settings)
+   useEffect observa `activo` del provider → rellena form cuando cambia
+   Guardar → updateNegocioById(activo.id, {...})   // NO PUT /me
+```
+
+### 8.8 Error report
 
 ```
 Error en frontend (render crash / api 5xx / manual):

@@ -77,7 +77,7 @@ public class ReviewController : ControllerBase
             }
         }
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound("No tienes ningún negocio registrado. Completa el onboarding primero.");
 
         var tone = request.Tono ?? negocio.TonoPredefinido ?? "Profesional";
@@ -141,7 +141,7 @@ public class ReviewController : ControllerBase
             }
         }
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound("No tienes ningún negocio registrado.");
 
         try
@@ -217,7 +217,7 @@ public class ReviewController : ControllerBase
         var userId = User.GetUserId();
         _logger.LogInformation("[ReviewController] GET /pending — userId={UserId}", userId);
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
 
         if (negocio == null)
         {
@@ -255,7 +255,7 @@ public class ReviewController : ControllerBase
         var userId = User.GetUserId();
         _logger.LogInformation("[ReviewController] POST /{ReviewId}/generate — userId={UserId} force={Force}", id, userId, force);
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
 
         if (negocio == null)
         {
@@ -479,7 +479,7 @@ public class ReviewController : ControllerBase
     {
         var userId = User.GetUserId();
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound();
 
         var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
@@ -519,7 +519,7 @@ public class ReviewController : ControllerBase
     {
         var userId = User.GetUserId();
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound();
 
         var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
@@ -551,7 +551,7 @@ public class ReviewController : ControllerBase
     {
         var userId = User.GetUserId();
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound();
 
         var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
@@ -584,7 +584,7 @@ public class ReviewController : ControllerBase
     public async Task<IActionResult> GetMetrics()
     {
         var userId = User.GetUserId();
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound();
 
         var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
@@ -634,7 +634,7 @@ public class ReviewController : ControllerBase
     public async Task<IActionResult> GetAnalysis()
     {
         var userId = User.GetUserId();
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound();
 
         var latest = await _analisisIaRepo.GetLatestByNegocioIdAsync(negocio.Id);
@@ -658,7 +658,7 @@ public class ReviewController : ControllerBase
     public async Task<IActionResult> GenerateAnalysis()
     {
         var userId = User.GetUserId();
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound();
 
         var reviews = await _reviewRepo.GetByNegocioIdAsync(negocio.Id);
@@ -775,7 +775,7 @@ public class ReviewController : ControllerBase
             return BadRequest("Estado inválido");
 
         var userId = User.GetUserId();
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
 
         var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);
@@ -805,7 +805,7 @@ public class ReviewController : ControllerBase
             return BadRequest(new { error = "texto_largo", mensaje = "La respuesta supera el máximo permitido (2000 caracteres)." });
 
         var userId = User.GetUserId();
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
 
         var review = await _reviewRepo.GetByIdAndNegocioAsync(id, negocio.Id);

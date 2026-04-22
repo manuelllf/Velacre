@@ -51,7 +51,7 @@ Objetivo de Fundador: no depender de empleador toda la vida.
 | Email | Bienvenida, reportes de error | Resend (info@velacre.com) |
 | Búsqueda de lugares | Onboarding, Mini Radar | Google Places API |
 
-**Estado del código (~21k líneas):** 49 endpoints, 11 controllers, 7 repositorios, 5 servicios, 9 entidades BD. ~12-15% cobertura de tests (53 tests: 18 backend xUnit, 35 frontend Vitest). Capa de repositorios + FluentValidation + React Query (frontend). RLS en 7 tablas (22 policies). Auth SSR con proxy.ts + @supabase/ssr. Error handling global. Circuit breaker en Claude. Sin rate limiting aplicativo (backlog).
+**Estado del código (~22k líneas):** 54 endpoints, 11 controllers, 7 repositorios, 5 servicios, 9 entidades BD. ~18% cobertura de tests (105 tests: 48 backend xUnit, 57 frontend Vitest). Capa de repositorios + FluentValidation + React Query (frontend). RLS en 7 tablas (22 policies). Auth SSR con proxy.ts + @supabase/ssr. Error handling global. Circuit breaker en Claude. Sin rate limiting aplicativo (backlog). Soporte multi-local activo (1:N usuario→negocio, ver §7).
 
 ---
 
@@ -78,8 +78,8 @@ Objetivo de Fundador: no depender de empleador toda la vida.
 **Auth:** Supabase Auth (email+pwd y Google OAuth) → JWT ES256 → backend valida con JWKS. Protección de rutas server-side con `proxy.ts` + `@supabase/ssr` (cookies HTTP, sin flashing). RLS en 7 tablas (22 policies).
 
 **Modelo de datos (entidades principales):**
-- `usuario` — perfil, plan, estado, contadores de uso, datos suscripción LS
-- `negocio` — nombre, tono, place_id, palabras clave SEO (hasta 5)
+- `usuario` — perfil, plan, estado, contadores de uso, datos suscripción LS, `locales_contratados` (slots multi-local, default 1)
+- `negocio` — nombre, tono, place_id, palabras clave SEO (hasta 5), `estado` (`activo`|`oculto_usuario`|`deshabilitado_plan`), `es_principal` (1 por usuario, garantizado por índice único parcial). 1 usuario → N negocios.
 - `review` — reseña importada con estado (pendiente/respondida/ignorada), 1 campo `respuesta` con el texto + `tono_generado` que indica qué tono/origen usó (profesional/cercano/directo/empatico/agradecido/humoristico/`google`), filtro seguridad (retenida/motivoRetencion)
 - `analisis_ia` — diagnóstico IA del panel salud (brilla/quema/acción)
 - `competidor` + `radar_analisis` — competidores y análisis comparativo (Pro)
@@ -223,6 +223,25 @@ Layout compacto pensado para que el trabajo diario quepa en un viewport sin scro
 
 ### Modo oscuro forzado
 Siempre dark en app. Navy `#0A0E1A`, acento azul maduro `#4A6FE5`. Cal Sans para headers, Geist para body.
+
+### Multi-local (multi-negocio por usuario)
+Soporte de N locales por usuario con relación 1:N (usuario → negocio). Visible solo para Pro — Basic/Core siguen con 1 local (gate por `usuario.locales_contratados`, default 1; Pro bypasa hasta que existan variants de volumen en LS).
+
+**Conceptos BD**:
+- `negocio.estado`: `activo` (operativo), `oculto_usuario` (soft delete, preserva historial), `deshabilitado_plan` (futuro downgrade LS → read-only).
+- `negocio.es_principal`: el local "principal" elegido por el usuario. Índice único parcial en BD garantiza máx 1 por usuario.
+- Solo los `estado='activo'` cuentan para slots; ocultos y deshabilitados liberan slot.
+- RPCs atómicas: `try_create_negocio` (check slot + insert) y `set_negocio_principal` (swap transaccional del flag).
+
+**UX**:
+- **Dropdown** en el AppHeader permite cambiar el local activo (URL param `?negocio=<id>` → `localStorage` → primario como fallback).
+- **Settings > Mis locales** lista activos con botones "Usar" (cambia activo), "Marcar principal", "Ocultar" (soft delete con modal confirmación). Sección adicional "Locales ocultos" con botón "Restaurar" si hay slot libre.
+- **+ Añadir local** (solo Pro) reutiliza `/onboarding?add=1` — mismo formulario, evita el redirect y vuelve a Settings al terminar.
+- **Restore implícito**: si el usuario intenta re-añadir un place_id que ya tuvo oculto, el backend devuelve 409 `existe_oculto` con `{id, nombre}` y el onboarding muestra modal "Este local ya lo tuviste → Restaurar".
+- **Form de Settings** edita el **activo** (no el primario) vía `updateNegocioById(activo.id, ...)`. Al cambiar el activo desde el dropdown, el form se re-carga.
+- **Borrar el último local** → 409 `last_active`, CTA a Zona de peligro.
+
+**Scope de requests**: el cliente envía header `X-Negocio-Id` en cada request (fallback `?negocio_id=` como query). `NegocioScopeExtensions.ResolveScopedAsync` en el backend valida ownership contra `GetByIdAndUserIdAsync` y cae a primario si no llega hint. Se aplica a Review/Radar/Places/Google/Health controllers.
 
 ### Multiidioma (i18n)
 3 idiomas: castellano (por defecto), gallego e inglés. Sistema basado en `LanguageProvider` con persistencia en `localStorage`. Todos los textos visibles al usuario usan el sistema i18n (~800 claves tipadas en TypeScript). Páginas de error crítico (`global-error.tsx`) mantienen fallback en español por seguridad (Provider puede no estar disponible).
@@ -382,9 +401,10 @@ Descartado por ahora: SEO serio, ads pagadas, ferias presenciales, eventos. El b
 ### Backlog técnico de alto nivel
 - **Eliminación de reseñas (Pro):** Claude genera texto de reclamación según políticas de Google → usuario copia y pega en formulario oficial. Velacre no elimina, Google decide.
 - **Modo supervisado + auto-publicación:** supervisado es el modo por defecto (decidido). Auto-publicar requiere toggle activo en Settings + guardar. Implementar cuando GBP esté activo.
-- **Multi-ubicación:** soporte `negocio[]` por usuario, pricing por local adicional (~€20/mes).
+- **Multi-local:** infraestructura activa (ver §7). Pendiente: variants Pro+N en LS (Pro+1, +2, +3, +4, +5) + webhook `subscription_updated` que marca `deshabilitado_plan` al downgrade y re-habilita al upgrade. Hoy Pro tiene slots ilimitados por bypass; cuando existan variants, `usuario.locales_contratados` pasa a ser el tope efectivo. Ver `velacre-multilocal-design.md` para plan fase 2.
+- **Panel Salud compartido (multi-local):** KPIs agregados cross-local, ranking entre propios locales, diagnóstico IA comparativo, PDF unificado. Útil para dueños con 2+ locales. Fuera de scope actual.
 - **Panel Salud Core:** versión mínima real activada. Core ve: nota media, % respondidas, reseñas este mes, tendencia vs mes anterior, distribución positivo/neutro/negativo y mini-evolución 6 meses (barras compactas con rating + conteo mensual). Análisis IA / Radar / PDFs / categorías de sentimiento / keywords / tabla histórica completa / métricas de impacto siguen siendo Pro con teasers blurred.
-- **Tests:** ~12-15% cobertura (53 tests). Backend: ClaudeService, NegocioController, UsuarioController. Frontend: API client + modules + hooks + componentes. Próximos: ReviewController, LemonController, flujos e2e.
+- **Tests:** ~18% cobertura (105 tests: 48 backend + 57 frontend). Backend: ClaudeService, NegocioController (incluye ownership, soft delete, restore, principal, slot gating, existe_oculto), UsuarioController, NegocioScopeExtensions. Frontend: API client multi-local (getAll, restore, markPrincipal, header X-Negocio-Id), modules, hooks, componentes. Próximos: ReviewController, LemonController, flujos e2e.
 - **Rate limiting aplicativo:** no crítico sin atacantes, buena práctica para producción.
 
 ### Ideas futuras (post-tracción)

@@ -28,8 +28,8 @@ export function useSetReviewEstado() {
 
 export function useSyncReviews() {
   const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: syncReviews,
+  return useMutation<{ newReviews: number }, Error, string | undefined>({
+    mutationFn: (negocioId) => syncReviews(negocioId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reviews'] }),
   })
 }
