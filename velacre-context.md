@@ -323,7 +323,40 @@ No competir con wiReply en volumen de notas clásicas (ferias, revistas del sect
 - **Contenido derivado del Mini Radar.** El Mini Radar ya genera insights reales sobre reseñas. Agregado a escala (ej: "analizamos 500 reseñas de 20 bares gallegos") es formato periodístico listo para pitch a medios o post viral en LinkedIn.
 - **Ángulo gallego.** wiReply es neutro nacional; Velacre es el único SaaS de reseñas *hecho en Galicia*. Eso es titular en medios locales. Aprovecharlo explícitamente antes de diluir el origen para no quemarlo después.
 
-Descartado por ahora: SEO serio, ads pagadas, ferias presenciales, eventos. El budget no llega y el ROI es incierto vs los ángulos de arriba.
+Descartado por ahora: ads pagadas, ferias presenciales, eventos. El budget no llega y el ROI es incierto vs los ángulos de arriba.
+
+### SEO — 4 niveles de inversión (para no confundirlos)
+
+"SEO" no es una cosa sola. Cada nivel tiene coste y ROI distintos. Matizo qué hacer con cada uno:
+
+**Nivel 1 — SEO técnico (casi gratis, hacer cuando toque)**
+Trabajo mecánico de 1-2h sobre la landing ya existente. No requiere escribir contenido nuevo ni generar backlinks:
+- `sitemap.ts` y `robots.ts` (Next.js 16 app router nativos)
+- `<Metadata>` por página: title, description, canonical, Open Graph (para compartir en redes sin que salga preview vacío), Twitter Card
+- **Hreflang** en las 3 versiones del landing (es/gl/en) — crítico porque hoy los 3 idiomas viven en la misma URL y Google no distingue la versión correcta por país/idioma
+- **JSON-LD Schema.org** tipo `Organization` + `SoftwareApplication` con logo, sameAs (LinkedIn, IG), contacto
+- Verificación en Google Search Console para ver qué keywords traen tráfico espontáneo
+- Status 200, 404 propios, sin redirects en cadena
+
+Valor aunque no se escriba un solo post: mejora cómo se ve Velacre al compartir, captura tráfico orgánico que ya llegaba, prepara terreno para niveles 2-4.
+
+**Nivel 2 — SEO on-page (horas de copy, hacer junto a N1)**
+Revisar copy para incluir frases que los dueños hostelería buscan: *"responder reseñas Google con IA"*, *"software reseñas hostelería"*, *"SaaS gestión reseñas Galicia"*. Jerarquía H1/H2/H3 coherente, alt text en imágenes, URLs limpias (`/precios`, `/como-funciona`). No reescribir la landing — solo ajustar frases clave donde encaje.
+
+**Nivel 3 — SEO de contenidos (meses, DIFERIR hasta primer cliente)**
+Blog con 20-30 posts tipo *"cómo responder reseña negativa sin empeorarla"*, *"5 plantillas reseñas positivas restaurante"*, *"por qué Google posiciona negocios que responden reseñas"*. Cada post 1-2h de escritura + 6-12 meses para empezar a ranquear. ROI lento.
+
+**Estado:** diferido hasta tener primer cliente cerrado y testimonios reales que incorporar. El outreach directo (§14) y los casos de estudio (§10) tienen mejor ROI hasta entonces.
+
+**Nivel 4 — Link building + PR (muy caro, descartado hasta tracción)**
+Guest posts pagados, menciones en medios, backlinks de sitios autoritarios. Reemplazable en parte por el "ángulo gallego" + casos de estudio de §10 (medios locales gallegos gratis con credibilidad). **Descartado** como línea pagada hasta tener presupuesto real.
+
+**Checklist al activar SEO (en orden):**
+1. Auditar N1 en la landing actual → lista concreta de lo que falta.
+2. Implementar todo N1 en una pasada.
+3. Ajustar N2 con el primer cliente cerrado (cuando sepamos qué lenguaje usan los dueños reales).
+4. Reevaluar N3 al llegar a 3-5 clientes (punto en el que habría casos de estudio para nutrir posts).
+5. N4 nunca hasta MRR estable.
 
 ### Dónde podemos ganar ya (sin GBP)
 - PYMEs con 5-30 reseñas/mes → Basic gratis o Core €19 (más barato que wiReply)
