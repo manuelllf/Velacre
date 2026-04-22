@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import {
   createNegocio, searchPlaces, syncReviews, getMyNegocio,
@@ -9,7 +10,7 @@ import {
   type PlaceResult, type GbpLocation,
 } from '@/lib/api'
 import { updateNegocioById, restoreNegocio } from '@/lib/api/negocio'
-import { ApiError } from '@/lib/api/client'
+import { ApiError, setActiveNegocioId } from '@/lib/api/client'
 import { useLanguage } from '@/lib/i18n'
 import { VelacreMark } from '@/components/landing/VelacreMark'
 
@@ -43,6 +44,7 @@ function OnboardingBrand() {
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { t } = useLanguage()
   const ob = t.app.onboarding
   const op = t.app.onboardingPage
@@ -189,7 +191,16 @@ export default function OnboardingPage() {
     await syncReviews(negocioId)
     setDoneSteps([0, 1, 2])
     stopLoadingUI()
-    router.replace(isAddMode ? '/settings?tab=locales' : '/onboarding/plan')
+    if (isAddMode) {
+      // Marca el recién creado como activo para que Settings y el dropdown lo reflejen
+      // al renderizar, y fuerza refetch de la lista del provider — sin esto la cache
+      // del provider (staleTime 60s) no se entera del nuevo local hasta F5 manual.
+      setActiveNegocioId(negocioId)
+      await queryClient.invalidateQueries({ queryKey: ['negocios', 'all'] })
+      router.replace(`/settings?tab=locales&negocio=${negocioId}`)
+    } else {
+      router.replace('/onboarding/plan')
+    }
   }
 
   async function handleRestoreExisting() {
