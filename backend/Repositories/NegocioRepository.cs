@@ -22,14 +22,20 @@ public class NegocioRepository : INegocioRepository
     /// </summary>
     public async Task<NegocioEntity?> GetByUserIdAsync(Guid userId)
     {
+        // Postgrest-csharp genera un logic-tree inválido cuando hay 3+ predicados con && dentro
+        // de un mismo .Where(lambda). Encadenando .Where() → cada uno es un filtro top-level
+        // (AND implícito del lado servidor), sin bug de paréntesis.
         var principal = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId && n.EsPrincipal == true && n.Estado == EstadoActivo)
+            .Where(n => n.IdUsuario == userId)
+            .Where(n => n.EsPrincipal == true)
+            .Where(n => n.Estado == EstadoActivo)
             .Limit(1).Get();
         var found = principal.Models.FirstOrDefault();
         if (found != null) return found;
 
         var fallback = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId && n.Estado == EstadoActivo)
+            .Where(n => n.IdUsuario == userId)
+            .Where(n => n.Estado == EstadoActivo)
             .Order(n => n.CreadoFecha, Ordering.Ascending)
             .Limit(1).Get();
         return fallback.Models.FirstOrDefault();
@@ -69,8 +75,11 @@ public class NegocioRepository : INegocioRepository
     /// </summary>
     public async Task<NegocioEntity?> GetHiddenByPlaceIdAsync(Guid userId, string placeId)
     {
+        // Chained Where — ver comentario en GetByUserIdAsync sobre el bug de logic-tree 3+.
         var result = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId && n.PlaceId == placeId && n.Estado == EstadoOcultoUsuario)
+            .Where(n => n.IdUsuario == userId)
+            .Where(n => n.PlaceId == placeId)
+            .Where(n => n.Estado == EstadoOcultoUsuario)
             .Limit(1).Get();
         return result.Models.FirstOrDefault();
     }
@@ -122,8 +131,10 @@ public class NegocioRepository : INegocioRepository
     public async Task<int> CountByUserIdAsync(Guid userId)
     {
         // Solo cuenta activos — los ocultos/deshabilitados no ocupan slot.
+        // Chained Where por el bug de Postgrest-csharp con logic-tree 3+ (ver GetByUserIdAsync).
         var result = await _supabase.From<NegocioEntity>()
-            .Where(n => n.IdUsuario == userId && n.Estado == EstadoActivo)
+            .Where(n => n.IdUsuario == userId)
+            .Where(n => n.Estado == EstadoActivo)
             .Get();
         return result.Models.Count;
     }
