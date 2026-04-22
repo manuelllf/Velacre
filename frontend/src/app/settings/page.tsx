@@ -398,8 +398,8 @@ export default function SettingsPage() {
         <form onSubmit={handleSave}>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-            {/* LEFT: Google + Perfil */}
-            <div className="lg:col-span-2 space-y-4">
+            {/* LEFT: Google + Perfil — flex-col en desktop para que Perfil se estire y alinee con el card de negocio de la derecha */}
+            <div className="lg:col-span-2 space-y-4 lg:flex lg:flex-col">
 
               {/* Google Business */}
               <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -466,12 +466,12 @@ export default function SettingsPage() {
                 </div>
               </section>
 
-              {/* Perfil */}
-              <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+              {/* Perfil — lg:flex-1 para rellenar el espacio restante bajo GBP y alinear con el card de la derecha */}
+              <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 lg:flex-1 lg:flex lg:flex-col">
                 <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
                   <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">{s.profileSection}</h2>
                 </div>
-                <div className="p-5">
+                <div className="p-5 lg:flex-1">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{s.nameLabel}</label>
                   <input
                     type="text"
