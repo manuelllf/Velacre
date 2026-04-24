@@ -467,7 +467,12 @@ Guest posts pagados, menciones en medios, backlinks de sitios autoritarios. Reem
 2. **PDF Panel Salud mensual enviado auto** → valor tangible recibido sin entrar.
 3. **WhatsApp opt-in** → único canal real del dueño hostelero gallego.
 4. **Onboarding garantizado 7 días**: usuario genera ≥3 respuestas en semana 1 o se dispara nudge (email personal del founder).
-5. **Pre-generación IA en cron**: cuando Outscraper importa reseña nueva, Claude genera respuesta inmediatamente → al abrir app está "ya lista esperándote" (0s vs 4-6s). Coste marginal: ~€0.005 por respuesta × 30 reseñas/mes × 100 clientes = €15/mes. Vende "respuesta instantánea" como feature y reduce fricción del flujo.
+5. **Pre-generación IA incremental en cron** (Pro automático, Core opt-in, Basic nunca):
+   - **Scope**: solo las reseñas **nuevas** traídas por el cron semanal (`CronController.Sync`, martes). NO para las 60 del bootstrap del onboarding (reseñas históricas — ventana comercial de respuesta ya cerrada → coste muerto).
+   - **Pro**: activo por defecto. Coste ~€0.30/cliente Pro/mes (15 nuevas × 4 semanas × €0.005). Irrelevante vs €49 ARPU. Argumento de venta Core→Pro: *"Pro genera antes, tú solo revisas y publicas"*.
+   - **Core**: OFF por defecto. Toggle opcional en Settings (*"Pre-generar respuestas automáticamente — consume de tu cupo mensual (25 IA)"*). Por qué no por defecto: el cap tiene función psicológica (consumo consciente) y 20 nuevas/mes agotarían el cupo.
+   - **Basic**: nunca. El cap (10 IA) es la barrera de entrada que fuerza el upgrade.
+   - **UX**: al entrar al dashboard, las respuestas pre-generadas aparecen en el textarea con badge sutil "IA lista" (vs botón "Generar" para las no pre-generadas). Load time 0s vs 4-6s actuales.
 
 ### Landing / marketing pendiente
 - **Screencast 20s en hero**: grabar flujo "reseña → generar IA → publicar" con Loom y embed en el hero. +20-30% conversión estimado en SaaS con demo video vs sin. Coste 1h.
