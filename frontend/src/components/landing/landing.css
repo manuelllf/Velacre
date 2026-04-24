@@ -1966,12 +1966,12 @@
 .vel-lp .mark-bg .mark-slot { position: absolute; opacity: 0.11; }
 .vel-lp .mark-bg .slot-large {
   top: calc(50% - 210px);
-  right: -2%;
+  right: 24px;
   animation: velMarkFloat 22s ease-in-out infinite alternate;
 }
 .vel-lp .mark-bg .slot-small {
   top: calc(50% - 100px);
-  left: 2%;
+  left: 24px;
   opacity: 0.10;
   animation: velMarkFloat 26s ease-in-out infinite alternate-reverse;
 }
