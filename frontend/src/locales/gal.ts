@@ -383,14 +383,12 @@ const gal: LandingLocale = {
       h2l2: 'Velacre funciona.',
       lede: 'Se os teus clientes opinan en Google, ti respondes.',
       sectors: [
-        'Hostalaría & tabernas',
+        'Hostalaría',
         'Cafeterías',
         'Hoteis & casas rurais',
-        'Clínicas & dentistas',
+        'Clínicas',
         'Perruquerías & estética',
-        'Talleres mecánicos',
-        'Academias & fisio',
-        'Tendas de barrio',
+        'Comercio',
       ],
     },
     pricing: {

@@ -383,14 +383,12 @@ const en: LandingLocale = {
       h2l2: 'Velacre works there.',
       lede: 'If your customers speak up on Google, you reply.',
       sectors: [
-        'Hospitality & taverns',
+        'Hospitality',
         'Cafés',
         'Hotels & country houses',
-        'Clinics & dentists',
+        'Clinics',
         'Hair & beauty',
-        'Mechanics',
-        'Academies & physio',
-        'Local shops',
+        'Retail',
       ],
     },
     pricing: {
