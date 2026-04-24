@@ -244,7 +244,7 @@ const gal: LandingLocale = {
     hero: {
       metaLangs: 'ES · GAL · EN',
       metaVersion: 'V · 2026.04',
-      h1l1: 'Responde todas as túas recensións',
+      h1l1: 'Responde as túas recensións',
       h1l2pre: 'en',
       h1accent: '2 minutos',
       h1l2post: 'ao día.',
