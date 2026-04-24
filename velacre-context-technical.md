@@ -206,7 +206,7 @@ Todos con `[Authorize]` salvo marcados. Todos los métodos devuelven `Task<IActi
 **`AdminController`** — 10 endpoints (check extra `IsAdminAsync()`, prioriza `ADMIN_USER_ID` env, fallback a `rol="admin"` en BD)
 | Método | Ruta | Propósito |
 |---|---|---|
-| GET | `/api/admin/usuarios` | Lista usuarios con plan/estado/negocio |
+| GET | `/api/admin/usuarios` | Lista usuarios con plan/estado + **todos los negocios** (array, marcando el principal con `esPrincipal:true`; ocultos/deshabilitados incluidos para modal de detalle) + engagement (`iniciosSesion`, `ultimoInicioSesion`). El campo `negocio` singular queda como compat (principal o primero). |
 | POST | `/api/admin/usuarios/{id}/estado` | activo/baneado/prueba + DiasPrueba |
 | POST | `/api/admin/usuarios/{id}/pro-override` | Activar/desactivar Pro sin cambiar plan |
 | PUT | `/api/admin/usuarios/{id}/notas` | Notas internas admin |
@@ -288,13 +288,14 @@ Todos con `[Authorize]` salvo marcados. Todos los métodos devuelven `Task<IActi
 | POST | `/api/review/{id}/publish-google` | Publica en GBP. Solo Core/Pro + `google_review_id` + GBP conectado. |
 | PUT | `/api/review/{id}/estado` | pendiente/respondida/ignorada. Actualiza `respondidaFecha`. |
 
-**`UsuarioController`** — 4 endpoints
+**`UsuarioController`** — 5 endpoints
 | Método | Ruta | Propósito |
 |---|---|---|
 | GET | `/api/usuario/me` | `{id, nombre, rol, plan, ls*, respuestasIaMes, isAdmin, planEfectivo}` |
 | PUT | `/api/usuario/me` | Update nombre |
 | DELETE | `/api/usuario/me` | RPC transaccional `delete_user_cascade` + cancel LS + delete auth.users. Fallback manual conservado. |
 | POST | `/api/usuario` | Crea perfil post-signup, `plan="basic"`, welcome email fire-and-forget |
+| POST | `/api/usuario/me/heartbeat` | Incrementa `inicios_sesion` + `ultimo_inicio_sesion` con rate-limit soft 1/hora. Frontend lo dispara al montar `/dashboard` y `/inicio`. Errores se swallowean (tracking no bloquea UX). Métrica líder de salud: "dueños que vuelven". |
 
 **`ReportErrorController`** — 1 endpoint (anónimo + rate limit)
 | Método | Ruta | Propósito |
@@ -515,6 +516,8 @@ Hook `useNegocioActivo()` expone `{negocios, activo, setActivo, isLoading, refet
 - **Edición in-place con autosave** (`DetailPanel.tsx`): textarea reemplaza el `<p>` cuando hay respuesta. Estado local `editedText` + `saveState ('idle'|'dirty'|'saving'|'saved'|'error')`. Dos disparadores: debounce 2s vía `useRef<setTimeout>` reseteado en cada tecla, o `onBlur` inmediato (cancela el timer). `persistEdit` + `Promise.all([onSaveResponse, minVisible450ms])` para que el "Guardando…" sea perceptible aunque el backend responda en 50ms. Cleanup del timer en unmount y al cambiar de reseña. Sincroniza con `generated` prop via `useEffect([review.id, generated])` para que regenerar resetee el textarea.
 - **Regenerar con IA**: estado local `confirmingRegen` para doble-click inline (1er click → amber "Toca de nuevo para confirmar", setTimeout 4s reset; 2º → `onRegenerateIA()`). Durante `isGenerating` el botón muestra spinner + "Regenerando…" y está disabled. No se cambia `estado` — es reemplazo de texto, no cambio de flow.
 - **Históricas Google**: cuando `estado='respondida' && tonoGenerado==='google'`, los botones Ignorar/Reabrir van disabled con `title={d.states.historicalGoogle}` + `opacity-40 cursor-not-allowed`. El textarea pasa a `<p>` plano read-only (no editable porque no podemos alcanzar lo publicado en GBP desde aquí).
+- **Link "Responder en Google" con copy-to-clipboard** (DetailPanel, GBP desactivado): el `<a href="https://business.google.com/reviews">` lleva `onClick` que dispara `onCopy(isEditable ? editedText : generated)` antes de abrir la nueva pestaña. Así al llegar al panel de Google la respuesta ya está en el clipboard → 1 tap menos entre generar y publicar. Mitigación del main churn driver pre-GBP (flujo 2 contextos).
+- **Heartbeat**: `/dashboard` y `/inicio` disparan `heartbeat()` (POST fire-and-forget a `/api/usuario/me/heartbeat`) en el `useEffect` inicial. Errores se swallowean para no bloquear UX. Backend rate-limita 1/hora por usuario. Alimenta `usuario.inicios_sesion` y `ultimo_inicio_sesion` — métrica líder de salud.
 
 ### 4.6 i18n custom (sin next-intl)
 
@@ -550,10 +553,26 @@ transform: translateY(-1px);
 ```
 Reemplaza hack anterior de line-height + margin-top. Aplicado en `AppHeader` (dashboard, inicio, salud, settings, admin), `landing.css .auth-brand-name` (login + register), `/auth/reset-password`, `/onboarding` (form principal y GBP select; componente interno `OnboardingBrand`; eliminado h1 redundante "Velacre"), `/onboarding/plan`. Footer editorial landing (`.foot-min-row`) centrado en móvil.
 
-### 4.9 Landing — anchors y tabla comparativa
+### 4.9 Landing — anchors, tabla comparativa y orden narrativo
 
 - Helper `scrollToAnchor` + `handleAnchorClick` en `components/landing/shared.tsx`: previene default del `Link` de Next y ejecuta `scrollIntoView` aunque el hash coincida con la URL. Aplicado en NavBar (3 iconos), HeroSection ("↓ Ver demo") y LandingPage sec 07 ("↑ Volver a la demo"). Resuelve "clic en ancla activa no hace nada".
-- Tabla comparativa (`PricingSection`): tipo extendido `rows: Array<{ lbl: string; values: [boolean|'soon', boolean|'soon', boolean|'soon'] }>` + clave `soonLabel`. Fila GBP: etiqueta "Publicación directa en Google" (sin "(pendiente)"); Velacre muestra badge `Próximamente` (mono, dorado warn) en lugar de ✗ rojo; competidores mantienen ✓.
+- Tabla comparativa (`PricingSection`): tipo extendido `rows: Array<{ lbl: string; values: [boolean|'soon', boolean|'soon', boolean|'soon'] }>` + clave `soonLabel`. Fila GBP: etiqueta "Publicación directa en Google" (sin "(pendiente)"); Velacre muestra badge `Próximamente` (mono, dorado warn) en lugar de ✗ rojo; competidores mantienen ✓. Fila "Gestión de varios locales" añadida (✓ en los 3; cierra la duda del dueño con 2-3 locales sin inflar diferencial).
+- **Orden narrativo (flex `order:`)** en `.lp-main`: Hero → Stats → Data → Howto → Demo (§01) → Radar (§02) → Health (§03) → Pricing (§05) → Público (§06) → FAQ → Final (§07). Por qué → cómo → qué → cuánto → para quién → CTA. Radar se mantiene alto (imán Pro). Numeración `§NN` hardcoded en JSX de cada sección — si se cambia flex-order hay que renumerar sec-idx manualmente (ver regla en § "Landing copy" abajo).
+- **Multi-local callout** en Pricing (entre vatNote y compare table): renderiza `e.pricing.multilocalCallout.hook` + `.line` con estilo `.multi-callout` (border dashed + fondo acento translúcido). Copy actual sin callout visible (se quitó tras iteraciones); los textos permanecen en i18n para reactivar con fase 2.
+- **Sellos animados §07** (`.mark-bg`): 2 instancias de `<VelacreMark>` posicionadas con `left: 17%` / `left: 83%` + `margin-left` negativo (center-on-point sin `transform` para no chocar con animación). 2 `@keyframes`: `velMarkSpin` (rotation 42s/34s CW/CCW) sobre `<img>` y `velMarkFloat` (translateY ±5px 22s/26s ease-in-out alternate) sobre el slot. `prefers-reduced-motion: reduce` pausa ambas.
+- **Sectores §06** (`.sectors`): display grid 2×3 en móvil (chips con text wrap), display flex-wrap centered en ≥720px. Border-radius 4px (editorial, consistente con `.plan`). 6 categorías: Hostelería · Cafeterías · Hoteles & casas rurales · Clínicas · Peluquerías & estética · Comercio.
+- **Data strip (`sec-data`)** con 3 KPIs del sector: 93% BrightLocal 2026 (lee reseñas), +21% TripAdvisor 2024 (consultas en negocios que responden), 2× Google (clicks con 40+ reseñas). Subidos al top del flow narrativo como "por qué importa" antes de las features.
+- **Hero copy editorial preservado**: *"Las reseñas de Google son el boca a boca moderno"* con `<em>` sobre "boca a boca" (azul + highlighter translúcido). Outcome "2 minutos al día" movido al sub (no al H1) para no perder el alma editorial. H2 `final CTA` usa el mismo patrón con `cta.h2l1accent` opcional en i18n → `<em>` automático con el mismo CSS (`.final h2 em`).
+
+### 4.9.bis SEO técnico (N1 + N2 — activo)
+
+- **`app/sitemap.ts`**: 7 URLs públicas (`/`, `/es`, `/gal`, `/en`, `/privacidad`, `/terminos`, `/contacto`) con `alternates.languages` (es-ES/gl-ES/en-US/x-default) para hreflang. `changeFrequency: weekly` en landing, `yearly` en legal. Output: `/sitemap.xml`.
+- **`app/robots.ts`**: allow público, disallow `/dashboard`, `/admin`, `/onboarding`, `/auth`, `/settings`, `/inicio`, `/health`, `/sales`, `/api/`. Sitemap URL + host. Output: `/robots.txt`. Verificado en Google Search Console (7 páginas descubiertas, estado "Correcto").
+- **Metadata root** (`app/layout.tsx`): `metadataBase`, title template `"%s · Velacre"`, canonical, `alternates.languages`, OG (1200×630 con `locale` + `alternateLocale`), Twitter Card `summary_large_image`, robots policy, `verification.google` desde env `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, keywords[].
+- **JSON-LD `@graph`** inline en `<head>` del root: `Organization` + `SoftwareApplication` (3 Offers: Basic/Core/Pro) + `WebSite`. `inLanguage: ["es","gl","en"]`.
+- **Metadata per-locale** en `app/es/layout.tsx`, `app/gal/layout.tsx`, `app/en/layout.tsx` — title absoluto + canonical propio + `og:locale` específico.
+- **`/inicio/layout.tsx`** con `robots: { index: false, follow: false }` (área privada que redirige a auth/login sin sesión).
+- Variables env requeridas en prod: `NEXT_PUBLIC_SITE_URL` (default `https://velacre.com`), `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`.
 
 ### 4.10 TypeScript / lint
 
@@ -613,7 +632,7 @@ Patrón correcto: **encadenar `.Where()` una vez por predicado** — el SDK los 
 
 | Tabla | Propósito | Campos clave |
 |---|---|---|
-| `usuario` | Usuarios | id (Guid), email, nombre, rol (`cliente`\|`admin`\|`sales`), plan (`basic`\|`core`\|`pro`), estado (`activo`\|`baneado`\|`prueba`), pruebaHasta, activoDesde, proOverride, proOverrideHasta, respuestasManualesMes, respuestasMesReset, respuestasIaMes, lsSubscriptionId, lsStatus, lsRenewsAt, lsEndsAt, **localesContratados** (smallint, default 1 — slots multi-local; Pro bypasa el gate hasta que existan variants de volumen) |
+| `usuario` | Usuarios | id (Guid), email, nombre, rol (`cliente`\|`admin`\|`sales`), plan (`basic`\|`core`\|`pro`), estado (`activo`\|`baneado`\|`prueba`), pruebaHasta, activoDesde, proOverride, proOverrideHasta, respuestasManualesMes, respuestasMesReset, respuestasIaMes, lsSubscriptionId, lsStatus, lsRenewsAt, lsEndsAt, **localesContratados** (smallint, default 1 — slots multi-local; Pro bypasa el gate hasta que existan variants de volumen), **iniciosSesion** (int, default 0, contador de accesos a la app — métrica líder de salud), **ultimoInicioSesion** (timestamptz, last heartbeat — ver § `/api/usuario/me/heartbeat`) |
 | `negocio` | Establecimiento (1:N por usuario) | id, idUsuario (FK **sin UNIQUE** → N negocios por usuario), codigo (NEG+7), nombre, email, telefono, descripcion, tonoPredefinido, placeId, palabrasClave (string[]), **estado** (`activo`\|`oculto_usuario`\|`deshabilitado_plan`, default `activo` — solo los activos cuentan para slot), **esPrincipal** (bool, índice único parcial `WHERE es_principal = TRUE` garantiza máx 1 por usuario) |
 | `review` | Reseñas | id, idNegocio, googleReviewId (null si manual), autor, rating, texto, fecha, plataforma, estado (`pendiente`\|`respondida`\|`ignorada`), tonoGenerado (null\|`Profesional`\|`Empatico`\|`Cercano`\|`Directo`\|`Agradecido`\|`Humoristico`\|`google`), **respuesta** (1 columna tras migración 004 — antes 3 columnas `respuestaprofesional`/`respuestacolegueo`/`respuestaorgullosa` con duplicación en sync Google + catch-all en profesional para 4 tonos), publicadaEnGoogle, publicadaFecha, respuestaPublicada, retenida, motivoRetencion |
 | `google_connection` | Tokens OAuth | negocioId (PK), googleAccountId, locationName, displayName, accessToken, refreshToken, tokenExpiry, isActive, connectedAt |
@@ -662,6 +681,7 @@ Sin herramienta de migraciones integrada en el proyecto .NET. Cambios aplicados 
 - `003_rls_policies.sql` — RLS activado en 7 tablas (22 policies)
 - `004_consolidate_respuesta.sql` (2026-04-22) — consolida `respuestaprofesional`/`respuestacolegueo`/`respuestaorgullosa` en una sola columna `respuesta`. `COALESCE` para preservar datos, luego `DROP COLUMN × 3`. Ejecutado en prod sin tráfico real todavía. Motivo: schema legacy de un flujo antiguo donde se generaban 3 tonos upfront; hoy solo se genera 1 y las sync desde Google duplicaban el `owner_answer` en las 3 columnas "por si cambia el tono" (absurdo). La identidad del tono vive en `tono_generado`.
 - `005_multinegocio.sql` (2026-04-23) — soporte multi-local. **DROP CONSTRAINT `negocio_idusuario_unique`** (residuo del schema original 1:1, creado fuera de migraciones — sin este drop, cualquier 2º negocio reventaba con 23505 aunque la RPC pasara el check de slot). `usuario.locales_contratados SMALLINT DEFAULT 1` + `negocio.estado TEXT` (enum: `activo`|`oculto_usuario`|`deshabilitado_plan`) + `negocio.es_principal BOOLEAN` con índice único parcial `WHERE es_principal=TRUE`. Backfill: para cada usuario con negocios, el más antiguo queda marcado principal. RPCs atómicas `try_create_negocio` y `set_negocio_principal` (§6.3). Idempotente (`IF NOT EXISTS`, `CREATE OR REPLACE`).
+- `006_login_tracking.sql` (2026-04-24) — engagement tracking. `usuario.inicios_sesion INTEGER NOT NULL DEFAULT 0` + `usuario.ultimo_inicio_sesion TIMESTAMPTZ`. Se actualizan desde el endpoint `POST /api/usuario/me/heartbeat` (rate-limit soft 1/hora). Frontend dispara el heartbeat en el `useEffect` inicial de `/dashboard` y `/inicio`. Sirve de base a la **métrica líder de salud del negocio**: "dueños que abren la app ≥2 veces/semana en los últimos 7 días" — más predictiva que MRR en fase pre-tracción. Idempotente (`IF NOT EXISTS`).
 
 ---
 

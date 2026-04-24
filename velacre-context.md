@@ -384,7 +384,7 @@ Guest posts pagados, menciones en medios, backlinks de sitios autoritarios. Reem
 - **6 tonos:** Profesional, Empático, Cercano, Directo, Agradecido y Humorístico. Agradecido para reseñas positivas (4-5★), incluye keywords con naturalidad. Gap vs RepScan (9 tonos) reducido significativamente.
 - **Filtro seguridad transversal (no solo Pro):** coste cero (misma llamada Claude) y es el mejor argumento de marca. Comunicado como feature de todos los planes en la landing.
 - **GBP deshabilitado con "Próximamente":** todo el código está listo. La UI muestra badges y elementos con opacity reducida. Activación = quitar CSS, no desarrollar. En la tabla comparativa de la landing, la fila "Publicación directa en Google" muestra badge "Próximamente" (warn dorado, mono) en la columna Velacre — deliberado para no auto-sabotear con un ✗ rojo.
-- **Copy-paste como flujo interino:** mientras no haya GBP, botón "Responder en Google" abre business.google.com. Con PWA en el móvil, el flujo generar → copiar → pegar es razonable para ≤50 reseñas/mes.
+- **Copy-paste como flujo interino:** mientras no haya GBP, botón "Responder en Google" abre business.google.com Y **copia la respuesta al clipboard automáticamente** (2026-04-24). El dueño solo pega con `Ctrl+V` al llegar al panel. Reduce fricción del 2-contextos y mitiga el main churn driver pre-GBP. Con PWA en el móvil, el flujo generar → click → pegar es razonable para ≤50 reseñas/mes.
 - **Core no tiene análisis IA en Panel Salud:** Core solo da nota media + resumen básico de reseñas (sin IA brilla/quema/acción, sin sentimiento, sin evolución). El claim "Panel de Salud con estadísticas clave" se eliminó de todas las descripciones Core por ser engañoso. Anclar Pro con análisis IA + Radar + PDFs, no con volumen.
 
 ### Pricing y límites
@@ -468,6 +468,14 @@ Guest posts pagados, menciones en medios, backlinks de sitios autoritarios. Reem
 3. **WhatsApp opt-in** → único canal real del dueño hostelero gallego.
 4. **Onboarding garantizado 7 días**: usuario genera ≥3 respuestas en semana 1 o se dispara nudge (email personal del founder).
 5. **Pre-generación IA en cron**: cuando Outscraper importa reseña nueva, Claude genera respuesta inmediatamente → al abrir app está "ya lista esperándote" (0s vs 4-6s). Coste marginal: ~€0.005 por respuesta × 30 reseñas/mes × 100 clientes = €15/mes. Vende "respuesta instantánea" como feature y reduce fricción del flujo.
+
+### Landing / marketing pendiente
+- **Screencast 20s en hero**: grabar flujo "reseña → generar IA → publicar" con Loom y embed en el hero. +20-30% conversión estimado en SaaS con demo video vs sin. Coste 1h.
+- **Social proof**: diferido hasta primer cliente cerrado con testimonio + permiso para foto. Pre-tracción no añadimos founder transparency ni badges "Made in Galicia" (decisión tomada tras audit — ninguna opción convencía). Cuando entre Cabañitas del Bosque o el siguiente, meter testimonio + logo en landing.
+- **Supabase custom domain** (fix B OAuth consent): `auth.velacre.com` vía Supabase Pro (€25/mes). Quita el subdominio feo (`wdkowzulwsuertxzrkml.supabase.co`) tanto del consent como del callback URL durante el redirect. Hoy fix A (OAuth client propio con dominio verificado) ya aplicado → consent limpio. Fix B solo tiene sentido cuando MRR lo cubra.
+
+### Admin operativo
+- **Contador `inicios_sesion` por usuario** (activo desde 2026-04-24): heartbeat `/api/usuario/me/heartbeat` con rate-limit 1/hora. Admin muestra `N entradas · última X` en cada card. Modal `Locales` muestra todos los negocios de un usuario (activos con ★ principal + ocultos). El botón "Actualizar" recarga toda la info del panel (admin propio + lista completa, clear errores).
 
 ### Ideas futuras (post-tracción)
 - **Marca blanca (Enterprise+):** agencias ofrecen Velacre con su logo. +€100/mes.
