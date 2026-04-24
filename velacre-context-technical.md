@@ -219,7 +219,7 @@ Todos con `[Authorize]` salvo marcados. Todos los métodos devuelven `Task<IActi
 **`CronController`** — 1 endpoint (header `X-Cron-Secret`, comparado con `==` no timing-safe)
 | Método | Ruta | Propósito |
 |---|---|---|
-| POST | `/api/cron/sync` | Sync semanal (martes) para todos los negocios con place_id. Devuelve `{synced,total,totalNew,errors}` |
+| POST | `/api/cron/sync` | Sync **nightly** (cron-job.org) para todos los negocios con place_id. Por cada reseña nueva insertada, si el dueño tiene `auto_pre_gen_ia=TRUE` y `plan!=basic`, llama a `IReviewAiService.GenerateSingleResponseWithContextAsync` y persiste `respuesta+tono_generado+contextoCliente+contextoRespuesta+keywordsUsadas`. Respeta cupo Core (25 IA/mes) vía `try_increment_ia_counter`; si se agota a mitad del batch, el resto queda pendiente manual. Retenidas por filtro seguridad → marca `Retenida+MotivoRetencion` + rollback del slot. Fallos IA → log + rollback + sync continúa. Devuelve `{synced, total, totalNew, totalPreGen, errors}`. Cache interno de `UsuarioEntity` por `ownerId` para no hacer N GetById en multi-local. |
 
 **`GoogleController`** — 6 endpoints (OAuth GBP)
 | Método | Ruta | Auth | Propósito |
@@ -288,14 +288,15 @@ Todos con `[Authorize]` salvo marcados. Todos los métodos devuelven `Task<IActi
 | POST | `/api/review/{id}/publish-google` | Publica en GBP. Solo Core/Pro + `google_review_id` + GBP conectado. |
 | PUT | `/api/review/{id}/estado` | pendiente/respondida/ignorada. Actualiza `respondidaFecha`. |
 
-**`UsuarioController`** — 5 endpoints
+**`UsuarioController`** — 6 endpoints
 | Método | Ruta | Propósito |
 |---|---|---|
-| GET | `/api/usuario/me` | `{id, nombre, rol, plan, ls*, respuestasIaMes, isAdmin, planEfectivo}` |
+| GET | `/api/usuario/me` | `{id, nombre, rol, plan, ls*, respuestasIaMes, isAdmin, planEfectivo, autoPreGenIa}` |
 | PUT | `/api/usuario/me` | Update nombre |
 | DELETE | `/api/usuario/me` | RPC transaccional `delete_user_cascade` + cancel LS + delete auth.users. Fallback manual conservado. |
 | POST | `/api/usuario` | Crea perfil post-signup, `plan="basic"`, welcome email fire-and-forget |
 | POST | `/api/usuario/me/heartbeat` | Incrementa `inicios_sesion` + `ultimo_inicio_sesion` con rate-limit soft 1/hora. Frontend lo dispara al montar `/dashboard` y `/inicio`. Errores se swallowean (tracking no bloquea UX). Métrica líder de salud: "dueños que vuelven". |
+| PUT | `/api/usuario/me/auto-pre-gen-ia` | Body `{enabled: boolean}`. Toggle opt-in para pre-generación IA automática en cron. Rechaza con 400 `requires_paid_plan` si Basic intenta activarlo (defensivo — la UI ya oculta el toggle en Basic). |
 
 **`ReportErrorController`** — 1 endpoint (anónimo + rate limit)
 | Método | Ruta | Propósito |
@@ -632,7 +633,7 @@ Patrón correcto: **encadenar `.Where()` una vez por predicado** — el SDK los 
 
 | Tabla | Propósito | Campos clave |
 |---|---|---|
-| `usuario` | Usuarios | id (Guid), email, nombre, rol (`cliente`\|`admin`\|`sales`), plan (`basic`\|`core`\|`pro`), estado (`activo`\|`baneado`\|`prueba`), pruebaHasta, activoDesde, proOverride, proOverrideHasta, respuestasManualesMes, respuestasMesReset, respuestasIaMes, lsSubscriptionId, lsStatus, lsRenewsAt, lsEndsAt, **localesContratados** (smallint, default 1 — slots multi-local; Pro bypasa el gate hasta que existan variants de volumen), **iniciosSesion** (int, default 0, contador de accesos a la app — métrica líder de salud), **ultimoInicioSesion** (timestamptz, last heartbeat — ver § `/api/usuario/me/heartbeat`) |
+| `usuario` | Usuarios | id (Guid), email, nombre, rol (`cliente`\|`admin`\|`sales`), plan (`basic`\|`core`\|`pro`), estado (`activo`\|`baneado`\|`prueba`), pruebaHasta, activoDesde, proOverride, proOverrideHasta, respuestasManualesMes, respuestasMesReset, respuestasIaMes, lsSubscriptionId, lsStatus, lsRenewsAt, lsEndsAt, **localesContratados** (smallint, default 1 — slots multi-local; Pro bypasa el gate hasta que existan variants de volumen), **iniciosSesion** (int, default 0, contador de accesos a la app — métrica líder de salud), **ultimoInicioSesion** (timestamptz, last heartbeat — ver § `/api/usuario/me/heartbeat`), **autoPreGenIa** (bool, default FALSE, opt-in pre-gen IA automática en cron nocturno — Basic ignora siempre) |
 | `negocio` | Establecimiento (1:N por usuario) | id, idUsuario (FK **sin UNIQUE** → N negocios por usuario), codigo (NEG+7), nombre, email, telefono, descripcion, tonoPredefinido, placeId, palabrasClave (string[]), **estado** (`activo`\|`oculto_usuario`\|`deshabilitado_plan`, default `activo` — solo los activos cuentan para slot), **esPrincipal** (bool, índice único parcial `WHERE es_principal = TRUE` garantiza máx 1 por usuario) |
 | `review` | Reseñas | id, idNegocio, googleReviewId (null si manual), autor, rating, texto, fecha, plataforma, estado (`pendiente`\|`respondida`\|`ignorada`), tonoGenerado (null\|`Profesional`\|`Empatico`\|`Cercano`\|`Directo`\|`Agradecido`\|`Humoristico`\|`google`), **respuesta** (1 columna tras migración 004 — antes 3 columnas `respuestaprofesional`/`respuestacolegueo`/`respuestaorgullosa` con duplicación en sync Google + catch-all en profesional para 4 tonos), publicadaEnGoogle, publicadaFecha, respuestaPublicada, retenida, motivoRetencion |
 | `google_connection` | Tokens OAuth | negocioId (PK), googleAccountId, locationName, displayName, accessToken, refreshToken, tokenExpiry, isActive, connectedAt |
@@ -682,6 +683,7 @@ Sin herramienta de migraciones integrada en el proyecto .NET. Cambios aplicados 
 - `004_consolidate_respuesta.sql` (2026-04-22) — consolida `respuestaprofesional`/`respuestacolegueo`/`respuestaorgullosa` en una sola columna `respuesta`. `COALESCE` para preservar datos, luego `DROP COLUMN × 3`. Ejecutado en prod sin tráfico real todavía. Motivo: schema legacy de un flujo antiguo donde se generaban 3 tonos upfront; hoy solo se genera 1 y las sync desde Google duplicaban el `owner_answer` en las 3 columnas "por si cambia el tono" (absurdo). La identidad del tono vive en `tono_generado`.
 - `005_multinegocio.sql` (2026-04-23) — soporte multi-local. **DROP CONSTRAINT `negocio_idusuario_unique`** (residuo del schema original 1:1, creado fuera de migraciones — sin este drop, cualquier 2º negocio reventaba con 23505 aunque la RPC pasara el check de slot). `usuario.locales_contratados SMALLINT DEFAULT 1` + `negocio.estado TEXT` (enum: `activo`|`oculto_usuario`|`deshabilitado_plan`) + `negocio.es_principal BOOLEAN` con índice único parcial `WHERE es_principal=TRUE`. Backfill: para cada usuario con negocios, el más antiguo queda marcado principal. RPCs atómicas `try_create_negocio` y `set_negocio_principal` (§6.3). Idempotente (`IF NOT EXISTS`, `CREATE OR REPLACE`).
 - `006_login_tracking.sql` (2026-04-24) — engagement tracking. `usuario.inicios_sesion INTEGER NOT NULL DEFAULT 0` + `usuario.ultimo_inicio_sesion TIMESTAMPTZ`. Se actualizan desde el endpoint `POST /api/usuario/me/heartbeat` (rate-limit soft 1/hora). Frontend dispara el heartbeat en el `useEffect` inicial de `/dashboard` y `/inicio`. Sirve de base a la **métrica líder de salud del negocio**: "dueños que abren la app ≥2 veces/semana en los últimos 7 días" — más predictiva que MRR en fase pre-tracción. Idempotente (`IF NOT EXISTS`).
+- `007_auto_pregen_ia.sql` (2026-04-24) — opt-in para pre-generación IA en cron. `usuario.auto_pre_gen_ia BOOLEAN NOT NULL DEFAULT FALSE`. Activa el toggle desde Settings (Core y Pro; Basic oculto). Cron nocturno (cron-job.org) lee el flag + plan y genera respuestas IA justo al insertar cada reseña nueva, respetando cupo Core vía `try_increment_ia_counter`. Idempotente (`IF NOT EXISTS`). Documentación completa del comportamiento en `velacre-context.md §12 "Pre-generación IA opt-in"`.
 
 ---
 

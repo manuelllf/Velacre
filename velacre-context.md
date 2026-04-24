@@ -467,19 +467,30 @@ Guest posts pagados, menciones en medios, backlinks de sitios autoritarios. Reem
 2. **PDF Panel Salud mensual enviado auto** → valor tangible recibido sin entrar.
 3. **WhatsApp opt-in** → único canal real del dueño hostelero gallego.
 4. **Onboarding garantizado 7 días**: usuario genera ≥3 respuestas en semana 1 o se dispara nudge (email personal del founder).
-5. **Pre-generación IA incremental en cron** (Pro automático, Core opt-in, Basic nunca):
-   - **Scope**: solo las reseñas **nuevas** traídas por el cron semanal (`CronController.Sync`, martes). NO para las 60 del bootstrap del onboarding (reseñas históricas — ventana comercial de respuesta ya cerrada → coste muerto).
-   - **Pro**: activo por defecto. Coste ~€0.30/cliente Pro/mes (15 nuevas × 4 semanas × €0.005). Irrelevante vs €49 ARPU. Argumento de venta Core→Pro: *"Pro genera antes, tú solo revisas y publicas"*.
-   - **Core**: OFF por defecto. Toggle opcional en Settings (*"Pre-generar respuestas automáticamente — consume de tu cupo mensual (25 IA)"*). Por qué no por defecto: el cap tiene función psicológica (consumo consciente) y 20 nuevas/mes agotarían el cupo.
-   - **Basic**: nunca. El cap (10 IA) es la barrera de entrada que fuerza el upgrade.
-   - **UX**: al entrar al dashboard, las respuestas pre-generadas aparecen en el textarea con badge sutil "IA lista" (vs botón "Generar" para las no pre-generadas). Load time 0s vs 4-6s actuales.
-   - **Implementación** (puntos de toque cuando toque):
-     - Migration nueva: `ALTER TABLE usuario ADD COLUMN auto_pre_gen_ia BOOLEAN NOT NULL DEFAULT FALSE`.
-     - `UsuarioEntity.AutoPreGenIa` prop + expuesto en `/api/usuario/me`.
-     - `CronController.Sync` por reseña nueva: si `plan != 'basic'` && `auto_pre_gen_ia`, llamar a Claude con el tono por defecto del negocio y persistir en `review.respuesta` + `review.tono_generado`. Respeta `try_increment_ia_counter` para cupo Core.
-     - Settings UI: toggle visible solo si `plan === 'core'` (Pro transparente, Basic no existe).
-     - Webhook LS `subscription_updated`: al upgrade a Pro, set flag TRUE si no estaba explícito. Al downgrade mantiene el valor actual.
-     - Dashboard: badge "IA lista" (mono dorado) en vez del botón "Generar" cuando la reseña llega con `respuesta != null` y no es tono 'google'.
+
+**Palancas ya implementadas**:
+- ✅ **Pre-generación IA incremental en cron** (2026-04-24, opt-in universal). Ver §"Pre-generación IA opt-in" más abajo.
+- ✅ **Heartbeat + contador `inicios_sesion`** (2026-04-24) — métrica líder de salud activa.
+- ✅ **Link "Responder en Google" copia al clipboard** (2026-04-24) — mitiga el main churn driver pre-GBP.
+
+### Pre-generación IA opt-in (activo)
+
+Flag `usuario.auto_pre_gen_ia` (default FALSE para todos los planes) + toggle en Settings para Core y Pro. Basic nunca — el cap 10 IA es barrera deliberada.
+
+**Cómo funciona**:
+- Scheduler externo (cron-job.org, nightly) dispara `POST /api/cron/sync` con `X-Cron-Secret`.
+- `CronController.SyncAll` importa reseñas nuevas por cada negocio. Si el dueño tiene `auto_pre_gen_ia=TRUE` y `plan!=basic`, llama a `IReviewAiService.GenerateSingleResponseWithContextAsync` justo después del insert y persiste `respuesta + tono_generado + contexto + keywords_usadas`.
+- Respeta cupo Core (25 IA/mes) vía `try_increment_ia_counter`. Si se agota a mitad del batch, el resto queda como pendiente manual — no bloquea sync.
+- Retenidas por filtro seguridad: marca `Retenida + MotivoRetencion` y hace rollback del slot IA (misma lógica que ReviewController).
+- Fallos IA (timeout, overload): log + rollback del slot + sync continúa con la siguiente.
+
+**Coste real**:
+- Pro activo: ~€0.30/mes/cliente (15 nuevas × 4 semanas × €0.005 Claude).
+- Core activo: máximo ~€0.125/mes (25 IA × €0.005), pero muchos Core no llegan al cap.
+
+**Argumento comercial**: *"En Pro la respuesta ya está lista cuando entras, tú solo revisas y publicas. 2 minutos al día."* Feature clave para reducir fricción diaria → bajar churn en Pro.
+
+**Endpoint toggle**: `PUT /api/usuario/me/auto-pre-gen-ia` con body `{ enabled: boolean }`. 400 `requires_paid_plan` si Basic intenta activarlo.
 
 ### Landing / marketing pendiente
 - **Screencast 20s en hero**: grabar flujo "reseña → generar IA → publicar" con Loom y embed en el hero. +20-30% conversión estimado en SaaS con demo video vs sin. Coste 1h.
