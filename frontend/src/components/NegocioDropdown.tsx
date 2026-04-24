@@ -29,7 +29,7 @@ export function NegocioDropdown() {
   if (negocios.length < 2) {
     return (
       <span
-        className="hidden sm:inline text-sm text-slate-500 truncate max-w-[200px]"
+        className="text-sm text-slate-500 truncate max-w-[110px] sm:max-w-[200px]"
         style={{ display: 'inline-flex', alignItems: 'center', height: 36, lineHeight: 1 }}
       >
         · {activo.nombre}
@@ -38,7 +38,7 @@ export function NegocioDropdown() {
   }
 
   return (
-    <div ref={wrapRef} className="relative hidden sm:inline-flex items-center" style={{ height: 36 }}>
+    <div ref={wrapRef} className="relative inline-flex items-center" style={{ height: 36 }}>
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); setOpen(v => !v) }}
@@ -47,7 +47,7 @@ export function NegocioDropdown() {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="truncate max-w-[180px]">· {activo.nombre}</span>
+        <span className="truncate max-w-[110px] sm:max-w-[180px]">· {activo.nombre}</span>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
           <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>

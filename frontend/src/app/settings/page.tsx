@@ -857,14 +857,14 @@ function MisLocalesSection({ plan }: { plan: string }) {
             const isPrincipal = !!n.esPrincipal
             const canDelete = negocios.length > 1
             return (
-              <li key={n.id} className="px-5 py-3 flex items-center justify-between gap-3">
+              <li key={n.id} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="min-w-0 flex items-center gap-2.5">
                   <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-slate-400 dark:bg-slate-600'}`} aria-hidden />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-slate-900 dark:text-white truncate flex items-center gap-1.5">
-                      {n.nombre}
+                      <span className="truncate">{n.nombre}</span>
                       {isPrincipal && (
-                        <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded border border-blue-400/50 text-blue-500 dark:text-blue-400">
+                        <span className="shrink-0 text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded border border-blue-400/50 text-blue-500 dark:text-blue-400">
                           Principal
                         </span>
                       )}
@@ -875,22 +875,23 @@ function MisLocalesSection({ plan }: { plan: string }) {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:shrink-0 pl-4 sm:pl-0">
                   {!isActive && (
                     <button type="button" onClick={() => setActivo(n.id)}
-                      className="px-3 py-1.5 text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      className="px-2.5 py-1.5 text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                       Usar
                     </button>
                   )}
                   {!isPrincipal && (
                     <button type="button" onClick={() => handleMarkPrincipal(n.id)} disabled={busyId === n.id}
-                      className="px-3 py-1.5 text-xs font-semibold border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50">
-                      {busyId === n.id ? '...' : 'Marcar principal'}
+                      className="px-2.5 py-1.5 text-xs font-semibold border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50">
+                      <span className="sm:hidden">{busyId === n.id ? '...' : 'Principal'}</span>
+                      <span className="hidden sm:inline">{busyId === n.id ? '...' : 'Marcar principal'}</span>
                     </button>
                   )}
                   {canDelete && (
                     <button type="button" onClick={() => setConfirmDelete({ id: n.id, nombre: n.nombre })} disabled={busyId === n.id}
-                      className="px-3 py-1.5 text-xs font-semibold border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50">
+                      className="px-2.5 py-1.5 text-xs font-semibold border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50">
                       Ocultar
                     </button>
                   )}
