@@ -1608,17 +1608,21 @@
    FORWHO (sec 06) — chips editoriales inline, border-radius 4px
    (consistente con .plan y el resto de la landing).
    ============================================================ */
+/* Móvil: grid 2 cols para que los 8 labels caigan ordenados en 4 filas
+   uniformes (con labels largos como "Hostelería & tabernas" flex-wrap
+   dejaba filas irregulares de 1/2/1/1 chips — feo). Desktop: flex wrap
+   centrado, ancho natural por chip. */
 .vel-lp .sectors {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  justify-content: flex-start;
   margin-top: 24px;
 }
 .vel-lp .sector {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
+  justify-content: center;
+  padding: 8px 12px;
   border: 1px solid var(--line-strong);
   border-radius: 4px;
   background: var(--paper);
@@ -1628,7 +1632,7 @@
   font-weight: 500;
   cursor: default;
   transition: all 0.15s ease;
-  white-space: nowrap;
+  text-align: center;
 }
 .vel-lp .sector:hover {
   color: var(--ink);
@@ -1636,11 +1640,21 @@
   border-color: var(--muted-strong);
 }
 @media (min-width: 720px) {
-  .vel-lp .sectors { gap: 10px; margin-top: 28px; }
-  .vel-lp .sector  { padding: 7px 14px; font-size: 13.5px; }
+  .vel-lp .sectors {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .vel-lp .sector {
+    padding: 7px 14px;
+    font-size: 13.5px;
+    white-space: nowrap;
+  }
 }
 @media (min-width: 1200px) {
-  .vel-lp .sector  { padding: 8px 16px; font-size: 14px; }
+  .vel-lp .sector { padding: 8px 16px; font-size: 14px; }
 }
 
 /* ============================================================
