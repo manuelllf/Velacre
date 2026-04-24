@@ -1841,9 +1841,23 @@
   min-height: 0;
 }
 .vel-lp .plan.pro .plan-desc { color: var(--mod-text-dim); }
+/* "Todo lo de Basic, y además:" — label incremental encima de la lista
+   de features de Core/Pro. Mono pequeño para que no compita con el título
+   del plan y transmita "esto se suma a lo anterior" sin repetir bullets. */
+.vel-lp .plan-inherits {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 14px 0 0;
+  font-weight: 600;
+}
+.vel-lp .plan.pro .plan-inherits { color: var(--mod-mute); }
+
 .vel-lp .plan ul {
   list-style: none;
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   padding: 10px 0 0;
   border-top: 1px solid var(--line);
   display: flex;
@@ -1851,6 +1865,7 @@
   gap: 8px;
   flex: 1;
 }
+.vel-lp .plan-inherits + ul { margin-top: 8px; }
 .vel-lp .plan.pro ul { border-top-color: var(--mod-line); }
 .vel-lp .plan li {
   display: grid;

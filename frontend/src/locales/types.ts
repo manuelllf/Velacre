@@ -133,6 +133,8 @@ export interface LandingLocale {
         priceYearly: string
         priceYearlyMonthly: string
         desc: string
+        /** "Todo lo de Basic y además:" — opcional, se renderiza sobre el ul.features. */
+        inheritsLabel?: string
         features: string[]
         cta: string
         badge: string
@@ -143,6 +145,8 @@ export interface LandingLocale {
         priceYearly: string
         priceYearlyMonthly: string
         desc: string
+        /** "Todo lo de Core y además:" — opcional. */
+        inheritsLabel?: string
         features: string[]
         cta: string
         badge: string

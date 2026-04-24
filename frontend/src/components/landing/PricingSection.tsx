@@ -128,6 +128,9 @@ export default function PricingSection() {
           </div>
           <div className="plan-annual">{yearly ? `${l.pricing.plans.core.priceYearly}${l.pricing.perYear}` : '\u00a0'}</div>
           <p className="plan-desc">{l.pricing.plans.core.desc}</p>
+          {l.pricing.plans.core.inheritsLabel && (
+            <p className="plan-inherits">{l.pricing.plans.core.inheritsLabel}</p>
+          )}
           <ul>
             {l.pricing.plans.core.features.map(f => (
               <li key={f}>
@@ -156,6 +159,9 @@ export default function PricingSection() {
           </div>
           <div className="plan-annual">{yearly ? `${l.pricing.plans.pro.priceYearly}${l.pricing.perYear}` : '\u00a0'}</div>
           <p className="plan-desc">{l.pricing.plans.pro.desc}</p>
+          {l.pricing.plans.pro.inheritsLabel && (
+            <p className="plan-inherits">{l.pricing.plans.pro.inheritsLabel}</p>
+          )}
           <ul>
             {l.pricing.plans.pro.features.map(f => (
               <li key={f}>
