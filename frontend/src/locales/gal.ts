@@ -275,7 +275,6 @@ const gal: LandingLocale = {
       health: 'Saúde',
       flow: 'Fluxo',
       who: 'Público',
-      multilocal: 'Multi-local',
       pricing: 'Prezos',
       start: 'Empezar',
     },
@@ -283,7 +282,6 @@ const gal: LandingLocale = {
       product: 'Cada recensión sen contestar é un cliente que non volve. Velacre responde por ti en segundos, co tono que elixes, para que a túa presenza en Google traballe mentres ti atendes o negocio.',
       intel: 'Enterarse de que o de enfronte baixa prezos aos 6 meses xa é tarde. Cunha frase semanal sabes antes ca eles onde estás perdendo terreo e que tocar para recuperalo.',
       health: 'Os clientes non volven polo que brilla, vanse polo que falla. Ves nun golpe de vista que está queimando a experiencia antes de que 10 recensións cho digan a berros.',
-      multilocal: 'Se tes dous restaurantes, tres bares ou cinco hoteis, non precisas cinco contas. Unha soa conecta todos os teus Google, sepáracheas recensións por local e déixate saltar entre eles nun clic.',
       pricing: 'Empezas gratis para ver se Velacre encaixa coa túa forma de traballar. Se che serve, pasas a Core. Se queres vixiar os teus veciños, a Pro. Sen letra pequena nin sorpresas.',
     },
     data: {
@@ -395,21 +393,6 @@ const gal: LandingLocale = {
         'Tendas de barrio',
       ],
     },
-    multilocal: {
-      kicker: 'Multi-local',
-      h2l1: 'Cinco locais.',
-      h2l2: 'Unha conta, unha factura.',
-      lede: 'Todos os teus restaurantes, bares ou hoteis conectados desde o mesmo panel. Recensións, saúde e radar separados por cada local. Cambias entre eles nun clic desde a cabeceira.',
-      features: [
-        'Selector de local na cabeceira — saltas dun a outro ao instante',
-        'Recensións, Panel de Saúde e Radar de Competencia independentes por local',
-        'Alta dun novo local en 2 minutos — reutiliza a túa conta e o teu equipo',
-        'Oculta un local sen perder o seu historial — restáurao cando o precises',
-      ],
-      pricingLine: 'Pro inclúe 1 local · +20 €/mes por cada local adicional (ata 5)',
-      badge: 'Incluído en Pro',
-      cta: 'Ver planes',
-    },
     pricing: {
       h2l1: 'Sinxelo. Honesto.',
       h2l2: 'En euros, sen letra pequena.',
@@ -417,6 +400,10 @@ const gal: LandingLocale = {
       basicForever: 'Para sempre',
       perMonth: '/ mes',
       perYear: '€ / ano',
+      multilocalCallout: {
+        hook: '¿Dous locais? ¿Tres? Unha conta, unha factura.',
+        line: 'Pro inclúe 1 local · +20 €/mes por cada local adicional (ata 5).',
+      },
     },
     cta: {
       sectionLbl: '07 · Empezar',

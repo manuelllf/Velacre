@@ -275,7 +275,6 @@ const en: LandingLocale = {
       health: 'Health',
       flow: 'Flow',
       who: 'Who',
-      multilocal: 'Multi-location',
       pricing: 'Pricing',
       start: 'Start',
     },
@@ -283,7 +282,6 @@ const en: LandingLocale = {
       product: 'Every unanswered review is a customer who won\u2019t come back. Velacre answers for you in seconds, in the tone you pick, so your Google presence works while you run the business.',
       intel: 'Finding out the place across the street dropped prices six months ago is already too late. One sentence a week tells you where you\u2019re losing ground and what to fix to get it back.',
       health: 'Customers don\u2019t return for what shines, they leave over what fails. See at a glance what\u2019s burning the experience before 10 reviews spell it out.',
-      multilocal: 'Two restaurants, three bars or five hotels — you don\u2019t need five accounts. One account connects every Google listing, keeps reviews separate per location and lets you jump between them in a click.',
       pricing: 'Start free to see if Velacre fits the way you work. If it helps, move to Core. If you want to track your neighbours, Pro. No fine print, no surprises.',
     },
     data: {
@@ -395,21 +393,6 @@ const en: LandingLocale = {
         'Local shops',
       ],
     },
-    multilocal: {
-      kicker: 'Multi-location',
-      h2l1: 'Five locations.',
-      h2l2: 'One account, one invoice.',
-      lede: 'Every restaurant, bar or hotel connected from the same dashboard. Reviews, health and radar kept separate per location. Switch between them in a click from the header.',
-      features: [
-        'Header switcher — jump between locations instantly',
-        'Reviews, Health Panel and Competition Radar are independent per location',
-        'Add a new location in 2 minutes — reuse your account and your team',
-        'Hide a location without losing its history — restore it whenever you need',
-      ],
-      pricingLine: 'Pro includes 1 location \u00b7 +\u20ac20/mo per extra location (up to 5)',
-      badge: 'Included in Pro',
-      cta: 'See plans',
-    },
     pricing: {
       h2l1: 'Simple. Honest.',
       h2l2: 'In euros, no fine print.',
@@ -417,6 +400,10 @@ const en: LandingLocale = {
       basicForever: 'Forever',
       perMonth: '/ month',
       perYear: '€ / year',
+      multilocalCallout: {
+        hook: 'Two locations? Three? One account, one invoice.',
+        line: 'Pro includes 1 location \u00b7 +\u20ac20/mo per extra location (up to 5).',
+      },
     },
     cta: {
       sectionLbl: '07 · Start',

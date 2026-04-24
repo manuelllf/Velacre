@@ -185,6 +185,13 @@ export default function PricingSection() {
         {l.pricing.vatNote}
       </p>
 
+      {/* Callout multi-local — micro-ping para el dueño con 2-3 locales, sin
+          romper el flujo. Aparece entre pricing-grid y compare table. */}
+      <div className="multi-callout">
+        <span className="multi-callout-hook">{e.pricing.multilocalCallout.hook}</span>
+        <span className="multi-callout-line">{e.pricing.multilocalCallout.line}</span>
+      </div>
+
       {/* Compare table — sin nombrar competencia */}
       <div className="compare">
         <div className="compare-head">

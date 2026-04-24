@@ -2841,99 +2841,39 @@
    en vez de llenar el cross-axis. Force width:100% para todos los hijos
    directos de .lp-main → auto margins no tienen holgura que consumir. */
 .vel-lp .lp-main > * { width: 100%; }
-.vel-lp .sec-demo  { order: 2; }
-.vel-lp .sec-stats { order: 3; }
-.vel-lp .sec-radar { order: 4; }
-.vel-lp .sec-health{ order: 5; }
-.vel-lp .sec-howto { order: 6; }
+/* Orden narrativo:
+   Hero → Stats (proof del hero) → Data (por qué importa) → Howto (cómo)
+        → Demo → Radar (imán Pro) → Health → Who → Pricing → FAQ → Final.
+   Sin swap mobile/desktop: mismo ritmo en los dos. */
+.vel-lp .sec-stats { order: 1; }
+.vel-lp .sec-data  { order: 2; }
+.vel-lp .sec-howto { order: 3; }
+.vel-lp .sec-demo  { order: 4; }
+.vel-lp .sec-radar { order: 5; }
+.vel-lp .sec-health{ order: 6; }
 .vel-lp .sec-who   { order: 7; }
-.vel-lp .sec-multi { order: 8; }
-.vel-lp .sec-data  { order: 9; }
-.vel-lp .sec-price { order: 10; }
-.vel-lp .sec-faq   { order: 11; }
-.vel-lp .sec-final { order: 12; }
-.vel-lp .sec-foot  { order: 13; }
+.vel-lp .sec-price { order: 8; }
+.vel-lp .sec-faq   { order: 9; }
+.vel-lp .sec-final { order: 10; }
+.vel-lp .sec-foot  { order: 11; }
 
 /* Separadores editoriales entre secciones */
+.vel-lp .sec-data,
+.vel-lp .sec-howto,
+.vel-lp .sec-demo,
 .vel-lp .sec-radar,
 .vel-lp .sec-health,
-.vel-lp .sec-howto,
 .vel-lp .sec-who,
-.vel-lp .sec-multi,
-.vel-lp .sec-data,
 .vel-lp .sec-price,
 .vel-lp .sec-faq { border-top: 1px solid var(--line); }
 
-/* ============================================================
-   MULTI-LOCAL — sección entre "Para quién" y "Datos del sector"
-   ============================================================ */
-.vel-lp .sec-multi .multi-card {
-  margin-top: 28px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 26px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.vel-lp .sec-multi .multi-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--line);
-}
-.vel-lp .sec-multi .multi-badge {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent-strong);
-  border: 1px solid var(--accent-strong);
-  background: color-mix(in oklab, var(--accent-strong) 10%, transparent);
-  padding: 5px 10px;
-  border-radius: 999px;
-}
-.vel-lp .sec-multi .multi-price {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink);
-}
-.vel-lp .sec-multi .multi-feats {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 28px;
-}
-.vel-lp .sec-multi .multi-feats li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--ink);
-}
-.vel-lp .sec-multi .multi-feats li svg { margin-top: 2px; flex-shrink: 0; }
-.vel-lp .sec-multi .multi-cta {
-  display: flex;
-  justify-content: flex-start;
-  padding-top: 4px;
-}
-@media (max-width: 720px) {
-  .vel-lp .sec-multi .multi-card { padding: 22px 20px; gap: 18px; }
-  .vel-lp .sec-multi .multi-feats { grid-template-columns: 1fr; gap: 12px; }
-  .vel-lp .sec-multi .multi-price { font-size: 14px; }
-}
+/* Compresión del bloque stats (proof-points del hero): viene inmediatamente
+   tras el hero y hace de cierre. No necesita los 120px verticales de sección. */
+.vel-lp .sec-stats { padding-block: 28px; border-bottom: 1px solid var(--line); }
 
-@media (min-width: 720px) {
-  .vel-lp .sec-demo  { order: 3; }
-  .vel-lp .sec-stats { order: 2; }
-}
+/* Compresión del bloque howto: subido antes de las features para sentar el
+   "cómo se usa" en 3 pasos sin inflar scroll. */
+.vel-lp .sec-howto { padding-block: 64px; }
 
 /* ============================================================
    360-379px — pantallas muy estrechas, safety net
@@ -2944,4 +2884,39 @@
   .vel-lp .radar-cell  { grid-template-columns: 68px 1fr 30px; gap: 8px; }
   .vel-lp .plan-price .amt { font-size: 36px; }
   .vel-lp .stats-num { font-size: 30px; }
+}
+
+/* ============================================================
+   MULTI-LOCAL CALLOUT — micro-bloque dentro de Pricing, entre el
+   vatNote y la tabla de comparativa. Dos líneas, sin card pesada.
+   ============================================================ */
+.vel-lp .multi-callout {
+  margin: 36px auto 8px;
+  max-width: 720px;
+  padding: 18px 22px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  background: color-mix(in oklab, var(--accent-strong) 4%, transparent);
+}
+.vel-lp .multi-callout-hook {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.vel-lp .multi-callout-line {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--mute);
+  letter-spacing: 0.01em;
+}
+@media (max-width: 720px) {
+  .vel-lp .multi-callout { padding: 16px 18px; margin-top: 28px; }
+  .vel-lp .multi-callout-hook { font-size: 14px; }
+  .vel-lp .multi-callout-line { font-size: 11px; }
 }

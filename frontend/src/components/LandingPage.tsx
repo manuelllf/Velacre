@@ -15,7 +15,6 @@ import { CountUp } from './landing/CountUp'
 import HeroSection from './landing/HeroSection'
 import RadarPreviewSection from './landing/RadarPreviewSection'
 import DemoSection from './landing/DemoSection'
-import MultiLocalSection from './landing/MultiLocalSection'
 import PricingSection from './landing/PricingSection'
 
 export default function LandingPage() {
@@ -239,9 +238,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
-        {/* ===== MULTI-LOCAL ===== */}
-        <MultiLocalSection />
 
         {/* ===== DATA STRIP ===== */}
         <section className="sec wrap sec-data">
