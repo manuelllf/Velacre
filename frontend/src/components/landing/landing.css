@@ -388,7 +388,7 @@
   background: linear-gradient(transparent 72%, rgba(74, 111, 229, 0.22) 72%);
 }
 .vel-lp .hero-sub {
-  max-width: 44ch;
+  max-width: 30ch;
   margin: 28px auto 0;
   font-size: 16.5px;
   color: var(--muted-strong);
