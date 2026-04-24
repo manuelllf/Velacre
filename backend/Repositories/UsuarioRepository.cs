@@ -72,6 +72,18 @@ public class UsuarioRepository : IUsuarioRepository
             .Set(u => u.RespuestasIaMes, value)
             .Update();
 
+    public async Task IncrementInicioSesionAsync(Guid userId, DateTimeOffset now)
+    {
+        // Postgrest no soporta SQL raw increment, así que leemos y escribimos.
+        // Volumen esperado ≤ 1/hora/user (rate-limit en controller) → contención irrelevante.
+        var user = await GetByIdAsync(userId);
+        if (user == null) return;
+        await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
+            .Set(u => u.IniciosSesion, user.IniciosSesion + 1)
+            .Set(u => u.UltimoInicioSesion, now)
+            .Update();
+    }
+
     public async Task UpdateLsSubscriptionAsync(Guid userId, string plan, string? portalUrl, string? subscriptionId, string? lsStatus, DateTimeOffset? renewsAt, DateTimeOffset? endsAt)
         => await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
             .Set(u => u.Plan, plan)

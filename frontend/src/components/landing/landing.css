@@ -427,6 +427,21 @@
   display: inline-block;
 }
 
+/* Línea de reassurance bajo los CTA del hero: "solo leemos tus reseñas".
+   Baja ansiedad del hostelero 55+ que teme "qué va a ver Google". */
+.vel-lp .hero-privacy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px auto 0;
+  font-size: 11.5px;
+  color: var(--mute);
+  line-height: 1.4;
+  max-width: 44ch;
+}
+.vel-lp .hero-privacy svg { flex-shrink: 0; color: var(--muted-strong); }
+
 /* Ticker — oculto en móvil */
 .vel-lp .ticker { display: none; }
 

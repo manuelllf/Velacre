@@ -194,4 +194,33 @@ public class UsuarioController : ControllerBase
             throw;
         }
     }
+
+    /// <summary>
+    /// Heartbeat de acceso a la app. Se llama desde /dashboard y /inicio al
+    /// montar. Con rate-limit soft: si el último inicio fue hace menos de 1h,
+    /// no incrementa (evita inflar el contador por navegación SPA rápida).
+    /// Devuelve 204 siempre para no bloquear el render del cliente.
+    /// </summary>
+    [HttpPost("me/heartbeat")]
+    public async Task<IActionResult> Heartbeat()
+    {
+        var userId = User.GetUserId();
+        var user = await _usuarioRepo.GetByIdAsync(userId);
+        if (user == null) return NoContent();
+
+        var now = DateTimeOffset.UtcNow;
+        var debeIncrementar = user.UltimoInicioSesion == null
+            || (now - user.UltimoInicioSesion.Value) > TimeSpan.FromHours(1);
+
+        if (debeIncrementar)
+        {
+            try { await _usuarioRepo.IncrementInicioSesionAsync(userId, now); }
+            catch (Exception ex)
+            {
+                // No bloqueamos la app por fallo en tracking. Log + swallow.
+                _logger.LogWarning(ex, "[UsuarioController] Heartbeat fallo para userId={UserId}", userId);
+            }
+        }
+        return NoContent();
+    }
 }

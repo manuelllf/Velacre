@@ -115,7 +115,10 @@ export interface AdminUsuario {
   activo: boolean
   activoDesde?: string
   creadoFecha: string
+  /** Negocio principal del usuario (para compatibilidad con admin UI antigua). */
   negocio?: { id: string; nombre: string; placeId?: string } | null
+  /** Todos los negocios del usuario (multi-local). Primero el principal. */
+  negocios?: { id: string; nombre: string; placeId?: string; estado: string; esPrincipal: boolean }[]
   plan: string
   rol: UserRol
   estado: EstadoUsuario
@@ -124,6 +127,10 @@ export interface AdminUsuario {
   proOverrideHasta?: string
   proEfectivo: boolean
   notasAdmin?: string
+  /** Contador acumulado de accesos a la app (heartbeat con rate-limit 1/hora). */
+  iniciosSesion?: number
+  /** Último acceso registrado (ISO string). */
+  ultimoInicioSesion?: string
 }
 
 export interface Competidor {

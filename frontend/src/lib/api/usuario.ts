@@ -35,6 +35,16 @@ export async function eliminarCuenta(): Promise<void> {
   await fetchApi<void>('DELETE', '/api/usuario/me')
 }
 
+/**
+ * Heartbeat: notifica al backend que el usuario entró a la app. Se llama desde
+ * /dashboard y /inicio al montar. Backend rate-limita a 1 incremento/hora por
+ * usuario. Si falla no rompe nada — es puro tracking.
+ */
+export async function heartbeat(): Promise<void> {
+  try { await fetchApi<void>('POST', '/api/usuario/me/heartbeat') }
+  catch { /* swallow: tracking no debe bloquear UX */ }
+}
+
 export async function cancelarSuscripcion(): Promise<{ endsAt?: string }> {
   return fetchApi<{ endsAt?: string }>('POST', '/api/lemonsqueezy/cancelar')
 }

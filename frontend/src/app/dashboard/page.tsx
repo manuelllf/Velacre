@@ -14,6 +14,7 @@ import {
   setReviewEstado,
   updateReviewResponse,
   getGbpStatus,
+  heartbeat,
   ApiError,
   type ReviewResponses,
   type Negocio,
@@ -100,6 +101,9 @@ export default function DashboardPage() {
       setUserEmailForReport(session.user?.email ?? undefined)
       try {
         const [u, gbp] = await Promise.all([getMyUsuario(), getGbpStatus().catch(() => null)])
+        // Heartbeat fire-and-forget: backend rate-limita a 1/hora.
+        // Mide "dueños que vuelven" (métrica líder de salud).
+        heartbeat()
         if (u.isAdmin || u.rol === 'admin') { router.replace('/admin'); return }
         const plan = u.plan ?? 'basic'
         setUserPlan(plan)

@@ -188,6 +188,7 @@ export interface LandingLocale {
       sub: string
       seeDemo: string
       foot: [string, string, string]
+      ctaPrivacy: string
       ticker: {
         title: string
         count: string

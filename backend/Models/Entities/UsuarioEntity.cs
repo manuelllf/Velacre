@@ -103,4 +103,12 @@ public class UsuarioEntity : BaseModel
     /// </summary>
     [Column("locales_contratados")]
     public short LocalesContratados { get; set; } = 1;
+
+    /// <summary>Contador acumulado de accesos a la app (dashboard/inicio/salud).</summary>
+    [Column("inicios_sesion")]
+    public int IniciosSesion { get; set; } = 0;
+
+    /// <summary>Timestamp del último acceso registrado.</summary>
+    [Column("ultimo_inicio_sesion")]
+    public DateTimeOffset? UltimoInicioSesion { get; set; }
 }

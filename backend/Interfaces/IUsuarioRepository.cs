@@ -21,4 +21,10 @@ public interface IUsuarioRepository
     Task AnonymizeAsync(Guid userId);
     Task<bool> TryIncrementIaCounterAsync(Guid userId, int limit);
     Task DeleteUserCascadeAsync(Guid userId);
+    /// <summary>
+    /// Incrementa inicios_sesion y actualiza ultimo_inicio_sesion. Para medir la
+    /// métrica líder "dueños que vuelven" sin depender de MRR. Rate-limit ligero
+    /// en el controller (1/hora por usuario).
+    /// </summary>
+    Task IncrementInicioSesionAsync(Guid userId, DateTimeOffset now);
 }

@@ -303,6 +303,13 @@ export default function DetailPanel({
                 target="_blank"
                 rel="noopener noreferrer"
                 title={d.actions.respondGoogleTitle}
+                /* Al clicar, copia la respuesta al clipboard antes de abrir el panel
+                   de Google. Así el dueño solo tiene que pegar en Google — 1 tap menos
+                   entre generar y publicar. Funciona también con Ctrl+click (new tab). */
+                onClick={() => {
+                  const textToCopy = isEditable ? editedText : generated
+                  if (textToCopy?.trim()) onCopy(textToCopy)
+                }}
                 className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

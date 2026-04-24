@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using backend.Infrastructure;
 using backend.Interfaces;
+using backend.Models.Entities;
 
 namespace backend.Controllers;
 
@@ -46,10 +47,12 @@ public class AdminController : ControllerBase
         if (!await IsAdminAsync()) return Forbid();
 
         var usuarios = await _usuarioRepo.GetAllAsync();
-        var negocios = (await _negocioRepo.GetAllAsync())
+        // Agrupamos TODOS los negocios del usuario (multi-local). El principal
+        // queda en `negocio` para compatibilidad; el array completo va en `negocios`.
+        var negociosPorUsuario = (await _negocioRepo.GetAllAsync())
             .Where(n => n.IdUsuario.HasValue)
             .GroupBy(n => n.IdUsuario!.Value)
-            .ToDictionary(g => g.Key, g => g.First());
+            .ToDictionary(g => g.Key, g => g.ToList());
 
         var now = DateTimeOffset.UtcNow;
 
@@ -63,6 +66,10 @@ public class AdminController : ControllerBase
 
                 var proEfectivo = u.Plan == "pro" ||
                     (u.ProOverride && (!u.ProOverrideHasta.HasValue || u.ProOverrideHasta.Value > now));
+
+                var listaNegocios = negociosPorUsuario.TryGetValue(u.Id, out var negs) ? negs : new List<NegocioEntity>();
+                // Principal = el marcado con es_principal, fallback al primero.
+                var principal = listaNegocios.FirstOrDefault(n => n.EsPrincipal) ?? listaNegocios.FirstOrDefault();
 
                 return new
                 {
@@ -80,9 +87,22 @@ public class AdminController : ControllerBase
                     proEfectivo,
                     notasAdmin       = u.NotasAdmin,
                     rol              = u.Rol,
-                    negocio = negocios.TryGetValue(u.Id, out var n)
-                        ? (object)new { id = n.Id, nombre = n.Nombre, placeId = n.PlaceId }
+                    iniciosSesion        = u.IniciosSesion,
+                    ultimoInicioSesion   = u.UltimoInicioSesion,
+                    negocio = principal != null
+                        ? (object)new { id = principal.Id, nombre = principal.Nombre, placeId = principal.PlaceId }
                         : null,
+                    negocios = listaNegocios
+                        .OrderByDescending(n => n.EsPrincipal)
+                        .ThenBy(n => n.CreadoFecha)
+                        .Select(n => new {
+                            id = n.Id,
+                            nombre = n.Nombre,
+                            placeId = n.PlaceId,
+                            estado = n.Estado,
+                            esPrincipal = n.EsPrincipal,
+                        })
+                        .ToArray(),
                 };
             });
 

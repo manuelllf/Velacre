@@ -581,13 +581,45 @@ function UsuarioRow({
 
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
             {usuario.email && <span>{usuario.email}</span>}
+            {/* Multi-local: listamos todos los negocios del usuario, marcando el
+                principal con ★. Activos en color normal, ocultos/deshabilitados en gris. */}
             <span>
-              {usuario.negocio
-                ? <span className="text-slate-700 dark:text-slate-300 font-medium">{usuario.negocio.nombre}</span>
-                : <span className="italic text-slate-400">Sin negocio</span>
-              }
+              {usuario.negocios && usuario.negocios.length > 0 ? (
+                <span className="inline-flex flex-wrap items-center gap-x-1.5">
+                  {usuario.negocios.flatMap((n, i) => {
+                    const sep = i > 0 ? (
+                      <span key={`sep-${n.id}`} className="text-slate-300 dark:text-slate-700">·</span>
+                    ) : null
+                    const chip = (
+                      <span
+                        key={n.id}
+                        className={`inline-flex items-center gap-1 ${
+                          n.estado === 'activo'
+                            ? 'text-slate-700 dark:text-slate-300 font-medium'
+                            : 'text-slate-400 dark:text-slate-600 line-through'
+                        }`}
+                        title={n.estado !== 'activo' ? `Estado: ${n.estado}` : undefined}
+                      >
+                        {n.esPrincipal && <span className="text-amber-500" aria-label="principal">★</span>}
+                        {n.nombre}
+                      </span>
+                    )
+                    return sep ? [sep, chip] : [chip]
+                  })}
+                </span>
+              ) : (
+                <span className="italic text-slate-400">Sin negocio</span>
+              )}
             </span>
             <span>Registro: {fmtDate(usuario.creadoFecha)}</span>
+            {/* Engagement: contador de entradas a la app + último acceso. Métrica
+                líder de salud; predice churn mejor que MRR en fase pre-tracción. */}
+            <span className="text-slate-600 dark:text-slate-400">
+              <span className="font-semibold">{usuario.iniciosSesion ?? 0}</span> entradas
+              {usuario.ultimoInicioSesion && (
+                <span className="text-slate-400 dark:text-slate-500"> · última {fmtDate(usuario.ultimoInicioSesion)}</span>
+              )}
+            </span>
             {usuario.pruebaHasta && usuario.estado === 'prueba' && (
               <span className="text-sky-600 dark:text-sky-400">Prueba hasta: {fmtDate(usuario.pruebaHasta)}</span>
             )}

@@ -65,6 +65,12 @@ export default function HeroSection({ googleLoading, onGoogleSignup }: HeroSecti
               {l.hero.ctaEmail} →
             </Link>
           </div>
+          <p className="hero-privacy" aria-label="privacy">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2l8 3v7c0 5-3.5 9-8 10-4.5-1-8-5-8-10V5l8-3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
+            </svg>
+            {e.hero.ctaPrivacy}
+          </p>
           <Link
             href="#producto"
             className="hero-see-demo"

@@ -443,6 +443,32 @@ Guest posts pagados, menciones en medios, backlinks de sitios autoritarios. Reem
 - **Tests:** ~18% cobertura (105 tests: 48 backend + 57 frontend). Backend: ClaudeService, NegocioController (incluye ownership, soft delete, restore, principal, slot gating, existe_oculto), UsuarioController, NegocioScopeExtensions. Frontend: API client multi-local (getAll, restore, markPrincipal, header X-Negocio-Id), modules, hooks, componentes. Próximos: ReviewController, LemonController, flujos e2e.
 - **Rate limiting aplicativo:** no crítico sin atacantes, buena práctica para producción.
 
+### Churn esperado y estrategias de retención
+
+**Churn pre-optimización estimado**: 4-6% mensual (benchmark SMB B2B SaaS "nice-to-have"). Con €2k MRR → €100/mes perdidos → captar ≥€100 nuevos cada mes solo para mantener.
+
+**Economía unitaria**:
+- ARPU: ~€30/mes. Gross margin: ~70% (tras Claude + Outscraper + infra) = €21/mes.
+- LTV (4% churn): €21 / 0.04 = **€525/cliente**.
+- CAC outreach manual: ~€80 (tiempo founder × 4h/cliente).
+- **LTV:CAC = 6.5x** — saludable (>3 OK, >5 bueno).
+
+**Engagement built-in actual**:
+- ✅ Cron Outscraper importa reseñas nuevas automáticamente.
+- ✅ Radar semanal fuerza 1 visita/semana (Pro).
+- ❌ Sin push notifications (solo email transaccional).
+- ❌ Sin cron email diario/semanal.
+- ❌ Sin WhatsApp bot (canal real del dueño hostelero).
+
+**Métrica líder de salud** (más predictiva que MRR pre-tracción): **dueños que abren la app ≥2 veces/semana en los últimos 7 días**. El panel de admin incluye `inicios_sesion` (contador acumulado) y `ultimo_inicio_sesion` — heartbeat al cargar /dashboard y /inicio, rate-limit 1/hora por usuario.
+
+**Palancas pendientes para bajar churn** (backlog, orden de impacto):
+1. **Cron semanal email los lunes**: *"Tienes 7 reseñas pendientes desde el viernes"* → abre app (habit-forming).
+2. **PDF Panel Salud mensual enviado auto** → valor tangible recibido sin entrar.
+3. **WhatsApp opt-in** → único canal real del dueño hostelero gallego.
+4. **Onboarding garantizado 7 días**: usuario genera ≥3 respuestas en semana 1 o se dispara nudge (email personal del founder).
+5. **Pre-generación IA en cron**: cuando Outscraper importa reseña nueva, Claude genera respuesta inmediatamente → al abrir app está "ya lista esperándote" (0s vs 4-6s). Coste marginal: ~€0.005 por respuesta × 30 reseñas/mes × 100 clientes = €15/mes. Vende "respuesta instantánea" como feature y reduce fricción del flujo.
+
 ### Ideas futuras (post-tracción)
 - **Marca blanca (Enterprise+):** agencias ofrecen Velacre con su logo. +€100/mes.
 - **QR anti-reseñas negativas:** si 4-5★ → Google Maps; si 1-2★ → nota interna. Descartado para corto plazo (cambio de paradigma de producto).

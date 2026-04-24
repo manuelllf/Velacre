@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio } from '@/lib/api'
+import { getMyUsuario, getMyNegocio, heartbeat } from '@/lib/api'
 import { useLanguage } from '@/lib/i18n'
 import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
@@ -24,6 +24,9 @@ export default function InicioPage() {
       if (!session) { router.replace('/auth/login'); return }
       try {
         const [u, n] = await Promise.all([getMyUsuario(), getMyNegocio()])
+        // Heartbeat fire-and-forget: backend rate-limita a 1/hora.
+        // Mide "dueños que vuelven" (métrica líder de salud).
+        heartbeat()
         if (u.isAdmin) { router.replace('/admin'); return }
         if (!n) { router.replace('/onboarding'); return }
         if (!u.plan || u.plan === 'basic') {
