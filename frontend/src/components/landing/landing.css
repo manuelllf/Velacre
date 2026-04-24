@@ -1750,7 +1750,7 @@
   }
 }
 .vel-lp .plan {
-  padding: 22px 20px 26px;
+  padding: 18px 18px 22px;
   border: 1px solid var(--line-strong);
   border-radius: 4px;
   background: var(--paper);
@@ -1765,7 +1765,7 @@
   background: var(--ink-3);
   color: var(--mod-text);
   border: 1px solid rgba(74, 111, 229, 0.55);
-  padding: 26px 20px 32px;
+  padding: 22px 18px 26px;
 }
 .vel-lp .plan.pro::before {
   content: '';
@@ -1813,7 +1813,7 @@
 }
 .vel-lp .plan-price .amt {
   font-family: var(--f-head);
-  font-size: 42px;
+  font-size: 38px;
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1;
@@ -1846,12 +1846,12 @@
 .vel-lp .plan.pro .plan-desc { color: var(--mod-text-dim); }
 .vel-lp .plan ul {
   list-style: none;
-  margin: 16px 0 0;
-  padding: 14px 0 0;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
   border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
 }
 .vel-lp .plan.pro ul { border-top-color: var(--mod-line); }
@@ -1866,10 +1866,10 @@
 .vel-lp .plan.pro li { color: var(--mod-text); }
 .vel-lp .plan li svg { margin-top: 5px; color: var(--accent); }
 .vel-lp .plan-cta {
-  margin-top: 20px;
+  margin-top: 14px;
   width: 100%;
-  min-height: 48px;
-  padding: 12px 18px;
+  min-height: 42px;
+  padding: 10px 16px;
   font-size: 14px;
 }
 .vel-lp .plan.pro .plan-cta.btn-accent { background: var(--accent); color: var(--paper); }
@@ -1882,10 +1882,10 @@
 .vel-lp .plan:not(.pro) .btn-ghost:hover { background: var(--ink); color: var(--paper); }
 
 @media (min-width: 720px) {
-  .vel-lp .plan                { padding: 28px 24px; }
-  .vel-lp .plan.pro            { padding: 32px 24px 36px; }
-  .vel-lp .plan-price .amt     { font-size: 54px; }
-  .vel-lp .plan-desc           { font-size: 14px; min-height: 40px; }
+  .vel-lp .plan                { padding: 22px 20px; }
+  .vel-lp .plan.pro            { padding: 26px 22px 30px; }
+  .vel-lp .plan-price .amt     { font-size: 46px; }
+  .vel-lp .plan-desc           { font-size: 14px; min-height: 36px; }
   .vel-lp .plan li             { font-size: 14px; }
 }
 
@@ -1964,14 +1964,20 @@
    otro más pequeño por la izquierda. Rotan sobre sí mismos (direcciones
    opuestas) y tienen una flotación vertical muy sutil. Decorativos. */
 .vel-lp .mark-bg .mark-slot { position: absolute; opacity: 0.11; }
+/* Posicionamiento al 25% y 75% del viewport: cada sello queda visualmente
+   a medio camino entre el centro y su borde. Se centran con left:N% +
+   margin-left negativo (half-width) en vez de transform — así la animación
+   velMarkFloat (translateY) no entra en conflicto. */
 .vel-lp .mark-bg .slot-large {
   top: calc(50% - 210px);
-  right: 24px;
+  left: 75%;
+  margin-left: -210px;
   animation: velMarkFloat 22s ease-in-out infinite alternate;
 }
 .vel-lp .mark-bg .slot-small {
   top: calc(50% - 100px);
-  left: 24px;
+  left: 25%;
+  margin-left: -100px;
   opacity: 0.10;
   animation: velMarkFloat 26s ease-in-out infinite alternate-reverse;
 }
@@ -2002,7 +2008,12 @@
    en pantallas estrechas, así que escondemos el pequeño. */
 @media (max-width: 720px) {
   .vel-lp .mark-bg .slot-small { display: none; }
-  .vel-lp .mark-bg .slot-large { top: calc(50% - 140px); right: -10%; }
+  .vel-lp .mark-bg .slot-large {
+    top: calc(50% - 140px);
+    left: auto;
+    right: -10%;
+    margin-left: 0;
+  }
   .vel-lp .mark-bg .slot-large img { width: 280px; height: 280px; }
 }
 
@@ -2393,13 +2404,13 @@
    COMPARE TABLE — 3-col dentro de pricing
    ============================================================ */
 .vel-lp .compare {
-  margin-top: 36px;
-  padding-top: 28px;
+  margin-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid var(--line);
 }
 .vel-lp .compare-head {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 .vel-lp .compare-head .lbl {
   font-family: var(--f-mono);
@@ -2543,14 +2554,14 @@
 }
 .vel-lp .compare-table th,
 .vel-lp .compare-table td {
-  padding: 14px 16px;
+  padding: 9px 14px;
   border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  font-size: 13.5px;
   text-align: left;
   vertical-align: middle;
   background: transparent;
 }
-.vel-lp .compare-table thead th { border-bottom: 1px solid var(--line-strong); padding-bottom: 12px; }
+.vel-lp .compare-table thead th { border-bottom: 1px solid var(--line-strong); padding-bottom: 9px; }
 .vel-lp .compare-table th {
   font-family: var(--f-mono);
   font-size: 11px;
@@ -2569,13 +2580,13 @@
 .vel-lp .compare-table .price {
   font-family: var(--f-head);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--ink);
   letter-spacing: -0.01em;
 }
-.vel-lp .compare-table .price.us { color: var(--accent-strong); font-size: 20px; }
-.vel-lp .compare-table .yes { color: var(--good); font-weight: 700; font-size: 22px; }
-.vel-lp .compare-table .no  { color: var(--danger); font-weight: 400; font-size: 18px; opacity: 0.6; }
+.vel-lp .compare-table .price.us { color: var(--accent-strong); font-size: 18px; }
+.vel-lp .compare-table .yes { color: var(--good); font-weight: 700; font-size: 18px; }
+.vel-lp .compare-table .no  { color: var(--danger); font-weight: 400; font-size: 15px; opacity: 0.6; }
 .vel-lp .compare-foot {
   font-family: var(--f-mono);
   font-size: 9.5px;
@@ -2588,10 +2599,10 @@
 }
 
 @media (min-width: 720px) {
-  .vel-lp .compare { margin-top: 48px; padding-top: 36px; }
+  .vel-lp .compare { margin-top: 28px; padding-top: 20px; }
   .vel-lp .compare-table { min-width: 0; }
   .vel-lp .compare-table th,
-  .vel-lp .compare-table td { padding: 14px 18px; font-size: 14px; }
+  .vel-lp .compare-table td { padding: 10px 16px; font-size: 13.5px; }
 }
 
 /* ============================================================

@@ -379,9 +379,9 @@ const gal: LandingLocale = {
       lede: 'Sen manuais, sen tutorial de quince minutos, sen xerga de SEO. O que xa fas, só que máis rápido.',
     },
     forWho: {
-      h2l1: 'Do asador á clínica.',
-      h2l2: 'Onde haxa recensións, funciona.',
-      lede: 'Empezou na hostalaría galega e agora serve calquera PEME que viva do boca a boca.',
+      h2l1: 'Do asador',
+      h2l2: 'ao dentista.',
+      lede: 'Se ten recensións en Google e clientes que opinan, Velacre sérvelle.',
       sectors: [
         'Hostalaría & tabernas',
         'Cafeterías',

@@ -379,9 +379,9 @@ const en: LandingLocale = {
       lede: 'No manuals, no fifteen-minute tutorial, no SEO jargon. What you already do, only faster.',
     },
     forWho: {
-      h2l1: 'From steakhouse to clinic.',
-      h2l2: 'Wherever there are reviews, it works.',
-      lede: 'Started with Galician hospitality and now serves any local SMB that lives on word of mouth.',
+      h2l1: 'From the steakhouse',
+      h2l2: 'to the dentist.',
+      lede: 'If it has Google reviews and customers who speak up, Velacre works.',
       sectors: [
         'Hospitality & taverns',
         'Cafés',
