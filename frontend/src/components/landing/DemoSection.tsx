@@ -81,7 +81,7 @@ export default function DemoSection() {
     <section className="sec wrap sec-demo" id="producto">
       <div className="sec-head">
         <div className="sec-idx">
-          <span className="num">01</span>
+          <span className="num">02</span>
           {e.sections.product}
           <SectionHelp text={e.sectionsHelp.product} />
         </div>

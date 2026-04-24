@@ -16,16 +16,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE_DEFAULT =
-  "Velacre — Responde reseñas de Google con IA | Gestión de reseñas para hostelería";
+const TITLE_DEFAULT = "Velacre · Responde tus reseñas de Google con IA";
 const DESCRIPTION_DEFAULT =
-  "Velacre es el SaaS español que responde las reseñas de Google de tu restaurante, bar o negocio con IA en tu tono. Te dice qué mejorar antes de que lo note tu cliente y vigila qué hacen mejor tus competidores. Prueba gratis.";
+  "SaaS español que responde las reseñas de Google de tu restaurante, bar o negocio con IA en tu tono. Te avisa de lo que está fallando antes de que lo noten tus clientes y vigila qué hacen mejor tus competidores. Para hostelería y PYME. Prueba gratis.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITLE_DEFAULT,
-    template: "%s | Velacre",
+    template: "%s · Velacre",
   },
   description: DESCRIPTION_DEFAULT,
   applicationName: "Velacre",

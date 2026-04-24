@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-const TITLE =
-  "Velacre — Responde as recensións de Google con IA | Software para hostalaría en Galicia";
+const TITLE = "Velacre · Responde as túas recensións de Google con IA";
 const DESCRIPTION =
   "SaaS galego que contesta as recensións de Google do teu restaurante, bar ou hotel con IA no teu propio ton. Avisache do que está fallando antes de que o noten os teus clientes. Proba grátis, sen tarxeta.";
 

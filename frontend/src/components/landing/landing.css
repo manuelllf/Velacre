@@ -1971,8 +1971,8 @@
 }
 .vel-lp .mark-bg .slot-small {
   top: calc(50% - 100px);
-  left: -3%;
-  opacity: 0.08;
+  left: 0%;
+  opacity: 0.10;
   animation: velMarkFloat 26s ease-in-out infinite alternate-reverse;
 }
 .vel-lp .mark-bg .mark-slot img {

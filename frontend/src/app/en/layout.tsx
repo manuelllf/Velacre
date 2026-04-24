@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-const TITLE =
-  "Velacre — Reply to Google reviews with AI | Review management software for hospitality";
+const TITLE = "Velacre · Reply to your Google reviews with AI";
 const DESCRIPTION =
   "The Spanish SaaS that answers the Google reviews of your restaurant, bar or hotel with AI in your own tone. Spots what's breaking before your customers notice. Free to try, no credit card.";
 

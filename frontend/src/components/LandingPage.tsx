@@ -100,7 +100,7 @@ export default function LandingPage() {
         <section className="sec wrap sec-health" id="salud">
           <div className="sec-head">
             <div className="sec-idx">
-              <span className="num">03</span>
+              <span className="num">04</span>
               {e.sections.health}
               <SectionHelp text={e.sectionsHelp.health} />
             </div>
@@ -182,7 +182,7 @@ export default function LandingPage() {
           <div>
             <div className="sec-head">
               <div className="sec-idx">
-                <span className="num">04</span>
+                <span className="num">01</span>
                 {e.sections.flow}
               </div>
               <div>

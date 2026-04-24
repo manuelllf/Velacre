@@ -62,7 +62,7 @@ export default function RadarPreviewSection() {
     <section className="sec wrap sec-radar" id="radar">
       <div className="sec-head">
         <div className="sec-idx">
-          <span className="num">02</span>
+          <span className="num">03</span>
           {e.sections.intel}
           <SectionHelp text={e.sectionsHelp.intel} />
         </div>
