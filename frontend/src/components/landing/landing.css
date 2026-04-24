@@ -1605,8 +1605,8 @@
 }
 
 /* ============================================================
-   FORWHO (sec 06) — pills inline con flex-wrap, sin grid ni bordes
-   de celda. Mobile-first: 1-2 líneas con chips redondeados.
+   FORWHO (sec 06) — chips editoriales inline, border-radius 4px
+   (consistente con .plan y el resto de la landing).
    ============================================================ */
 .vel-lp .sectors {
   display: flex;
@@ -1618,12 +1618,12 @@
 .vel-lp .sector {
   display: inline-flex;
   align-items: center;
-  padding: 8px 14px;
+  padding: 6px 12px;
   border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border-radius: 4px;
   background: var(--paper);
   font-size: 13px;
-  line-height: 1.2;
+  line-height: 1.25;
   color: var(--muted-strong);
   font-weight: 500;
   cursor: default;
@@ -1637,10 +1637,10 @@
 }
 @media (min-width: 720px) {
   .vel-lp .sectors { gap: 10px; margin-top: 28px; }
-  .vel-lp .sector  { padding: 9px 18px; font-size: 14px; }
+  .vel-lp .sector  { padding: 7px 14px; font-size: 13.5px; }
 }
 @media (min-width: 1200px) {
-  .vel-lp .sector  { padding: 10px 20px; font-size: 14.5px; }
+  .vel-lp .sector  { padding: 8px 16px; font-size: 14px; }
 }
 
 /* ============================================================

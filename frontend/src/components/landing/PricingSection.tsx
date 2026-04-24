@@ -54,21 +54,8 @@ export default function PricingSection() {
         </div>
       </div>
 
-      <div className="bill-wrap">
-        <div className="bill-toggle">
-          <span className={`lbl ${yearly ? '' : 'on'}`}>{l.pricing.monthly}</span>
-          <button
-            type="button"
-            className={`tgl ${yearly ? 'on' : ''}`}
-            onClick={() => setYearly(v => !v)}
-            aria-label="toggle"
-          />
-          <span className={`lbl ${yearly ? 'on' : ''}`}>{l.pricing.yearly}</span>
-        </div>
-        <span className={`save-pill ${yearly ? 'show' : ''}`}>{l.pricing.yearlySave}</span>
-      </div>
-
-      {/* Founding price banner */}
+      {/* Founding price banner — va arriba: lo importante (descuento)
+          antes del switch de periodicidad. */}
       <div className="founding">
         <span className="founding-lbl">{e.founding.label}</span>
         <div className="founding-head">{e.founding.headline}</div>
@@ -84,6 +71,20 @@ export default function PricingSection() {
             {copied ? e.founding.copied : e.founding.copy}
           </button>
         </div>
+      </div>
+
+      <div className="bill-wrap">
+        <div className="bill-toggle">
+          <span className={`lbl ${yearly ? '' : 'on'}`}>{l.pricing.monthly}</span>
+          <button
+            type="button"
+            className={`tgl ${yearly ? 'on' : ''}`}
+            onClick={() => setYearly(v => !v)}
+            aria-label="toggle"
+          />
+          <span className={`lbl ${yearly ? 'on' : ''}`}>{l.pricing.yearly}</span>
+        </div>
+        <span className={`save-pill ${yearly ? 'show' : ''}`}>{l.pricing.yearlySave}</span>
       </div>
 
       <div className="pricing-grid">
@@ -184,13 +185,6 @@ export default function PricingSection() {
       <p className="mono-sm" style={{ textAlign: 'center', marginTop: 24 }}>
         {l.pricing.vatNote}
       </p>
-
-      {/* Callout multi-local — micro-ping para el dueño con 2-3 locales, sin
-          romper el flujo. Aparece entre pricing-grid y compare table. */}
-      <div className="multi-callout">
-        <span className="multi-callout-hook">{e.pricing.multilocalCallout.hook}</span>
-        <span className="multi-callout-line">{e.pricing.multilocalCallout.line}</span>
-      </div>
 
       {/* Compare table — sin nombrar competencia */}
       <div className="compare">
