@@ -831,12 +831,12 @@ function MisLocalesSection({ plan }: { plan: string }) {
   return (
     <>
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">Mis locales</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {negocios.length === 1 ? 'Tienes 1 local activo.' : `Tienes ${negocios.length} locales activos.`}
-              {!esPro && ' Multi-local es feature Pro.'}
+              {!esPro && ' Pro incluye 1 local · +20 €/mes por cada local adicional (hasta 5).'}
             </p>
           </div>
           {esPro ? (
@@ -847,7 +847,12 @@ function MisLocalesSection({ plan }: { plan: string }) {
               + Añadir local
             </Link>
           ) : (
-            <span className="shrink-0 text-[11px] font-mono uppercase tracking-widest text-slate-400">Requiere Pro</span>
+            <Link
+              href="/onboarding/plan"
+              className="shrink-0 px-4 py-2 text-xs font-semibold border border-blue-500 text-blue-500 hover:bg-blue-500/10 rounded-xl transition-colors"
+            >
+              Disponible en Pro →
+            </Link>
           )}
         </div>
 

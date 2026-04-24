@@ -213,6 +213,7 @@ export interface LandingLocale {
       health: string
       flow: string
       who: string
+      multilocal: string
       pricing: string
       start: string
     }
@@ -220,6 +221,7 @@ export interface LandingLocale {
       product: string
       intel: string
       health: string
+      multilocal: string
       pricing: string
     }
     data: {
@@ -304,6 +306,16 @@ export interface LandingLocale {
       h2l2: string
       lede: string
       sectors: string[]
+    }
+    multilocal: {
+      kicker: string
+      h2l1: string
+      h2l2: string
+      lede: string
+      features: string[]
+      pricingLine: string
+      badge: string
+      cta: string
     }
     pricing: {
       h2l1: string
