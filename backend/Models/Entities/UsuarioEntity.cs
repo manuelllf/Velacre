@@ -111,4 +111,11 @@ public class UsuarioEntity : BaseModel
     /// <summary>Timestamp del último acceso registrado.</summary>
     [Column("ultimo_inicio_sesion")]
     public DateTimeOffset? UltimoInicioSesion { get; set; }
+
+    /// <summary>
+    /// Opt-in para pre-generación IA automática en el cron de sync. Default FALSE para todos los planes.
+    /// Basic ignora siempre el flag (cap 10 IA es barrera deliberada). Core/Pro pueden activarlo en Settings.
+    /// </summary>
+    [Column("auto_pre_gen_ia")]
+    public bool AutoPreGenIa { get; set; } = false;
 }

@@ -8,8 +8,18 @@ export async function getMyUsuario(): Promise<{
   lsCustomerPortal?: string; lsSubscriptionId?: string; lsStatus?: string
   lsRenewsAt?: string; lsEndsAt?: string
   respuestasIaMes?: number
+  autoPreGenIa?: boolean
 }> {
   return fetchApi('GET', '/api/usuario/me')
+}
+
+/**
+ * Activa/desactiva el opt-in para pre-generación IA automática en el cron.
+ * Basic rechaza con 400 requires_paid_plan — el front no debe mostrar el toggle
+ * en Basic, pero protección defensiva por si llega el toggle activo.
+ */
+export async function setAutoPreGenIa(enabled: boolean): Promise<void> {
+  await fetchApi<void>('PUT', '/api/usuario/me/auto-pre-gen-ia', { enabled })
 }
 
 export async function createUsuario(data: {

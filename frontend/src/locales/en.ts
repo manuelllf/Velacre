@@ -201,7 +201,7 @@ const en: LandingLocale = {
         priceYearly: '€490',
         priceYearlyMonthly: '€41',
         desc: 'The difference between replying to reviews and understanding your reputation.',
-        features: ['Unlimited AI responses', 'Full Health Panel (AI analysis + PDF reports)', 'Competition Radar: discover what your 3 rivals do better and what to do this week', '0-10 benchmark across 4 categories vs competitors', 'Multi-location: 1 included \u00b7 +\u20ac20/mo per extra location (up to 5)', 'Priority support'],
+        features: ['Unlimited AI responses', 'Replies pre-generated overnight — ready for review when you log in', 'Full Health Panel (AI analysis + PDF reports)', 'Competition Radar: discover what your 3 rivals do better and what to do this week', '0-10 benchmark across 4 categories vs competitors', 'Multi-location: 1 included \u00b7 +\u20ac20/mo per extra location (up to 5)', 'Priority support'],
         cta: 'Choose Pro',
         badge: 'Most complete',
       },

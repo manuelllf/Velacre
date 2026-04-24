@@ -67,8 +67,33 @@ public class UsuarioController : ControllerBase
             lsRenewsAt       = usuario.LsRenewsAt,
             lsEndsAt         = usuario.LsEndsAt,
             respuestasIaMes  = usuario.RespuestasIaMes,
+            autoPreGenIa     = usuario.AutoPreGenIa,
         });
     }
+
+    /// <summary>
+    /// Activa/desactiva el opt-in para pre-generación IA automática en el cron.
+    /// Basic ignora el flag en runtime (cap 10 IA es barrera). Core/Pro pueden activarlo.
+    /// </summary>
+    [HttpPut("me/auto-pre-gen-ia")]
+    public async Task<IActionResult> SetAutoPreGenIa([FromBody] AutoPreGenIaRequest request)
+    {
+        var userId = User.GetUserId();
+        var usuario = await _usuarioRepo.GetByIdAsync(userId);
+        if (usuario == null) return NotFound();
+
+        // Basic no puede activarlo — silenciosamente rechazado (no mostraríamos
+        // el toggle en la UI de Basic, pero defensivo por si llega vía API directo).
+        if (request.Enabled && usuario.Plan == "basic")
+            return BadRequest(new { error = "requires_paid_plan" });
+
+        await _usuarioRepo.UpdateAutoPreGenIaAsync(userId, request.Enabled);
+        _logger.LogInformation("[UsuarioController] auto_pre_gen_ia={Enabled} userId={UserId} plan={Plan}",
+            request.Enabled, userId, usuario.Plan);
+        return Ok(new { autoPreGenIa = request.Enabled });
+    }
+
+    public record AutoPreGenIaRequest(bool Enabled);
 
     [HttpPut("me")]
     public async Task<IActionResult> UpdateMe([FromBody] CreateUsuarioRequest request)

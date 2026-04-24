@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, getLemonCheckoutUrl, getGbpStatus, getGbpAuthUrl, getGbpLocations, finalizeGbpConnection, disconnectGbp, type Negocio, type GbpStatus, type GbpLocation } from '@/lib/api'
+import { getMyNegocio, updateNegocio, getMyUsuario, updateUsuario, eliminarCuenta, getLemonCheckoutUrl, getGbpStatus, getGbpAuthUrl, getGbpLocations, finalizeGbpConnection, disconnectGbp, setAutoPreGenIa, type Negocio, type GbpStatus, type GbpLocation } from '@/lib/api'
 import { deleteNegocio, getMyNegociosIncludingHidden, restoreNegocio, markNegocioPrincipal, updateNegocioById } from '@/lib/api/negocio'
 import { useNegocioActivo } from '@/lib/negocio-activo'
 import { ApiError } from '@/lib/api/client'
@@ -39,6 +39,8 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const [plan, setPlan] = useState<string>('basic')
+  const [autoPreGenIa, setAutoPreGenIaState] = useState<boolean>(false)
+  const [togglingPreGen, setTogglingPreGen] = useState(false)
   const [lsStatus, setLsStatus] = useState<string | null>(null)
   const [lsRenewsAt, setLsRenewsAt] = useState<string | null>(null)
   const [lsEndsAt, setLsEndsAt] = useState<string | null>(null)
@@ -82,6 +84,7 @@ export default function SettingsPage() {
         setLsRenewsAt(u.lsRenewsAt ?? null)
         setLsEndsAt(u.lsEndsAt ?? null)
         setLsCustomerPortal(u.lsCustomerPortal ?? null)
+        setAutoPreGenIaState(u.autoPreGenIa ?? false)
         // El negocio para el form se toma del NegocioActivoProvider (ver useEffect abajo).
         if (gbp) setGbpStatus(gbp)
 
@@ -613,6 +616,59 @@ export default function SettingsPage() {
             </button>
           </div>
         </form>
+
+        {/* Pre-generación IA — opt-in para que el cron nocturno genere respuestas
+            automáticamente en cada reseña nueva. Solo visible para Core y Pro;
+            Basic queda fuera porque el cap 10 IA/mes se agotaría sin control. */}
+        {plan !== 'basic' && (
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">Respuestas anticipadas</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Velacre genera tu respuesta cuando importa la reseña (de madrugada). Al entrar la tienes lista para revisar y publicar.
+              </p>
+            </div>
+            <div className="px-5 py-4 flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  Generar respuestas automáticamente
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {plan === 'core'
+                    ? 'Consume de tu cupo mensual (25 IA). Si se agota, el resto queda como pendiente manual.'
+                    : 'Incluido en Pro sin límite práctico. Puedes desactivarlo cuando quieras.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={autoPreGenIa}
+                disabled={togglingPreGen}
+                onClick={async () => {
+                  setTogglingPreGen(true)
+                  const next = !autoPreGenIa
+                  try {
+                    await setAutoPreGenIa(next)
+                    setAutoPreGenIaState(next)
+                  } catch {
+                    setError('No se pudo actualizar la preferencia. Inténtalo de nuevo.')
+                  } finally {
+                    setTogglingPreGen(false)
+                  }
+                }}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
+                  autoPreGenIa ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow ${
+                    autoPreGenIa ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* Mis locales — multi-negocio */}
         <MisLocalesSection plan={plan} />

@@ -27,4 +27,10 @@ public interface IUsuarioRepository
     /// en el controller (1/hora por usuario).
     /// </summary>
     Task IncrementInicioSesionAsync(Guid userId, DateTimeOffset now);
+
+    /// <summary>
+    /// Actualiza el flag auto_pre_gen_ia (opt-in para pre-generación IA en cron).
+    /// Basic ignora el flag en runtime; aquí solo persistimos la preferencia.
+    /// </summary>
+    Task UpdateAutoPreGenIaAsync(Guid userId, bool autoPreGenIa);
 }

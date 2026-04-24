@@ -10,15 +10,25 @@ public class CronController : ControllerBase
 {
     private readonly INegocioRepository _negocioRepo;
     private readonly IReviewRepository _reviewRepo;
+    private readonly IUsuarioRepository _usuarioRepo;
     private readonly IOutscraperService _outscraper;
+    private readonly IReviewAiService _ai;
     private readonly ILogger<CronController> _logger;
     private readonly string _cronSecret;
 
-    public CronController(INegocioRepository negocioRepo, IReviewRepository reviewRepo, IOutscraperService outscraper, ILogger<CronController> logger)
+    public CronController(
+        INegocioRepository negocioRepo,
+        IReviewRepository reviewRepo,
+        IUsuarioRepository usuarioRepo,
+        IOutscraperService outscraper,
+        IReviewAiService ai,
+        ILogger<CronController> logger)
     {
         _negocioRepo = negocioRepo;
         _reviewRepo = reviewRepo;
+        _usuarioRepo = usuarioRepo;
         _outscraper = outscraper;
+        _ai = ai;
         _logger = logger;
         _cronSecret = Environment.GetEnvironmentVariable("CRON_SECRET") ?? "";
     }
@@ -42,8 +52,13 @@ public class CronController : ControllerBase
         _logger.LogInformation("[CronController] {Count} negocios con place_id", negocios.Count);
 
         int totalNew = 0;
+        int totalPreGen = 0;
         int synced = 0;
         var errors = new List<string>();
+
+        // Cache dueños consultados (plan + auto_pre_gen_ia) para no hacer N GetById
+        // si un usuario tiene varios negocios (multi-local).
+        var ownerCache = new Dictionary<Guid, UsuarioEntity?>();
 
         foreach (var negocio in negocios)
         {
@@ -70,6 +85,25 @@ public class CronController : ControllerBase
                 var reviews = await _outscraper.GetReviewsAsync(negocio.PlaceId!, sinceDate);
                 var ownerId = negocio.IdUsuario ?? negocio.CreadoPor;
                 int newCount = 0;
+                int preGenCount = 0;
+
+                // Pre-cargar datos del dueño una vez por batch (resolverá plan + flag)
+                if (!ownerCache.TryGetValue(ownerId, out var owner))
+                {
+                    owner = await _usuarioRepo.GetByIdAsync(ownerId);
+                    ownerCache[ownerId] = owner;
+                }
+
+                // ¿Elegible para pre-gen? Flag activo + plan distinto de basic.
+                // Basic ignora siempre (cap 10 IA es barrera deliberada).
+                var preGenEligible = owner != null
+                    && owner.AutoPreGenIa
+                    && owner.Plan != "basic";
+
+                // Límite IA por plan — Core 25, Pro -1 (unlimited, solo usado para
+                // incrementar el contador y detectar cap soft 250). Basic nunca llega.
+                int iaLimit = owner?.Plan == "pro" ? -1 : 25;
+                bool budgetExhausted = false;
 
                 foreach (var review in reviews)
                 {
@@ -95,11 +129,95 @@ public class CronController : ControllerBase
 
                     await _reviewRepo.InsertAsync(entity);
                     newCount++;
+
+                    // ── Pre-gen IA opt-in ──────────────────────────────────────
+                    // Condiciones: flag activo, plan != basic, review nueva sin
+                    // respuesta previa (no yaRespondida), y queda cupo (Core).
+                    // Si el cupo Core se agota a mitad del batch, el resto del
+                    // negocio queda como "pendiente" manual — no bloqueamos sync.
+                    if (!preGenEligible || yaRespondida || budgetExhausted) continue;
+
+                    try
+                    {
+                        // Incremento atómico del contador IA. Pro: RPC retorna
+                        // siempre true (limit=-1). Core: respeta 25/mes.
+                        var rpcAllowed = await _usuarioRepo.TryIncrementIaCounterAsync(ownerId, iaLimit);
+                        var esProEfectivo = owner!.Plan == "pro";
+                        var allowed = esProEfectivo || rpcAllowed;
+
+                        if (!allowed)
+                        {
+                            _logger.LogInformation("[CronController] Pre-gen cupo agotado para userId={UserId} (plan={Plan}), resto del batch queda manual", ownerId, owner.Plan);
+                            budgetExhausted = true;
+                            continue;
+                        }
+
+                        var reviewContext = !string.IsNullOrWhiteSpace(entity.ClienteReview)
+                            ? entity.ClienteReview
+                            : entity.StarRating.HasValue
+                                ? $"[Reseña sin texto] {entity.StarRating} estrella{(entity.StarRating != 1 ? "s" : "")} de {entity.AuthorName ?? "un cliente"}. No dejó comentario escrito."
+                                : $"[Reseña sin texto] de {entity.AuthorName ?? "un cliente"}. No dejó comentario escrito.";
+
+                        var lang = string.IsNullOrEmpty(entity.ReviewLanguage) ? "es" : entity.ReviewLanguage;
+                        var tone = negocio.TonoPredefinido;
+                        var keywords = negocio.PalabrasClave;
+                        if (keywords == null || keywords.Length == 0)
+                            keywords = new[] { negocio.Nombre };
+
+                        var result = await _ai.GenerateSingleResponseWithContextAsync(
+                            reviewContext,
+                            negocio.Descripcion ?? negocio.Nombre,
+                            tone,
+                            lang,
+                            keywords);
+
+                        if (result.Retenida)
+                        {
+                            // Reseña grave retenida por filtro de seguridad: marcar como tal
+                            // y revertir el slot de IA consumido (no se guarda respuesta real).
+                            entity.Retenida = true;
+                            entity.MotivoRetencion = result.MotivoRetencion;
+                            await _reviewRepo.UpdateAsync(entity);
+                            // Rollback del contador
+                            var fresh = await _usuarioRepo.GetByIdAsync(ownerId);
+                            if (fresh != null)
+                                await _usuarioRepo.UpdateIaCounterRollbackAsync(ownerId, Math.Max(0, fresh.RespuestasIaMes - 1));
+                            _logger.LogWarning("[CronController] Pre-gen retenida por seguridad review={ReviewId} motivo={Motivo}", entity.Id, result.MotivoRetencion);
+                            continue;
+                        }
+
+                        entity.Respuesta = result.Response;
+                        entity.TonoGenerado = tone;
+                        entity.ContextoCliente = result.ContextoCliente;
+                        entity.ContextoRespuesta = result.ContextoRespuesta;
+                        entity.KeywordsUsadas = result.KeywordsUsadas;
+                        entity.ActualizadoPor = ownerId;
+                        entity.ActualizadoFecha = DateTimeOffset.UtcNow;
+                        // Estado se mantiene "pendiente" — el dueño aún tiene que
+                        // revisar y publicar. El pre-gen solo evita el latency de
+                        // 4-6s al abrir el dashboard.
+                        await _reviewRepo.UpdateAsync(entity);
+                        preGenCount++;
+                    }
+                    catch (Exception aiEx)
+                    {
+                        // Fallo de IA no rompe el sync — la reseña queda pendiente
+                        // como si el pre-gen no hubiera ocurrido. Rollback del slot.
+                        _logger.LogWarning(aiEx, "[CronController] Pre-gen falló review={ReviewId}, queda pendiente", entity.Id);
+                        try
+                        {
+                            var fresh = await _usuarioRepo.GetByIdAsync(ownerId);
+                            if (fresh != null)
+                                await _usuarioRepo.UpdateIaCounterRollbackAsync(ownerId, Math.Max(0, fresh.RespuestasIaMes - 1));
+                        }
+                        catch { /* rollback best-effort */ }
+                    }
                 }
 
                 totalNew += newCount;
+                totalPreGen += preGenCount;
                 synced++;
-                _logger.LogInformation("[CronController] Negocio {NegocioId}: {New} nuevas reseñas", negocio.Id, newCount);
+                _logger.LogInformation("[CronController] Negocio {NegocioId}: {New} nuevas reseñas, {PreGen} pre-generadas", negocio.Id, newCount, preGenCount);
             }
             catch (Exception ex)
             {
@@ -108,9 +226,9 @@ public class CronController : ControllerBase
             }
         }
 
-        _logger.LogInformation("[CronController] Sync completado: {Synced}/{Total} negocios, {New} nuevas reseñas, {Errors} errores",
-            synced, negocios.Count, totalNew, errors.Count);
+        _logger.LogInformation("[CronController] Sync completado: {Synced}/{Total} negocios, {New} nuevas reseñas, {PreGen} pre-generadas, {Errors} errores",
+            synced, negocios.Count, totalNew, totalPreGen, errors.Count);
 
-        return Ok(new { synced, total = negocios.Count, totalNew, errors });
+        return Ok(new { synced, total = negocios.Count, totalNew, totalPreGen, errors });
     }
 }

@@ -84,6 +84,11 @@ public class UsuarioRepository : IUsuarioRepository
             .Update();
     }
 
+    public async Task UpdateAutoPreGenIaAsync(Guid userId, bool autoPreGenIa)
+        => await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
+            .Set(u => u.AutoPreGenIa, autoPreGenIa)
+            .Update();
+
     public async Task UpdateLsSubscriptionAsync(Guid userId, string plan, string? portalUrl, string? subscriptionId, string? lsStatus, DateTimeOffset? renewsAt, DateTimeOffset? endsAt)
         => await _supabase.From<UsuarioEntity>().Where(u => u.Id == userId)
             .Set(u => u.Plan, plan)
