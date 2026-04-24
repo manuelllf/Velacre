@@ -379,9 +379,9 @@ const en: LandingLocale = {
       lede: 'No manuals, no fifteen-minute tutorial, no SEO jargon. What you already do, only faster.',
     },
     forWho: {
-      h2l1: 'From the steakhouse',
-      h2l2: 'to the dentist.',
-      lede: 'If it has Google reviews and customers who speak up, Velacre works.',
+      h2l1: 'If there are reviews,',
+      h2l2: 'Velacre works there.',
+      lede: 'If your customers speak up on Google, you reply.',
       sectors: [
         'Hospitality & taverns',
         'Cafés',

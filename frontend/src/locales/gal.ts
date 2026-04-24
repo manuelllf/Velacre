@@ -379,9 +379,9 @@ const gal: LandingLocale = {
       lede: 'Sen manuais, sen tutorial de quince minutos, sen xerga de SEO. O que xa fas, só que máis rápido.',
     },
     forWho: {
-      h2l1: 'Do asador',
-      h2l2: 'ao dentista.',
-      lede: 'Se ten recensións en Google e clientes que opinan, Velacre sérvelle.',
+      h2l1: 'Onde haxa recensións,',
+      h2l2: 'Velacre funciona.',
+      lede: 'Se os teus clientes opinan en Google, ti respondes.',
       sectors: [
         'Hostalaría & tabernas',
         'Cafeterías',

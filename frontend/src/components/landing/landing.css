@@ -365,7 +365,7 @@
    HERO
    ============================================================ */
 .vel-lp .hero {
-  padding: 40px 0 28px;
+  padding: 20px 0 28px;
   text-align: center;
 }
 .vel-lp .hero-meta {
@@ -431,7 +431,7 @@
 .vel-lp .ticker { display: none; }
 
 @media (min-width: 720px) {
-  .vel-lp .hero { padding: 40px 0 56px; text-align: left; }
+  .vel-lp .hero { padding: 22px 0 56px; text-align: left; }
   .vel-lp .hero-meta {
     display: flex;
     align-items: baseline;
@@ -526,7 +526,7 @@
 @keyframes vel-pulseDot { 0%, 100% { opacity: 1 } 50% { opacity: 0.3 } }
 
 @media (min-width: 1200px) {
-  .vel-lp .hero { padding: 56px 0 72px; }
+  .vel-lp .hero { padding: 28px 0 72px; }
   .vel-lp .hero-grid { gap: 72px; }
   .vel-lp .hero-sub { font-size: 18px; }
 }
@@ -1605,78 +1605,42 @@
 }
 
 /* ============================================================
-   FORWHO (sec 05) — móvil: 1 card con 8 zonas, desktop: chips.
+   FORWHO (sec 06) — pills inline con flex-wrap, sin grid ni bordes
+   de celda. Mobile-first: 1-2 líneas con chips redondeados.
    ============================================================ */
 .vel-lp .sectors {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0;
-  background: var(--paper);
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+  margin-top: 24px;
 }
 .vel-lp .sector {
-  padding: 14px 10px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  font-size: 13px;
-  color: var(--muted-strong);
-  transition: all 0.15s ease;
-  cursor: default;
-  background: var(--paper);
-  text-align: center;
-  line-height: 1.3;
-  min-height: 52px;
-  font-weight: 500;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  padding: 8px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--muted-strong);
+  font-weight: 500;
+  cursor: default;
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
-.vel-lp .sector:nth-child(2n) { border-right: 0; }
-.vel-lp .sector:nth-last-child(-n+2) { border-bottom: 0; }
 .vel-lp .sector:hover {
   color: var(--ink);
   background: var(--paper-2);
+  border-color: var(--muted-strong);
 }
 @media (min-width: 720px) {
-  .vel-lp .sectors {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0;
-    background: var(--paper);
-    border: 1px solid var(--line-strong);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .vel-lp .sector {
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    border-radius: 0;
-    padding: 24px 16px;
-    font-size: 14.5px;
-    min-height: 84px;
-    font-weight: 500;
-    color: var(--ink);
-  }
-  .vel-lp .sector:nth-child(2n) { border-right: 1px solid var(--line); }
-  .vel-lp .sector:nth-child(4n) { border-right: 0; }
-  .vel-lp .sector:nth-last-child(-n+4) { border-bottom: 0; }
-  .vel-lp .sector:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
-  .vel-lp .sector:nth-last-child(1),
-  .vel-lp .sector:nth-last-child(2),
-  .vel-lp .sector:nth-last-child(3),
-  .vel-lp .sector:nth-last-child(4) { border-bottom: 0; }
-  .vel-lp .sector:hover {
-    background: var(--paper-2);
-    color: var(--ink);
-  }
+  .vel-lp .sectors { gap: 10px; margin-top: 28px; }
+  .vel-lp .sector  { padding: 9px 18px; font-size: 14px; }
 }
 @media (min-width: 1200px) {
-  .vel-lp .sector {
-    padding: 32px 20px;
-    min-height: 100px;
-    font-size: 15px;
-  }
+  .vel-lp .sector  { padding: 10px 20px; font-size: 14.5px; }
 }
 
 /* ============================================================
