@@ -203,7 +203,7 @@ const es: LandingLocale = {
         priceYearlyMonthly: '41 €',
         desc: 'La diferencia entre responder reseñas y entender tu reputación.',
         inheritsLabel: 'Todo lo de Core, y además:',
-        features: ['Respuestas IA ilimitadas', 'Panel de Salud completo (análisis IA + informes PDF)', 'Radar de competencia: descubre qué hacen mejor tus 3 rivales y qué hacer esta semana', 'Benchmark 0-10 en 4 categorías vs competidores', 'Multi-local: 1 incluido · +20 €/mes por cada local adicional (hasta 5)', 'Soporte prioritario'],
+        features: ['Respuestas IA ilimitadas', 'Panel de Salud completo (análisis IA + informes PDF)', 'Radar de competencia: descubre qué hacen mejor tus 3 rivales y qué hacer esta semana', 'Tu nota del 0 al 10 frente a tus vecinos en 4 aspectos clave', 'Multi-local: 1 incluido · +20 €/mes por cada local adicional (hasta 5)'],
         cta: 'Elegir Pro',
         badge: 'Más completo',
       },

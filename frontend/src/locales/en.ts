@@ -203,7 +203,7 @@ const en: LandingLocale = {
         priceYearlyMonthly: '€41',
         desc: 'The difference between replying to reviews and understanding your reputation.',
         inheritsLabel: 'Everything in Core, plus:',
-        features: ['Unlimited AI responses', 'Full Health Panel (AI analysis + PDF reports)', 'Competition Radar: discover what your 3 rivals do better and what to do this week', '0-10 benchmark across 4 categories vs competitors', 'Multi-location: 1 included \u00b7 +\u20ac20/mo per extra location (up to 5)', 'Priority support'],
+        features: ['Unlimited AI responses', 'Full Health Panel (AI analysis + PDF reports)', 'Competition Radar: discover what your 3 rivals do better and what to do this week', 'Your 0-to-10 score vs your neighbours across 4 key areas', 'Multi-location: 1 included \u00b7 +\u20ac20/mo per extra location (up to 5)'],
         cta: 'Choose Pro',
         badge: 'Most complete',
       },

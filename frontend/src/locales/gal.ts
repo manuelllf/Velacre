@@ -203,7 +203,7 @@ const gal: LandingLocale = {
         priceYearlyMonthly: '41 €',
         desc: 'A diferenza entre responder recensións e entender a túa reputación.',
         inheritsLabel: 'Todo o de Core, e ademais:',
-        features: ['Respostas IA ilimitadas', 'Panel de Saúde completo (análise IA + informes PDF)', 'Radar de competencia: descobre que fan mellor os teus 3 rivais e que facer esta semana', 'Benchmark 0-10 en 4 categorías fronte aos competidores', 'Multi-local: 1 incluído · +20 €/mes por cada local adicional (ata 5)', 'Soporte prioritario'],
+        features: ['Respostas IA ilimitadas', 'Panel de Saúde completo (análise IA + informes PDF)', 'Radar de competencia: descobre que fan mellor os teus 3 rivais e que facer esta semana', 'A túa nota do 0 ao 10 fronte aos teus veciños en 4 aspectos clave', 'Multi-local: 1 incluído · +20 €/mes por cada local adicional (ata 5)'],
         cta: 'Escoller Pro',
         badge: 'Máis completo',
       },
