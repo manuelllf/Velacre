@@ -192,7 +192,7 @@ const en: LandingLocale = {
         priceYearlyMonthly: '€16',
         desc: 'For the business that doesn\'t want to miss a single review.',
         inheritsLabel: 'Everything in Basic, plus:',
-        features: ['Bumps AI responses up to 25/month', 'Basic Health Panel: rating, responded, sentiment and monthly evolution', 'Custom tone and SEO keywords', 'Optional: replies pre-generated overnight', 'Full review history'],
+        features: ['Bumps AI responses up to 25/month', 'Basic Health Panel: rating, responded, sentiment and monthly evolution', 'Custom tone and SEO keywords', 'Optional: replies pre-generated overnight', 'We import the last 60 reviews + every new one'],
         cta: 'Choose Core',
         badge: 'Most picked',
       },

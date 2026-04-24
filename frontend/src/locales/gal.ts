@@ -192,7 +192,7 @@ const gal: LandingLocale = {
         priceYearlyMonthly: '16 €',
         desc: 'Para o negocio que non quere perder nin unha recensión sen responder.',
         inheritsLabel: 'Todo o de Basic, e ademais:',
-        features: ['Sobe a 25 respostas IA ao mes', 'Panel de Saúde básico: rating, respondidas, sentimento e evolución mensual', 'Ton personalizado e palabras clave SEO', 'Opcional: respostas pre-xeradas cada noite', 'Historial completo de recensións'],
+        features: ['Sobe a 25 respostas IA ao mes', 'Panel de Saúde básico: rating, respondidas, sentimento e evolución mensual', 'Ton personalizado e palabras clave SEO', 'Opcional: respostas pre-xeradas cada noite', 'Importamos as últimas 60 recensións + todas as novas'],
         cta: 'Escoller Core',
         badge: 'O m\u00e1is elixido',
       },

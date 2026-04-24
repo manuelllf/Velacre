@@ -192,7 +192,7 @@ const es: LandingLocale = {
         priceYearlyMonthly: '16 €',
         desc: 'Para el negocio que no quiere perder ni una reseña sin responder.',
         inheritsLabel: 'Todo lo de Basic, y además:',
-        features: ['Sube a 25 respuestas IA al mes', 'Panel de Salud básico: rating, respondidas, sentimiento y evolución mensual', 'Tono personalizado y palabras clave SEO', 'Opcional: respuestas pre-generadas cada noche', 'Historial completo de reseñas'],
+        features: ['Sube a 25 respuestas IA al mes', 'Panel de Salud básico: rating, respondidas, sentimiento y evolución mensual', 'Tono personalizado y palabras clave SEO', 'Opcional: respuestas pre-generadas cada noche', 'Importamos las últimas 60 reseñas + todas las nuevas'],
         cta: 'Elegir Core',
         badge: 'M\u00e1s elegido',
       },
