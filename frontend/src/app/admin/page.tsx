@@ -549,9 +549,63 @@ function PlaceIdModal({ usuario, onClose, onDone }: { usuario: AdminUsuario; onC
   )
 }
 
+// ─── Modal locales: muestra todos los negocios del usuario ────────────────────
+function LocalesModal({ usuario, onClose }: { usuario: AdminUsuario; onClose: () => void }) {
+  const negocios = usuario.negocios ?? []
+  const activos = negocios.filter(n => n.estado === 'activo')
+  const ocultos = negocios.filter(n => n.estado !== 'activo')
+
+  return (
+    <Modal onClose={onClose} title={`Locales · ${usuario.nombre ?? usuario.email ?? 'Usuario'}`}>
+      <div className="space-y-4">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          {negocios.length === 0
+            ? 'Este usuario no tiene ningún negocio creado.'
+            : `${activos.length} activo${activos.length === 1 ? '' : 's'}${ocultos.length > 0 ? ` · ${ocultos.length} oculto${ocultos.length === 1 ? '' : 's'}` : ''}.`}
+        </p>
+
+        {activos.length > 0 && (
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-2">Activos</p>
+            <ul className="space-y-2">
+              {activos.map(n => (
+                <li key={n.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                      {n.esPrincipal && <span className="text-amber-500" aria-label="principal" title="Principal">★</span>}
+                      {n.nombre}
+                    </p>
+                    {n.placeId && <p className="text-[10px] text-slate-400 font-mono truncate">{n.placeId}</p>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {ocultos.length > 0 && (
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-2">Ocultos</p>
+            <ul className="space-y-2">
+              {ocultos.map(n => (
+                <li key={n.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-transparent opacity-60">
+                  <div className="min-w-0">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate line-through">{n.nombre}</p>
+                    <p className="text-[10px] text-slate-400 font-mono">{n.estado}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </Modal>
+  )
+}
+
 // ─── Fila de usuario ──────────────────────────────────────────────────────────
 
-type ModalType = 'estado' | 'override' | 'notas' | 'plan' | 'place'
+type ModalType = 'estado' | 'override' | 'notas' | 'plan' | 'place' | 'locales'
 
 function UsuarioRow({
   usuario,
@@ -581,32 +635,34 @@ function UsuarioRow({
 
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
             {usuario.email && <span>{usuario.email}</span>}
-            {/* Multi-local: listamos todos los negocios del usuario, marcando el
-                principal con ★. Activos en color normal, ocultos/deshabilitados en gris. */}
+            {/* Multi-local: resumen compacto — botón con el principal + contador.
+                Al clic abre modal con todos los locales (activos y ocultos). */}
             <span>
               {usuario.negocios && usuario.negocios.length > 0 ? (
-                <span className="inline-flex flex-wrap items-center gap-x-1.5">
-                  {usuario.negocios.flatMap((n, i) => {
-                    const sep = i > 0 ? (
-                      <span key={`sep-${n.id}`} className="text-slate-300 dark:text-slate-700">·</span>
-                    ) : null
-                    const chip = (
-                      <span
-                        key={n.id}
-                        className={`inline-flex items-center gap-1 ${
-                          n.estado === 'activo'
-                            ? 'text-slate-700 dark:text-slate-300 font-medium'
-                            : 'text-slate-400 dark:text-slate-600 line-through'
-                        }`}
-                        title={n.estado !== 'activo' ? `Estado: ${n.estado}` : undefined}
-                      >
-                        {n.esPrincipal && <span className="text-amber-500" aria-label="principal">★</span>}
-                        {n.nombre}
-                      </span>
+                <button
+                  type="button"
+                  onClick={() => onAction(usuario, 'locales')}
+                  className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Ver todos los locales"
+                >
+                  {(() => {
+                    const principal = usuario.negocios.find(n => n.esPrincipal) ?? usuario.negocios[0]
+                    const extras = usuario.negocios.length - 1
+                    return (
+                      <>
+                        <span>{principal.nombre}</span>
+                        {extras > 0 && (
+                          <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400">
+                            +{extras}
+                          </span>
+                        )}
+                        <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </>
                     )
-                    return sep ? [sep, chip] : [chip]
-                  })}
-                </span>
+                  })()}
+                </button>
               ) : (
                 <span className="italic text-slate-400">Sin negocio</span>
               )}
@@ -682,8 +738,16 @@ export default function AdminPage() {
   const [modal, setModal] = useState<{ usuario: AdminUsuario; tipo: ModalType } | null>(null)
 
   const load = useCallback(async () => {
-    const data = await getAdminUsuarios()
-    setUsuarios(data)
+    // Recarga TODA la info del panel: admin propio (id/rol) + listado completo
+    // de usuarios (incluye negocios, entries, plan, estado, etc.). Clear errores
+    // previos para feedback limpio tras cada refresh.
+    const [me, list] = await Promise.all([
+      getMyUsuario().catch(() => null),
+      getAdminUsuarios(),
+    ])
+    setUsuarios(list)
+    if (me) setAdminId(me.id)
+    setError('')
   }, [])
 
   useEffect(() => {
@@ -853,6 +917,7 @@ export default function AdminPage() {
       {modal?.tipo === 'notas'    && <NotasModal        usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
       {modal?.tipo === 'plan'     && <PlanModal         usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
       {modal?.tipo === 'place'    && <PlaceIdModal      usuario={modal.usuario} onClose={() => setModal(null)} onDone={handleModalDone} />}
+      {modal?.tipo === 'locales'  && <LocalesModal      usuario={modal.usuario} onClose={() => setModal(null)} />}
     </div>
   )
 }

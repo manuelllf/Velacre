@@ -306,7 +306,14 @@ export default function LandingPage() {
               {e.sections.start}
             </div>
             <h2>
-              {e.cta.h2l1}
+              {(() => {
+                // Render h2l1 con el mismo azul del hero para el accent (si se define).
+                // Split literal en h2l1accent, mantiene el resto como texto plano.
+                const { h2l1, h2l1accent } = e.cta
+                if (!h2l1accent || !h2l1.includes(h2l1accent)) return h2l1
+                const [before, after] = h2l1.split(h2l1accent)
+                return <>{before}<em>{h2l1accent}</em>{after}</>
+              })()}
               <br />
               {e.cta.h2l2}
             </h2>

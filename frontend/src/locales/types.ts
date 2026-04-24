@@ -321,6 +321,9 @@ export interface LandingLocale {
     cta: {
       sectionLbl: string
       h2l1: string
+      /** Si está presente, parte del h2l1 se resalta con el mismo azul del hero (span <em>).
+          Formato: el texto de h2l1 debe contener literalmente h2l1accent para que el split funcione. */
+      h2l1accent?: string
       h2l2: string
       sub: string
       foot: string
