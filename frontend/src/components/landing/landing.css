@@ -1957,19 +1957,59 @@
 .vel-lp .mark-bg {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.11;
   pointer-events: none;
+  overflow: hidden;
 }
-.vel-lp .mark-bg img { width: min(280px, 60vw); height: auto; }
+/* Dos "sellos" flotando tras el CTA: uno grande asoma por la derecha,
+   otro más pequeño por la izquierda. Rotan sobre sí mismos (direcciones
+   opuestas) y tienen una flotación vertical muy sutil. Decorativos. */
+.vel-lp .mark-bg .mark-slot { position: absolute; opacity: 0.11; }
+.vel-lp .mark-bg .slot-large {
+  top: calc(50% - 210px);
+  right: -6%;
+  animation: velMarkFloat 22s ease-in-out infinite alternate;
+}
+.vel-lp .mark-bg .slot-small {
+  top: calc(50% - 100px);
+  left: -3%;
+  opacity: 0.08;
+  animation: velMarkFloat 26s ease-in-out infinite alternate-reverse;
+}
+.vel-lp .mark-bg .mark-slot img {
+  display: block;
+  transform-origin: 50% 50%;
+  animation: velMarkSpin 42s linear infinite;
+  will-change: transform;
+}
+.vel-lp .mark-bg .slot-small img {
+  animation-duration: 34s;
+  animation-direction: reverse;
+}
+@keyframes velMarkSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes velMarkFloat {
+  from { transform: translateY(-5px); }
+  to   { transform: translateY(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vel-lp .mark-bg .mark-slot,
+  .vel-lp .mark-bg .mark-slot img { animation: none; transform: none; }
+}
+
+/* Móvil: solo el grande, más compacto. Dos sellos se pegan visualmente
+   en pantallas estrechas, así que escondemos el pequeño. */
+@media (max-width: 720px) {
+  .vel-lp .mark-bg .slot-small { display: none; }
+  .vel-lp .mark-bg .slot-large { top: calc(50% - 140px); right: -10%; }
+  .vel-lp .mark-bg .slot-large img { width: 280px; height: 280px; }
+}
 
 @media (min-width: 720px) {
   .vel-lp .final           { padding: 80px 0; }
   .vel-lp .final .hero-cta { flex-direction: row; gap: 12px; }
   .vel-lp .final .btn      { width: auto; }
-  .vel-lp .mark-bg img     { width: min(420px, 70vw); }
 }
 
 /* ============================================================
@@ -2851,8 +2891,8 @@
 .vel-lp .sec-demo  { order: 4; }
 .vel-lp .sec-radar { order: 5; }
 .vel-lp .sec-health{ order: 6; }
-.vel-lp .sec-who   { order: 7; }
-.vel-lp .sec-price { order: 8; }
+.vel-lp .sec-price { order: 7; }
+.vel-lp .sec-who   { order: 8; }
 .vel-lp .sec-faq   { order: 9; }
 .vel-lp .sec-final { order: 10; }
 .vel-lp .sec-foot  { order: 11; }

@@ -219,7 +219,7 @@ export default function LandingPage() {
           <div>
             <div className="sec-head">
               <div className="sec-idx">
-                <span className="num">05</span>
+                <span className="num">06</span>
                 {e.sections.who}
               </div>
               <div>
@@ -297,7 +297,8 @@ export default function LandingPage() {
         {/* ===== FINAL CTA ===== */}
         <section className="final sec-final">
           <div className="mark-bg" aria-hidden="true">
-            <VelacreMark size={420} />
+            <div className="mark-slot slot-large"><VelacreMark size={420} /></div>
+            <div className="mark-slot slot-small"><VelacreMark size={200} /></div>
           </div>
           <div className="final-inner">
             <div className="sec-idx final-idx">

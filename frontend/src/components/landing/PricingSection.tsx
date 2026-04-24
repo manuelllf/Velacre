@@ -40,7 +40,7 @@ export default function PricingSection() {
     <section className="sec wrap sec-price" id="precios">
       <div className="sec-head">
         <div className="sec-idx">
-          <span className="num">06</span>
+          <span className="num">05</span>
           {e.sections.pricing}
           <SectionHelp text={e.sectionsHelp.pricing} />
         </div>

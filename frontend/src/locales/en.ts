@@ -290,8 +290,8 @@ const en: LandingLocale = {
       h2l2: 'are not optional.',
       lede: 'Three public data points that explain why answering well moves the needle for local businesses.',
       items: [
-        { num: '87%', text: 'of consumers check online reviews before visiting a local business', src: 'BrightLocal \u00b7 Consumer Survey 2024' },
-        { num: '+0.12\u2605', text: 'average rating lift for businesses that reply to their reviews', src: 'Harvard Business School \u00b7 2017' },
+        { num: '93%', text: 'of consumers read online reviews before visiting a local business', src: 'BrightLocal \u00b7 Consumer Survey 2026' },
+        { num: '+21%', text: 'more inquiries for businesses that respond to their reviews', src: 'TripAdvisor \u00b7 2024' },
         { num: '2\u00d7', text: 'more clicks on businesses with 40+ reviews vs fewer than 10', src: 'Google Business Profile \u00b7 data' },
       ],
     },
