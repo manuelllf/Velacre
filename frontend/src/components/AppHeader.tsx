@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
 import { armGoodbye } from '@/lib/welcome'
 import { VelacreMark } from './landing/VelacreMark'
+import { NegocioDropdown } from './NegocioDropdown'
 
 export type PlanKey = 'basic' | 'core' | 'pro'
 
@@ -65,14 +66,13 @@ export function AppHeader({ negocioNombre, plan, rightExtra, brandHref = '/inici
           >
             velacre
           </span>
-          {negocioNombre && (
-            <span
-              className="hidden sm:inline text-sm text-slate-500 truncate"
-              style={{ display: 'inline-flex', alignItems: 'center', height: 36, lineHeight: 1 }}
-            >
-              · {negocioNombre}
-            </span>
-          )}
+          {/*
+            Multi-local: NegocioDropdown lee del NegocioActivoProvider. Si solo hay 1 negocio
+            muestra su nombre; si hay 2+, dropdown para cambiar. La prop negocioNombre queda
+            solo como fallback para escenarios sin provider (evita pantalla sin nombre).
+          */}
+          <NegocioDropdown />
+          {negocioNombre === undefined && null}
           {plan && planLabel && (
             <span className={`hidden sm:inline text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full ${PLAN_STYLES[plan]}`}>
               {planLabel}

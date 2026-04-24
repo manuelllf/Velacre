@@ -7,7 +7,6 @@ import Link from 'next/link'
 import {
   generateResponses,
   saveManualReview,
-  getMyNegocio,
   getMyUsuario,
   getAllReviews,
   generateForReview,
@@ -26,6 +25,7 @@ import { HelpButton } from '@/components/HelpModal'
 import ReportErrorModal from '@/components/ReportErrorModal'
 import { useLanguage } from '@/lib/i18n'
 import { trackLastAction, type ErrorInfoLike } from '@/lib/errorReporter'
+import { useNegocioActivo } from '@/lib/negocio-activo'
 
 import DetailPanel from '@/components/dashboard/DetailPanel'
 import ReviewList from '@/components/dashboard/ReviewList'
@@ -42,6 +42,10 @@ export default function DashboardPage() {
   const router = useRouter()
   const { t } = useLanguage()
   const d = t.app.dashboard
+
+  // Multi-local: leemos el negocio activo del provider. Al cambiar de local desde
+  // el dropdown, el segundo useEffect (más abajo) recarga reseñas + negocio.
+  const { activo, isLoading: activoLoading } = useNegocioActivo()
 
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [userPlan, setUserPlan] = useState<string>('basic')
@@ -86,6 +90,8 @@ export default function DashboardPage() {
   const [manualSaving, setManualSaving] = useState(false)
   const [manualContexto, setManualContexto] = useState<{ cliente: string; respuesta: string } | null>(null)
 
+  // Carga inicial: solo usuario + gbp (datos no scoped). El negocio y reseñas se
+  // cargan en el useEffect de más abajo, keyeado por `activo?.id`.
   useEffect(() => {
     async function init() {
       trackLastAction('dashboard:init')
@@ -93,15 +99,12 @@ export default function DashboardPage() {
       if (!session) { router.replace('/auth/login'); return }
       setUserEmailForReport(session.user?.email ?? undefined)
       try {
-        const [u, n, gbp] = await Promise.all([getMyUsuario(), getMyNegocio(), getGbpStatus().catch(() => null)])
+        const [u, gbp] = await Promise.all([getMyUsuario(), getGbpStatus().catch(() => null)])
         if (u.isAdmin || u.rol === 'admin') { router.replace('/admin'); return }
         const plan = u.plan ?? 'basic'
         setUserPlan(plan)
         setIaUsed(u.respuestasIaMes ?? 0)
         setGbpConnected(gbp?.connected ?? false)
-        if (!n) { router.replace('/onboarding'); return }
-        setNegocio(n)
-        loadReviews(plan)
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) {
           router.replace('/auth/login')
@@ -114,13 +117,29 @@ export default function DashboardPage() {
             endpoint: '/dashboard init',
           })
         }
-      } finally {
-        setLoadingInit(false)
       }
     }
     init()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
+
+  // Carga scoped: negocio activo + reseñas. Se dispara cada vez que el usuario
+  // cambia de local desde el dropdown (activo.id cambia) → re-fetchea sus reseñas.
+  // userPlan va como dep para resolver la race: el useState arranca en 'basic' y
+  // si activo?.id resuelve antes que getMyUsuario(), loadReviews() recortaría la
+  // lista a 10 pensando que eres Basic. Al actualizarse userPlan el efecto se
+  // re-ejecuta con el plan real. El coste extra (1 fetch) es irrelevante.
+  useEffect(() => {
+    if (activoLoading) return
+    if (!activo) {
+      if (!loadingInit) router.replace('/onboarding')
+      return
+    }
+    setNegocio(activo)
+    setSelectedId(null)
+    loadReviews(userPlan).finally(() => setLoadingInit(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activo?.id, activoLoading, userPlan])
 
   function openReportModal(info: ErrorInfoLike) {
     setReportModalContext(info)

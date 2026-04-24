@@ -8,4 +8,10 @@ public record CreateNegocioRequest
     public string? Descripcion { get; init; }
     public string? TonoPredefinido { get; init; }
     public string[]? PalabrasClave { get; init; }
+
+    /// <summary>
+    /// Opcional. Si se pasa y coincide con un place_id que el usuario ya tuvo oculto,
+    /// el backend devuelve 409 existe_oculto con el id, para que el frontend ofrezca restaurar.
+    /// </summary>
+    public string? PlaceId { get; init; }
 }

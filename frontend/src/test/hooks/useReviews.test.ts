@@ -84,7 +84,7 @@ describe('useSyncReviews', () => {
 
     const { result } = renderHook(() => useSyncReviews(), { wrapper: createWrapper() })
 
-    result.current.mutate()
+    result.current.mutate(undefined)
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(syncReviews).toHaveBeenCalledOnce()

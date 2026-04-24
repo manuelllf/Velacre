@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://velacre.com").replace(/\/$/, "");
+const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -13,9 +16,34 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const TITLE_DEFAULT =
+  "Velacre — Responde reseñas de Google con IA | Gestión de reseñas para hostelería";
+const DESCRIPTION_DEFAULT =
+  "Velacre es el SaaS español que responde las reseñas de Google de tu restaurante, bar o negocio con IA en tu tono. Te dice qué mejorar antes de que lo note tu cliente y vigila qué hacen mejor tus competidores. Prueba gratis.";
+
 export const metadata: Metadata = {
-  title: "Velacre",
-  description: "Gestiona y responde las reseñas de tu negocio con IA",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: TITLE_DEFAULT,
+    template: "%s | Velacre",
+  },
+  description: DESCRIPTION_DEFAULT,
+  applicationName: "Velacre",
+  authors: [{ name: "Velacre", url: SITE_URL }],
+  creator: "Velacre",
+  publisher: "Velacre",
+  keywords: [
+    "responder reseñas Google con IA",
+    "software gestión reseñas",
+    "SaaS reseñas Google",
+    "IA para reseñas de restaurantes",
+    "reseñas hostelería",
+    "gestión reseñas restaurantes",
+    "reputación online restaurantes",
+    "responder reseñas automáticamente",
+    "reseñas Google Galicia",
+    "software reseñas hostelería España",
+  ],
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -39,11 +67,51 @@ export const metadata: Metadata = {
     title: "Velacre",
     startupImage: "/icons/apple-touch-icon-180x180.png",
   },
+  alternates: {
+    canonical: "/",
+    languages: {
+      "es-ES": "/es",
+      "gl-ES": "/gal",
+      "en-US": "/en",
+      "x-default": "/",
+    },
+  },
   openGraph: {
-    title: "Velacre",
-    description: "Gestiona y responde las reseñas de tu negocio con IA",
+    type: "website",
+    url: SITE_URL,
+    siteName: "Velacre",
+    title: TITLE_DEFAULT,
+    description: DESCRIPTION_DEFAULT,
+    locale: "es_ES",
+    alternateLocale: ["gl_ES", "en_US"],
+    images: [
+      {
+        url: "/icons/og-image-1200x630.png",
+        width: 1200,
+        height: 630,
+        alt: "Velacre — Responde reseñas de Google con IA",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE_DEFAULT,
+    description: DESCRIPTION_DEFAULT,
     images: ["/icons/og-image-1200x630.png"],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  verification: GSC_VERIFICATION ? { google: GSC_VERIFICATION } : undefined,
+  category: "technology",
   other: {
     "msapplication-TileColor": "#0A0E1A",
     "msapplication-TileImage": "/icons/mstile-150x150.png",
@@ -52,6 +120,60 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0A0E1A",
+};
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "Velacre",
+      url: SITE_URL,
+      logo: `${SITE_URL}/icons/logo-1024.png`,
+      email: "info@velacre.com",
+      sameAs: [] as string[],
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${SITE_URL}/#software`,
+      name: "Velacre",
+      url: SITE_URL,
+      description: DESCRIPTION_DEFAULT,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web, iOS, Android",
+      inLanguage: ["es", "gl", "en"],
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Basic",
+          price: "0",
+          priceCurrency: "EUR",
+        },
+        {
+          "@type": "Offer",
+          name: "Core",
+          price: "19",
+          priceCurrency: "EUR",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro",
+          price: "39",
+          priceCurrency: "EUR",
+        },
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "Velacre",
+      inLanguage: "es-ES",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 // Script inline que corre ANTES del paint: si hay sessionStorage fresco con
@@ -97,6 +219,10 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: PRE_PAINT_SCRIPT }} />
         <style dangerouslySetInnerHTML={{ __html: PRE_PAINT_STYLE }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         <div id="vel-prepaint" aria-hidden="true" />

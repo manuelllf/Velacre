@@ -68,7 +68,7 @@ public class GoogleController : ControllerBase
     {
         var userId = User.GetUserId();
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
 
         var conn = await _gbp.GetConnectionAsync(negocio.Id);
@@ -88,7 +88,7 @@ public class GoogleController : ControllerBase
     {
         var userId = User.GetUserId();
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
 
         var locations = await _gbp.GetLocationsAsync(negocio.Id);
@@ -109,7 +109,7 @@ public class GoogleController : ControllerBase
     {
         var userId = User.GetUserId();
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
 
         if (string.IsNullOrWhiteSpace(request.LocationName))
@@ -128,7 +128,7 @@ public class GoogleController : ControllerBase
     {
         var userId = User.GetUserId();
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null) return NotFound("Negocio no encontrado");
 
         await _gbp.DisconnectAsync(negocio.Id, userId);

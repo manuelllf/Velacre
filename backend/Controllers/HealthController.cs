@@ -29,7 +29,7 @@ public class HealthController : ControllerBase
         var userId = User.GetUserId();
         _logger.LogInformation("[HealthController] POST /analysis — userId={UserId}", userId);
 
-        var negocio = await _negocioRepo.GetByUserIdAsync(userId);
+        var negocio = await _negocioRepo.ResolveScopedAsync(HttpContext, userId);
         if (negocio == null)
             return NotFound("No tienes ningún negocio registrado.");
 

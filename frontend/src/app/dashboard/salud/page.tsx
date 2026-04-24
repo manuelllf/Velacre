@@ -4,7 +4,7 @@ import { useState, useEffect, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getMyUsuario, getMyNegocio, getAllReviews, getSummary, getAnalysis, getMetrics, getRadar, addCompetidor, removeCompetidor, runRadarAnalysis, searchPlaces, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData, type RadarData, type RadarCategoria, type RadarAnalisisResult } from '@/lib/api'
+import { getMyUsuario, getAllReviews, getSummary, getAnalysis, getMetrics, getRadar, addCompetidor, removeCompetidor, runRadarAnalysis, searchPlaces, ApiError, type PendingReview, type Negocio, type VelacreMetrics, type AnalysisData, type RadarData, type RadarCategoria, type RadarAnalisisResult } from '@/lib/api'
 import SectionNav from '@/components/SectionNav'
 import WaitlistModal from '@/components/WaitlistModal'
 import Tooltip from '@/components/Tooltip'
@@ -15,6 +15,7 @@ import { getLast4Months, getAllMonths, getAllYears, drift, ratingDrift, generate
 import { useLanguage } from '@/lib/i18n'
 import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
+import { useNegocioActivo } from '@/lib/negocio-activo'
 
 const STOPWORDS = new Set([
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'al', 'en', 'y', 'a', 'que',
@@ -77,6 +78,10 @@ export default function SaludPage() {
   const router = useRouter()
   const { t } = useLanguage()
   const sl = t.app.salud
+
+  // Multi-local: leemos el negocio activo del provider. El segundo useEffect
+  // se dispara cuando activo.id cambia y recarga reseñas + métricas + radar.
+  const { activo, isLoading: activoLoading } = useNegocioActivo()
   const [negocio, setNegocio] = useState<Negocio | null>(null)
   const [reviews, setReviews] = useState<PendingReview[]>([])
   const [loading, setLoading] = useState(true)
@@ -104,6 +109,7 @@ export default function SaludPage() {
   const [radarSearching, setRadarSearching] = useState(false)
   const [radarSteps, setRadarSteps] = useState<{ label: string; done: boolean }[]>([])
 
+  // Carga inicial: sesión + usuario (datos no scoped).
   useEffect(() => {
     async function init() {
       trackLastAction('salud:init')
@@ -111,28 +117,10 @@ export default function SaludPage() {
       if (!session) { router.replace('/auth/login'); return }
       setUserEmailForReport(session.user?.email ?? undefined)
       try {
-        // Paralelizar las 3 llamadas para reducir tiempo de carga inicial
-        const [u, n, r, m, ad] = await Promise.all([
-          getMyUsuario(), getMyNegocio(), getAllReviews(),
-          getMetrics().catch(() => null),
-          getAnalysis().catch(() => null),
-        ])
+        const u = await getMyUsuario()
         setIsAdmin(u.isAdmin)
-        const plan = u.plan ?? 'basic'
-        setUserPlan(plan)
-        if (!n) { router.replace('/onboarding'); return }
-        setNegocio(n)
-        setReviews(r)
-        if (m) setMetrics(m)
-        if (ad) {
-          setAnalysisData(ad)
-          if (ad.analysis) setSummary({ brilla: ad.analysis.brilla, quema: ad.analysis.quema, accion: ad.analysis.accion })
-        }
-        if (plan === 'pro') {
-          getRadar().then(rd => setRadarData(rd)).catch(() => null)
-        }
+        setUserPlan(u.plan ?? 'basic')
       } catch (err) {
-        // Solo redirigir al login en errores de sesión (401), no en errores de red
         if (err instanceof ApiError && err.status === 401) {
           router.replace('/auth/login')
         } else {
@@ -144,12 +132,50 @@ export default function SaludPage() {
             endpoint: '/salud init',
           })
         }
-      } finally {
-        setLoading(false)
       }
     }
     init()
   }, [router])
+
+  // Carga scoped: se dispara al cambiar de local activo desde el dropdown.
+  // Recarga reseñas, métricas, análisis IA y (si Pro) radar para el negocio nuevo.
+  useEffect(() => {
+    if (activoLoading) return
+    if (!activo) {
+      if (!loading) router.replace('/onboarding')
+      return
+    }
+    setNegocio(activo)
+    // Reset estados derivados del negocio anterior para evitar mezcla visual
+    setSummary(null)
+    setAnalysisData(null)
+    setRadarData(null)
+    ;(async () => {
+      try {
+        const [r, m, ad] = await Promise.all([
+          getAllReviews(),
+          getMetrics().catch(() => null),
+          getAnalysis().catch(() => null),
+        ])
+        setReviews(r)
+        if (m) setMetrics(m)
+        if (ad) {
+          setAnalysisData(ad)
+          if (ad.analysis) setSummary({ brilla: ad.analysis.brilla, quema: ad.analysis.quema, accion: ad.analysis.accion })
+        }
+        if (userPlan === 'pro') {
+          getRadar().then(rd => setRadarData(rd)).catch(() => null)
+        }
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace('/auth/login')
+        }
+      } finally {
+        setLoading(false)
+      }
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activo?.id, activoLoading])
 
   function handleRunAnalysis() {
     if (loadingSummary) return
