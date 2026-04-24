@@ -473,6 +473,13 @@ Guest posts pagados, menciones en medios, backlinks de sitios autoritarios. Reem
    - **Core**: OFF por defecto. Toggle opcional en Settings (*"Pre-generar respuestas automáticamente — consume de tu cupo mensual (25 IA)"*). Por qué no por defecto: el cap tiene función psicológica (consumo consciente) y 20 nuevas/mes agotarían el cupo.
    - **Basic**: nunca. El cap (10 IA) es la barrera de entrada que fuerza el upgrade.
    - **UX**: al entrar al dashboard, las respuestas pre-generadas aparecen en el textarea con badge sutil "IA lista" (vs botón "Generar" para las no pre-generadas). Load time 0s vs 4-6s actuales.
+   - **Implementación** (puntos de toque cuando toque):
+     - Migration nueva: `ALTER TABLE usuario ADD COLUMN auto_pre_gen_ia BOOLEAN NOT NULL DEFAULT FALSE`.
+     - `UsuarioEntity.AutoPreGenIa` prop + expuesto en `/api/usuario/me`.
+     - `CronController.Sync` por reseña nueva: si `plan != 'basic'` && `auto_pre_gen_ia`, llamar a Claude con el tono por defecto del negocio y persistir en `review.respuesta` + `review.tono_generado`. Respeta `try_increment_ia_counter` para cupo Core.
+     - Settings UI: toggle visible solo si `plan === 'core'` (Pro transparente, Basic no existe).
+     - Webhook LS `subscription_updated`: al upgrade a Pro, set flag TRUE si no estaba explícito. Al downgrade mantiene el valor actual.
+     - Dashboard: badge "IA lista" (mono dorado) en vez del botón "Generar" cuando la reseña llega con `respuesta != null` y no es tono 'google'.
 
 ### Landing / marketing pendiente
 - **Screencast 20s en hero**: grabar flujo "reseña → generar IA → publicar" con Loom y embed en el hero. +20-30% conversión estimado en SaaS con demo video vs sin. Coste 1h.
