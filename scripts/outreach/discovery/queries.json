@@ -1,0 +1,48 @@
+{
+  "_comment": "Pipeline discovery 2026-05 · Galicia ampliada · banda 1600-6000 (C) y 800-6000 (D) · banda rating 3.7-4.5. Añadidas queries Camino de Santiago + zonas turísticas + hoteles genéricos (Riazor & cía no salían en 'hotel boutique').",
+  "thresholds": {
+    "A": { "minUserRatingCount": 1600, "maxUserRatingCount": 6000, "minRating": 3.7, "maxRating": 4.5 },
+    "B": { "minUserRatingCount": 1600, "maxUserRatingCount": 6000, "minRating": 3.7, "maxRating": 4.5 },
+    "C": { "minUserRatingCount": 1600, "maxUserRatingCount": 6000, "minRating": 3.7, "maxRating": 4.5 },
+    "D": { "minUserRatingCount": 800, "maxUserRatingCount": 6000, "minRating": 3.7, "maxRating": 4.5 }
+  },
+  "queries": [
+    { "icp": "C", "city": "A Coruña",   "q": "restaurante A Coruña" },
+    { "icp": "C", "city": "Vigo",        "q": "restaurante Vigo" },
+    { "icp": "C", "city": "Santiago",    "q": "restaurante Santiago" },
+    { "icp": "C", "city": "Pontevedra",  "q": "restaurante Pontevedra" },
+    { "icp": "C", "city": "Ourense",     "q": "restaurante Ourense" },
+    { "icp": "C", "city": "Lugo",        "q": "restaurante Lugo" },
+    { "icp": "C", "city": "Ferrol",      "q": "restaurante Ferrol" },
+
+    { "icp": "C", "city": "Sarria",      "q": "restaurante Sarria" },
+    { "icp": "C", "city": "Melide",      "q": "restaurante Melide" },
+    { "icp": "C", "city": "Portomarín",  "q": "restaurante Portomarín" },
+    { "icp": "C", "city": "Arzúa",       "q": "restaurante Arzúa" },
+    { "icp": "C", "city": "Combarro",    "q": "restaurante Combarro" },
+    { "icp": "C", "city": "O Grove",     "q": "restaurante O Grove" },
+    { "icp": "C", "city": "Cambados",    "q": "restaurante Cambados" },
+    { "icp": "C", "city": "Sanxenxo",    "q": "restaurante Sanxenxo" },
+    { "icp": "C", "city": "Costa da Morte", "q": "restaurante Costa da Morte" },
+    { "icp": "C", "city": "Ribeira Sacra",  "q": "restaurante Ribeira Sacra" },
+    { "icp": "C", "city": "Finisterre",  "q": "restaurante Finisterre" },
+
+    { "icp": "D", "city": "A Coruña",   "q": "hotel A Coruña" },
+    { "icp": "D", "city": "Vigo",        "q": "hotel Vigo" },
+    { "icp": "D", "city": "Santiago",    "q": "hotel Santiago centro" },
+    { "icp": "D", "city": "Pontevedra",  "q": "hotel Pontevedra centro" },
+    { "icp": "D", "city": "Sanxenxo",    "q": "hotel Sanxenxo" },
+    { "icp": "D", "city": "O Grove",     "q": "hotel O Grove" },
+    { "icp": "D", "city": "Cambados",    "q": "hotel Cambados" },
+    { "icp": "D", "city": "Costa da Morte", "q": "hotel Costa da Morte" },
+    { "icp": "D", "city": "Ribeira Sacra",  "q": "hotel Ribeira Sacra" },
+
+    { "icp": "D", "city": "Sarria",      "q": "hotel Sarria Camino" },
+    { "icp": "D", "city": "Portomarín",  "q": "hotel Portomarín Camino" },
+    { "icp": "D", "city": "Melide",      "q": "hotel Melide Camino" },
+    { "icp": "D", "city": "Arzúa",       "q": "hotel Arzúa Camino" },
+    { "icp": "D", "city": "Camino",      "q": "albergue restaurante Camino Santiago" },
+    { "icp": "D", "city": "Camino",      "q": "casa rural Camino de Santiago" },
+    { "icp": "D", "city": "O Cebreiro",  "q": "hostal O Cebreiro Camino" }
+  ]
+}
