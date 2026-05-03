@@ -417,21 +417,42 @@ Guest posts pagados, menciones en medios, backlinks de sitios autoritarios. Reem
 - Descuentos creados: 99% para test/QA, 15% para primeros clientes captados por outreach, `VELFOUND20` (−20% forever) para los primeros 20.
 - Próximo paso operativo al cerrar el primer cliente: generarle el cupón 15% antes de mandarle el link de checkout.
 
-### Prioridad alta — Outreach / Captación
+### Prioridad alta — Outreach / Captación (fase Discovery 2026-05)
 
-**Prospect #1 — O Fogar da Carne (Bruno Casal, Narón)**
-- Asador premiado, Manuel es cliente habitual. Canal: IG DM @ofogardacarne.
-- Workflow: Mini Radar → PDF → personalizar Template E → enviar DM.
-- Si no responde en 7 días: NO insistir digitalmente, mencionarlo de palabra como cliente.
+**Cambio de fase**: tras 5 batches de pipeline + ~25 DMs en abril (3-4 respuestas, 0 clientes, Cabañitas del Bosque rechazó), el outreach pasa de **venta directa con PDF** a **discovery Mom Test** (DM corto pidiendo 10 min, sin pitch, sin marca, sin PDF). Material en `velacre-outreach/` — ver `dm-templates.md`, `guion-llamada.md`, `hipotesis-a-validar.md`.
 
-**Prospects #2-#5:** Pardiñas (Template C) → Mesón O Pote (B) → Pablo Gallego (B) → A Taberna do Bispo (A).
-- Meta: 4-5 outreach → 1-2 respuestas → 1 cliente de pago.
+**ICP redefinido tras 5 batches**:
+- A · barbería: 0 candidatos viables a escala estatal con suelo 1400+. Descartado.
+- B · estética: ídem A. Descartado.
+- C · restaurantes Galicia: viable, foco actual.
+- D · hoteles boutique no-grupo: viable, foco actual (multilocal operador SÍ entra; cadenas grandes anónimas tipo NH/Eurostars/Meliá fuera).
+- Hostelería joven imagen-driven: solo 2 candidatos viables tras criba humana → no es ICP, es termómetro.
 
-**Warm intro vía Tía Carmiña (Inés Santiago, @inesantiagoo):**
-- SOLO después de 2-3 clientes cerrados. Modelo: partnership reseller 20% recurrente o referidos €50-100/cliente.
-- Inés es hija de los dueños de Artesa (pizzería Canido) → ruta indirecta posible.
+**Shortlist activa — 18 prospects Galicia** (`velacre-outreach/shortlist-18/`):
+- 12 restaurantes con >2900 reseñas Google + banda dolor 3.7-4.5: Mesón 42, O Bocoi, O Centolo, Fonte Do Rei, Tira do Cordel, O Piorno, O Chiringuito, Playa Fluvial A Cova, María Castaña, O Mirador, O Barco, Il Piccolo.
+- 6 hoteles independientes / multilocal operador: Hotel Coia, Norat O Grove, Hotel Riazor, Hotel Gelmírez, Loop Inn Hostel Santiago, Hotel Spa Galatea.
+
+**Estado outreach (2026-05-03)**:
+- ✅ **Tanda 1 enviada** 21:14 del 03/05/2026 — 4 DMs IG + 1 WhatsApp: Mesón 42, Loop Inn, O Mirador, O Piorno, Playa Fluvial A Cova.
+- 📅 **Tanda 2 programada** martes 05/05/2026 10:00-11:30 — 5 emails: O Centolo, Norat O Grove, Hotel Riazor, Hotel Gelmírez, Hotel Galatea.
+- ⬜ Tanda 3 (llamadas) en standby según resultados: Fonte Do Rei, Tira do Cordel, María Castaña, Il Piccolo, Hotel Coia.
+
+**Hito económico del shortlist**: 5 clientes Pro a 49€ = **245€/mes MRR**. Si la negociación cierra con `VELFOUND20` (-20% forever, decidido como **gancho de cierre** para los primeros 5 del shortlist-18), 39€/cliente = **195€ MRR**. Ambos escenarios cubren **SMart Ibérica** como vehículo fiscal MVP (~6.5% comisión, sin alta de autónomo) con holgura.
+
+**Regla del gancho `VELFOUND20`**: NO se menciona en el primer DM ni en la conversación discovery (Mom Test puro). Se ofrece sólo en la **2ª conversación** cuando ya se enseña Velacre por nombre y el prospect muestra intención real. Es palanca de cierre, no de prospección.
+
+**Cuándo saltar a autónomo + gestoría**: cuando MRR supere ~600€/mes, los costes fijos pasan a ser <25% del ingreso. Equivale a 12-13 clientes a 49€ ó 15-16 clientes a 39€ (escenario founding).
+
+**Warm contacts (no entran en pipeline cerrado, encuadre amplio Mom Test sin Velacre)**:
+- O Fogar da Carne (Bruno Casal, Narón) — cliente habitual de Manuel. Sigue siendo el más warm tras descarte de Cabañitas. Si responde, conversación abierta sin pitch ni PDF.
+- Gym Bitácora (Ferrol) — warm conocido. Discovery encuadre "software para negocios pequeños", sin Velacre, capturar dolor crudo. Posible semilla de línea futura distinta (gym como dolor de retención, no de reseñas).
+- EvoFit · Luis Pernas — warm conocido similar.
+
+**Warm intro vía Tía Carmiña** (Inés Santiago, @inesantiagoo): SOLO después de 2-3 clientes cerrados. Modelo partnership reseller 20% recurrente o referidos €50-100/cliente. Inés es hija de los dueños de Artesa (pizzería Canido) → ruta indirecta.
 
 **Al cerrar cada cliente:** pedir testimonio breve + permiso para caso de estudio público.
+
+**Mini Radar — estado**: la herramienta `/admin/mini-radar` sigue operativa, **NO se usa en la fase Discovery actual** (el DM nuevo no envía PDF). Disponible para casos puntuales fuera del shortlist o para 2ª conversación con prospects que respondan e interesen profundizar visualmente.
 
 ### Backlog técnico de alto nivel
 - **Eliminación de reseñas (Pro):** Claude genera texto de reclamación según políticas de Google → usuario copia y pega en formulario oficial. Velacre no elimina, Google decide.
@@ -494,7 +515,7 @@ Flag `usuario.auto_pre_gen_ia` (default FALSE para todos los planes) + toggle en
 
 ### Landing / marketing pendiente
 - **Screencast 20s en hero**: grabar flujo "reseña → generar IA → publicar" con Loom y embed en el hero. +20-30% conversión estimado en SaaS con demo video vs sin. Coste 1h.
-- **Social proof**: diferido hasta primer cliente cerrado con testimonio + permiso para foto. Pre-tracción no añadimos founder transparency ni badges "Made in Galicia" (decisión tomada tras audit — ninguna opción convencía). Cuando entre Cabañitas del Bosque o el siguiente, meter testimonio + logo en landing.
+- **Social proof**: diferido hasta primer cliente cerrado con testimonio + permiso para foto. Pre-tracción no añadimos founder transparency ni badges "Made in Galicia" (decisión tomada tras audit — ninguna opción convencía). Cuando entre el primer cliente del shortlist-18 (o warm contact) con testimonio, meter logo + foto en landing. Cabañitas del Bosque queda fuera (rechazó en abril).
 - **Supabase custom domain** (fix B OAuth consent): `auth.velacre.com` vía Supabase Pro (€25/mes). Quita el subdominio feo (`wdkowzulwsuertxzrkml.supabase.co`) tanto del consent como del callback URL durante el redirect. Hoy fix A (OAuth client propio con dominio verificado) ya aplicado → consent limpio. Fix B solo tiene sentido cuando MRR lo cubra.
 
 ### Admin operativo
@@ -512,18 +533,38 @@ Flag `usuario.auto_pre_gen_ia` (default FALSE para todos los planes) + toggle en
 ## 13. Objetivos de negocio
 
 - **2026:** empezar a facturar para no depender de un empleador.
-- **Primer hito:** 1 cliente de pago cerrado antes de escalar outreach.
-- **Segundo hito:** 3-5 clientes con testimonios → sección "Clientes actuales" en landing.
+- **Primer hito:** 1 cliente de pago cerrado del shortlist-18 antes de escalar outreach.
+- **Segundo hito:** **5 clientes Pro = 195-245€/mes MRR** (245€ a precio Pro 49€, 195€ si se cierra con `VELFOUND20` como gancho final). Cubre **SMart Ibérica** como vehículo fiscal MVP (cooperativa de facturación, ~6.5% comisión, sin alta de autónomo) con holgura. Ideal para validar producto sin coste fijo de 148€/mes en autónomos+gestoría.
+- **Tercer hito:** **~600€/mes MRR** (12-13 clientes a 49€ ó 15-16 a 39€ founding). Punto en el que merece saltar de SMart a autónomo + gestoría (los costes fijos pasan a ser <25% del MRR). Testimonios + permiso para caso de estudio en landing.
 - **Métrica norte star:** MRR (Monthly Recurring Revenue).
+- **Métrica líder pre-tracción:** **conversaciones discovery completadas con dolor literal capturado en bitácora**. Si el shortlist-18 da <3 conversaciones reales, el problema no es de outreach sino de mercado/producto y toca repensar Velacre (opción C que se baraja en mayo).
 
 ---
 
 ## 14. Outreach — herramientas disponibles
 
-- **Mini Radar** (`/admin/mini-radar`): genera informe PDF de cualquier negocio en ~10s. Incluye stats, diagnóstico IA, email pitch pre-personalizado.
-- **Word de templates** (`velacre-email-templates-outreach.docx`): 5 plantillas (A-E) con workflow. Template E es el DM exacto para O Fogar da Carne.
-- **Canal único:** DM digital (IG, email). Sin puerta fría ni presencial por preferencia del fundador.
-- **Instrumentación pendiente:** tracking de aperturas (Resend), dashboard de prospects (cuando haya 10+).
+**Activos (fase Discovery 2026-05)**:
+- **`velacre-outreach/shortlist-18/`** — carpeta dedicada al outreach activo con 18 prospects:
+  - `README.md` — qué es, foco económico (5 clientes = SMart Ibérica cubierta).
+  - `fichas.md` — research por prospect (dueño, IG, año, concepto, grupo/único, email).
+  - `dms.md` — DM personalizado por prospect + canal recomendado (DM IG / email / llamada).
+  - `guion.md` — guion Mom Test adaptado a hostelería + hoteles, con apertura WhatsApp + apertura llamada y atajos por prospect.
+  - `estado.md` — tracker vivo de fechas y respuestas.
+- **`velacre-outreach/dm-templates.md`** — plantilla maestra DM por ICP A/B/C/Warm + respuesta tipo "¿esto qué es?" + anti-patrones. Voz Manuel-21-Ferrol, sin marca, sin guiones largos, cierre fijo "Yo pregunto y tú me cuentas".
+- **`velacre-outreach/guion-llamada.md`** — guion general 6 preguntas Mom Test (orden: semana normal → hora a delegar → cómo lleva HOY → última reseña mala → importancia 0-10 → warm chain). El orden Mom Test importa: las 3 primeras preguntas son ABIERTAS sin dirigir el tema, sólo desde la 4 entras explícitamente en reseñas.
+- **`velacre-outreach/hipotesis-a-validar.md`** — suposiciones por ICP marcadas como "a derribar o confirmar". Cada conversación las mueve.
+- **`velacre-outreach/bitacora.md`** — cuaderno de cada conversación con dolor #1 LITERAL (entre comillas), no parafraseado.
+- **`velacre-outreach/dm-history.md`** — 28 patrones de DMs previos para que el pipeline no los re-sugiera.
+
+**Canal de outreach**: DM digital (IG / WhatsApp / email) como regla. Llamada como **excepción justificada** sólo cuando el prospect no tiene IG ni email accesibles (p. ej. Fonte Do Rei, Tira do Cordel, María Castaña, Il Piccolo, Hotel Coia). Sin puerta fría ni presencial.
+
+**Mini Radar — disponible pero parado en fase Discovery**: la herramienta `/admin/mini-radar` no se usa actualmente porque el DM nuevo no envía PDF. Reservada para 2ª conversación con prospects que respondan e interesen profundizar visualmente, o para casos puntuales fuera del shortlist.
+
+**Word de templates legacy**: `velacre-email-templates-outreach.docx` es de la fase venta-PDF anterior. Mantenido como referencia histórica, **NO usar en fase Discovery** — usa `dm-templates.md` y `shortlist-18/dms.md`.
+
+**Histórico previo**: 25 DMs enviados en abril 2026 (3-4 respuestas, 0 clientes, Cabañitas rechazó). Lista en `dm-history.md`. Material archivado en `velacre-outreach/_archivo-2026-04/`.
+
+**Instrumentación pendiente:** tracking de aperturas (Resend), dashboard de prospects (cuando haya 10+ conversaciones reales en bitácora).
 
 ---
 

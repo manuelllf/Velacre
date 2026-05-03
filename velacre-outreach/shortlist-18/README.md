@@ -1,8 +1,10 @@
 # Shortlist 18 — Outreach prioritario Galicia (2026-05)
 
-> **Foco**: 18 candidatos seleccionados manualmente por Manuel tras 5 batches de pipeline. **Si entran 5 → 200€ MRR (a precio Pro 39€ founding).** Eso ya cubre SMart Ibérica (~6-8% facturación) y deja margen.
+> **Foco**: 18 candidatos seleccionados manualmente por Manuel tras 5 batches de pipeline. **Si entran 5 → 245€ MRR (Pro 49€) o 195€ MRR (con gancho `VELFOUND20` -20% forever).** Ambos escenarios cubren SMart Ibérica (~6.5% facturación) con holgura.
 >
-> **Foco económico**: SMart Ibérica como vehículo fiscal "MVP" hasta superar ~600€/mes (10-12 clientes), entonces saltar a autónomo + gestoría. Mientras: validar sin coste fijo de 148€/mes en alta.
+> **Foco económico**: SMart Ibérica como vehículo fiscal "MVP" hasta superar ~600€/mes MRR (12-13 clientes a 49€ ó 15-16 a 39€), entonces saltar a autónomo + gestoría. Mientras: validar sin coste fijo de 148€/mes en alta.
+>
+> **Gancho `VELFOUND20`**: cupón -20% forever decidido como palanca de cierre para los primeros 5 del shortlist-18. **NO se menciona en el primer DM ni en discovery**. Se ofrece sólo en la 2ª conversación, cuando ya enseñas Velacre por nombre y el prospect muestra intención real. Mom Test puro: el gancho llega DESPUÉS de validar dolor, no antes.
 
 ## Composición
 

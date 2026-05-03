@@ -6,6 +6,16 @@
 
 ---
 
+## Por qué este orden de preguntas
+
+Las primeras 3 preguntas son **abiertas, sin tema dirigido**. Si reseñas son dolor real, saldrán solas. Si no, surge otro dolor — y eso es información de pivote.
+
+Sólo a partir de la pregunta 4 entras explícitamente en reseñas. Si reseñas no aparecieron espontáneamente en 1-3, la pregunta 4 lo confirma como dolor inexistente. Si aparecieron, profundizas con seguridad.
+
+La pregunta de "importancia 0-10" va al final como **verificación cuantitativa**. Si responde "8/10" después de no haber mencionado reseñas en preguntas 1-3, el 8 es cortesía social, no dolor real. Esa contradicción es la señal más limpia que vas a obtener.
+
+---
+
 ## Si responden por WhatsApp (async, lo más probable)
 
 ### Apertura — primera respuesta tras su "sí, dispara"
@@ -34,44 +44,36 @@ quieres darles?
 ```
 
 **Lo que escuchas**:
-- Lo que mencione primero = dolor top-of-mind
+- Lo que mencione primero = dolor top-of-mind.
 - Si dice "todo bien" → repregunta: *"¿Y si pudieras desaparecer 1h a la semana de algo, qué quitarías?"*
 
-**Lo que no haces**:
+**Lo que NO haces**:
 - No le sugieras "¿reseñas? ¿IG? ¿proveedores?". Que lo saque él.
 
 ---
 
-### Pregunta 2 · Última reseña mala — pasado concreto
+### Pregunta 2 · Hora a la semana que delegaría — dolor crudo
 
 ```
-Otra: ¿qué hiciste la última vez que te llegó una
-reseña mala en Google? ¿Te acuerdas cuándo fue?
-```
-
-**Lo que escuchas**:
-- Si tarda en recordar → dolor bajo. Si lo cuenta al instante con detalle → dolor real.
-- Si dice "no me llegan malas" → *"¿Y las que no son cinco estrellas? ¿Qué pasa con esas?"*
-
----
-
-### Pregunta 3 · Importancia del rating
-
-```
-De 0 a 10, ¿cuánto te importan las reseñas en general?
-¿Y por qué ese número y no uno más alto o más bajo?
+Otra: si pudieras delegar mañana 1 hora a la semana
+de cualquier tarea del negocio sin pagar más, ¿cuál
+sería?
 ```
 
 **Lo que escuchas**:
-- La razón importa más que el número.
-- "8 porque me trae clientes nuevos" ≠ "8 porque me dicen que importa". El primero es dolor real.
-- Si dice <6 → hipótesis "el rating les importa" se cae. Anota literal.
+- Esto destapa el dolor crudo, no el que tú asumes.
+- Si menciona "responder reseñas" / "responder en Google" → señal Velacre directa.
+- Si menciona "redes / agendar / papeles / proveedores / inventario" → oportunidad alternativa, anota literal.
+- Si menciona un dolor distinto consistente con otros prospects → posible pivote producto futuro.
+
+**Lo que NO haces**:
+- No insinúes opciones. La pregunta termina en interrogación pura.
 
 ---
 
-### Pregunta 4 · Cómo lo lleva HOY (sin presuponer stack)
+### Pregunta 3 · Cómo lo lleva HOY — sin presuponer stack
 
-Ajusta la pregunta a algo que haya salido en preg 1-3. Ejemplos:
+Ajusta a algo que haya salido en preg 1-2. Ejemplos:
 
 Si en preg 1-2 mencionó reseñas:
 ```
@@ -92,21 +94,69 @@ te lo facilite?
 - Si dice "uso X" → toma nota literal. Si dice "lo llevo en una libreta" → vale oro.
 - Si dice "buk… qué?" → hipótesis "ya pagan SaaS" se cae limpia. Anota.
 
+**Lo que NO haces**:
+- No le metas Velacre por la puerta de atrás ("¿y si hubiera algo que…?"). Solo mapeas su realidad actual.
+
 ---
 
-### Pregunta 5 · Hora a la semana que delegaría
+### Pregunta 3.5 · Mentalidad SaaS (opcional, sí/no)
+
+Solo si tras preg. 3 todavía no te ha quedado claro si paga software o no:
 
 ```
-Si pudieras delegar mañana 1 hora a la semana de
-cualquier tarea del negocio sin pagar más, ¿cuál
-sería?
+Por curiosidad: ¿pagáis ahora mismo alguna
+herramienta de pago mensual en el negocio?
+Sin entrar en detalles ni precios — sí o no me
+basta.
 ```
 
 **Lo que escuchas**:
-- Esto destapa el dolor crudo, no el que tú asumes.
-- Si dice "responder reseñas" → señal Velacre fuerte.
-- Si dice "redes / agendar / papeles / proveedores / inventario" → señal de oportunidad alternativa, anota literal.
-- Si menciona un dolor distinto y consistente con otros prospects → posible pivote producto futuro.
+- *"Sí, varias / unas cuantas"* → mentalidad SaaS confirmada → 49-54€ es ruido en su P&L. ICP fuerte.
+- *"Sí, una"* → SaaS parcial → 49€ asumible pero requiere argumento de valor claro.
+- *"No, nada"* → mentalidad NO-SaaS → 49€ es decisión grande. Founding `VELFOUND20` es palanca crítica. Velacre podría ser su primer SaaS.
+- *"Pues no sé, eso lo lleva mi gestor"* → señal de que el dueño no es el decisor financiero. Importante anotar.
+
+**Lo que NO haces**:
+- **No preguntes cuánto pagan.** Mom Test prohíbe pricing en discovery — la gente adivina, no recuerda, y la cifra siempre es ruido.
+- **No preguntes cuáles** si ya las mencionó en preg. 3. Es respuesta sí/no, no segunda interrogación.
+- Si voluntariamente menciona nombres ("sí, Cover y el TPV") → toma nota literal y deduce precio offline mirando las webs de esos productos.
+
+---
+
+### Pregunta 4 · Última reseña mala — pasado concreto
+
+```
+Cambio de tema un segundo. ¿Qué hiciste la última vez
+que te llegó una reseña mala en Google? ¿Te acuerdas
+cuándo fue?
+```
+
+**Lo que escuchas**:
+- Si tarda mucho en recordar → dolor bajo. Si lo cuenta al instante con detalle → dolor real.
+- Si dice "no me llegan malas" → *"¿Y las que no son cinco estrellas? ¿Qué pasa con esas?"*
+- Si en preg 1-3 reseñas no salieron espontáneas y aquí responde con detalle → reseñas existen pero no son top-of-mind.
+- Si en preg 1-3 sí salieron y aquí también con detalle → dolor real confirmado.
+
+**Lo que NO haces**:
+- No reaccionas a la respuesta como si fuera buena/mala. Anotas y sigues.
+
+---
+
+### Pregunta 5 · Importancia del rating — verificación al final
+
+```
+De 0 a 10, ¿cuánto te importan las reseñas en general?
+¿Y por qué ese número y no uno más alto o más bajo?
+```
+
+**Lo que escuchas — y aquí está el truco**:
+- La razón importa más que el número.
+- "8 porque me trae clientes nuevos" ≠ "8 porque me dicen que importa". El primero es dolor real, el segundo es ruido.
+- Si dice 8-10 pero en preg 1-3 NO mencionó reseñas → es educado, no real. Marca contradicción.
+- Si dice <6 → hipótesis "el rating les importa" se cae. Anota literal.
+
+**Lo que NO haces**:
+- No discutas su número. Anotas y pasas.
 
 ---
 
@@ -150,11 +200,13 @@ que te escriba?
 
 Esa **2ª conversación** es donde sí entras con Velacre por nombre. La de hoy no.
 
+**En la 2ª conversación — ahí sí entra el gancho `VELFOUND20`**: cupón -20% forever (Pro 49€ → 39€/mes), público en la web para los 20 primeros clientes. Se introduce como cierre final, no como apertura, y solo si el prospect muestra intención real de pagar. Frase tipo: *"En la web tengo un código `VELFOUND20` para los 20 primeros que entran — te baja a 39€ para siempre. Si te interesa lo metes en el checkout y listo."* Honestidad pura: no inventes exclusividades falsas (no es "solo para 5", son 20 reales). La palanca es que **el contador empieza a correr** y a Manuel le interesa que entres ahora.
+
 ---
 
 ## Si la conversación pasa a llamada en directo
 
-Mismo guion, mismo orden. Ajustes:
+Mismo orden 1-2-3-4-5-6. Ajustes:
 
 - **Apertura oral**: *"Hola [Nombre], gracias por el rato. Como te dije, son 10 minutos. Te voy a hacer 5-6 preguntas, escucho, y nos despedimos. Si algo te aburre o no quieres responder, lo dices y saltamos. ¿Vamos?"*
 - **Silencios largos sí**: si tras una pregunta tarda 5-8 segundos, **NO rellenes**. Las mejores frases salen ahí.
@@ -172,16 +224,17 @@ A [`../bitacora.md`](../bitacora.md) con esta plantilla:
 
 **Duración**: X min · **Quién habló**: dueño / encargado / otro
 
-**Dolor #1 literal**:
+**Dolor #1 literal** (preg 1-2):
 > "frase exacta del entrevistado"
 
-**Otras frases relevantes**:
-> "..."
+**Stack actual mencionado espontáneamente** (preg 3): Booksy / Cover / nada / libreta / ...
 
-**Herramientas mencionadas (espontáneas)**: Booksy / Cover / nada / libreta / ...
-**Importancia reseñas (preg. 3)**: X/10 — razón citada
-**Hora a delegar (preg. 5)**: ...
-**Warm intros ofrecidas**: nombre + handle / ninguna
+**Reseñas pasadas concretas** (preg 4): cuándo fue, qué hizo
+
+**Importancia reseñas** (preg 5): X/10 — razón citada
+**Coherencia preg 1-3 vs preg 5**: ✅ alineado / ⚠ contradicción (educado pero no top-of-mind)
+
+**Warm intros ofrecidas** (preg 6): nombre + handle / ninguna
 
 **Próximo paso**: 2ª conversación / silencio / descartado
 **Hipótesis tocadas**: derriba / confirma / abre nueva
@@ -198,6 +251,7 @@ A [`../bitacora.md`](../bitacora.md) con esta plantilla:
 - **Liderar la respuesta** ("¿no os pasa que…?"). Pregunta abierta, espera, escucha.
 - **Tomar el "sí, sí" como confirmación**. La gente educada asiente. Eso no es señal — es cortesía.
 - **Saltarte la pregunta 6**. Es la más rentable y la que más cuesta hacer porque parece atrevida. Hazla siempre.
+- **Cambiar el orden y meter "última reseña mala" antes que "qué te quita tiempo / qué delegarías"**. Ese cambio es contaminar la conversación con tu hipótesis. Mom Test al pie.
 - **No volcar en frío en 30 min**. Si lo dejas para mañana, pierdes la frase literal.
 
 ---
@@ -205,6 +259,7 @@ A [`../bitacora.md`](../bitacora.md) con esta plantilla:
 ## Atajos por prospect
 
 Si la conversación se desvía o va corta (típico WhatsApp), **prioriza preguntas en este orden**:
-1 → 5 → 4 → 6. Las 1, 5 y 4 destapan dolor crudo + stack. La 6 te da warm intros. La 2 y 3 son refuerzos.
 
-Si tienes solo 3 mensajes de respuesta antes de que se vaya: **1 + 5 + 6** sirven solos.
+**1 → 2 → 3 → 6**. Esas 4 destapan dolor crudo + stack + warm intros sin nombrar reseñas. Las 4 y 5 son refuerzo.
+
+Si tienes solo 3 mensajes de respuesta antes de que se vaya: **1 + 2 + 6** sirven solos.
