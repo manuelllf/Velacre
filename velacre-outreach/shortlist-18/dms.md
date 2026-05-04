@@ -35,7 +35,7 @@ Manuel
 
 ---
 
-### C2 · O Bocoi · Combarro
+### 🚫 C2 · O Bocoi · Combarro — DESCARTADO criba 04/05 (decisión Manuel · DM no enviado)
 
 **Canal recomendado**: 📩 **DM IG** [@bodegaobocoi](https://instagram.com/bodegaobocoi) — hook emocional muy fuerte (Lola fundadora, 3 generaciones).
 
@@ -60,7 +60,7 @@ Manuel
 
 ---
 
-### C3 · O Centolo · Fisterra
+### 🚫 C3 · O Centolo · Fisterra — DESCARTADO criba 04/05 (sin IG, perfil tradicional · email no enviado)
 
 **Canal recomendado**: 📧 **email** [contacto@centolo.com](mailto:contacto@centolo.com) — sin IG, email propio, perfil más formal.
 
@@ -87,7 +87,7 @@ Manuel
 
 ---
 
-### C4 · Fonte Do Rei · Lugo
+### 🚫 C4 · Fonte Do Rei · Lugo — DESCARTADO criba 04/05 (cero presencia digital · llamada no realizada)
 
 **Canal recomendado**: 📞 **llamada** al tel 982 24 56 08 — sin IG, sin web, sin email. Excepción justificada a regla digital.
 
@@ -111,7 +111,7 @@ Yo pregunto y tú me cuentas.
 
 ---
 
-### C5 · Tira do Cordel · Fisterra
+### 🚫 C5 · Tira do Cordel · Fisterra — DESCARTADO criba 04/05 (web caída + sin IG/email · llamada no realizada)
 
 **Canal recomendado**: 📞 **llamada** al tel 981 74 06 97 — web caída, sin presencia digital actual.
 
@@ -156,7 +156,7 @@ Manuel
 
 ---
 
-### C7 · Asador O Chiringuito · O Grove
+### 🚫 C7 · Asador O Chiringuito · O Grove — DESCARTADO criba 04/05 (FB only · DM no enviado)
 
 **Canal recomendado**: 📩 **DM Facebook** o 📞 **llamada** 986 73 17 01 — solo Facebook como presencia online, no se ve IG.
 
@@ -206,7 +206,7 @@ Manuel
 
 ---
 
-### C9 · María Castaña · Santiago
+### 🚫 C9 · María Castaña · Santiago — DESCARTADO criba 04/05 (sin IG ni email · llamada no realizada)
 
 **Canal recomendado**: 📞 **llamada** 981 56 01 37 — sin IG ni email visibles.
 
@@ -251,7 +251,7 @@ Manuel
 
 ---
 
-### C11 · O Barco · Sanxenxo
+### 🚫 C11 · O Barco · Sanxenxo — DESCARTADO criba 04/05 (decisión Manuel · DM no enviado)
 
 **Canal recomendado**: 📩 **DM IG** [@restauranteobarco](https://instagram.com/restauranteobarco) — tradición familiar 20+ años + IG activo.
 
@@ -276,7 +276,7 @@ Manuel
 
 ---
 
-### C12 · Il Piccolo · Pontevedra
+### 🚫 C12 · Il Piccolo · Pontevedra — DESCARTADO criba 04/05 (dominio expirado · llamada no realizada)
 
 **Canal recomendado**: 📞 **llamada** 986 85 99 99 — **dominio web expirado** (señal de dolor digital fuerte).
 
@@ -292,6 +292,142 @@ con el que quiero hablar.
 
 ¿Te encajan 10 minutos por WhatsApp esta semana?
 Yo pregunto y tú me cuentas.
+```
+
+---
+
+### 🚫 C13 · Bar La Tita · Santiago — DESCARTADO criba 04/05 (saturación + sin IG/email · llamada no realizada)
+
+**Canal recomendado**: 📞 **llamada** 981 58 39 81 — sin IG ni email visibles, web limitada. Volumen masivo (8000+ reseñas).
+
+```
+Soy Manuel, tengo 21 y vivo en Ferrol.
+
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a dueños de restaurantes
+gallegos con volumen real de reseñas en Google.
+Vosotros con un local en Rúa Nova, hospedería más
+restaurante combinados y más de 8000 reseñas en
+Google sois justo el perfil con el que quiero hablar.
+
+¿Te encajan 10 minutos por WhatsApp esta semana?
+Yo pregunto y tú me cuentas.
+```
+
+---
+
+### C14 · El Papatorio Tapas y Brasas · Santiago
+
+**Histórico canales 03/05/2026**: 19:40 llamada → encargado pidió volver 21:00 · 21:00 llamada → encargado bloqueó contacto directo con dueño y derivó a mail · próximo paso: **mail a info@elpapatorio.com** (último intento limpio).
+
+**Canal final**: 📧 **email** info@elpapatorio.com con asunto *"Llamada que no entró bien — te dejo aquí lo que quería contar"*.
+
+**Mail texto definitivo enviado**:
+
+```
+Boas,
+
+Soy Manuel, tengo 21 años y vivo en Ferrol. He llamado
+hoy dos veces al restaurante (a las 19:40 y a las 21:00)
+y tu compañero me ha sugerido escribirte por aquí, que
+encajaba mejor.
+
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a dueños de restaurantes
+gallegos que muevan volumen real de reseñas en Google.
+Vosotros, con un local en Rúa do Franco con casi diez
+años abierto, los 30 vinos gallegos en carta y más de
+5000 reseñas, sois justo el perfil con el que quiero
+hablar.
+
+Por ser claro: no os vendo nada hoy. Son 10 minutos
+por WhatsApp o llamada cuando te encaje, te hago unas
+preguntas, me cuentas lo que quieras y listo. Yo
+pregunto y tú me cuentas.
+
+Si te encaja esta semana o la siguiente, mándame día y
+hora que te venga bien y me adapto.
+
+Un abrazo,
+Manuel
+```
+
+**Apertura llamada (si por algún milagro responden y aceptan)**:
+```
+Boas, soy Manuel, tengo 21 y vivo en Ferrol. Te robo
+10 minutos como mucho.
+
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a dueños de restaurantes
+gallegos que muevan volumen real de reseñas en
+Google. Vosotros, con un local en pleno Rúa do Franco
+con casi diez años abierto, los 30 vinos gallegos en
+carta y más de 5000 reseñas, sois justo el perfil
+con el que quiero hablar.
+
+¿Te encajan 10 minutos ahora, o prefieres que te
+llame mañana por la tarde?
+```
+
+**Si reconoce el DM de abril**:
+```
+Sí, te escribí en abril por DM. No quería ser pesado
+por ahí, pensé en llamar directo y que nos
+conociéramos mejor. Si te encaja 10 minutos te
+escucho, y si no, sin problema.
+```
+
+**Regla de cierre**: si tras este mail no hay respuesta en 7 días → **estado ❌ silencio, NO insistir más**. 4 contactos (DM abril + llamada 19:40 + llamada 21:00 + mail) ya es el techo. Más es acoso.
+
+**Apertura llamada (cuando coge el dueño)**:
+```
+Boas, soy Manuel, tengo 21 y vivo en Ferrol. Te robo
+10 minutos como mucho.
+
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a dueños de restaurantes
+gallegos que muevan volumen real de reseñas en
+Google. Vosotros, con un local en pleno Rúa do Franco
+con casi diez años abierto, los 30 vinos gallegos en
+carta y más de 5000 reseñas, sois justo el perfil
+con el que quiero hablar.
+
+¿Te encajan 10 minutos ahora, o prefieres que te
+llame mañana por la tarde?
+```
+
+**Si reconoce el DM de abril**:
+```
+Sí, te escribí en abril por DM. No quería ser pesado
+por ahí, pensé en llamar directo y que nos
+conociéramos mejor. Si te encaja 10 minutos te
+escucho, y si no, sin problema.
+```
+
+---
+
+### C15 · La Jefatura · Santiago — multilocal operador grupo gallego
+
+**Canal recomendado**: 📩 **DM IG** [@lajefaturarestaurante](https://instagram.com/lajefaturarestaurante) — multilocal operador familiar (3 locales Santiago), email gmail informal, IG activo. **Caso oro Velacre multilocal.**
+
+```
+Boas,
+
+Soy Manuel, tengo 21 y vivo en Ferrol.
+
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a dueños de proyectos
+gallegos con varios locales que muevan volumen de
+reseñas en Google. Vosotros con la vinoteca de
+Figueroa, La Jefatura do Franco y la panadería
+VerbeliciouS, todos en Santiago, sois justo el
+perfil con el que quiero hablar.
+
+¿Te encajan 10 minutos por WhatsApp esta semana?
+Yo pregunto y tú me cuentas.
+
+Un abrazo,
+Manuel
 ```
 
 ---
@@ -462,23 +598,25 @@ Manuel
 
 ---
 
-## Resumen táctico
+## Resumen táctico post-criba 04/05
 
-**Empezar por estos 5 (calibración primera semana)**:
-1. **C2 O Bocoi** — hook emocional fuerte (Lola, 1990, 3 generaciones)
-2. **C8 A Cova** — perfil joven concepto único, IG activo
-3. **C10 O Mirador** — Camino, perfil PYME accesible
-4. **D6 Galatea** — timing de oro (apertura 2026)
-5. **D5 Loop Inn** — multilocal operador joven
+**Tanda 1 ya enviada (03/05 21:14)** — 6 prospects:
+- C1 Mesón 42 (DM IG) · C6 O Piorno (DM IG) · C8 Playa Fluvial A Cova (WhatsApp) · C10 O Mirador (DM IG) · C16 Miss Maruja (DM IG @missmaruja) · D5 Loop Inn (DM IG)
 
-**Segunda tanda (semana 2)** si los 5 no enganchan o todos enganchan:
-- C1, C6, C11 por DM IG
-- D2 por email
-- D3, D4 por email derivando a dirección
+**Mail Papatorio enviado 03/05** (último intento limpio).
 
-**Tercera tanda (excepción digital, llamadas)** solo si los anteriores no enganchan:
-- C4, C5, C9, C12, D1 — llamadas frías al tel
-- C7 — DM Facebook
+**Pendientes prioritarios — 6 a ejecutar 04-05/05**:
+
+| Día | Hora | Canal | Prospect |
+|---|---|---|---|
+| Lunes 04/05 | 11:00 | DM IG | ⭐ C15 La Jefatura (multilocal 3 locales) |
+| Martes 05/05 | 10-11:30 | Email | D2 Norat O Grove (multilocal grupo) |
+| Martes 05/05 | 10-11:30 | Email | D3 Hotel Riazor (Grupo Ferreiro · pedir derivar) |
+| Martes 05/05 | 10-11:30 | Email | D4 Hotel Gelmírez (pedir derivar a gerencia) |
+| Martes 05/05 | 10-11:30 | Email | D6 Hotel Galatea (relanzamiento 2026 timing oro) |
+| Martes 05/05 | 16:30-18:30 | Llamada | D1 Hotel Coia (sin email visible · recepción 24/7) |
+
+**Descartados criba 04/05 (9)**: C2 O Bocoi · C3 O Centolo · C4 Fonte Do Rei · C5 Tira do Cordel · C7 O Chiringuito · C9 María Castaña · C11 O Barco · C12 Il Piccolo · C13 Bar La Tita. Razón: stack digital insuficiente (sin IG/email/web) o saturación. Fichas mantenidas como archivo histórico por si cambian contexto o aparecen warm.
 
 ---
 
