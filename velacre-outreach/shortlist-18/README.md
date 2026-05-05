@@ -1,49 +1,67 @@
 # Shortlist — Outreach prioritario Galicia (2026-05)
 
-> **Foco**: 21 candidatos seleccionados manualmente por Manuel tras 5 batches de pipeline + 3 añadidos manualmente el 03/05/2026 (Bar La Tita, El Papatorio recuperado del histórico abril, La Jefatura multilocal). **Si entran 5 → 245€ MRR (Pro 49€) o 195€ MRR (con gancho `VELFOUND20` -20% forever).** Ambos escenarios cubren SMart Ibérica (~6.5% facturación) con holgura.
+> **Foco**: candidatos seleccionados manualmente por Manuel tras 5 batches de pipeline + añadidos sucesivos durante outreach activo (03/05, 04/05 criba, 05/05 expansión).
 >
-> **Foco económico**: SMart Ibérica como vehículo fiscal "MVP" hasta superar ~600€/mes MRR (12-13 clientes a 49€ ó 15-16 a 39€), entonces saltar a autónomo + gestoría. Mientras: validar sin coste fijo de 148€/mes en alta.
+> **Métrica de cierre**: si entran 5 → 245 €/mes MRR (Pro 49 €) o 195 €/mes MRR (con gancho `VELFOUND20` -20 % forever). Ambos escenarios cubren SMart Ibérica (~6,5 % facturación) con holgura.
 >
-> **Gancho `VELFOUND20`**: cupón -20% forever decidido como palanca de cierre para los primeros 5 del shortlist-18. **NO se menciona en el primer DM ni en discovery**. Se ofrece sólo en la 2ª conversación, cuando ya enseñas Velacre por nombre y el prospect muestra intención real. Mom Test puro: el gancho llega DESPUÉS de validar dolor, no antes.
-
-## Composición tras criba digital 04/05/2026
-
-**22 prospects totales**, divididos en 3 grupos:
-
-### ✅ Ya contactados (7)
-- C1 Mesón 42, C6 O Piorno, C8 Playa Fluvial A Cova, C10 O Mirador, C16 Miss Maruja, D5 Loop Inn (DMs/WhatsApp 03/05)
-- C14 El Papatorio (llamada + mail 03/05)
-
-### ⭐ Prioritarios pendientes (6) — atacar 04-05/05
-- **C15 La Jefatura** (Santiago) — multilocal operador grupo gallego, 3 locales · DM IG lunes
-- **D1 Hotel Coia** (Vigo) — llamada martes (sin email visible)
-- **D2 Norat O Grove** — multilocal Grupo Hoteles Norat · email martes
-- **D3 Hotel Riazor** (A Coruña) — Grupo Ferreiro (Rafael Ferreiro), multilocal · email martes
-- **D4 Hotel Gelmírez** (Santiago) — independiente, presencia digital completa · email martes
-- **D6 Hotel Galatea** (Sanxenxo) — relanzamiento 2026, timing oro · email martes
-
-### 🚫 Descartados criba digital 04/05 (9)
-C2 O Bocoi · C3 O Centolo · C4 Fonte Do Rei · C5 Tira do Cordel · C7 O Chiringuito · C9 María Castaña · C11 O Barco · C12 Il Piccolo · C13 Bar La Tita
-
-**Razón estructural común**: sin IG ni email visibles online, dominio web caído/expirado, FB only, o saturación tipo "ya tiene colas" (Bar La Tita). Stack digital insuficiente = predictor fuerte de baja probabilidad de adoptar SaaS B2B en castellano. Las fichas se conservan en `fichas.md` y `dms.md` como archivo histórico por si en el futuro algún descartado aparece como warm intro o cambia el contexto digital.
-
-**Patrón post-criba**: 5 de los 6 prioritarios son **hoteles**, no restaurantes. El ICP donde queda volumen tras filtro digital es hostelería hotelera, no restauración tradicional. Esto valida (parcialmente) la hipótesis de que el ICP real de Velacre es PYME mediana digital, no PYME chica tradicional.
+> **Vehículo fiscal**: SMart Ibérica como "MVP" hasta superar ~600 €/mes MRR (12-13 clientes a 49 € o 15-16 a 39 €), entonces saltar a autónomo + gestoría. Mientras: validar sin coste fijo de 148 €/mes en alta.
+>
+> **Gancho `VELFOUND20`**: cupón -20 % forever, palanca de cierre para los primeros 20. **NO se menciona en el primer DM ni en discovery**. Se ofrece sólo en la 2ª conversación, cuando ya enseñas Velacre por nombre y el prospect muestra intención real. Mom Test puro: el gancho llega DESPUÉS de validar dolor, no antes.
 
 ## Archivos
 
 | Archivo | Para qué |
 |---|---|
-| [fichas.md](fichas.md) | Research por prospect: dueño, IG, año, concepto, grupo/único, email |
-| [dms.md](dms.md) | DM personalizado por prospect + **canal recomendado** (DM/email/llamada) |
+| [README.md](README.md) | Este archivo · contexto, composición y reglas |
+| [fichas.md](fichas.md) | Research por prospect (dueño, IG, año, concepto, grupo, email, dolor) |
+| [dms.md](dms.md) | Plantillas Mom Test personalizadas + canal recomendado por prospect |
 | [estado.md](estado.md) | Tracker vivo: enviado, visto, respuesta, conversación, cliente |
+
+## Composición a 2026-05-05 19:30
+
+**32 prospects en archivo · 20 activos**:
+
+| Grupo | Cuenta | Contenido |
+|---|---|---|
+| ✅ Ya contactados (tanda 1) | 7 | C1, C6, C8, C10, C14, C16, D5 (DMs/WhatsApp/llamada+mail 03/05) |
+| ✅ Mails enviados 05/05 mañana | 4 | D2 Norat, D3 Riazor reservas@, D4 Gelmírez reservas@, D6 Galatea info@ |
+| ⭐⭐ Tanda 2 nuevos (post-research 05/05) | 7 | C18 Pandelino, C19 A Nave, C20 Milongas, D7 Inpac, D8 Noa, D9 Nagari, D10 Nuevo Astur |
+| 🔁 Re-tantear canal admin/dirección | 5 | D1 Coia info@, D3 Riazor direccion@, D4 Gelmírez admon@, D5 Loop Inn WhatsApp, D6 Galatea admon@ |
+| 🔗 Papatorio 5º intento | 1 | C14 LinkedIn a Ernesto Montes Alvite o Susana Currais Silveira (dueños XASTRE DO PETO SL) |
+| ⏳ Pendientes link Maps Manuel | 3 | C21 Pulpería de Melide, C22 Finisterrae, C23 O Fiuza (todas A Coruña Torre Hércules) |
+| 🚫 Descartes criba 04/05 | 9 | C2, C3, C4, C5, C7, C9, C11, C12, C13 |
+| 🚫 Descartes estructurales 05/05 | 2 | Sibuya cadena nacional · Parador estatal centralizado |
+
+## Hallazgos clave del research 05/05
+
+### Canales anti-filtro encontrados (saltar info@/reservas@)
+
+| Prospect | Canal anti-filtro | Cómo se obtuvo |
+|---|---|---|
+| Gran Hotel Nagari (D9) | `administracion@granhotelnagari.com` | Página /contacto del propio hotel |
+| Universo Milongas (C20) | `administración@universomilongas.com` | Página /contacto · multilocal con HQ centralizada |
+| Grupo Inpac/Augusta (D7) | `administracion@grupoinpac.com` | Dato proporcionado por Manuel |
+| El Papatorio (C14) | LinkedIn → **Ernesto Montes Alvite** + **Susana Currais Silveira** | Aviso legal + Empresia (XASTRE DO PETO SL, B70353677) |
+
+### Descartes estructurales (no es por edad ni por canal — es por estructura de decisión)
+
+- **Sibuya Urban Sushi Bar** — cadena nacional, decisor en HQ fuera de Galicia. Aunque tuviera local gallego, el franquiciado local no decide adoptar SaaS B2B.
+- **Parador (cualquier parador gallego)** — Paradores SA (estatal, sede Madrid). Volumen reseñas grande pero el gerente del parador local no decide pricing/software. Misma lógica: NH, AC, Vincci, Eurostars, Marriott, etc.
+
+### Recordatorio operativo
+
+Manuel reconoció que mandó `reservas@riazorhotel.com`, `reservas@hotelgelmirez.com` e `info@hotelgalatea.com` por la mañana 05/05. **Re-enviar al mismo dominio a `direccion@`/`administracion@`/`admon@` no es spam — es tantear canal**, distinto destinatario interno. Si los dos rebotan o ambos ignoran 7 d → cierre `❌` del hotel entero, no de cada email por separado.
 
 ## Reglas de trato
 
-- **No mandar a más de 5 a la vez** durante la primera semana (calibración del DM).
-- **Volcar a `bitacora.md` general** cualquier conversación real (no sólo "visto").
-- Si tras 7 días sin respuesta → 1 recordatorio amistoso (`dm-templates.md` § Follow-up). Tras 14 días → estado ❌ silencio.
-- Llamadas como **excepción** a la regla digital: solo cuando el prospect no tiene IG ni email accesibles. Encuadre: "Boas, soy Manuel, tengo 21 años, vivo en Ferrol y os llamo para un tema rápido — ¿podéis 10 minutos?"
+- **No mandar a más de 5-7 a la vez** dentro de un mismo bloque (calibración del DM).
+- **Volcar a [`../bitacora.md`](../bitacora.md)** cualquier conversación real (no sólo "visto").
+- Si tras **7 días sin respuesta** → 1 recordatorio amistoso (mismo canal).
+- Tras **14 días** sin respuesta → estado ❌ silencio.
+- **Llamadas** son excepción: sólo cuando el prospect no tiene IG ni email accesibles. Encuadre oral: *"Boas, soy Manuel, tengo 21 años, vivo en Ferrol y os llamo para un tema rápido — ¿podéis 10 minutos?"*
+- **Mom Test puro**: en discovery NO se menciona Velacre. La 2ª conversación es donde entra el producto por nombre. Ver [`guion.md`](guion.md).
 
-## Por qué solo estos 18
+## Criterios de éxito
 
-Los 5 batches anteriores demostraron que el ICP "negocio independiente con dolor accionable + volumen + accesibilidad + sin grupo grande" es una intersección estrechísima en Galicia. Estos 18 representan el **núcleo viable** tras criba humana. **Si la calibración con estos 5 primeros no engancha, el problema no es el outreach — es que Velacre necesita re-pensarse.**
+- **≥2 conversaciones reales** con dolor literal capturado tras los 20 activos → Velacre encaja, calibrar pricing/ICP/copy.
+- **0-1 conversación** tras los 20 → ICP estructuralmente inaccesible o dolor no existe → decisión grande sobre Velacre con datos en mano.

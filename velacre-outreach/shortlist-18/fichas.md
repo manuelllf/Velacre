@@ -2,6 +2,19 @@
 
 > Datos extraídos de webs oficiales (WebFetch). Lo que no aparece queda como "—" para que Manuel lo verifique en Maps/IG manualmente. Si nombre del dueño no se identifica online, suele ser detectable navegando por el IG (stories, posts firmados, "el equipo").
 
+## Índice
+
+- [Restaurantes (tanda 1)](#restaurantes-12) — C1 a C16 (incluye descartes criba 04/05)
+- [Hoteles (tanda 1)](#hoteles-6) — D1 a D6
+- [Tanda 2 añadidos 05/05](#c18--pandelino--a-coruña--añadido-0505-plantilla-confirmada-manuel) — C18, C19, C20, D7, D8, D9, D10
+- [Pendientes Maps Manuel](#-3-prospects-a-coruña-zona-torre-de-hércules--pendientes-link-maps-manuel) — C21, C22, C23
+- [Descartes estructurales 05/05](#-sibuya-urban-sushi-bar--descartado-estructural-0505) — Sibuya, Parador
+- [Resumen post-criba 04/05](#resumen-post-criba-0405--solo-prospects-activos-13--7-enviados--6-prioritarios)
+
+Tracker vivo de envíos y respuestas: [`estado.md`](estado.md).
+
+Plantillas de outreach: [`dms.md`](dms.md).
+
 ---
 
 ## RESTAURANTES (12)
@@ -140,15 +153,42 @@
 - **Notas**: ⚠ **Señal de saturación tipo Miss Maruja** — colas diarias por la tortilla, ya tiene tráfico orgánico abundante → puede no tener dolor de adquisición. Volumen masivo (peregrinos + turistas Rúa Nova). Sin IG ni email visibles → llamada al tel. Discovery útil aún si no compra: validar/derribar hipótesis "negocio saturado igual no contesta reseñas".
 
 ### C14 · El Papatorio Tapas y Brasas · Santiago — recuperado del histórico abril 2026
+
 - **Maps**: [link](https://maps.google.com/?cid=4820810135127150943) · **Tel**: 981 06 83 01
 - **Web**: [elpapatorio.com](http://www.elpapatorio.com/) · **Email**: **info@elpapatorio.com** ✓
-- **IG**: [@elpapatorio](https://instagram.com/elpapatorio) · **FB**: [@elpapatorio](https://facebook.com/elpapatorio) (activo)
-- **Año apertura**: **2016** (10 años en Rúa do Franco)
-- **Concepto**: tapas + montaditos + carnes y pescados a la brasa + cocina abierta. Carta con **30+ vinos gallegos** de todas las D.O.
-- **Grupo o único**: **local único**
+- **IG**: [@elpapatorio](https://instagram.com/elpapatorio) · **FB**: [@elpapatorio](https://facebook.com/elpapatorio)
+- **Año apertura**: **2016** (10 años en Rúa do Franco 20)
+- **Concepto**: tapas + montaditos + carnes y pescados a la brasa + cocina abierta. Carta con 30+ vinos gallegos de todas las D.O.
+- **Grupo o único**: local único
 - **Reseñas**: **5158** · ★ 4.4
-- **Métricas dolor (research abril 2026)**: ~96 reseñas en 90d (~32/mes), **0% contestadas**, 6 reseñas 1-2★ sin respuesta. Perfil de dolor accionable directo.
-- **Notas**: ⚠ **Ya DM-ado abril 2026 sin respuesta** (Template E con PDF Mini Radar). Manuel intentó llamada hoy 03/05/2026 19:40 — encargado dijo "vuelve en 1h" → llamada de seguimiento 21:00. Honestidad obliga: si dueño recuerda DM, asumirlo con naturalidad sin disculpas excesivas.
+- **Métricas dolor (research abril 2026)**: ~96 reseñas en 90d (~32/mes), **0% contestadas**, 6 reseñas 1-2★ sin respuesta.
+
+**🔑 Datos alta esfera (descubiertos 05/05 vía aviso legal + Empresia)**:
+
+| Campo | Valor |
+|---|---|
+| Razón social | **XASTRE DO PETO, S.L.** |
+| CIF | B70353677 |
+| Domicilio fiscal | Rúa do Franco 10 Bajo, 15702 Santiago |
+| Constitución | 4 dic 2012 |
+| Capital social | 5.000 € (PYME familiar) |
+| Administradores solidarios | **Ernesto Montes Alvite** · **Susana Currais Silveira** |
+| Registro | Mercantil de A Coruña |
+
+**Implicación operativa**: Ernesto y Susana son los dueños reales que el encargado bloquea. Saltar al filtro = LinkedIn directo a uno de los dos. Manuel debe localizar LinkedIn de:
+
+- "Ernesto Montes Alvite" + Santiago / restauración
+- "Susana Currais Silveira" + Santiago / restauración
+
+Si LinkedIn no aparece, Plan B es Instagram personal (suelen estar enlazados desde @elpapatorio en stories).
+
+**Histórico contactos**:
+
+1. DM IG @elpapatorio · abril 2026 · sin respuesta
+2. Llamada 03/05/2026 19:40 · encargado pidió volver 21:00
+3. Llamada 03/05/2026 21:00 · encargado bloqueó, derivó a mail
+4. Mail info@ 03/05/2026 · sin respuesta a 05/05 19:30
+5. **Próximo (5º contacto)**: LinkedIn directo a Ernesto o Susana — ÚLTIMO intento. Si silencio 7d → ❌ definitivo.
 
 ### C16 · Miss Maruja · A Coruña — añadido 2026-05-04 (recuperado de descarte previo) · DM FB enviado 2026-05-03
 - **Maps**: [link](https://maps.google.com/?cid=15778355984023540534) · **Tel**: **696 21 87 71** (móvil personal)
@@ -236,6 +276,112 @@
 - **Grupo o único**: independiente
 - **Reseñas**: 1733 · ★ 4.5
 - **Notas**: timing perfecto — apertura 2026 = momento ideal para hablar de reseñas/reputación digital de cara al relanzamiento.
+
+### D8 · Noa Boutique Hotel · Oleiros (A Coruña) — añadido 05/05
+- **Maps**: Av. Concepción Arenal 51, Santa Cruz, Oleiros, 15179 A Coruña · **Tel**: 881 24 41 44 / 881 24 41 66
+- **Web**: [noaboutiquehotel.com](https://noaboutiquehotel.com) · **Emails**:
+  - reservas@noaboutiquehotel.com
+  - eventos@noaboutiquehotel.com
+- **IG**: [@noa_boutique_hotel](https://instagram.com/noa_boutique_hotel) · **FB**: NOABoutiqueHotel
+- **Stars**: **4★ boutique**
+- **Año apertura**: —
+- **Concepto**: hotel urbano boutique
+- **Grupo o único**: independiente (a verificar)
+- **Reseñas**: verificar Manuel
+- **Notas**: ⭐ **CASO ORO REPUTACIÓN**: Travellers' Choice 2025 + **National Geographic 2023 — Mejor Hotel Urbano de España** + World Luxury Hotel Awards. Si ya cuidan de forma obsesiva la reputación, hablar de la herramienta detrás encaja natural. Sin canal de "dirección/admin" visible — usar reservas@ pidiendo derivar.
+
+### D9 · Gran Hotel Nagari · Vigo — añadido 05/05
+- **Maps**: Praza de Compostela 21, 36201 Vigo · **Tel**: 986 21 11 11
+- **Web**: [granhotelnagari.com](https://granhotelnagari.com) · **Emails encontrados**:
+  - **administracion@granhotelnagari.com** ✓ (canal anti-filtro)
+  - rrpp@granhotelnagari.com (eventos/PR)
+  - hotel@granhotelnagari.com (recepción)
+  - info@granhotelnagari.com
+  - infospa@granhotelnagari.com
+  - restaurantealamedaxxi@granhotelnagari.com
+- **IG**: [@granhotelnagari](https://instagram.com/granhotelnagari) · **FB** · **YouTube** · **X**
+- **Stars**: **5★** (urbano)
+- **Año apertura**: web define "young company in full growth"
+- **Concepto**: 5★ urbano céntrico Vigo + Nagari Spa & Skyline Terrace + Restaurante Alameda XXI + Manhattan Lounge
+- **Grupo o único**: dueño no disclosed en web (verificar)
+- **Reseñas**: verificar Manuel
+- **Notas**: ⭐ **canal administración@ encontrado**, salta a reservas/info. Ecosistema interno (hotel + spa + restaurante + lounge) = volumen + interés en gestión digital de varias fichas Google a la vez. Perfil 5★ urbano Vigo, hueco en shortlist (no había Vigo gama alta antes).
+
+### D10 · Hotel Nuevo Astur · Sanxenxo (Villalonga) — añadido 05/05
+- **Maps**: Lg. Gondar 45, 36990 Villalonga, Sanxenxo · **Tel**: 986 74 30 06
+- **Web**: [nuevoastur.com](https://nuevoastur.com) · **Email**: **info@nuevoastur.com** (único listado, sin admin/dirección visibles)
+- **IG**: [@hotelnuevoasturspa](https://instagram.com/hotelnuevoasturspa) · **FB**: hotelnuevoasturspa
+- **Stars**: **3★ Spa**
+- **Año apertura**: —
+- **Concepto**: 3★ con spa, fuera del casco urbano de Sanxenxo (Villalonga), buena relación calidad/precio
+- **Grupo o único**: a verificar
+- **Reseñas**: verificar Manuel
+- **Notas**: 3★ es gama distinta a Galatea/Riazor/Nagari — distinto P&L → distinta sensibilidad a 49€/mes Velacre. Vale tenerlo para diversidad ICP. Sin canal admin/dirección visible → info@ pidiendo derivar.
+
+### C18 · Pandelino · A Coruña — añadido 05/05 (plantilla confirmada Manuel)
+- **Maps**: Rosalía de Castro 7, 15004 A Coruña · **Tel/WhatsApp**: +34 629 50 92 63
+- **Web**: [pandelino.es](https://pandelino.es) · **Email**: — (no listado en web, contacto via /contacto y WhatsApp)
+- **IG**: [@pandelino](https://instagram.com/pandelino) · **FB**: PandelinoBakeryShop · **TikTok**: [@pandelinobakery](https://tiktok.com/@pandelinobakery) · **LinkedIn Company**: presente
+- **Año apertura**: copyright 2026 → proyecto reciente, **perfil JOVEN digital nativo**
+- **Concepto**: panadería/bakery moderna A Coruña centro
+- **Grupo o único**: 1 local (Rosalía de Castro)
+- **Reseñas**: verificar Manuel
+- **Notas**: stack digital fuerte (IG + TikTok + LinkedIn Company) → **muy probable que tengan agencia o freelance externo gestionando**. Plantilla incorpora pregunta abierta: "¿llevas tú la parte digital o tienes alguien externo?" — si dicen agencia, abren contacto a la agencia (multiplicador).
+
+### C19 · A Nave de Vidán · Santiago de Compostela — añadido 05/05
+- **Maps**: Av. Mestra Victoria Míguez 44, 15706 Santiago · **Tel**: 981 52 21 10
+- **Web**: [anavedevidan.com](https://anavedevidan.com) · **Email**: **info@anavedevidan.com** ✓
+- **IG**: [@anavedevidan_scq](https://instagram.com/anavedevidan_scq) · **FB**: anavedevidan
+- **Año apertura**: **2023** (web 2023) → **MUY JOVEN, ~2 años**
+- **Concepto**: cocina gallega, producto local mercado de Abastos, espacio 150m² salón + bar-café
+- **Grupo o único**: 1 local (Vidán, fuera del casco histórico)
+- **Reseñas**: verificar Manuel
+- **Notas**: proyecto reciente sin filtros corporativos → "info@" probablemente es el dueño directamente. **Perfil oro**: joven, construyendo presencia desde cero, pain reseñas más palpable que en establecidos. ICP fuerte.
+
+### C20 · Milongas Parrillada · multilocal 10 (Universo Milongas) — añadido 05/05
+- **HQ**: Rúa das Palmeiras 62A, Polígono Novo Milladoiro, Ames (A Coruña) · **Tel HQ**: 981 11 55 40
+- **Web**: [milongasparrillada.com](https://milongasparrillada.com) · **Emails**:
+  - **administración@universomilongas.com** ✓ (decisor)
+  - comunicacion@universomilongas.com
+  - reservas@milongasparrillada.com
+  - WhatsApp +34 881 805 007
+- **IG**: [@milongasparrillada](https://instagram.com/milongasparrillada) · **TikTok**: @milongasparrillada · **FB**: milongasparrillada
+- **Año apertura**: **2016** (10 locales en <10 años)
+- **Concepto**: parrilladas modernizadas — "churrasco de toda la vida modernizado"
+- **Grupo o único**: ⭐ **MULTILOCAL OPERADOR REAL — 10 locales**: Bergondo, Bertamiráns, Compostela, Coruña, Milladoiro, Ourense, Poio, Sionlla, Vigo, Vilagarcía. Estructura "Universo Milongas" como matriz central.
+- **Reseñas**: verificar Manuel
+- **Notas**: ⭐ **CASO ORO** del shortlist nuevo. 10 ubicaciones = 10 fichas Google = volumen masivo de reseñas. HQ centralizada = un solo decisor para toda la cuenta. Si entran, son 10 slots Velacre. Email **administración@universomilongas.com** salta el filtro local de cualquier restaurante.
+
+### 🚫 Sibuya Urban Sushi Bar — DESCARTADO estructural 05/05
+- **Razón**: cadena nacional con sede fuera de Galicia (Comess Group / similar). Las decisiones SaaS B2B se toman en HQ (probablemente Madrid o Salamanca). Manuel desde Ferrol como independiente no entra a ese decisor. Aunque hubiera locales gallegos, el franquiciado local NO decide herramientas digitales — eso lo impone el grupo.
+- **Conclusión**: outreach a cadena nacional desde un proyecto en validación = ROI cero estructural. Lo mismo que pasaría con AC Hoteles, NH, Vincci, Eurostars, etc.
+
+### 🚫 Parador (cualquier parador gallego) — DESCARTADO estructural 05/05
+- **Razón**: red Paradores de Turismo de España SA, centralizada Madrid, propiedad estatal (SEPI). Pricing, software y decisiones digitales se toman a nivel grupo, no parador local. El gerente del Parador de Santiago / Baiona / Cambados no decide adoptar SaaS — eso vendría de Paradores central.
+- **Conclusión**: misma lógica que cadenas hoteleras nacionales (ver Sibuya). Inalcanzable estructuralmente. Volumen de reseñas grande, decisor ausente en Galicia.
+
+### ❓ 3 prospects A Coruña zona Torre de Hércules · pendientes link Maps Manuel
+
+Confirmado por Manuel 05/05: las tres se llaman literalmente así, **todas en A Coruña en la zona Torre de Hércules y alrededores** (no son Ezequiel-Melide town ni Santiago). El research público con Bing/DuckDuckGo/TripAdvisor falla — todos los buscadores devuelven CAPTCHA o resultados no relacionados. Sin link Maps directo no puedo ficharlas sin inventar datos.
+
+| # | Nombre | Estado |
+|---|---|---|
+| C21 | **Pulpería de Melide** (A Coruña, zona Torre Hércules) | ⏳ pendiente Manuel pegar link Maps |
+| C22 | **Restaurante Finisterrae** (A Coruña, zona Torre Hércules) | ⏳ pendiente Manuel pegar link Maps |
+| C23 | **Pulpería O Fiuza** (A Coruña, zona Torre Hércules) | ⏳ pendiente Manuel pegar link Maps |
+
+**Acción Manuel**: pegar 3 links de Maps (uno por prospect). Con eso saco web/IG/email/teléfono/dueños de cada uno y completo fichas + plantillas Mom Test en una sola tanda.
+
+### D7 · Grupo Inpac (Hotel Augusta) · — añadido 05/05 sobre la marcha
+- **Maps**: — (verificar Manuel — qué hotel concreto del grupo) · **Tel**: —
+- **Web grupo**: [grupoinpac.com](https://grupoinpac.com) → **🚨 dominio parqueado en dinahosting, sin contenido público** (señal: el grupo no tiene escaparate digital propio operativo, marca pública la lleva el hotel directamente)
+- **Email grupo**: **administracion@grupoinpac.com** ✓ (dato proporcionado por Manuel, no verificado en web pública)
+- **IG**: — (verificar manual)
+- **Año apertura grupo**: —
+- **Concepto**: grupo hotelero gallego — opera al menos un **Hotel Augusta** (ubicación a confirmar, candidatos: Sanxenxo / Pontevedra / A Coruña — Manuel verifica)
+- **Grupo o único**: **multilocal operador** confirmado por estructura grupo + email de "administración" centralizada
+- **Reseñas**: — (depende del hotel concreto, no del grupo)
+- **Notas**: añadido fuera del shortlist 18 original tras pista en outreach 05/05. **Datos pendientes de verificar antes de tirar plantilla en serio**: qué hoteles concretos lleva el grupo, ubicaciones, IG, volumen reseñas. La plantilla actual es por pinchazo — pide derivación al hotel concreto, no asume volumen ni hook específico. Si tras respuesta hay tracción, hacer ficha completa por hotel y trabajar como multilocal real (perfil oro Velacre tipo Norat / Ferreiro).
 
 ---
 

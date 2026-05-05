@@ -1,87 +1,157 @@
 # Estado · Tracker shortlist 18
 
-> Actualizar a medida que avanza outreach. Códigos:
->
-> - ⬜ Pendiente
-> - 📩 Enviado (fecha)
-> - 👁️ Visto sin respuesta
-> - 💬 Respondió
-> - 📞 Conversación agendada
-> - ✅ Conversación completada (volcar a `../bitacora.md`)
-> - 🔁 Recordatorio enviado (día 7)
-> - ❌ Silencio 14d (cierre)
-> - 🚫 Descartado (motivo)
-> - 💰 Cliente Velacre (fecha + plan)
+> Tracker activo del outreach Velacre. Última actualización: **2026-05-05 19:30**.
 
-## Restaurantes (16)
+## Códigos de estado
 
-| # | Prospect | Canal | Fecha enviado | Estado | Notas |
+| Código | Significado |
+|---|---|
+| ⬜ | Pendiente envío |
+| 📩 | Enviado |
+| 👁️ | Visto sin respuesta |
+| 💬 | Respondió |
+| 📞 | Conversación agendada |
+| ✅ | Conversación completada (volcar a [`bitacora.md`](../bitacora.md)) |
+| 🔁 | Recordatorio enviado (día 7) |
+| ❌ | Silencio 14d (cierre) |
+| 🚫 | Descartado (motivo) |
+| 💰 | Cliente Velacre (fecha + plan) |
+
+---
+
+## Restaurantes (22)
+
+| # | Prospect | Canal | Fecha | Estado | Notas |
 |---|---|---|---|---|---|
-| C1 | Mesón 42 (Santiago) | DM IG | 2026-05-03 21:14 | 📩 | Calibración tanda 1 |
-| C2 | O Bocoi (Combarro) | — | — | 🚫 | Descartado criba 04/05 · 1990 (35 años), familiar tradicional. Mantenido como warm si aparece. |
-| C3 | O Centolo (Fisterra) | — | — | 🚫 | Descartado criba 04/05 · 40 años (1985), sin IG, perfil tradicional |
-| C4 | Fonte Do Rei (Lugo) | — | — | 🚫 | Descartado criba 04/05 · cero presencia digital (sin web, sin IG, sin email) |
-| C5 | Tira do Cordel (Fisterra) | — | — | 🚫 | Descartado criba 04/05 · web caída en mantenimiento + sin IG ni email |
-| C6 | O Piorno (Santiago) | DM IG | 2026-05-03 21:14 | 📩 | Calibración tanda 1 · Multilocal |
-| C7 | O Chiringuito (O Grove) | — | — | 🚫 | Descartado criba 04/05 · solo Facebook como presencia online, perfil tradicional |
-| C8 | A Cova (Saviñao) | **WhatsApp** | 2026-05-03 21:14 | 📩 | Calibración tanda 1 · canal directo |
-| C9 | María Castaña (Santiago) | — | — | 🚫 | Descartado criba 04/05 · sin IG ni email (solo tel) |
-| C10 | O Mirador (Portomarín) | DM IG | 2026-05-03 21:14 | 📩 | Calibración tanda 1 |
-| C11 | O Barco (Sanxenxo) | — | — | 🚫 | Descartado criba 04/05 · 20+ años, decisión Manuel |
-| C12 | Il Piccolo (Pontevedra) | — | — | 🚫 | Descartado criba 04/05 · dominio web expirado (peor señal digital) |
-| C13 | Bar La Tita (Santiago) | — | — | 🚫 | Descartado criba 04/05 · saturación tipo Miss Maruja (colas diarias) + sin IG/email |
-| C14 | El Papatorio (Santiago) | Email | 19:40+21:00 llamada (filtro encargado) → mail pendiente envío | 📞→📧 | Encargado bloqueó contacto directo con dueño · derivó a mail · último intento · si silencio 7d → cerrar ❌ |
-| C15 | La Jefatura (Santiago) | DM IG | 📅 2026-05-04 11:00 | ⬜ | ⭐ **PRIORIDAD ALTA** · Multilocal operador grupo (3 locales) · 3 slots Velacre potenciales |
-| C16 | Miss Maruja (A Coruña) | DM IG @missmaruja | 2026-05-03 | 📩 | Calibración tanda 1 · Recuperado de descarte previo · discovery puro |
+| C1 | Mesón 42 (Santiago) | DM IG | 03/05 21:14 | 📩 | Tanda 1 |
+| C2 | O Bocoi (Combarro) | — | — | 🚫 | Criba 04/05 · familiar tradicional 1990 |
+| C3 | O Centolo (Fisterra) | — | — | 🚫 | Criba 04/05 · 40 años, sin IG |
+| C4 | Fonte Do Rei (Lugo) | — | — | 🚫 | Criba 04/05 · cero presencia digital |
+| C5 | Tira do Cordel (Fisterra) | — | — | 🚫 | Criba 04/05 · web caída |
+| C6 | O Piorno (Santiago) | DM IG | 03/05 21:14 | 📩 | Tanda 1 · multilocal |
+| C7 | O Chiringuito (O Grove) | — | — | 🚫 | Criba 04/05 · solo Facebook |
+| C8 | A Cova (Saviñao) | WhatsApp | 03/05 21:14 | 📩 | Tanda 1 · canal directo |
+| C9 | María Castaña (Santiago) | — | — | 🚫 | Criba 04/05 · sin IG ni email |
+| C10 | O Mirador (Portomarín) | DM IG | 03/05 21:14 | 📩 | Tanda 1 |
+| C11 | O Barco (Sanxenxo) | — | — | 🚫 | Criba 04/05 · 20+ años |
+| C12 | Il Piccolo (Pontevedra) | — | — | 🚫 | Criba 04/05 · dominio expirado |
+| C13 | Bar La Tita (Santiago) | — | — | 🚫 | Criba 04/05 · saturación + sin IG/email |
+| C14 | El Papatorio (Santiago) | DM IG → llamada → mail → **LinkedIn** | 4 contactos previos · LinkedIn pendiente | 📞→📧→🔗 | ⭐ Dueños identificados: **Ernesto Montes Alvite** + **Susana Currais Silveira** (XASTRE DO PETO SL) · 5º y último intento por LinkedIn |
+| C15 | La Jefatura (Santiago) | DM IG @lajefaturarestaurante | 04/05 11:00 | ⬜ | ⭐ Multilocal 3 locales · 3 slots Velacre potenciales |
+| C16 | Miss Maruja (A Coruña) | DM IG @missmaruja | 03/05 | 📩 | Tanda 1 · discovery puro (saturado) |
+| C18 | Pandelino (A Coruña) | WhatsApp +34 629 50 92 63 | ⬜ | ⬜ | Añadido 05/05 · plantilla confirmada · pregunta abierta sobre agencia |
+| C19 | A Nave de Vidán (Santiago) | Email info@anavedevidan.com | ⬜ | ⬜ | Añadido 05/05 · proyecto 2023 muy joven · ⭐ perfil oro |
+| C20 | Milongas Parrillada (multilocal 10) | Email administración@universomilongas.com | ⬜ | ⬜ | Añadido 05/05 · ⭐⭐ **CASO ORO MULTILOCAL 10 LOCALES** |
+| C21 | Pulpería de Melide (A Coruña, T. Hércules) | — | ⏳ pendiente Maps Manuel | ⏳ | Confirmado Manuel 05/05 · necesito link Maps para fichar |
+| C22 | Restaurante Finisterrae (A Coruña, T. Hércules) | — | ⏳ pendiente Maps Manuel | ⏳ | Confirmado Manuel 05/05 · necesito link Maps para fichar |
+| C23 | Pulpería O Fiuza (A Coruña, T. Hércules) | — | ⏳ pendiente Maps Manuel | ⏳ | Confirmado Manuel 05/05 · necesito link Maps para fichar |
+| 🚫 | Sibuya Urban Sushi Bar | — | — | 🚫 | Descarte estructural 05/05 · cadena nacional, decisor HQ fuera Galicia |
 
-## Hoteles (6)
+---
 
-| # | Prospect | Canal | Fecha enviado | Estado | Notas |
+## Hoteles (10)
+
+| # | Prospect | Canal | Fecha | Estado | Notas |
 |---|---|---|---|---|---|
-| D1 | Hotel Coia (Vigo) | Llamada | 📅 2026-05-04/05 16:30-18:30 | ⬜ | ⭐ **PRIORIDAD ALTA** · Recepción 24/7 fácil pasar a dirección |
-| D2 | Norat O Grove | Email | 📅 2026-05-05 10-11:30 | ⬜ | ⭐ **PRIORIDAD ALTA** · Multilocal Grupo Hoteles Norat |
-| D3 | Hotel Riazor (A Coruña) | Email | 📅 2026-05-05 10-11:30 | ⬜ | ⭐ **PRIORIDAD ALTA** · Grupo Ferreiro (Rafael Ferreiro, Santiago) · multilocal · pedir derivar a dirección de grupo |
-| D4 | Hotel Gelmírez (Santiago) | Email | 📅 2026-05-05 10-11:30 | ⬜ | ⭐ **PRIORIDAD ALTA** · Pedir derivar a gerencia |
-| D5 | Loop Inn Hostel (Santiago) | DM IG | 2026-05-03 21:14 | 📩 | Calibración tanda 1 · Multilocal |
-| D6 | Hotel Galatea (Sanxenxo) | Email | 📅 2026-05-05 10-11:30 | ⬜ | ⭐ **PRIORIDAD ALTA** · Apertura/relanzamiento 2026 (timing oro) |
+| D1 | Hotel Coia (Vigo) | Llamada → Email info@hotelcoia.com | 📞 05/05 (filtrado) → email pendiente | 📞→⬜ | Llamada filtrada · derivó a info@hotelcoia.com · plantilla formato Papatorio |
+| D2 | Norat O Grove | Email hnorat@hotelesnorat.com | 05/05 mañana | 📩 | ⭐ Multilocal Grupo Norat |
+| D3 | Hotel Riazor (A Coruña) | Email reservas@ + tantear direccion@ | 05/05 mañana (reservas@) + tantear pendiente | 📩 + ⬜ | ⭐ Grupo Ferreiro · 2 destinatarios = tantear canal |
+| D4 | Hotel Gelmírez (Santiago) | Email reservas@ + tantear administracion@ | 05/05 mañana (reservas@) + tantear pendiente | 📩 + ⬜ | ⭐ 2 destinatarios = tantear canal |
+| D5 | Loop Inn Hostel (Santiago) | DM IG + tantear WhatsApp +34 682 15 80 11 | DM IG 03/05 · WhatsApp pendiente | 📩 + ⬜ | Multilocal 3 · gestión central Cartagena |
+| D6 | Hotel Galatea (Sanxenxo) | Email info@ + tantear admon@ | 05/05 mañana (info@) + tantear pendiente | 📩 + ⬜ | ⭐ Apertura 2026 timing oro · 2 destinatarios = tantear canal |
+| D7 | Grupo Inpac (Hotel Augusta) | Email administracion@grupoinpac.com | ⬜ | ⬜ | Añadido 05/05 · web grupo parqueada · ficha mínima |
+| D8 | Noa Boutique Hotel (Oleiros) | Email reservas@noaboutiquehotel.com | ⬜ | ⬜ | ⭐ Travellers' Choice 2025 + Nat Geo 2023 mejor hotel urbano España |
+| D9 | Gran Hotel Nagari (Vigo) | Email administracion@granhotelnagari.com | ⬜ | ⬜ | 5★ Plaza de Compostela · ⭐ canal admin@ encontrado |
+| D10 | Hotel Nuevo Astur (Sanxenxo) | Email info@nuevoastur.com | ⬜ | ⬜ | 3★ Spa · diversidad ICP |
+| 🚫 | Parador (cualquiera) | — | — | 🚫 | Descarte estructural 05/05 · Paradores SA Madrid centralizada |
+
+---
 
 ## Resumen métrico
 
 | Métrica | Valor |
 |---|---|
-| Total prospects | 22 |
-| ✅ Enviados (DMs/WhatsApp) | 6 (2026-05-03 — Mesón 42, Loop Inn, O Mirador, O Piorno, Playa Fluvial WhatsApp, Miss Maruja IG @missmaruja) |
-| ✅ Llamadas hechas | 1 (El Papatorio · filtro encargado · derivado a mail) |
-| ✅ Mails enviados | 1 (El Papatorio · 2026-05-03) |
-| 🚫 Descartados criba digital 04/05 | **9** (C2, C3, C4, C5, C7, C9, C11, C12, C13) — sin IG ni email visibles, perfil no-digital, baja probabilidad SaaS |
-| ⭐ Pendientes prioritarios | **6** (C15 La Jefatura · D1 Hotel Coia · D2 Norat · D3 Riazor · D4 Gelmírez · D6 Galatea) |
-| 📅 DM lunes 04/05 11:00 | 1 (C15 La Jefatura) |
-| 📅 Email/llamada martes 05/05 | 5 (D1, D2, D3, D4, D6 — todos los hoteles pendientes) |
-| Vistos | 0 |
-| Respuestas | 0 |
-| Conversaciones agendadas | 0 |
-| Conversaciones completadas | 0 |
-| Clientes Velacre | 0 |
+| Total prospects en archivo | **32** (22 restaurantes + 10 hoteles) |
+| Total prospects activos | **20** (excluidos descartes 04/05 + Sibuya + Parador + 3 pendientes Maps) |
+| ⏳ Pendientes Maps Manuel | 3 (C21, C22, C23) |
+| ✅ Enviados DM/WhatsApp tanda 1 (03/05) | 6 |
+| ✅ Llamadas hechas | 2 (Papatorio 03/05 · Coia 05/05 — ambas filtradas) |
+| ✅ Mails enviados (a 05/05 19:30) | 5 (Papatorio + Riazor + Gelmírez + Galatea + Norat) |
+| 📅 Pendientes envío post-19:30 05/05 | **13** (5 re-tantear canales + 7 nuevos prospects + 1 Papatorio LinkedIn) |
+| 🚫 Descartes criba digital 04/05 | 9 (C2, C3, C4, C5, C7, C9, C11, C12, C13) |
+| 🚫 Descartes estructurales 05/05 | 2 (Sibuya · Parador) |
+| 💬 Respuestas | 0 |
+| 📞 Conversaciones agendadas | 0 |
+| ✅ Conversaciones completadas | 0 |
+| 💰 Clientes Velacre | 0 |
 
-## Hito intermedio post-criba 04/05
+---
 
-**Outreach activo total**: 7 contactados + 6 prioritarios = 13 prospects "en juego".
+## Filtros recibidos · histórico
 
-**Plan inmediato**:
-- **Lunes 04/05 11:00**: 1 DM IG → C15 La Jefatura (multilocal operador, top prioridad).
-- **Martes 05/05 10-11:30**: 4 emails + 1 llamada → D2 Norat, D3 Riazor (pedir derivar a Rafael Ferreiro / dirección Grupo Ferreiro), D4 Gelmírez, D6 Galatea (timing relanzamiento 2026) + D1 Hotel Coia llamada (sin email visible).
+| Fecha | Prospect | Canal | Resultado | Próximo paso |
+|---|---|---|---|---|
+| 03/05 19:40 | C14 Papatorio | Llamada | Encargado pidió volver 21:00 | Insistir 21:00 |
+| 03/05 21:00 | C14 Papatorio | Llamada | Encargado bloqueó · derivó a mail | Mail enviado mismo día |
+| 03/05 (post-llamada) | C14 Papatorio | Mail info@ | Sin respuesta a 05/05 19:30 | LinkedIn 5º intento |
+| 05/05 ~16:30-18:30 | D1 Hotel Coia | Llamada | Filtrado · derivó a info@hotelcoia.com | Mail con plantilla formato Papatorio |
 
-**Criterios de éxito**:
-- Si **≥2 conversaciones reales** con dolor literal capturado tras los 13 → Velacre encaja, calibrar pricing/ICP/copy.
-- Si **0-1 conversación** tras los 13 → ICP estructuralmente inaccesible o dolor no existe → decisión grande sobre Velacre con datos en mano.
+---
 
-**Recordatorios** (mismo canal, mismo día semana):
-- Domingo 11/05 → recordatorio amistoso a los 6 enviados ayer 03/05 si silencio.
-- Lunes 12/05 → recordatorio a Papatorio mail (si silencio total ya descarte).
-- Domingo 18/05 → cierre ❌ silencio para los que sigan sin respuesta tras recordatorio.
+## Pendientes envío · orden recomendado por valor
+
+| Prioridad | Prospect | Canal | Notas |
+|---|---|---|---|
+| ⭐⭐ | C20 Milongas | `administración@universomilongas.com` | Caso oro multilocal 10 locales |
+| ⭐⭐ | C14 Papatorio LinkedIn | LinkedIn Ernesto Montes Alvite o Susana Currais Silveira | Dueños identificados · 5º intento |
+| ⭐ | D9 Nagari | `administracion@granhotelnagari.com` | Canal admin@ encontrado |
+| ⭐ | D8 Noa Boutique | `reservas@noaboutiquehotel.com` | Reputación premiada Nat Geo 2023 |
+| ⭐ | C19 A Nave de Vidán | `info@anavedevidan.com` | Proyecto 2023 muy joven |
+| 3 | D7 Inpac/Augusta | `administracion@grupoinpac.com` | Multilocal sin escaparate |
+| 3 | C18 Pandelino | WhatsApp +34 629 50 92 63 | Pregunta abierta agencia |
+| 3 | D10 Nuevo Astur | `info@nuevoastur.com` | Diversidad ICP 3★ |
+| 4 (re-tantear canales) | D1 Coia | `info@hotelcoia.com` | Mail post-llamada filtrada |
+| 4 | D3 Riazor | `direccion@riazorhotel.com` | Tantear canal |
+| 4 | D4 Gelmírez | `administracion@hotelgelmirez.com` | Tantear canal |
+| 4 | D5 Loop Inn | WhatsApp +34 682 15 80 11 | Tantear canal |
+| 4 | D6 Galatea | `admon@hotelgalatea.com` | Tantear canal |
+
+---
+
+## Criterios de éxito (recalculados con 20 activos)
+
+- **≥2 conversaciones reales** con dolor literal capturado → Velacre encaja, calibrar pricing/ICP/copy.
+- **0-1 conversación** tras los 20 → ICP estructuralmente inaccesible o dolor no existe → decisión grande con datos en mano.
+
+---
+
+## Calendario recordatorios
+
+| Fecha | Acción |
+|---|---|
+| Domingo 11/05 | Recordatorio amistoso a tanda 1 (03/05) y tanda 2 (05/05 mañana) si silencio |
+| Lunes 12/05 | Cierre ❌ Papatorio si silencio total tras LinkedIn |
+| Lunes 12/05 | Recordatorio a tanda 3 (envíos post-05/05 19:30) si silencio |
+| Domingo 18/05 | Cierre ❌ silencio para los que sigan sin responder tras recordatorio |
+
+---
+
+## Acciones Manuel pendientes
+
+- ⏳ **Pegar 3 links de Maps** para C21 Pulpería de Melide, C22 Restaurante Finisterrae, C23 Pulpería O Fiuza (todas en A Coruña zona Torre de Hércules). Sin link Maps no puedo fichar sin inventar.
+- ⏳ **Localizar LinkedIn** de Ernesto Montes Alvite y/o Susana Currais Silveira (dueños XASTRE DO PETO SL = Papatorio) para mandar la plantilla del 5º intento.
+
+---
 
 ## 🚫 Descartados por criba digital 04/05
 
 9 prospects archivados: O Bocoi, O Centolo, Fonte Do Rei, Tira do Cordel, O Chiringuito, María Castaña, O Barco, Il Piccolo, Bar La Tita.
 
-Razón estructural común: **sin IG ni email visibles** o **dominio web expirado / FB only / perfil tradicional** = predictor fuerte de baja probabilidad de adoptar SaaS B2B en castellano. Las fichas se mantienen en `fichas.md` y `dms.md` por si en el futuro alguno aparece como warm intro o cambia el contexto digital, pero no se trabajan activamente.
+Razón estructural común: sin IG ni email visibles, dominio web expirado, FB only, o perfil tradicional → predictor fuerte de baja probabilidad de adoptar SaaS B2B en castellano. Las fichas se mantienen en [`fichas.md`](fichas.md) y [`dms.md`](dms.md) por si en el futuro alguno aparece como warm intro o cambia el contexto digital, pero no se trabajan activamente.
+
+## 🚫 Descartados estructurales 05/05
+
+| Prospect | Razón |
+|---|---|
+| Sibuya Urban Sushi Bar | Cadena nacional · decisor HQ fuera de Galicia · franquicia local no decide SaaS |
+| Parador (cualquier parador gallego) | Paradores SA centralizada Madrid · gerente local no decide SaaS · misma lógica que cadena nacional |
