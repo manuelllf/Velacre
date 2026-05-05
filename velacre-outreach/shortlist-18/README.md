@@ -28,7 +28,7 @@
 | ⭐⭐ Tanda 2 nuevos (post-research 05/05) | 7 | C18 Pandelino, C19 A Nave, C20 Milongas, D7 Inpac, D8 Noa, D9 Nagari, D10 Nuevo Astur |
 | 🔁 Re-tantear canal admin/dirección | 5 | D1 Coia info@, D3 Riazor direccion@, D4 Gelmírez admon@, D5 Loop Inn WhatsApp, D6 Galatea admon@ |
 | 🔗 Papatorio 5º intento | 1 | C14 LinkedIn a Ernesto Montes Alvite o Susana Currais Silveira (dueños XASTRE DO PETO SL) |
-| ⏳ Pendientes link Maps Manuel | 3 | C21 Pulpería de Melide, C22 Finisterrae, C23 O Fiuza (todas A Coruña Torre Hércules) |
+| ✅ Maps recibidos 05/05 (C21, C22, C23) | 3 | A Pulpeira de Melide (Plaza España) · Restaurante Finisterrae (Rúa Hermanos de la Lejía, ⏳ verificar tel/IG en Maps) · Pulpeira O Fiuza (Avda Navarra 33 · dueño José Manuel Díaz Novoa) |
 | 🚫 Descartes criba 04/05 | 9 | C2, C3, C4, C5, C7, C9, C11, C12, C13 |
 | 🚫 Descartes estructurales 05/05 | 2 | Sibuya cadena nacional · Parador estatal centralizado |
 

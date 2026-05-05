@@ -904,23 +904,96 @@ Manuel
 
 ---
 
-### C21 · Pulpería de Melide (A Coruña, zona Torre Hércules) — pendiente Maps
+### C21 · A Pulpeira de Melide · A Coruña
 
-⏳ Sin link Maps directo — todos los buscadores (Bing, DuckDuckGo, TripAdvisor) devuelven CAPTCHA o resultados no relacionados con esa grafía exacta + ubicación. Ficha y plantilla pendientes hasta que Manuel pegue link Maps. Acción Manuel: pegar URL Google Maps del prospect.
+**Canal recomendado**: 📧 **email** [info@pulpeirademelide.com](mailto:info@pulpeirademelide.com) — negocio familiar pequeño, "info@" típicamente lo lee dueño/familiar directo. Backup IG [@pulpeirademelide](https://instagram.com/pulpeirademelide).
 
-### C22 · Restaurante Finisterrae (A Coruña, zona Torre Hércules) — pendiente Maps
+**Asunto**: 10 minutos · escuchar a pulperías gallegas con tradición familiar
 
-⏳ Misma situación que C21. Ficha y plantilla pendientes hasta que Manuel pegue link Maps.
+```
+Boas,
 
-### C23 · Pulpería O Fiuza (A Coruña, zona Torre Hércules) — pendiente Maps
+Soy Manuel, tengo 21 y vivo en Ferrol.
 
-⏳ Misma situación que C21. Ficha y plantilla pendientes hasta que Manuel pegue link Maps.
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a dueños de pulperías
+gallegas con tradición familiar que muevan volumen
+real de reseñas en Google. Vosotros con 4
+generaciones de pulpeiros detrás y la pulpería en
+plena Plaza de España de Coruña sois justo el
+perfil con el que quiero hablar.
+
+¿Te encajan 10 minutos por WhatsApp esta semana?
+Yo pregunto y tú me cuentas.
+
+Un abrazo,
+Manuel
+```
+
+---
+
+### C22 · Restaurante Finisterrae · A Coruña
+
+**Canal**: enviado por Manuel 05/05 noche · canal exacto a verificar (mail o DM IG, dependió de lo que vio en Maps).
+
+**Plantilla base** (a contrastar contra la versión final que envió Manuel — el hook concreto lo rellenó él al disponer de tel/IG/año desde Maps):
+
+```
+Boas,
+
+Soy Manuel, tengo 21 y vivo en Ferrol.
+
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a dueños de restaurantes
+gallegos con identidad propia en Coruña que muevan
+volumen de reseñas en Google. Vosotros con [HOOK
+ESPECÍFICO: años / concepto / ubicación cerca del
+paseo] sois justo el perfil con el que quiero hablar.
+
+¿Te encajan 10 minutos por WhatsApp esta semana?
+Yo pregunto y tú me cuentas.
+
+Un abrazo,
+Manuel
+```
+
+> **Nota Velacre**: la web `restaurantefinisterrae.com` con cert TLS roto es señal de pain digital fuerte — si no tienen el cert al día, casi seguro que tampoco gestionan reseñas. Buena entrada conversacional honesta para una eventual 2ª conversación (no para outreach frío).
+
+---
+
+### C23 · Pulpeira O Fiuza · A Coruña
+
+**Canal recomendado**: 📧 **email** [info@pulpeiraofiuza.com](mailto:info@pulpeiraofiuza.com), saludando directamente al dueño identificado **José Manuel Díaz Novoa**. Pulpería con web propia funcional pese a 50+ años → señal de cuidado digital, perfil interesante.
+
+**Asunto**: 10 minutos · escuchar a pulperías gallegas con medio siglo de historia
+
+```
+Buenos días José Manuel,
+
+Soy Manuel, tengo 21 y vivo en Ferrol.
+
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a dueños de pulperías
+gallegas con tradición que muevan volumen real de
+reseñas en Google. Vosotros con más de 50 años en
+Avda. Navarra y la pulpería como referencia en
+Cuatro Caminos sois justo el perfil con el que
+quiero hablar.
+
+¿Te encajan 10 minutos por WhatsApp esta semana?
+Yo pregunto y tú me cuentas.
+
+Un abrazo,
+Manuel
+```
+
+> **Nota**: el saludo nominativo "Buenos días José Manuel" rompe el patrón "Boas" del resto. Decisión consciente — cuando tienes nombre del dueño identificado, personalizar dispara la respuesta. El "Boas" + voz Manuel-21-Ferrol se mantiene en el cuerpo, solo cambia el saludo.
 
 ---
 
 ## Estado actual
 
-A 2026-05-05 19:30 — ver [`estado.md`](estado.md) para el tracker vivo (envíos, filtros recibidos, pendientes ordenados por valor, calendario de recordatorios y acciones Manuel pendientes).
+**Tanda completa enviada 2026-05-05 noche** — los 22 prospects activos del shortlist-18 están contactados al menos una vez. Outreach saliente cerrado hasta los recordatorios. Tracker vivo en [`estado.md`](estado.md).
 
 ---
 

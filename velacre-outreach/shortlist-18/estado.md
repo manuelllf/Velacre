@@ -1,6 +1,6 @@
 # Estado · Tracker shortlist 18
 
-> Tracker activo del outreach Velacre. Última actualización: **2026-05-05 19:30**.
+> Tracker activo del outreach Velacre. Última actualización: **2026-05-05 ~21:00 — TANDA COMPLETA ENVIADA**.
 
 ## Códigos de estado
 
@@ -36,15 +36,15 @@
 | C11 | O Barco (Sanxenxo) | — | — | 🚫 | Criba 04/05 · 20+ años |
 | C12 | Il Piccolo (Pontevedra) | — | — | 🚫 | Criba 04/05 · dominio expirado |
 | C13 | Bar La Tita (Santiago) | — | — | 🚫 | Criba 04/05 · saturación + sin IG/email |
-| C14 | El Papatorio (Santiago) | DM IG → llamada → mail → **LinkedIn** | 4 contactos previos · LinkedIn pendiente | 📞→📧→🔗 | ⭐ Dueños identificados: **Ernesto Montes Alvite** + **Susana Currais Silveira** (XASTRE DO PETO SL) · 5º y último intento por LinkedIn |
-| C15 | La Jefatura (Santiago) | DM IG @lajefaturarestaurante | 04/05 11:00 | ⬜ | ⭐ Multilocal 3 locales · 3 slots Velacre potenciales |
+| C14 | El Papatorio (Santiago) | DM IG → llamada → mail → LinkedIn | 4 previos + LinkedIn 05/05 noche | 📞→📧→🔗📩 | 5º y último intento enviado · dueños XASTRE DO PETO SL: Ernesto Montes Alvite + Susana Currais Silveira · si silencio 7d → ❌ definitivo |
+| C15 | La Jefatura (Santiago) | DM IG @lajefaturarestaurante | 04/05 11:00 | 📩 | ⭐ Multilocal 3 locales · 3 slots Velacre potenciales |
 | C16 | Miss Maruja (A Coruña) | DM IG @missmaruja | 03/05 | 📩 | Tanda 1 · discovery puro (saturado) |
-| C18 | Pandelino (A Coruña) | WhatsApp +34 629 50 92 63 | ⬜ | ⬜ | Añadido 05/05 · plantilla confirmada · pregunta abierta sobre agencia |
-| C19 | A Nave de Vidán (Santiago) | Email info@anavedevidan.com | ⬜ | ⬜ | Añadido 05/05 · proyecto 2023 muy joven · ⭐ perfil oro |
-| C20 | Milongas Parrillada (multilocal 10) | Email administración@universomilongas.com | ⬜ | ⬜ | Añadido 05/05 · ⭐⭐ **CASO ORO MULTILOCAL 10 LOCALES** |
-| C21 | Pulpería de Melide (A Coruña, T. Hércules) | — | ⏳ pendiente Maps Manuel | ⏳ | Confirmado Manuel 05/05 · necesito link Maps para fichar |
-| C22 | Restaurante Finisterrae (A Coruña, T. Hércules) | — | ⏳ pendiente Maps Manuel | ⏳ | Confirmado Manuel 05/05 · necesito link Maps para fichar |
-| C23 | Pulpería O Fiuza (A Coruña, T. Hércules) | — | ⏳ pendiente Maps Manuel | ⏳ | Confirmado Manuel 05/05 · necesito link Maps para fichar |
+| C18 | Pandelino (A Coruña) | Mail o DM (canal exacto a verificar Manuel) | 05/05 noche | 📩 | Pregunta abierta sobre agencia digital |
+| C19 | A Nave de Vidán (Santiago) | Mail o DM (canal exacto a verificar Manuel) | 05/05 noche | 📩 | ⭐ Proyecto 2023 muy joven · perfil oro |
+| C20 | Milongas Parrillada (multilocal 10) | Mail administración@universomilongas.com | 05/05 noche | 📩 | ⭐⭐ CASO ORO MULTILOCAL 10 LOCALES |
+| C21 | A Pulpeira de Melide (A Coruña, Pl. España) | Mail o DM (canal exacto a verificar Manuel) | 05/05 noche | 📩 | 4 generaciones de pulpeiros · IG @pulpeirademelide |
+| C22 | Restaurante Finisterrae (A Coruña, R. Hermanos de la Lejía) | Mail o DM (canal exacto a verificar Manuel) | 05/05 noche | 📩 | Manuel envió pese a falta de hook completo · web con cert TLS roto = pain digital |
+| C23 | Pulpeira O Fiuza (A Coruña, Avda Navarra 33) | Mail o DM (canal exacto a verificar Manuel) | 05/05 noche | 📩 | 50+ años · ⭐ dueño José Manuel Díaz Novoa · saludo nominativo |
 | 🚫 | Sibuya Urban Sushi Bar | — | — | 🚫 | Descarte estructural 05/05 · cadena nacional, decisor HQ fuera Galicia |
 
 ---
@@ -53,34 +53,33 @@
 
 | # | Prospect | Canal | Fecha | Estado | Notas |
 |---|---|---|---|---|---|
-| D1 | Hotel Coia (Vigo) | Llamada → Email info@hotelcoia.com | 📞 05/05 (filtrado) → email pendiente | 📞→⬜ | Llamada filtrada · derivó a info@hotelcoia.com · plantilla formato Papatorio |
-| D2 | Norat O Grove | Email hnorat@hotelesnorat.com | 05/05 mañana | 📩 | ⭐ Multilocal Grupo Norat |
-| D3 | Hotel Riazor (A Coruña) | Email reservas@ + tantear direccion@ | 05/05 mañana (reservas@) + tantear pendiente | 📩 + ⬜ | ⭐ Grupo Ferreiro · 2 destinatarios = tantear canal |
-| D4 | Hotel Gelmírez (Santiago) | Email reservas@ + tantear administracion@ | 05/05 mañana (reservas@) + tantear pendiente | 📩 + ⬜ | ⭐ 2 destinatarios = tantear canal |
-| D5 | Loop Inn Hostel (Santiago) | DM IG + tantear WhatsApp +34 682 15 80 11 | DM IG 03/05 · WhatsApp pendiente | 📩 + ⬜ | Multilocal 3 · gestión central Cartagena |
-| D6 | Hotel Galatea (Sanxenxo) | Email info@ + tantear admon@ | 05/05 mañana (info@) + tantear pendiente | 📩 + ⬜ | ⭐ Apertura 2026 timing oro · 2 destinatarios = tantear canal |
-| D7 | Grupo Inpac (Hotel Augusta) | Email administracion@grupoinpac.com | ⬜ | ⬜ | Añadido 05/05 · web grupo parqueada · ficha mínima |
-| D8 | Noa Boutique Hotel (Oleiros) | Email reservas@noaboutiquehotel.com | ⬜ | ⬜ | ⭐ Travellers' Choice 2025 + Nat Geo 2023 mejor hotel urbano España |
-| D9 | Gran Hotel Nagari (Vigo) | Email administracion@granhotelnagari.com | ⬜ | ⬜ | 5★ Plaza de Compostela · ⭐ canal admin@ encontrado |
-| D10 | Hotel Nuevo Astur (Sanxenxo) | Email info@nuevoastur.com | ⬜ | ⬜ | 3★ Spa · diversidad ICP |
+| D1 | Hotel Coia (Vigo) | Llamada → Mail info@hotelcoia.com | 📞 05/05 + mail noche 05/05 | 📞→📩 | Llamada filtrada · plantilla formato Papatorio enviada · si silencio 7d → ❌ |
+| D2 | Norat O Grove | Mail hnorat@hotelesnorat.com | 05/05 mañana | 📩 | ⭐ Multilocal Grupo Norat |
+| D3 | Hotel Riazor (A Coruña) | Mail reservas@ + tantear direccion@ (canal final a verificar Manuel) | 05/05 mañana + 05/05 noche | 📩 (doble dominio) | ⭐ Grupo Ferreiro · si los 2 ignoran 7d → ❌ del hotel entero |
+| D4 | Hotel Gelmírez (Santiago) | Mail reservas@ + tantear administracion@ (canal final a verificar Manuel) | 05/05 mañana + 05/05 noche | 📩 (doble dominio) | ⭐ Si los 2 ignoran 7d → ❌ del hotel entero |
+| D5 | Loop Inn Hostel (Santiago) | DM IG + tantear WhatsApp +34 682 15 80 11 (canal final a verificar Manuel) | DM IG 03/05 + WhatsApp 05/05 noche | 📩 (doble canal) | Multilocal 3 · gestión central Cartagena |
+| D6 | Hotel Galatea (Sanxenxo) | Mail info@ + tantear admon@ (canal final a verificar Manuel) | 05/05 mañana + 05/05 noche | 📩 (doble dominio) | ⭐ Apertura 2026 timing oro · si los 2 ignoran 7d → ❌ |
+| D7 | Grupo Inpac (Hotel Augusta) | Mail administracion@grupoinpac.com | 05/05 noche | 📩 | Web grupo parqueada · multilocal sin escaparate |
+| D8 | Noa Boutique Hotel (Oleiros) | Mail reservas@noaboutiquehotel.com | 05/05 noche | 📩 | ⭐ Travellers' Choice 2025 + Nat Geo 2023 mejor hotel urbano España |
+| D9 | Gran Hotel Nagari (Vigo) | Mail administracion@granhotelnagari.com | 05/05 noche | 📩 | 5★ Plaza de Compostela · canal admin@ encontrado |
+| D10 | Hotel Nuevo Astur (Sanxenxo) | Mail info@nuevoastur.com | 05/05 noche | 📩 | 3★ Spa · diversidad ICP |
 | 🚫 | Parador (cualquiera) | — | — | 🚫 | Descarte estructural 05/05 · Paradores SA Madrid centralizada |
 
 ---
 
-## Resumen métrico
+## Resumen métrico — TANDA COMPLETA ENVIADA 05/05
 
 | Métrica | Valor |
 |---|---|
 | Total prospects en archivo | **32** (22 restaurantes + 10 hoteles) |
-| Total prospects activos | **20** (excluidos descartes 04/05 + Sibuya + Parador + 3 pendientes Maps) |
-| ⏳ Pendientes Maps Manuel | 3 (C21, C22, C23) |
-| ✅ Enviados DM/WhatsApp tanda 1 (03/05) | 6 |
-| ✅ Llamadas hechas | 2 (Papatorio 03/05 · Coia 05/05 — ambas filtradas) |
-| ✅ Mails enviados (a 05/05 19:30) | 5 (Papatorio + Riazor + Gelmírez + Galatea + Norat) |
-| 📅 Pendientes envío post-19:30 05/05 | **13** (5 re-tantear canales + 7 nuevos prospects + 1 Papatorio LinkedIn) |
+| Total prospects activos contactados | **22** (todos con al menos 1 mensaje saliente) |
+| ✅ Tanda 1 enviada 03/05 | 6 (DMs/WhatsApp) + 1 mail Papatorio + 2 llamadas Papatorio |
+| ✅ Tanda 2 enviada 04/05 | 1 (C15 La Jefatura DM IG) |
+| ✅ Tanda 3 enviada 05/05 mañana | 4 mails (D2 Norat + D3 Riazor reservas@ + D4 Gelmírez reservas@ + D6 Galatea info@) + 1 llamada D1 Coia (filtrada) |
+| ✅ Tanda 4 enviada 05/05 noche | **15** (todo el resto): C18, C19, C20, C21, C22, C23 + D1 mail + D3 direccion@ + D4 admon@ + D5 WhatsApp + D6 admon@ + D7, D8, D9, D10 + C14 Papatorio LinkedIn |
 | 🚫 Descartes criba digital 04/05 | 9 (C2, C3, C4, C5, C7, C9, C11, C12, C13) |
 | 🚫 Descartes estructurales 05/05 | 2 (Sibuya · Parador) |
-| 💬 Respuestas | 0 |
+| 💬 Respuestas | 0 (a 05/05 21:00) |
 | 📞 Conversaciones agendadas | 0 |
 | ✅ Conversaciones completadas | 0 |
 | 💰 Clientes Velacre | 0 |
@@ -93,53 +92,57 @@
 |---|---|---|---|---|
 | 03/05 19:40 | C14 Papatorio | Llamada | Encargado pidió volver 21:00 | Insistir 21:00 |
 | 03/05 21:00 | C14 Papatorio | Llamada | Encargado bloqueó · derivó a mail | Mail enviado mismo día |
-| 03/05 (post-llamada) | C14 Papatorio | Mail info@ | Sin respuesta a 05/05 19:30 | LinkedIn 5º intento |
-| 05/05 ~16:30-18:30 | D1 Hotel Coia | Llamada | Filtrado · derivó a info@hotelcoia.com | Mail con plantilla formato Papatorio |
+| 03/05 (post-llamada) | C14 Papatorio | Mail info@ | Sin respuesta a 05/05 19:30 | LinkedIn 5º intento (enviado 05/05 noche) |
+| 05/05 ~16:30-18:30 | D1 Hotel Coia | Llamada | Filtrado · derivó a info@hotelcoia.com | Mail enviado 05/05 noche |
 
 ---
 
-## Pendientes envío · orden recomendado por valor
+## Tanda completa enviada · estado actual
 
-| Prioridad | Prospect | Canal | Notas |
-|---|---|---|---|
-| ⭐⭐ | C20 Milongas | `administración@universomilongas.com` | Caso oro multilocal 10 locales |
-| ⭐⭐ | C14 Papatorio LinkedIn | LinkedIn Ernesto Montes Alvite o Susana Currais Silveira | Dueños identificados · 5º intento |
-| ⭐ | D9 Nagari | `administracion@granhotelnagari.com` | Canal admin@ encontrado |
-| ⭐ | D8 Noa Boutique | `reservas@noaboutiquehotel.com` | Reputación premiada Nat Geo 2023 |
-| ⭐ | C19 A Nave de Vidán | `info@anavedevidan.com` | Proyecto 2023 muy joven |
-| 3 | D7 Inpac/Augusta | `administracion@grupoinpac.com` | Multilocal sin escaparate |
-| 3 | C18 Pandelino | WhatsApp +34 629 50 92 63 | Pregunta abierta agencia |
-| 3 | D10 Nuevo Astur | `info@nuevoastur.com` | Diversidad ICP 3★ |
-| 4 (re-tantear canales) | D1 Coia | `info@hotelcoia.com` | Mail post-llamada filtrada |
-| 4 | D3 Riazor | `direccion@riazorhotel.com` | Tantear canal |
-| 4 | D4 Gelmírez | `administracion@hotelgelmirez.com` | Tantear canal |
-| 4 | D5 Loop Inn | WhatsApp +34 682 15 80 11 | Tantear canal |
-| 4 | D6 Galatea | `admon@hotelgalatea.com` | Tantear canal |
+Todos los 22 prospects activos tienen al menos un mensaje saliente. **Fase outreach cerrada — comienza fase espera + recordatorios programados**.
+
+### Apuestas más fuertes (los que rastrear con más atención)
+
+| Prospect | Por qué seguirlo de cerca |
+|---|---|
+| ⭐⭐ C20 Milongas (Universo Milongas) | Caso oro multilocal 10 locales · 1 conversación = upside 10 cuentas |
+| ⭐⭐ C14 Papatorio LinkedIn | 5º intento legítimo a dueños identificados · si responde tras 4 silencios = señal muy fuerte |
+| ⭐ D9 Nagari | Canal `administracion@` salta filtro · 5★ Vigo cubre hueco geográfico |
+| ⭐ D8 Noa Boutique | Reputación premiada (Nat Geo) · si encaja, marca premium para casos de estudio |
+| ⭐ C19 A Nave de Vidán | Proyecto 2023 muy joven · pain reseñas debería ser palpable |
+| ⭐ C23 Pulpeira O Fiuza | Dueño nominativo + saludo personalizado = mayor probabilidad respuesta |
+| ⭐ D6 Galatea | Timing oro relanzamiento 2026 · 2 dominios tantear maximiza alcance |
 
 ---
 
-## Criterios de éxito (recalculados con 20 activos)
+## Criterios de éxito (recalculados con 22 activos)
 
 - **≥2 conversaciones reales** con dolor literal capturado → Velacre encaja, calibrar pricing/ICP/copy.
-- **0-1 conversación** tras los 20 → ICP estructuralmente inaccesible o dolor no existe → decisión grande con datos en mano.
+- **0-1 conversación** tras los 22 → ICP estructuralmente inaccesible o dolor no existe → decisión grande con datos en mano.
 
 ---
 
 ## Calendario recordatorios
 
+Tras el envío masivo del 05/05, todo el shortlist-18 entra en ventana de espera. Recordatorios escalonados por fecha de envío:
+
 | Fecha | Acción |
 |---|---|
-| Domingo 11/05 | Recordatorio amistoso a tanda 1 (03/05) y tanda 2 (05/05 mañana) si silencio |
-| Lunes 12/05 | Cierre ❌ Papatorio si silencio total tras LinkedIn |
-| Lunes 12/05 | Recordatorio a tanda 3 (envíos post-05/05 19:30) si silencio |
-| Domingo 18/05 | Cierre ❌ silencio para los que sigan sin responder tras recordatorio |
+| Domingo 10/05 | Recordatorio amistoso tanda 1 (03/05) si siguen en silencio: C1, C6, C8, C10, C16, D5 (DM IG) |
+| Lunes 11/05 | Recordatorio C15 La Jefatura (DM IG enviado 04/05) si silencio |
+| Martes 12/05 | Recordatorio tanda 3 (mañana 05/05): D2 Norat, D3 Riazor reservas@, D4 Gelmírez reservas@, D6 Galatea info@ — si silencio |
+| Martes 12/05 | Cierre ❌ Papatorio si silencio total tras LinkedIn (5º intento ya tocado) |
+| Martes 12/05 | Cierre ❌ Hotel Coia si silencio mail (llamada filtrada + mail = 2 contactos) |
+| Martes 12/05 | Recordatorio tanda 4 (noche 05/05): C18, C19, C20, C21, C22, C23, D1 (mail), D3 direccion@, D4 admon@, D5 WhatsApp, D6 admon@, D7, D8, D9, D10 — si silencio |
+| Domingo 17/05 | Cierre ❌ silencio definitivo a quien no responda tras recordatorio |
 
 ---
 
-## Acciones Manuel pendientes
+## Acciones Manuel pendientes (post-envío 05/05)
 
-- ⏳ **Pegar 3 links de Maps** para C21 Pulpería de Melide, C22 Restaurante Finisterrae, C23 Pulpería O Fiuza (todas en A Coruña zona Torre de Hércules). Sin link Maps no puedo fichar sin inventar.
-- ⏳ **Localizar LinkedIn** de Ernesto Montes Alvite y/o Susana Currais Silveira (dueños XASTRE DO PETO SL = Papatorio) para mandar la plantilla del 5º intento.
+- ⏳ **Confirmarme canales reales usados** cuando tengas un rato — algunos prospects con doble canal (D3 Riazor, D4 Gelmírez, D5 Loop Inn, D6 Galatea) admitían mail o tantear admin/dirección, y confirmaste que combinaste mail/DM por prospect sin recordar exactamente cuál. Cuando vuelvan respuestas, mejor saber qué canal generó el "sí" para futuras tandas.
+- ⏳ **Si llegan respuestas, volcar inmediatamente** a [`../bitacora.md`](../bitacora.md) con la frase literal del dolor #1 entre comillas (ver [`guion.md`](guion.md) § "Tras la conversación").
+- ⏳ **No mandar nada más al shortlist-18** hasta que se cumplan los recordatorios programados. La presión adicional ahora rompe el patrón Mom Test.
 
 ---
 

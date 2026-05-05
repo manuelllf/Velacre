@@ -17,7 +17,7 @@ Plantillas de outreach: [`dms.md`](dms.md).
 
 ---
 
-## RESTAURANTES (12)
+## RESTAURANTES (22)
 
 ### C1 · Mesón 42 · Santiago
 - **Maps**: [link](https://maps.google.com/?cid=5927344419804187750) · **Tel**: 981 58 10 09
@@ -215,7 +215,7 @@ Si LinkedIn no aparece, Plan B es Instagram personal (suelen estar enlazados des
 
 ---
 
-## HOTELES (6)
+## HOTELES (10)
 
 ### D1 · Hotel Coia · Vigo
 - **Maps**: [link](https://maps.google.com/?cid=12325007622861206252) · **Tel**: 986 20 18 20
@@ -360,17 +360,47 @@ Si LinkedIn no aparece, Plan B es Instagram personal (suelen estar enlazados des
 - **Razón**: red Paradores de Turismo de España SA, centralizada Madrid, propiedad estatal (SEPI). Pricing, software y decisiones digitales se toman a nivel grupo, no parador local. El gerente del Parador de Santiago / Baiona / Cambados no decide adoptar SaaS — eso vendría de Paradores central.
 - **Conclusión**: misma lógica que cadenas hoteleras nacionales (ver Sibuya). Inalcanzable estructuralmente. Volumen de reseñas grande, decisor ausente en Galicia.
 
-### ❓ 3 prospects A Coruña zona Torre de Hércules · pendientes link Maps Manuel
+### C21 · A Pulpeira de Melide · A Coruña — añadido 05/05 (Maps Manuel)
 
-Confirmado por Manuel 05/05: las tres se llaman literalmente así, **todas en A Coruña en la zona Torre de Hércules y alrededores** (no son Ezequiel-Melide town ni Santiago). El research público con Bing/DuckDuckGo/TripAdvisor falla — todos los buscadores devuelven CAPTCHA o resultados no relacionados. Sin link Maps directo no puedo ficharlas sin inventar datos.
+- **Maps**: [link](https://maps.app.goo.gl/UtmiE5xF9NJox7nm6) · **Place ID**: 0xd2e7c8e385f27f5:0x19b4b03e4c8b2c33
+- **Dirección**: **Plaza de España 16** (Boulevard Campo da Leña), A Coruña
+- **Tel**: 981 15 21 97
+- **Web**: [pulpeirademelide.com](https://pulpeirademelide.com) · **Email**: **info@pulpeirademelide.com** ✓
+- **IG**: [@pulpeirademelide](https://instagram.com/pulpeirademelide) · **FB**: [pulpeira.demelide](https://facebook.com/pulpeira.demelide)
+- **Año apertura**: — (la web cita "4 generaciones de pulpeiros" → fundación probable años 50-60, verificar)
+- **Concepto**: pulpería tradicional gallega con herencia familiar de 4 generaciones de pulpeiros
+- **Grupo o único**: 1 local (verificar si tienen apartamentos turísticos como Ezequiel)
+- **Reseñas**: verificar Manuel
+- **Notas**: nombre exacto **"A Pulpeira de Melide"** (grafía gallega, no "Pulpería"). Plaza de España es zona céntrica Coruña (no Torre Hércules estricto, pero "alrededores" en sentido amplio). Hook fuerte: **4 generaciones**. Email "info@" es decisor probable en negocio familiar pequeño.
 
-| # | Nombre | Estado |
-|---|---|---|
-| C21 | **Pulpería de Melide** (A Coruña, zona Torre Hércules) | ⏳ pendiente Manuel pegar link Maps |
-| C22 | **Restaurante Finisterrae** (A Coruña, zona Torre Hércules) | ⏳ pendiente Manuel pegar link Maps |
-| C23 | **Pulpería O Fiuza** (A Coruña, zona Torre Hércules) | ⏳ pendiente Manuel pegar link Maps |
+### C22 · Restaurante Finisterrae · A Coruña — añadido 05/05 (Maps Manuel)
 
-**Acción Manuel**: pegar 3 links de Maps (uno por prospect). Con eso saco web/IG/email/teléfono/dueños de cada uno y completo fichas + plantillas Mom Test en una sola tanda.
+- **Maps**: [link](https://maps.app.goo.gl/vTp6aVSnfJtphFk27) · **Place ID**: 0xd2e7c7410a89d6b:0xf24cf0b7f3d601b5
+- **Dirección**: **Rúa Hermanos de la Lejía**, A Coruña (número exacto no recuperable de OSM, verificar Manuel en Maps)
+- **Tel**: — (verificar Manuel en Maps)
+- **Web**: `restaurantefinisterrae.com` → **🚨 cert TLS roto (ERR_TLS_CERT_ALTNAME_INVALID)** = señal de pain digital · web operativa pero mal mantenida
+- **Email**: — (no localizado públicamente)
+- **IG**: — (no localizable sin login)
+- **Año apertura**: —
+- **Concepto**: — (sin web accesible, sin acceso a IG público)
+- **Grupo o único**: —
+- **Reseñas**: verificar Manuel
+- **Notas**: ⚠ **research bloqueado** — web con cert roto + IG cerrado a fetch + buscadores devuelven CAPTCHA. Lo único accesible: nombre exacto, ubicación aprox (Rúa Hermanos de la Lejía, zona próxima Riazor), coords. La web rota es paradójicamente **señal de oro Velacre**: si no tienen ni el cert al día, mucho menos tienen herramienta de gestión de reseñas. Acción Manuel: ir a la ficha Maps y copiarme tel + IG + número exacto de calle. Con eso completo plantilla.
+
+### C23 · Pulpeira O Fiuza · A Coruña — añadido 05/05 (Maps Manuel)
+
+- **Maps**: [link](https://maps.app.goo.gl/ZcAKtT5LU5wP8Mv96) · **Place ID**: 0xd2e7c768c7f956d:0xb3ecf0b880376dcd
+- **Dirección**: **Avenida Navarra 33 bajo, 15002 A Coruña** (zona Cuatro Caminos)
+- **Tel**: 981 92 34 70
+- **Web**: [pulpeiraofiuza.com](https://pulpeiraofiuza.com) · **Email**: **info@pulpeiraofiuza.com** ✓
+- **IG**: — (no listado en web, verificar Manuel)
+- **FB**: — (no listado en web, verificar Manuel)
+- **Año apertura**: **más de 50 años** (web menciona herencia, fundación ~años 70 o antes)
+- **Concepto**: pulpería tradicional gallega
+- **Grupo o único**: 1 local
+- **Reseñas**: verificar Manuel
+- **Dueño**: ⭐ **José Manuel Díaz Novoa** (identificado en /aviso-legal o footer web)
+- **Notas**: con dueño identificado por nombre, plantilla puede personalizarse — saludar directamente "Buenos días José Manuel". Negocio familiar 50+ años pero con web propia funcionando = mantiene cuota digital pese a edad. Hook: **medio siglo + Avda Navarra + dueño nominativo**.
 
 ### D7 · Grupo Inpac (Hotel Augusta) · — añadido 05/05 sobre la marcha
 - **Maps**: — (verificar Manuel — qué hotel concreto del grupo) · **Tel**: —
@@ -385,33 +415,12 @@ Confirmado por Manuel 05/05: las tres se llaman literalmente así, **todas en A 
 
 ---
 
-## Resumen post-criba 04/05 · solo prospects activos (13 = 7 enviados + 6 prioritarios)
+## Patrones del shortlist activo (post-tanda completa 05/05)
 
-### Prioritarios pendientes (6)
+- **Multilocal operador (5 de 22)**: C15 La Jefatura (3 locales) · C20 Milongas (10 locales) · D2 Norat · D3 Riazor (Grupo Ferreiro) · D5 Loop Inn (3) · D7 Grupo Inpac. Perfil oro Velacre por upside conceptual.
+- **Hoteles (10 de 22)**: el ICP donde queda más volumen tras criba digital. 5 prioritarios y 5 nuevos tras research 05/05.
+- **Reputación cuidada (premiados)**: D8 Noa Boutique (Nat Geo 2023 + Travellers' Choice 2025). Si encaja, marca premium para casos de estudio.
+- **Restaurantes con web rota = pain digital fuerte**: C12 Il Piccolo (descartado, dominio expirado) y C22 Finisterrae (cert TLS roto pero sigue activo). El segundo es perfil oro contrastado.
+- **Dueños identificados nominalmente**: C14 Papatorio (Ernesto Montes Alvite + Susana Currais Silveira) y C23 O Fiuza (José Manuel Díaz Novoa). En ambos, mensaje personalizado al dueño = mayor probabilidad respuesta.
 
-| # | Prospect | Canal | Fecha objetivo | Nota |
-|---|---|---|---|---|
-| ⭐ C15 | La Jefatura (Santiago) | DM IG @lajefaturarestaurante | Lunes 04/05 11:00 | Multilocal operador grupo gallego (3 locales) |
-| ⭐ D1 | Hotel Coia (Vigo) | Llamada 986 20 18 20 | Martes 05/05 16:30-18:30 | Sin email visible · recepción 24/7 |
-| ⭐ D2 | Norat O Grove | Email hnorat@hotelesnorat.com | Martes 05/05 10-11:30 | Multilocal Grupo Hoteles Norat |
-| ⭐ D3 | Hotel Riazor (A Coruña) | Email reservas@riazorhotel.com | Martes 05/05 10-11:30 | **Grupo Ferreiro** (Rafael Ferreiro, Santiago) · pedir derivar a dirección |
-| ⭐ D4 | Hotel Gelmírez (Santiago) | Email reservas@hotelgelmirez.com | Martes 05/05 10-11:30 | Pedir derivar a gerencia |
-| ⭐ D6 | Hotel Galatea (Sanxenxo) | Email info@hotelgalatea.com | Martes 05/05 10-11:30 | Timing oro · relanzamiento 2026 |
-
-### Ya contactados (7)
-
-| # | Prospect | Canal | Fecha | Estado |
-|---|---|---|---|---|
-| C1 | Mesón 42 (Santiago) | DM IG | 03/05 21:14 | 📩 silencio |
-| C6 | O Piorno (Santiago) | DM IG | 03/05 21:14 | 📩 silencio |
-| C8 | Playa Fluvial A Cova (Saviñao) | WhatsApp | 03/05 21:14 | 📩 silencio |
-| C10 | O Mirador (Portomarín) | DM IG | 03/05 21:14 | 📩 silencio |
-| C14 | El Papatorio (Santiago) | Llamada → Mail | 03/05 19:40 + 21:00 + mail | 📞→📧 silencio · 1 último intento mail |
-| C16 | Miss Maruja (A Coruña) | DM IG @missmaruja | 03/05 | 📩 silencio · discovery puro (saturado) |
-| D5 | Loop Inn Hostel (Santiago) | DM IG | 03/05 21:14 | 📩 silencio |
-
-### Patrones del shortlist activo
-
-- **Multilocal operador**: C15 La Jefatura (3), D2 Norat, D3 Riazor (Grupo Ferreiro), D5 Loop Inn (3) — **4 de 13 son multilocal operador**, perfil oro Velacre.
-- **Hoteles**: 5 de los 6 prioritarios son hoteles. Es el ICP donde queda más volumen tras la criba.
-- **Restaurantes activos**: solo 1 de los 6 prioritarios (La Jefatura) — el dolor en restaurantes establecidos parece estructuralmente bajo.
+> Estado de envíos: ver tracker vivo en [`estado.md`](estado.md).
