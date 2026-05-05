@@ -1,6 +1,6 @@
 # Estado · Tracker shortlist 18
 
-> Tracker activo del outreach Velacre. Última actualización: **2026-05-05 ~21:00 — TANDA COMPLETA ENVIADA**.
+> Tracker activo del outreach Velacre. Última actualización: **2026-05-05 ~22:00 — TANDA COMPLETA + INTEL PIZZERÍAS CARLOS ENVIADOS**. Cierre del día.
 
 ## Códigos de estado
 
@@ -94,6 +94,7 @@
 | 03/05 21:00 | C14 Papatorio | Llamada | Encargado bloqueó · derivó a mail | Mail enviado mismo día |
 | 03/05 (post-llamada) | C14 Papatorio | Mail info@ | Sin respuesta a 05/05 19:30 | LinkedIn 5º intento (enviado 05/05 noche) |
 | 05/05 ~16:30-18:30 | D1 Hotel Coia | Llamada | Filtrado · derivó a info@hotelcoia.com | Mail enviado 05/05 noche |
+| 05/05 ~22:00 | 🎯 Pizzerías Carlos (intel) | Formulario web `/contacto/` | Mensaje enviado (194 chars) | Esperar respuesta · recordatorio 12/05 si silencio · ❌ a 19/05 |
 
 ---
 
@@ -134,7 +135,9 @@ Tras el envío masivo del 05/05, todo el shortlist-18 entra en ventana de espera
 | Martes 12/05 | Cierre ❌ Papatorio si silencio total tras LinkedIn (5º intento ya tocado) |
 | Martes 12/05 | Cierre ❌ Hotel Coia si silencio mail (llamada filtrada + mail = 2 contactos) |
 | Martes 12/05 | Recordatorio tanda 4 (noche 05/05): C18, C19, C20, C21, C22, C23, D1 (mail), D3 direccion@, D4 admon@, D5 WhatsApp, D6 admon@, D7, D8, D9, D10 — si silencio |
-| Domingo 17/05 | Cierre ❌ silencio definitivo a quien no responda tras recordatorio |
+| Domingo 17/05 | Cierre ❌ silencio definitivo shortlist-18 a quien no responda tras recordatorio |
+| Martes 12/05 | Recordatorio Pizzerías Carlos (intel) si silencio · formulario web (mismo canal) |
+| Lunes 19/05 | Cierre ❌ Pizzerías Carlos (intel) si silencio total |
 
 ---
 
@@ -143,6 +146,7 @@ Tras el envío masivo del 05/05, todo el shortlist-18 entra en ventana de espera
 - ⏳ **Confirmarme canales reales usados** cuando tengas un rato — algunos prospects con doble canal (D3 Riazor, D4 Gelmírez, D5 Loop Inn, D6 Galatea) admitían mail o tantear admin/dirección, y confirmaste que combinaste mail/DM por prospect sin recordar exactamente cuál. Cuando vuelvan respuestas, mejor saber qué canal generó el "sí" para futuras tandas.
 - ⏳ **Si llegan respuestas, volcar inmediatamente** a [`../bitacora.md`](../bitacora.md) con la frase literal del dolor #1 entre comillas (ver [`guion.md`](guion.md) § "Tras la conversación").
 - ⏳ **No mandar nada más al shortlist-18** hasta que se cumplan los recordatorios programados. La presión adicional ahora rompe el patrón Mom Test.
+- ✅ **Pizzerías Carlos (intel competitivo)** — enviado 05/05 noche por **formulario web** `pizzeriascarlos.es/contacto/` (versión 194 chars). Tracking aparte del shortlist-18. Si responde, volcar a sección "Intel competitivo · Pizzerías Carlos / Localmetric" en [`../bitacora.md`](../bitacora.md). Regla cierre: 1 recordatorio a 7d si silencio, ❌ a 14d.
 
 ---
 

@@ -991,9 +991,70 @@ Manuel
 
 ---
 
+---
+
+## 🎯 INTEL · Pizzerías Carlos · cadena nacional con Localmetric — añadido 05/05
+
+**Categoría distinta**: NO es prospect venta. Es **prospect de inteligencia competitiva**. Manuel detectó que ya usan Localmetric (incumbente directo de Velacre) por el patrón de respuestas a reseñas en Google Maps. Objetivo del mensaje: entender cómo lo usan desde dentro + idealmente warm intro a Localmetric.
+
+**Canal recomendado**: 🔗 **LinkedIn** al fundador **Carlos Paramés García Astigarraga** (sigue en Consejo de Administración desde sept 2023) o al Marketing Director / Head of Customer Experience de Pizzerías Carlos. Manuel busca manualmente el perfil más adecuado.
+
+**Canal alternativo**: formulario web `https://pizzeriascarlos.es/contacto/` categoría "consulta general" (filtros corporativos duros — probabilidad respuesta baja).
+
+**Reglas para esta plantilla** (distintas a Mom Test estándar shortlist-18):
+
+1. **Honestidad sobre lo observado**: ya tienes evidencia de que gestionan reseñas de manera estructurada. No fingir desconocerlo. Pero **NO nombrar "Localmetric" tú** — que ellos lo confirmen o no.
+2. **Promesa explícita anti-venta**: el receptor verá una cadena con CIF, fundador, fondo y consejo, y un chaval de 21 contactando. La única forma de que no te ignore es decir abiertamente que no vas a venderle nada.
+3. **Doble apertura final**: (a) hablar con la persona del equipo que lo lleve, (b) si trabajan con empresa externa, conocerla — sin asumir que la tienen.
+4. **Cierre fijo "Yo pregunto y tú me cuentas"**: se mantiene · firma Manuel.
+
+**Plantilla LinkedIn / formulario web**:
+
+```
+Hola [Carlos / nombre que pase Manuel],
+
+Soy Manuel, tengo 21 y vivo en Ferrol.
+
+Llevo un tiempo dándole vueltas a un tema y antes de
+seguir necesito escuchar a cadenas de restauración
+en España que ya estén gestionando volumen real de
+reseñas en Google de manera estructurada. Vosotros
+con Pizzerías Carlos, los locales que tenéis abiertos
+y la forma en que respondéis online sois justo el
+perfil con el que quiero hablar.
+
+Por ser claro: no os vendo nada hoy y no os pido
+nada sensible. 10 minutos por WhatsApp o llamada
+cuando os encaje, te hago unas preguntas, me cuentas
+lo que quieras y listo.
+
+Dos cosas más, por adelantado:
+
+– Si dentro del equipo lo lleva otra persona en
+  concreto (operaciones, customer experience,
+  marketing), me encaja igual hablar con esa persona.
+
+– Si trabajáis con alguna empresa externa para esta
+  parte, también me encantaría poder conocerla — no
+  para venderles nada, para entender mejor el espacio.
+
+Yo pregunto y tú me cuentas.
+
+Un abrazo,
+Manuel
+```
+
+**Regla de cierre**: 1 envío + 1 recordatorio a 7d si silencio. A 14d ❌ silencio. **No insistir más** — cadena nacional, ratio respuesta esperado bajo, no compensa.
+
+**Si responden algo**: tratar como conversación intel separada, **no contar como métrica del shortlist-18** (criterio "≥2 conversaciones de dolor real" se mantiene aparte). Volcar a [`../bitacora.md`](../bitacora.md) en sección "Intel competitivo · Pizzerías Carlos / Localmetric".
+
+---
+
 ## Estado actual
 
 **Tanda completa enviada 2026-05-05 noche** — los 22 prospects activos del shortlist-18 están contactados al menos una vez. Outreach saliente cerrado hasta los recordatorios. Tracker vivo en [`estado.md`](estado.md).
+
+**Pizzerías Carlos (intel competitivo)** enviado 05/05 ~22:00 por **formulario web `pizzeriascarlos.es/contacto/`** — versión comprimida 194 caracteres. Tracking aparte del shortlist-18 con métricas propias. Recordatorio programado 12/05 si silencio (mismo canal · formulario web), cierre 19/05.
 
 ---
 

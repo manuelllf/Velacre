@@ -402,6 +402,32 @@ Si LinkedIn no aparece, Plan B es Instagram personal (suelen estar enlazados des
 - **Dueño**: ⭐ **José Manuel Díaz Novoa** (identificado en /aviso-legal o footer web)
 - **Notas**: con dueño identificado por nombre, plantilla puede personalizarse — saludar directamente "Buenos días José Manuel". Negocio familiar 50+ años pero con web propia funcionando = mantiene cuota digital pese a edad. Hook: **medio siglo + Avda Navarra + dueño nominativo**.
 
+### 🎯 INTEL · Pizzerías Carlos · cadena nacional con Localmetric — añadido 05/05
+
+**No es prospect venta. Es prospect de inteligencia competitiva.** Manuel detectó que ya usan Localmetric (incumbente de Velacre) por las respuestas estandarizadas a reseñas en Maps. Objetivo del outreach: entender cómo lo usan desde dentro + ideal warm intro a Localmetric.
+
+- **Razón social**: GESTION OPERATIVA DE PIZZERIAS CARLOS SL · **CIF**: B62432067
+- **Sede**: Calle San Romualdo 26, local B, 28037 Madrid · **Tel**: +34 917 55 15 64
+- **Web**: [pizzeriascarlos.es](https://pizzeriascarlos.es) · **Email**: — (solo formulario `/contacto/`, sin email directo público)
+- **Tagline**: "La pizza que recordabas"
+- **Año constitución**: 2000 (25 años)
+- **Capital social**: 1.732.498 € (empresa mediana-grande, no PYME)
+- **Estructura gobierno**: ⭐ **Consejo de Administración desde sept 2023** (cambio reciente vs administrador único previo) — señal de entrada de fondo / recapitalización. Miembros:
+  1. **Leopoldo Reaño Costales** (Presidente)
+  2. José María De León Sundhein
+  3. Jaime Benjumea Barroso
+  4. Javier Crespo Coll
+  5. **Carlos Paramés García Astigarraga** (fundador histórico, el "Carlos")
+  6. **FCS Ros Global Group SL** (vehículo fondo familiar hostelero — Roberto Ros)
+  7. Stefano Caspani
+- **Reputación stack**: 🚨 **Localmetric confirmado por patrón respuestas en Maps** (Manuel detectó). Velacre = competidor directo del incumbente.
+- **Notas estratégicas**:
+  - Como prospect venta: ❌ descarte estructural · cadena nacional, decisor corporativo Madrid, Velacre no entra como vendor desde Ferrol.
+  - Como **prospect intel**: ⭐⭐ valor enorme. Una conversación de 10 min con alguien de Marketing/Customer Experience te dice (a) qué les vende localmetric, (b) qué echan en falta, (c) precio aproximado en cadena, (d) tiempo de implementación, (e) frustraciones. Eso reposiciona Velacre v2.
+  - Bonus: si te derivan a la persona de localmetric que les lleva la cuenta = warm intro al incumbente.
+- **Mejor canal anti-filtro**: LinkedIn al fundador **Carlos Paramés García Astigarraga** o al Marketing Director (Manuel busca manualmente). Formulario `/contacto/` es alternativa con menor probabilidad respuesta.
+- **Encuadre Mom Test ajustado**: **NO ocultar** que ves que ya tienen sistema en marcha. Hook honesto: "vi que respondéis online de manera estructurada → quiero entender cómo lo gestionáis", sin nombrar Localmetric tú. Que ellos lo digan o no.
+
 ### D7 · Grupo Inpac (Hotel Augusta) · — añadido 05/05 sobre la marcha
 - **Maps**: — (verificar Manuel — qué hotel concreto del grupo) · **Tel**: —
 - **Web grupo**: [grupoinpac.com](https://grupoinpac.com) → **🚨 dominio parqueado en dinahosting, sin contenido público** (señal: el grupo no tiene escaparate digital propio operativo, marca pública la lleva el hotel directamente)
