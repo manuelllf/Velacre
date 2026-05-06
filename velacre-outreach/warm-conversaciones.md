@@ -17,6 +17,15 @@
 
 ## Contactos identificados
 
+### Portiño en Boca · Camariñas — ⭐ activo 05/05
+
+- **Relación**: warm caliente · Manuel coincidió con el dueño hace meses al pagar (charla informal Ferrol/Costa da Morte) · 04/05 WhatsApp al tlf empresa · 05/05 dueño devolvió audio con tlf personal para llamar.
+- **Por qué interesa**: rapport físico previo · dueño-operador accesible · perfil estacional Costa da Morte (10 reseñas/mes media · 25 pico verano · 1-3 invierno).
+- **Por qué NO es Velacre directo**: 10 reseñas/mes = 30 min responder a mano, 49€ no se justifica solo por eso. Llamada va a descubrir dolor real (estacionalidad, reservas, marketing baja temporada) — Mom Test puro funcionando.
+- **Estado**: 📞 llamada pendiente · recomendado jueves 07/05 17:00-18:30 (avisar por WhatsApp antes).
+- **Guion + ficha completa**: [`warm-portino-en-boca.md`](warm-portino-en-boca.md) — guion adaptado a warm (no el de los 6 puntos cold), banderas a vigilar, plantilla post-mortem.
+
+
 ### Gym Bitácora (Ferrol)
 
 - **Relación**: warm (cliente / contacto cercano — confirmar tipo de vínculo).
