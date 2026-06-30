@@ -9,7 +9,7 @@ SaaS B2B que permite a negocios locales gestionar y responder reseñas de Google
 ## Qué hace
 
 - Importa reseñas de Google automáticamente (vía Google Business Profile API o Outscraper como fallback)
-- Genera respuestas con IA (Claude Sonnet) en 6 tonos diferentes, en el idioma de la reseña
+- Genera respuestas con IA (Claude) en 6 tonos diferentes, en el idioma de la reseña
 - Filtro de seguridad que retiene automáticamente reseñas con acusaciones graves antes de generar respuesta
 - Panel de salud con métricas, análisis IA y evolución histórica
 - Radar de competencia: análisis comparativo contra hasta 3 rivales (plan Pro)
